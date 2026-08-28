@@ -33,8 +33,8 @@ export function accountView(
     underlying,
     sdk,
     rwaAsset: sdk.tokensMeta.rwaUnderlyings.get(underlying)?.asset,
-    debt: creditAccount.accountDebt,
-    collateral: totalValue - creditAccount.accountDebt,
+    debt: creditAccount.totalDebt,
+    collateral: totalValue - creditAccount.totalDebt,
     band: { minDebt: creditFacade.minDebt, maxDebt: creditFacade.maxDebt },
     balanceOf: (token: Address) =>
       creditAccount.tokens.find(t => eq(t.token, token))?.balance ?? 0n,

@@ -42,9 +42,9 @@ export const LEV_3X = 300n;
 export interface DepositCase {
   intent: DepositStrategyIntent;
   tokens: ReturnType<typeof caToken>[];
-  accountDebt: bigint;
+  totalDebt: bigint;
   totalValue: bigint;
-  accountDebtAfter: bigint;
+  totalDebtAfter: bigint;
   ops: ExpectedFlowOp[];
   rwaAssets?: Record<Address, Address>;
 }
@@ -58,9 +58,9 @@ export const case_fixed_leverage: DepositCase = {
     positionToken: POS,
   },
   tokens: [caToken(POS, P1000, QUOTA_1000)],
-  accountDebt: DEBT_START,
+  totalDebt: DEBT_START,
   totalValue: P2000,
-  accountDebtAfter: P1000,
+  totalDebtAfter: P1000,
   ops: [
     { type: "addCollateral", token: UND, amount: DEP, value: undefined },
     { type: "increaseDebt", amount: DEP },
@@ -89,9 +89,9 @@ export const case_target_leverage: DepositCase = {
     targetLeverage: LEV_3X,
   },
   tokens: [caToken(POS, P1000, QUOTA_1000)],
-  accountDebt: DEBT_START,
+  totalDebt: DEBT_START,
   totalValue: P3000,
-  accountDebtAfter: P2000,
+  totalDebtAfter: P2000,
   ops: [
     { type: "addCollateral", token: UND, amount: DEP, value: undefined },
     { type: "increaseDebt", amount: P2000 - DEBT_START },
@@ -119,9 +119,9 @@ export const case_position_is_underlying: DepositCase = {
     positionToken: UND,
   },
   tokens: [caToken(UND, P1000)],
-  accountDebt: DEBT_START,
+  totalDebt: DEBT_START,
   totalValue: P2000,
-  accountDebtAfter: P1000,
+  totalDebtAfter: P1000,
   ops: [
     { type: "addCollateral", token: UND, amount: DEP, value: undefined },
     { type: "increaseDebt", amount: DEP },
@@ -137,9 +137,9 @@ export const case_rwa_collateral: DepositCase = {
     positionToken: POS,
   },
   tokens: [caToken(POS, P1000, QUOTA_1000)],
-  accountDebt: DEBT_START,
+  totalDebt: DEBT_START,
   totalValue: P2000,
-  accountDebtAfter: P1000,
+  totalDebtAfter: P1000,
   ops: [
     { type: "addCollateral", token: RWA_ASSET, amount: DEP, value: undefined },
     {
@@ -178,9 +178,9 @@ export const case_rwa_position: DepositCase = {
     positionToken: RWA_ASSET,
   },
   tokens: [caToken(RWA_ASSET, P1000, QUOTA_1000)],
-  accountDebt: DEBT_START,
+  totalDebt: DEBT_START,
   totalValue: P2000,
-  accountDebtAfter: P1000,
+  totalDebtAfter: P1000,
   ops: [
     { type: "addCollateral", token: RWA_ASSET, amount: DEP, value: undefined },
     { type: "increaseDebt", amount: DEP },
@@ -223,9 +223,9 @@ export const NATIVE_VALUE = 1000000000000000000n;
 export const case_native_coin: DepositCase = {
   intent: { type: "DEPOSIT", token: UND, amount: M32_DEP, value: NATIVE_VALUE },
   tokens: [caToken(POS, M32_BALANCE, quotaOf(M32_BALANCE))],
-  accountDebt: M32_DEBT,
+  totalDebt: M32_DEBT,
   totalValue: M32_BALANCE + M32_DEP + M32_DD,
-  accountDebtAfter: M32_DEBT + M32_DD,
+  totalDebtAfter: M32_DEBT + M32_DD,
   ops: [
     { type: "addCollateral", token: UND, amount: M32_DEP, value: NATIVE_VALUE },
     { type: "increaseDebt", amount: M32_DD },
@@ -261,7 +261,7 @@ export function buildDepositProps(c: DepositCase, sdk: OnchainSDK) {
   return {
     intent: c.intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: c.accountDebt,
+      totalDebt: c.totalDebt,
       tokens: c.tokens,
     }),
     sdk,

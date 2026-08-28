@@ -150,8 +150,16 @@ export interface PoolOperationPreview {
   error?: OperationPreviewError;
 }
 
-export interface OpenCreditAccountPreview {
-  operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
+/**
+ * A credit account as an operation leaves it, answered by both halves of the
+ * SDK: `prepare`, which walks a request forward into the calls that realise it,
+ * and `preview`, which decodes calls that already exist and replays them back.
+ *
+ * `totalDebt`, `totalValue`, `leverage` and `healthFactor` mean here exactly
+ * what they mean on a {@link StrategyPosition}, down to the token an amount
+ * names — an RWA market reports USDC, not the dcUSDC wrapper the pool holds.
+ **/
+export interface AccountProjection {
   /**
    * Health factor in basis points: below `10000` the account is liquidatable.
    *
@@ -163,12 +171,14 @@ export interface OpenCreditAccountPreview {
    * token's main and reserve oracle feeds, which is what the credit manager
    * switches to for a call that hands funds over.
    *
-   * Always reported, so a caller that needs the stricter reading does not have
-   * to recompute it; whether to hold the account to it is the caller's call.
+   * Absent only where the walk had no reason to weigh it: the intents engine
+   * computes it for an operation that hands funds over, which is the one the
+   * credit manager holds to safe prices on-chain. Both preview builders and
+   * `openNewStrategy` always report it.
    *
    * @example `11800` where `healthFactor` is `12500`
    **/
-  safeHealthFactor: Bps;
+  safeHealthFactor?: Bps;
   /**
    * Cost of the debt, broken down by source.
    **/
@@ -190,6 +200,30 @@ export interface OpenCreditAccountPreview {
    * unleveraged; `0` if underwater.
    **/
   leverage: Leverage;
+  /**
+   * Everything the account holds, denominated in the market's underlying.
+   **/
+  totalValue: TokenAmount;
+  /**
+   * What it would take to settle the loan: principal plus accrued interest and
+   * fees, in the market's underlying.
+   **/
+  totalDebt: TokenAmount;
+  /**
+   * What the account holds, token by token.
+   **/
+  assets: TokenAmount[];
+  /**
+   * Quota bought for each collateral, denominated in the market's underlying
+   * rather than in the collateral token — the same convention as
+   * {@link PositionCollateral.quota}. A token the account leaves unquoted is
+   * absent rather than present at zero.
+   **/
+  quotas: TokenAmount[];
+}
+
+export interface OpenCreditAccountPreview extends AccountProjection {
+  operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
    * Credit manager the account is opened in
    */
@@ -199,10 +233,10 @@ export interface OpenCreditAccountPreview {
    */
   name: string;
   /**
-   * Target token of strategy: the first quoted token, with its balance taken
-   * from `assets`. Undefined when nothing is quoted.
+   * Collateral token this position is a strategy in: the first quoted token,
+   * with its balance taken from `assets`. Undefined when nothing is quoted.
    */
-  target?: TokenAmount;
+  targetCollateral?: TokenAmount;
   /**
    * Tokens that were added as collateral during account opening.
    *
@@ -210,82 +244,22 @@ export interface OpenCreditAccountPreview {
    * `NATIVE_ADDRESS` entry, with the wrapped native token amount reduced
    * accordingly (omitted entirely when it reaches zero).
    */
-  collateral: TokenAmount[];
+  collateralAdded: TokenAmount[];
   /**
-   * Sum of collateral tokens in underlying
+   * Own funds in the position: what the wallet put in, valued in underlying.
+   * `totalValue` is this plus the borrowed amount.
    */
-  collateralValue: bigint;
-  /**
-   * Total account value after opening: collateral plus borrowed amount, in
-   * underlying.
-   */
-  totalValue: bigint;
-  /**
-   * Borrowed amount in underlying
-   */
-  debt: bigint;
-  /**
-   * WARNING: unlike every other `TokenAmount` in this model, `value` is
-   * denominated in the market underlying, NOT in `token`. `token` only
-   * identifies which collateral the quota applies to; `valueUsd` prices the
-   * underlying amount.
-   *
-   * Desired quotas
-   */
-  quotas: TokenAmount[];
-  /**
-   * Minimum amount of assets on credit account after it's opened,
-   * as estimated by router
-   */
-  assets: TokenAmount[];
+  netValue: TokenAmount;
   /**
    * Set when preview encountered non-fatal errors, all fields are
-   * still computed best-effort, but derived fields (`assets`, `target`,
-   * `collateralValue`) may be unreliable in that case.
+   * still computed best-effort, but derived fields (`assets`,
+   * `targetCollateral`, `netValue`) may be unreliable in that case.
    */
   error?: OperationPreviewError;
 }
 
-export interface AdjustCreditAccountPreview {
+export interface AdjustCreditAccountPreview extends AccountProjection {
   operation: "AdjustCreditAccount";
-  /**
-   * Health factor in basis points: below `10000` the account is liquidatable.
-   *
-   * @example `12500` for a health factor of 1.25
-   **/
-  healthFactor: Bps;
-  /**
-   * The same factor with collateral valued at safe prices — the lower of each
-   * token's main and reserve oracle feeds, which is what the credit manager
-   * switches to for a call that hands funds over.
-   *
-   * Always reported, so a caller that needs the stricter reading does not have
-   * to recompute it; whether to hold the account to it is the caller's call.
-   *
-   * @example `11800` where `healthFactor` is `12500`
-   **/
-  safeHealthFactor: Bps;
-  /**
-   * Cost of the debt, broken down by source.
-   **/
-  borrowRate: BorrowRateBreakdown;
-  /**
-   * Estimated milliseconds until the health factor decays to `10000` under
-   * the current borrow rate, or `null` when the debt carries no rate (or the
-   * account is already liquidatable).
-   **/
-  timeToLiquidation: bigint | null;
-  /**
-   * Price of the single non-underlying collateral at which the account
-   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
-   * when the account holds zero or several non-underlying assets.
-   **/
-  liquidationPrice: bigint | null;
-  /**
-   * Total-value leverage: `totalValue / (totalValue − totalDebt)`. `1` =
-   * unleveraged; `0` if underwater.
-   **/
-  leverage: Leverage;
   /**
    * Credit manager the account is opened in
    */
@@ -311,44 +285,17 @@ export interface AdjustCreditAccountPreview {
    */
   collateralWithdrawn: TokenAmount[];
   /**
-   * Sum of collateral tokens in underlying
-   */
-  totalValue: bigint;
-  /**
-   * What the account owes in underlying once the operation lands: principal
-   * plus accrued interest and fees, which is the amount it would take to
-   * settle the loan — the same quantity `prepare` projects as `accountDebt`.
-   */
-  debt: bigint;
-  /**
    * Debt after minus debt before. A repayment settles interest and fees
    * before principal, so this is the payment itself rather than the part of
    * it the principal happened to absorb.
    */
-  debtChange: bigint;
+  totalDebtChange: TokenAmount;
   /**
-   * WARNING: unlike every other `TokenAmount` in this model, `value` is
-   * denominated in the market underlying, NOT in `token`. `token` only
-   * identifies which collateral the quota applies to; `valueUsd` prices the
-   * underlying amount.
-   *
-   * Desired quotas
-   */
-  quotas: TokenAmount[];
-  /**
-   * WARNING: unlike every other `TokenAmount` in this model, `value` is
-   * denominated in the market underlying, NOT in `token`. `token` only
-   * identifies which collateral the quota applies to; `valueUsd` prices the
-   * underlying amount.
-   *
-   * Quotas after minus quotas before
+   * Quotas after minus quotas before. Denominated in the market's underlying
+   * like {@link AccountProjection.quotas}, so `token` names the collateral the
+   * quota applies to rather than the amount's own unit.
    */
   quotasChange: TokenAmount[];
-  /**
-   * Minimum amount of assets on credit account after the operation,
-   * as estimated by router
-   */
-  assets: TokenAmount[];
   /**
    * Assets after minus assets before
    */
@@ -441,9 +388,13 @@ export interface RepayCreditAccountPreview {
    */
   collateralWithdrawn: TokenAmount[];
   /**
-   * Total debt repaid: principal + accrued interest + fees, in underlying
+   * Total debt repaid: principal + accrued interest + fees, in underlying.
+   *
+   * The same quantity an {@link AdjustCreditAccountPreview} reports as
+   * `totalDebtChange`, with the sign a repayment screen reads: positive for
+   * what the wallet parted with.
    */
-  debtRepaid: bigint;
+  debtRepaid: TokenAmount;
   /**
    * Intent of the delayed withdrawal this transaction claims; set when the
    * multicall claims a delayed withdrawal

@@ -48,7 +48,7 @@ export const QUOTA_ANY_DELTA = QUOTA_ANY_AFTER - QUOTA_ANY_BEFORE;
 export interface WithdrawAssetCase {
   intent: WithdrawAssetIntent;
   tokens: ReturnType<typeof caToken>[];
-  accountDebt: bigint;
+  totalDebt: bigint;
   totalValue: bigint;
   ops: ExpectedFlowOp[];
   rwaAssets?: Record<Address, Address>;
@@ -63,7 +63,7 @@ export const case_any_token: WithdrawAssetCase = {
     to: WALLET,
   },
   tokens: [caToken(UND, HELD_UND), caToken(ANY, HELD_ANY, QUOTA_ANY_BEFORE)],
-  accountDebt: DEBT,
+  totalDebt: DEBT,
   totalValue: HELD_UND + valueInUnd(HELD_ANY - OUT_ANY, ANY),
   ops: [
     {
@@ -90,7 +90,7 @@ export const case_underlying: WithdrawAssetCase = {
     to: WALLET,
   },
   tokens: [caToken(UND, HELD_UND)],
-  accountDebt: DEBT,
+  totalDebt: DEBT,
   totalValue: HELD_UND - OUT_UND,
   ops: [
     {
@@ -114,7 +114,7 @@ export const case_rwa_underlying: WithdrawAssetCase = {
     to: WALLET,
   },
   tokens: [caToken(UND, HELD_UND)],
-  accountDebt: DEBT,
+  totalDebt: DEBT,
   totalValue: HELD_UND - OUT_UND,
   ops: [
     {
@@ -143,7 +143,7 @@ export function buildWithdrawAssetProps(c: WithdrawAssetCase, sdk: OnchainSDK) {
   return {
     intent: c.intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: c.accountDebt,
+      totalDebt: c.totalDebt,
       tokens: c.tokens,
     }),
     sdk,

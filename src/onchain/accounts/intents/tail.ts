@@ -162,18 +162,21 @@ function sliceAfter(
   const masks = new Map(
     creditAccount.tokens.map(t => [t.token.toLowerCase() as Address, t.mask]),
   );
+  const quotas = new Map(
+    after.quotas.map(q => [q.token.address.toLowerCase() as Address, q.value]),
+  );
 
   return {
     ...creditAccount,
-    accountDebt: after.accountDebt,
+    totalDebt: after.totalDebt.value,
     // the state prices its holdings; a slice names them, and both the masks
-    // above and the quota record are keyed in lower case
+    // above and the quota lookup are keyed in lower case
     tokens: after.assets.map(a => {
       const token = a.token.address.toLowerCase() as Address;
       return {
         token,
         balance: a.value,
-        quota: after.quotas[token]?.balance ?? 0n,
+        quota: quotas.get(token) ?? 0n,
         mask: masks.get(token) ?? 0n,
         success: true,
       };

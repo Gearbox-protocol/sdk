@@ -37,7 +37,7 @@ flowchart TD
   grow{"every bought token quotable and not forbidden?"}
   head{"market quota headroom >= averageQuota?"}
   hf{"HF(averageAssets, averageQuota, D) >= 1.0?"}
-  out["preview: D, collateral, totalValue, priceImpact,<br/>averageAssets / minAssets,<br/>averageQuota / minQuota, calls"]
+  out["preview: totalDebt, netValue, totalValue, leverage,<br/>priceImpact, averageAssets / minAssets,<br/>averageQuota / minQuota, calls"]
 
   in --> lev
   lev -->|"no"| e1["leverageOutOfRange"]
@@ -83,4 +83,6 @@ flowchart LR
   account starts at zero quota, so the increase **is** the level to buy.
 - Growth, headroom and the collateral check are all judged on the **expected**
   branch; the floor branch only feeds `minQuota`.
-- `leverage` is total leverage (`300n` = 3x), not the debt multiple.
+- The requested `leverage` is total leverage (`300n` = 3x), not the debt
+  multiple. The `leverage` the preview answers with is the read model's plain
+  multiplier (`3`), as `StrategyPosition.leverage` reports it.

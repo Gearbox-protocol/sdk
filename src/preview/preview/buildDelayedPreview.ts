@@ -29,7 +29,7 @@ import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
  * nothing and set a non-fatal `ERROR_UNPRICEABLE_TOKEN` error on the
  * preview.
  *
- * The changes (e.g. `debtChange`) are reported relative to the account
+ * The changes (e.g. `totalDebtChange`) are reported relative to the account
  * state before the whole transaction.
  *
  * @param afterInstant - Account state after the instant part of the
@@ -311,12 +311,13 @@ function buildAdjustPreview(
     collateralWithdrawn: collateralWithdrawn
       .toAssets()
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    totalValue,
-    debt: post.totalDebt,
+    totalValue: market.toUnderlyingAmount(totalValue),
+    totalDebt: market.toUnderlyingAmount(post.totalDebt),
     // relative to the pre-transaction state: where the account will end up
     // compared to now, once the withdrawal is claimed and the intent resumed
-    debtChange: post.totalDebt - before.totalDebt,
-    // WARNING: quota values are underlying-denominated
+    totalDebtChange: market.toUnderlyingAmount(
+      post.totalDebt - before.totalDebt,
+    ),
     quotas: quotas.map(q => ({
       token: sdk.tokensMeta.mustGetToken(q.token),
       ...oracle.toAmount(market.underlying, q.balance),

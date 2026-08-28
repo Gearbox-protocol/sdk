@@ -30,7 +30,7 @@ export function toRouterCaSlice(
   expectedBalances: Asset[] = [],
 ): RouterCASlice {
   const {
-    accountDebt,
+    totalDebt,
     underlying,
     creditFacade,
     creditManager,
@@ -60,7 +60,7 @@ export function toRouterCaSlice(
     creditAccount: creditAccountAddress.toLowerCase() as Address,
     creditFacade: creditFacade.toLowerCase() as Address,
     creditManager: creditManager.toLowerCase() as Address,
-    debt: creditAccount.accountDebt,
+    debt: creditAccount.totalDebt,
     tokens,
   } satisfies RouterCASlice;
 }

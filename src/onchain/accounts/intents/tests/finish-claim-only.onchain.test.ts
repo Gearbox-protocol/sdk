@@ -136,25 +136,25 @@ describe.each(CLAIM_ONLY_INTENTS)("%s tail — claim then quota", type => {
   it("claimed collateral token → changeQuota", async () => {
     const state = expectAdjustPreview(await runFinish(claimedAny, type), {
       totalValue: claimedAny.postClaimTotalValue,
-      accountDebt: claimedAny.postClaimDebt,
+      totalDebt: claimedAny.postClaimDebt,
       expectedOps: withOnchainOpCalls([...claimedAny.tailOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 
     expect(assetBalance(state.assets, ANY)).toBe(ANY_CLAIMED);
-    expect(state.quotas[ANY]?.balance).toBe(QUOTA_INCREASE);
+    expect(assetBalance(state.quotas, ANY)).toBe(QUOTA_INCREASE);
   });
 
   it("claimed RWA asset → changeQuota", async () => {
     const state = expectAdjustPreview(await runFinish(claimedRwaAsset, type), {
       totalValue: claimedRwaAsset.postClaimTotalValue,
-      accountDebt: claimedRwaAsset.postClaimDebt,
+      totalDebt: claimedRwaAsset.postClaimDebt,
       expectedOps: withOnchainOpCalls([...claimedRwaAsset.tailOps]),
       expectedCalls: [MOCK_CLAIM_CALL, CA_OP_CALLS.changeQuota],
     });
 
     expect(assetBalance(state.assets, RWA_ASSET)).toBe(RWA_CLAIMED);
-    expect(state.quotas[RWA_ASSET]?.balance).toBe(QUOTA_INCREASE);
+    expect(assetBalance(state.quotas, RWA_ASSET)).toBe(QUOTA_INCREASE);
   });
 
   it("claimed underlying → claim only, no quota to buy", async () => {
@@ -162,7 +162,7 @@ describe.each(CLAIM_ONLY_INTENTS)("%s tail — claim then quota", type => {
       await runFinish(claimedUnderlying, type),
       {
         totalValue: claimedUnderlying.postClaimTotalValue,
-        accountDebt: claimedUnderlying.postClaimDebt,
+        totalDebt: claimedUnderlying.postClaimDebt,
         expectedOps: withOnchainOpCalls([...claimedUnderlying.tailOps]),
         expectedCalls: [MOCK_CLAIM_CALL],
       },

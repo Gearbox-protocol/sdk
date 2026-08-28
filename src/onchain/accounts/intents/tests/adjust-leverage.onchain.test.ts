@@ -44,7 +44,7 @@ function expectCase(c: AdjustLeverageCase, expectedCalls: unknown[]) {
     const result = await run(c);
     return expectAdjustPreview(result, {
       totalValue: c.totalValue,
-      accountDebt: c.accountDebtAfter,
+      totalDebt: c.totalDebtAfter,
       expectedOps: withOnchainOpCalls([...c.ops]),
       expectedCalls: expectedCalls as never,
     });
@@ -61,7 +61,7 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
 
     expect(assetBalance(state.assets, POS)).toBe(TVL_3X);
     expect(assetBalance(state.assets, UND)).toBe(0n);
-    expect(state.quotas[POS]?.balance).toBe(QUOTA_1500);
+    expect(assetBalance(state.quotas, POS)).toBe(QUOTA_1500);
   });
 
   it("fills position metrics on the projected state", async () => {
@@ -121,7 +121,7 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
 
     expect(assetBalance(state.assets, POS)).toBe(TVL_2X);
     expect(assetBalance(state.assets, UND)).toBe(0n);
-    expect(state.quotas[POS]?.balance).toBe(QUOTA_1000);
+    expect(assetBalance(state.quotas, POS)).toBe(QUOTA_1000);
   });
 
   it("3x → 2x funded by idle underlying: no swap leg", async () => {

@@ -46,13 +46,13 @@ const MARGIN = DEBT / 1000n;
 
 function run(
   intent: RepayStrategyIntent,
-  opts?: { sdk?: OnchainSDK; accountDebt?: bigint },
+  opts?: { sdk?: OnchainSDK; totalDebt?: bigint },
 ): Promise<IntentPreviewResult> {
   const sdk = opts?.sdk ?? buildMarketSdk();
   return new CreditAccountOperationsService(sdk).startIntent({
     intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: opts?.accountDebt ?? DEBT,
+      totalDebt: opts?.totalDebt ?? DEBT,
       tokens: [caToken(POS, HELD_POS, QUOTA_POS)],
     }),
     sdk,
@@ -83,7 +83,7 @@ describe("repay.start — debt down, position untouched", () => {
       // The payment lands and leaves again, so TVL is the position alone; what
       // grew is the share of it the wallet owns.
       totalValue: HELD_POS,
-      accountDebt: DEBT - PART,
+      totalDebt: DEBT - PART,
       expectedOps: withOnchainOpCalls([
         { type: "addCollateral", token: UND, amount: PART, value: undefined },
         { type: "decreaseDebt", amount: PART },
@@ -92,9 +92,9 @@ describe("repay.start — debt down, position untouched", () => {
     });
 
     // The position keeps the quota it had: it still backs a loan.
-    expect(state.quotas).toEqual({
-      [POS]: { token: POS, balance: QUOTA_POS },
-    });
+    expect(state.quotas).toMatchObject([
+      { token: { address: POS }, value: QUOTA_POS },
+    ]);
     expect(assetBalance(state.assets, UND)).toBe(0n);
   });
 
@@ -102,7 +102,7 @@ describe("repay.start — debt down, position untouched", () => {
     const result = await run(repay(UND, DEBT));
     const state = expectAdjustPreview(result, {
       totalValue: HELD_POS,
-      accountDebt: 0n,
+      totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         { type: "addCollateral", token: UND, amount: DEBT, value: undefined },
         {
@@ -121,7 +121,7 @@ describe("repay.start — debt down, position untouched", () => {
     });
 
     // nothing is quoted once the loan is gone
-    expect(state.quotas).toEqual({});
+    expect(state.quotas).toEqual([]);
   });
 
   it("asks the facade for all of it, so accrued interest cannot leave dust", async () => {
@@ -142,7 +142,7 @@ describe("repay.start — debt down, position untouched", () => {
     const result = await run(repay(UND, DEBT + BUFFER));
     const state = expectAdjustPreview(result, {
       totalValue: HELD_POS + BUFFER,
-      accountDebt: 0n,
+      totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         {
           type: "addCollateral",
@@ -172,7 +172,7 @@ describe("repay.start — debt down, position untouched", () => {
     const result = await run(repay(UND, MAX_UINT256));
     const state = expectAdjustPreview(result, {
       totalValue: HELD_POS + MARGIN,
-      accountDebt: 0n,
+      totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         {
           type: "addCollateral",
@@ -201,7 +201,7 @@ describe("repay.start — debt down, position untouched", () => {
     expect(
       expectOk(result).operations.find(op => op.type === "decreaseDebt"),
     ).toMatchObject({ amount: DEBT, full: true });
-    expect(state.quotas).toEqual({});
+    expect(state.quotas).toEqual([]);
     expect(assetBalance(state.assets, UND)).toBe(MARGIN);
   });
 
@@ -211,7 +211,7 @@ describe("repay.start — debt down, position untouched", () => {
 
     expectAdjustPreview(result, {
       totalValue: HELD_POS + MARGIN,
-      accountDebt: 0n,
+      totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         {
           type: "addCollateral",
@@ -249,7 +249,7 @@ describe("repay.start — debt down, position untouched", () => {
 
     expectAdjustPreview(result, {
       totalValue: HELD_POS,
-      accountDebt: DEBT - PART,
+      totalDebt: DEBT - PART,
       expectedOps: withOnchainOpCalls([
         {
           type: "addCollateral",
@@ -280,7 +280,7 @@ describe("repay.start — debt down, position untouched", () => {
 
     const state = expectAdjustPreview(result, {
       totalValue: HELD_POS,
-      accountDebt: DEBT - PART,
+      totalDebt: DEBT - PART,
       expectedOps: withOnchainOpCalls([
         { type: "addCollateral", token: UND, amount: PART, value: undefined },
         { type: "decreaseDebt", amount: PART },
@@ -290,9 +290,9 @@ describe("repay.start — debt down, position untouched", () => {
 
     // the wrap is the raw asset's way in; funding already denominated in the
     // underlying has nowhere to go, and the quotas back a loan that survives
-    expect(state.quotas).toEqual({
-      [POS]: { token: POS, balance: QUOTA_POS },
-    });
+    expect(state.quotas).toMatchObject([
+      { token: { address: POS }, value: QUOTA_POS },
+    ]);
     expect(assetBalance(state.assets, RWA_ASSET)).toBe(0n);
   });
 
@@ -309,7 +309,7 @@ describe("repay.start — debt down, position untouched", () => {
 
   it("rejects an account that owes nothing", async () => {
     expectPreviewError(
-      await run(repay(UND, PART), { accountDebt: 0n }),
+      await run(repay(UND, PART), { totalDebt: 0n }),
       "debtOutOfRange",
     );
   });
@@ -332,7 +332,7 @@ describe("maxRepay — what clearing the account costs", () => {
     expect(
       service.maxRepay({
         creditAccount: buildFixtureCreditAccount({
-          accountDebt: DEBT,
+          totalDebt: DEBT,
           tokens: [caToken(POS, HELD_POS, QUOTA_POS)],
         }),
         sdk,

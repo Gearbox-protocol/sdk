@@ -55,7 +55,7 @@ function run(
   return service.intentRoutes({
     intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: DEBT_BEFORE,
+      totalDebt: DEBT_BEFORE,
       tokens,
     }),
     sdk,
@@ -132,9 +132,11 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     // which is what makes them a choice rather than two operations. They part
     // on when: only the instant route has repaid anything by the time its
     // transaction is done.
-    expect(routes.instant?.preview.accountDebt).toBe(DEBT_BEFORE - W);
-    expect(routes.delayed?.preview.accountDebt).toBe(DEBT_BEFORE - W);
-    expect(routes.delayed?.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
+    expect(routes.instant?.preview.totalDebt.value).toBe(DEBT_BEFORE - W);
+    expect(routes.delayed?.preview.totalDebt.value).toBe(DEBT_BEFORE - W);
+    expect(routes.delayed?.delayed.afterRequest.totalDebt.value).toBe(
+      DEBT_BEFORE,
+    );
     expect(routes.delayed?.delayed.record).toMatchObject({
       type: "WITHDRAW_COLLATERAL",
       debtRepaid: W,
@@ -192,11 +194,13 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
       "changeQuota",
     ]);
     // Either way the account ends up empty and owing nothing.
-    expect(routes.instant?.preview.accountDebt).toBe(0n);
-    expect(routes.delayed?.preview.accountDebt).toBe(0n);
+    expect(routes.instant?.preview.totalDebt.value).toBe(0n);
+    expect(routes.delayed?.preview.totalDebt.value).toBe(0n);
     expect(routes.delayed?.preview.assets).toEqual([]);
     // The request itself settles none of it.
-    expect(routes.delayed?.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
+    expect(routes.delayed?.delayed.afterRequest.totalDebt.value).toBe(
+      DEBT_BEFORE,
+    );
     expect(routes.refused).toEqual({ instant: undefined, delayed: undefined });
   });
 
@@ -276,9 +280,11 @@ describe("adjustLeverage.routes — only deleveraging has a second route", () =>
       amountIn: DEBT_BEFORE / 2n,
     });
     // Both reach 1.5x; only the instant route is there already.
-    expect(routes.instant?.preview.accountDebt).toBe(DEBT_BEFORE / 2n);
-    expect(routes.delayed?.preview.accountDebt).toBe(DEBT_BEFORE / 2n);
-    expect(routes.delayed?.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
+    expect(routes.instant?.preview.totalDebt.value).toBe(DEBT_BEFORE / 2n);
+    expect(routes.delayed?.preview.totalDebt.value).toBe(DEBT_BEFORE / 2n);
+    expect(routes.delayed?.delayed.afterRequest.totalDebt.value).toBe(
+      DEBT_BEFORE,
+    );
     expect(routes.delayed?.delayed.record).toEqual({
       type: "DECREASE_LEVERAGE",
     });

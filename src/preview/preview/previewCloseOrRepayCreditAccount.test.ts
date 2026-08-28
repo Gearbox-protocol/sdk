@@ -23,6 +23,16 @@ const WSTETH = getAddress("0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0");
 const WEETH = getAddress("0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee");
 const CBETH = getAddress("0xBe9895146f7AF43049ca1c1AE358B0541Ea49704");
 
+/**
+ * An amount denominated in `token`, as the projection reports one. The
+ * underlying differs per market here, and it is not the collateral the
+ * operation moved — which is exactly what these assertions pin.
+ */
+const amt = (token: Address, value: unknown) => ({
+  token: expect.objectContaining({ address: token }),
+  value,
+});
+
 // Credit managers behind the credit facades the transactions call
 const CM_PLAIN = getAddress("0xbCd2fFaC58189E57334Bb63253AcbF34D776DE53");
 const CM_LENDING = getAddress("0x0F4e4432977Bbf3962322996F1c9aeFdBC62256d");
@@ -72,15 +82,15 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
     creditManager: CM_PLAIN,
     name: expect.any(String),
     leverage: expect.any(Number),
-    target: undefined,
-    collateral: [
+    targetCollateral: undefined,
+    collateralAdded: [
       {
         token: expect.objectContaining({ address: USDC }),
         value: 1_000_000_000n,
       },
     ],
-    collateralValue: 1_000_000_000n,
-    debt: 7_000_000_000n,
+    netValue: amt(USDC, 1_000_000_000n),
+    totalDebt: amt(USDC, 7_000_000_000n),
     quotas: [],
     assets: [
       {
@@ -101,18 +111,18 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
   await expect(preview(LENDING_ETH_WSTETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_LENDING,
-    target: {
+    targetCollateral: {
       token: expect.objectContaining({ address: WETH }),
       value: 100_893_608_181_830_735_543n,
     },
-    collateral: [
+    collateralAdded: [
       {
         token: expect.objectContaining({ address: NATIVE_ADDRESS }),
         value: 100_893_608_181_830_735_543n,
       },
     ],
-    collateralValue: 81_462_650_139_176_631_035n,
-    debt: parseEther("75"),
+    netValue: amt(WSTETH, 81_462_650_139_176_631_035n),
+    totalDebt: amt(WSTETH, parseEther("75")),
     quotas: [
       {
         token: expect.objectContaining({ address: WETH }),
@@ -138,18 +148,18 @@ it("previews strategy 1: ETH collateral and WETH debt swapped into weETH target"
   await expect(preview(STRATEGY_ETH_TO_WEETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
-    target: {
+    targetCollateral: {
       token: expect.objectContaining({ address: WEETH }),
       value: 88_711_008_598_339_891_555n,
     },
-    collateral: [
+    collateralAdded: [
       {
         token: expect.objectContaining({ address: NATIVE_ADDRESS }),
         value: parseEther("10"),
       },
     ],
-    collateralValue: parseEther("10"),
-    debt: parseEther("87.5"),
+    netValue: amt(WETH, parseEther("10")),
+    totalDebt: amt(WETH, parseEther("87.5")),
     quotas: [
       {
         token: expect.objectContaining({ address: WEETH }),
@@ -175,18 +185,18 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
   await expect(preview(STRATEGY_WSTETH_TARGET)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
-    target: {
+    targetCollateral: {
       token: expect.objectContaining({ address: WSTETH }),
       value: 67_539_176_884_849_002_897n,
     },
-    collateral: [
+    collateralAdded: [
       {
         token: expect.objectContaining({ address: WSTETH }),
         value: 5_000_000_000_000_000_000n,
       },
     ],
-    collateralValue: 6_192_629_874_516_533_829n,
-    debt: 77_526_880_236_650_455_507n,
+    netValue: amt(WETH, 6_192_629_874_516_533_829n),
+    totalDebt: amt(WETH, 77_526_880_236_650_455_507n),
     quotas: [
       {
         token: expect.objectContaining({ address: WSTETH }),
@@ -212,18 +222,18 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
   await expect(preview(STRATEGY_KEEP_WSTETH_CBETH)).resolves.toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_STRATEGY,
-    target: {
+    targetCollateral: {
       token: expect.objectContaining({ address: CBETH }),
       value: 37_140_380_298_847_597_770n,
     },
-    collateral: [
+    collateralAdded: [
       {
         token: expect.objectContaining({ address: WSTETH }),
         value: parseEther("10"),
       },
     ],
-    collateralValue: 12_385_259_749_033_067_658n,
-    debt: 49_544_083_514_075_663_524n,
+    netValue: amt(WETH, 12_385_259_749_033_067_658n),
+    totalDebt: amt(WETH, 49_544_083_514_075_663_524n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),

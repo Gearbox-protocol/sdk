@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
-import type { DelayedIntent } from "../../model/index.js";
+import type { DelayedIntent, TokenAmount } from "../../model/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -17,6 +17,7 @@ import type {
   ClaimableWithdrawal,
   MultichainSDK,
 } from "../../onchain/index.js";
+import type { PoolSimulation } from "../../onchain/pools/types.js";
 import { PrepareApi } from "./PrepareApi.js";
 
 const CHAIN_ID = 1;
@@ -24,18 +25,35 @@ const POOL = "0x1000000000000000000000000000000000000001" as Address;
 const UNDERLYING = "0x2000000000000000000000000000000000000002" as Address;
 const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 
+/** A priced amount, which is what a `PoolSimulation` reports. */
+const amount = (address: Address, value: bigint): TokenAmount => ({
+  token: {
+    chainId: 1,
+    address,
+    symbol: "TKN",
+    name: "Token",
+    decimals: 18,
+  },
+  value,
+  valueUsd: null,
+});
+
 function buildApi() {
   const pools = {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
     getWithdrawalMetadata: vi.fn(() => ({})),
-    simulateWithdraw: vi.fn((props: { amount: bigint; tokenIn?: Address }) => ({
-      tokenIn: { token: props.tokenIn ?? POOL, balance: 100n },
-      tokenOut: { token: UNDERLYING, balance: props.amount },
-    })),
-    simulateRedeem: vi.fn((props: { amount: bigint; tokenIn?: Address }) => ({
-      tokenIn: { token: props.tokenIn ?? POOL, balance: props.amount },
-      tokenOut: { token: UNDERLYING, balance: props.amount },
-    })),
+    simulateWithdraw: vi.fn(
+      (props: { amount: bigint; tokenIn?: Address }): PoolSimulation => ({
+        tokenIn: amount(props.tokenIn ?? POOL, 100n),
+        tokenOut: amount(UNDERLYING, props.amount),
+      }),
+    ),
+    simulateRedeem: vi.fn(
+      (props: { amount: bigint; tokenIn?: Address }): PoolSimulation => ({
+        tokenIn: amount(props.tokenIn ?? POOL, props.amount),
+        tokenOut: amount(UNDERLYING, props.amount),
+      }),
+    ),
     removeLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
   };
   const api = new PrepareApi({
@@ -91,7 +109,7 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
     minDebt: MIN_DEBT,
     creditAccounts: [
       buildFixtureCreditAccount({
-        accountDebt: DEBT,
+        totalDebt: DEBT,
         tokens: [caToken(POS, TVL, QUOTA)],
       }),
     ],
@@ -122,7 +140,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(meta.chains[0]?.status).toBe("success");
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
     // the credit manager's strategyTargetCollateral stands in for an unnamed target token
-    expect(data.preview.debt).toBe(40000000000n);
+    expect(data.preview.totalDebt.value).toBe(40000000000n);
     expect(
       data.preview.averageAssets.map(a => ({
         token: a.token.address,
@@ -141,7 +159,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
     // 100 UND of margin at the account's 2x borrows another 100
-    expect(data.preview.accountDebt).toBe(DEBT + 10000000000n);
+    expect(data.preview.totalDebt.value).toBe(DEBT + 10000000000n);
   });
 
   it("repayStrategy pays the debt down with wallet funds", async () => {
@@ -154,7 +172,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
     expect(meta.chains[0]?.status).toBe("success");
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    expect(data.preview.accountDebt).toBe(DEBT - 20000000000n);
+    expect(data.preview.totalDebt.value).toBe(DEBT - 20000000000n);
     expect(data.operations.map(op => op.type)).toEqual([
       "addCollateral",
       "decreaseDebt",
@@ -207,7 +225,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       to: WALLET,
     });
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
-    expect(data.instant?.preview.accountDebt).toBe(0n);
+    expect(data.instant?.preview.totalDebt.value).toBe(0n);
     expect(data.instant?.preview.assets).toEqual([]);
   });
 
@@ -235,9 +253,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(
       exit.operations.find(op => op.type === "withdrawCollateral"),
     ).toMatchObject({ token: UND, amount: TVL - DEBT, to: WALLET });
-    expect(exit.preview.accountDebt).toBe(0n);
+    expect(exit.preview.totalDebt.value).toBe(0n);
     expect(exit.preview.assets).toEqual([]);
-    expect(exit.preview.quotas).toEqual({});
+    expect(exit.preview.quotas).toEqual([]);
     // an exit is the router's business; the issuer cannot serve one
     expect(data.refused.delayed).toBe("noDelayedRoute");
   });
@@ -259,8 +277,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(
       data.operations.find(op => op.type === "decreaseDebt"),
     ).toMatchObject({ amount: DEBT, full: true });
-    expect(data.preview.accountDebt).toBe(0n);
-    expect(data.preview.quotas).toEqual({});
+    expect(data.preview.totalDebt.value).toBe(0n);
+    expect(data.preview.quotas).toEqual([]);
   });
 
   it("adjustLeverage retargets the debt and quotes both routes", async () => {
@@ -272,7 +290,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
     if (!data.ok) throw new Error(`simulate refused: ${data.reason}`);
     // collateral is the invariant: 500 of it at 3x is 1000 of debt
-    expect(data.instant?.preview.accountDebt).toBe(TVL);
+    expect(data.instant?.preview.totalDebt.value).toBe(TVL);
   });
 
   it("addCollateral and withdrawCollateral leave the debt where it was", async () => {
@@ -291,10 +309,10 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     if (!added.data.ok || !taken.data.ok) {
       throw new Error("simulate refused a flow that leaves debt alone");
     }
-    expect(added.data.preview.accountDebt).toBe(DEBT);
-    expect(taken.data.preview.accountDebt).toBe(DEBT);
-    expect(added.data.preview.totalValue).toBe(TVL + 10000000000n);
-    expect(taken.data.preview.totalValue).toBe(TVL - 10000000000n);
+    expect(added.data.preview.totalDebt.value).toBe(DEBT);
+    expect(taken.data.preview.totalDebt.value).toBe(DEBT);
+    expect(added.data.preview.totalValue.value).toBe(TVL + 10000000000n);
+    expect(taken.data.preview.totalValue.value).toBe(TVL - 10000000000n);
   });
 
   it("reports the market's refusal rather than throwing it", async () => {
@@ -302,7 +320,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       facadePaused: true,
       creditAccounts: [
         buildFixtureCreditAccount({
-          accountDebt: DEBT,
+          totalDebt: DEBT,
           tokens: [caToken(POS, TVL, QUOTA)],
         }),
       ],
@@ -366,9 +384,9 @@ describe("PrepareApi — the two-transaction route", () => {
       claimableAt: 1n,
     });
     // the transaction on offer settles nothing, so the debt stands where it was
-    expect(start.delayed.afterRequest.accountDebt).toBe(DEBT);
+    expect(start.delayed.afterRequest.totalDebt.value).toBe(DEBT);
     // the preview is where the withdrawal ends: dD repaid out of the claim
-    expect(start.preview.accountDebt).toBe(DEBT - 10000000000n);
+    expect(start.preview.totalDebt.value).toBe(DEBT - 10000000000n);
   });
 
   it("adjustLeverage takes the same route down", async () => {
@@ -407,8 +425,8 @@ describe("PrepareApi — the two-transaction route", () => {
 
     if (!data.ok) throw new Error(`finalize refused: ${data.reason}`);
     // Everything left is sold, the loan is settled and the rest handed over.
-    expect(data.preview.accountDebt).toBe(0n);
-    expect(data.preview.totalValue).toBe(0n);
+    expect(data.preview.totalDebt.value).toBe(0n);
+    expect(data.preview.totalValue.value).toBe(0n);
     expect(data.preview.assets).toEqual([]);
     expect(data.operations.map(o => o.type)).toEqual([
       "claimDelayedWithdrawal",

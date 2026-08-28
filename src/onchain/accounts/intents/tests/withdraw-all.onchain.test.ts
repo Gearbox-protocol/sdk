@@ -57,7 +57,7 @@ function run(
       to: WALLET,
     },
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: DEBT_BEFORE,
+      totalDebt: DEBT_BEFORE,
       tokens,
     }),
     sdk,
@@ -70,7 +70,7 @@ describe("withdraw.start — everything out, account left open", () => {
   it("idle underlying covers the debt, so nothing is routed", async () => {
     const state = expectAdjustPreview(await run([caToken(UND, TVL_BEFORE)]), {
       totalValue: 0n,
-      accountDebt: 0n,
+      totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         { type: "decreaseDebt", amount: DEBT_BEFORE },
         { type: "withdrawCollateral", token: UND, amount: ALL, to: WALLET },
@@ -86,7 +86,7 @@ describe("withdraw.start — everything out, account left open", () => {
       await run([caToken(POS, TVL_BEFORE, QUOTA_BEFORE)]),
       {
         totalValue: 0n,
-        accountDebt: 0n,
+        totalDebt: 0n,
         expectedOps: withOnchainOpCalls([
           // the quotas go first: past the repayment they would charge a loan
           // that no longer exists
@@ -117,7 +117,7 @@ describe("withdraw.start — everything out, account left open", () => {
     );
 
     expect(state.assets).toEqual([]);
-    expect(state.quotas).toEqual({});
+    expect(state.quotas).toEqual([]);
   });
 
   it("gives the router every token at once, and pays out in one", async () => {
@@ -178,14 +178,14 @@ describe("withdraw.start — everything out, account left open", () => {
       ],
     });
     // nothing is left quoted, whatever it was quoted at before
-    expect(result.preview.quotas).toEqual({});
+    expect(result.preview.quotas).toEqual([]);
   });
 
   it("RWA market: the wrapper is unwrapped before anything leaves", async () => {
     const sdk = buildMarketSdk({ rwaAssets: { [UND]: RWA_ASSET } });
     expectAdjustPreview(await run([caToken(UND, TVL_BEFORE)], { sdk }), {
       totalValue: 0n,
-      accountDebt: 0n,
+      totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         { type: "decreaseDebt", amount: DEBT_BEFORE },
         {
@@ -215,7 +215,7 @@ describe("withdraw.start — everything out, account left open", () => {
       await run([caToken(UND, TVL_BEFORE)], { amount: ALL }),
       {
         totalValue: 0n,
-        accountDebt: 0n,
+        totalDebt: 0n,
         expectedOps: withOnchainOpCalls([
           { type: "decreaseDebt", amount: DEBT_BEFORE },
           { type: "withdrawCollateral", token: UND, amount: ALL, to: WALLET },
@@ -235,7 +235,7 @@ describe("withdraw.start — everything out, account left open", () => {
       await run([caToken(UND, TVL_BEFORE)], { amount: ALL * 10n }),
       {
         totalValue: 0n,
-        accountDebt: 0n,
+        totalDebt: 0n,
         expectedOps: withOnchainOpCalls([
           { type: "decreaseDebt", amount: DEBT_BEFORE },
           { type: "withdrawCollateral", token: UND, amount: ALL, to: WALLET },
@@ -304,14 +304,14 @@ describe("withdraw.start — everything out, account left open", () => {
 
     // The request alone settles nothing: the position sits in the phantom and
     // the loan still stands.
-    expect(result.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
-    expect(result.delayed.afterRequest.totalValue).toBe(TVL_BEFORE);
+    expect(result.delayed.afterRequest.totalDebt.value).toBe(DEBT_BEFORE);
+    expect(result.delayed.afterRequest.totalValue.value).toBe(TVL_BEFORE);
     // Where it ends is the same place the instant exit reaches: sold, settled,
     // handed over, the account empty and owing nothing.
-    expect(result.preview.accountDebt).toBe(0n);
-    expect(result.preview.totalValue).toBe(0n);
+    expect(result.preview.totalDebt.value).toBe(0n);
+    expect(result.preview.totalValue.value).toBe(0n);
     expect(result.preview.assets).toEqual([]);
-    expect(result.preview.quotas).toEqual({});
+    expect(result.preview.quotas).toEqual([]);
   });
 
   it("refuses the redemption of a source the account does not hold", async () => {
@@ -336,7 +336,7 @@ function runDelayed(sourceToken: Address = POS) {
       sourceToken,
     },
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: DEBT_BEFORE,
+      totalDebt: DEBT_BEFORE,
       tokens: [caToken(POS, TVL_BEFORE, QUOTA_BEFORE)],
     }),
     sdk,

@@ -42,7 +42,7 @@ async function expectCase(c: WithdrawCase, expectedCalls: unknown[]) {
   const result = await run(c);
   return expectAdjustPreview(result, {
     totalValue: c.totalValue,
-    accountDebt: c.accountDebtAfter,
+    totalDebt: c.totalDebtAfter,
     expectedOps: withOnchainOpCalls([...c.ops]),
     expectedCalls: expectedCalls as never,
   });
@@ -57,7 +57,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
 
     expect(assetBalance(state.assets, UND)).toBe(TVL_AFTER);
     // Leverage held: TVL 1800 on collateral 900.
-    expect(state.totalValue - state.accountDebt).toBe(DEBT_AFTER);
+    expect(state.totalValue.value - state.totalDebt.value).toBe(DEBT_AFTER);
   });
 
   it("S=U, T=POS: repay, route the payout, withdraw it", async () => {
@@ -124,7 +124,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     });
     expectAdjustPreview(result, {
       totalValue: case_pos_und.totalValue,
-      accountDebt: case_pos_und.accountDebtAfter,
+      totalDebt: case_pos_und.totalDebtAfter,
       expectedOps: withOnchainOpCalls([...case_pos_und.ops]),
       expectedCalls: [
         MOCK_ROUTER_CALL,
@@ -146,7 +146,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
   it("rejects an account whose net value the debt has already eaten", async () => {
     const result = await run({
       ...case_und_und,
-      accountDebt: 200000000000n,
+      totalDebt: 200000000000n,
     });
     expectPreviewError(result, "insufficientSourceBalance");
   });
@@ -189,7 +189,7 @@ describe("withdraw.start — test-matrix rows 4.1/4.2 (10U/8U at 5x)", () => {
 
     expect(assetBalance(state.assets, POS)).toBe(M4_SPEND);
     // TVL 5U against debt 4U leaves collateral at 1U: still 5x.
-    expect(state.totalValue - state.accountDebt).toBe(M4_W);
+    expect(state.totalValue.value - state.totalDebt.value).toBe(M4_W);
   });
 
   // MATRIX MISMATCH (see case_matrix_4_2): the engine repays before paying out.

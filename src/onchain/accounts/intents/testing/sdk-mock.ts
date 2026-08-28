@@ -1,6 +1,11 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
-import type { Bps, Token, TokenAmount } from "../../../../model/index.js";
+import type {
+  Amount,
+  Bps,
+  Token,
+  TokenAmount,
+} from "../../../../model/index.js";
 import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
   CreditAccountDataPayload,
@@ -155,7 +160,7 @@ interface BuildMockSdkArgs {
   /**
    * Accounts `accounts.getCreditAccountData` knows, keyed by address. What the
    * prepare layer reads on its own instead of taking a slice from the caller;
-   * `accountDebt` lands as the principal with no interest or fees accrued.
+   * `totalDebt` lands as the principal with no interest or fees accrued.
    */
   creditAccounts?: CreditAccountSlice[];
   /**
@@ -305,14 +310,33 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
 
   const poolPaused = args.poolPaused ?? false;
+  /** {@inheritDoc MarketSuite.toUnderlyingAmount} */
+  const toUnderlyingAmount = (value: bigint): TokenAmount => {
+    const usd = safeUsd(args.underlying, value);
+    return {
+      // an RWA market reports the asset the underlying wraps, as the read model
+      // and the suite both do
+      token: tokenOf(
+        args.rwaAssets?.[args.underlying.toLowerCase() as Address] ??
+          args.underlying,
+      ),
+      value,
+      valueUsd: usd === null ? null : usdToNumber(usd),
+    };
+  };
   const market = {
+    toUnderlyingAmount,
     priceOracle: {
       convert,
       safeConvert,
       mainPrice: mainPriceOf,
       reservePrice: reservePriceOf,
       convertToUSD: _convertToUSD,
-      // the read-model mapper the calculator hands its holdings to
+      // the read-model mappers the calculator hands its holdings to
+      toAmount: (token: Address, value: bigint): Amount => {
+        const usd = safeUsd(token, value);
+        return { value, valueUsd: usd === null ? null : usdToNumber(usd) };
+      },
       toTokenAmount: (token: Address, value: bigint): TokenAmount => {
         const usd = safeUsd(token, value);
         return {
@@ -653,7 +677,7 @@ function payloadOf(slice: CreditAccountSlice): CreditAccountDataPayload {
     owner: slice.creditAccount,
     expirationDate: 0,
     enabledTokensMask: slice.enabledTokensMask,
-    debt: slice.accountDebt,
+    debt: slice.totalDebt,
     accruedInterest: 0n,
     accruedFees: 0n,
     totalDebtUSD: slice.totalDebtUSD,

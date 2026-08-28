@@ -127,7 +127,7 @@ describe("withdraw tail S/T matrix (onchain)", () => {
     expectAdjustPreview(result, {
       // mock router echoes amountIn as UND without price conversion
       totalValue: 1_000_000_019_900_000_000_000n,
-      accountDebt: WITHDRAW_PRE_D,
+      totalDebt: WITHDRAW_PRE_D,
       expectedOps: [
         claimOp(ANY, claimed),
         // mock router echoes the spent amount (expected − leftover)
@@ -172,7 +172,7 @@ describe("withdraw tail S/T matrix (onchain)", () => {
     expectAdjustPreview(result, {
       // echoed router amounts inflate TV; residual RWA after withdraw buys quota
       totalValue: 4_000_000_019_500_000_000_000n,
-      accountDebt: WITHDRAW_PRE_D - DEBT_DELTA,
+      totalDebt: WITHDRAW_PRE_D - DEBT_DELTA,
       expectedOps: [
         claimOp(ANY, claimed),
         // debt leg: mock router echoes the spent amount
@@ -253,7 +253,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
 
     expectAdjustPreview(result, {
       totalValue: case_matrix_4_3_tail.totalValue,
-      accountDebt: M4_DD,
+      totalDebt: M4_DD,
       expectedOps: withOnchainOpCalls([...case_matrix_4_3_tail.ops]),
       expectedCalls: [
         MOCK_CLAIM_CALL,
@@ -270,7 +270,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
 
     expectAdjustPreview(result, {
       totalValue: case_matrix_4_4_tail.totalValue,
-      accountDebt: M4_DD,
+      totalDebt: M4_DD,
       expectedOps: withOnchainOpCalls([...case_matrix_4_4_tail.ops]),
       expectedCalls: [
         MOCK_CLAIM_CALL,
@@ -288,7 +288,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
 
     expectAdjustPreview(result, {
       totalValue: case_matrix_4_5_tail.totalValue,
-      accountDebt: M4_DD,
+      totalDebt: M4_DD,
       expectedOps: withOnchainOpCalls([...case_matrix_4_5_tail.ops]),
       expectedCalls: [
         MOCK_CLAIM_CALL,
@@ -306,7 +306,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
 
     expectAdjustPreview(result, {
       totalValue: case_matrix_4_6_tail.totalValue,
-      accountDebt: M4_DD,
+      totalDebt: M4_DD,
       expectedOps: withOnchainOpCalls([...case_matrix_4_6_tail.ops]),
       expectedCalls: [
         MOCK_CLAIM_CALL,

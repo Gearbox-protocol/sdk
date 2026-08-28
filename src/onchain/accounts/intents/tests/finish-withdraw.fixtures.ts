@@ -112,7 +112,7 @@ export function buildWithdrawFinishProps(args: {
     underlying: UND,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: WITHDRAW_PRE_D,
+    totalDebt: WITHDRAW_PRE_D,
     tokens: args.tokens ?? [
       { token: ANY, balance: A0, quota: QUOTA0, mask: 0n, success: true },
       { token: ANY2, balance: A0, quota: QUOTA0, mask: 0n, success: true },
@@ -334,7 +334,7 @@ export function buildMatrixWithdrawTailProps(c: MatrixWithdrawTailCase) {
     underlying: UND,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: M4_DEBT,
+    totalDebt: M4_DEBT,
     tokens: [
       {
         token: POS,

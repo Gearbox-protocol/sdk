@@ -113,7 +113,8 @@ liquidation threshold and its quota.
 ## Notes
 
 - Leverage here is **total** leverage (`TVL / C`, `300n` = 3x); the state the
-  preview reports uses the read model's `debt / equity`.
+  preview reports carries the same ratio as the read model's plain multiplier
+  (`3`), unscaled.
 - A `delta == 0` request is answered rather than refused — the account is already
   where it was asked to be, and a form can say so.
 - Tests: [`adjust-leverage.onchain.test.ts`](../../src/onchain/accounts/intents/tests/adjust-leverage.onchain.test.ts),

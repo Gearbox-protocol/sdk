@@ -28,6 +28,15 @@ const OWNER = getAddress("0xC32FEB4DBd127a1993478Ad6E5250710f838b908");
 const UNPRICEABLE = getAddress("0x1111111111111111111111111111111111111111");
 
 /**
+ * An underlying-denominated amount, as the projection reports one: USDC, the
+ * asset the dcUSDC share wraps one-for-one, not the share itself.
+ */
+const und = (value: unknown) => ({
+  token: expect.objectContaining({ address: USDC }),
+  value,
+});
+
+/**
  * Market stub for the position metrics: USDC, the underlying and the phantom
  * token at $1, WETH at $2000, no quota rates, no borrow rate. The tests only
  * care that the metrics are present, not about their values.
@@ -100,6 +109,13 @@ const metricsSdk = (() => {
     marketRegister: {
       findByCreditManager: () => ({
         underlying: UNDERLYING,
+        // {@inheritDoc MarketSuite.toUnderlyingAmount} — an underlying-denominated
+        // figure names USDC, the asset the dcUSDC share wraps one-for-one
+        toUnderlyingAmount: (value: bigint) => ({
+          token: mustGetToken(USDC),
+          value,
+          valueUsd: null,
+        }),
         pool: {
           underlying: UNDERLYING,
           pool: { baseInterestRate: 0n },
@@ -344,9 +360,9 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       collateralAdded: [],
       collateralWithdrawn: [],
       // 1000 claimed - 600 repaid
-      totalValue: 400n,
-      debt: 0n,
-      debtChange: -600n,
+      totalValue: und(400n),
+      totalDebt: und(0n),
+      totalDebtChange: und(-600n),
       quotas: [],
       // relative to the pre-transaction state: the transient phantom token
       // (minted by the instant part, burned by the claim) nets out to nothing
@@ -376,8 +392,8 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
     if (preview.operation === "AdjustCreditAccount") {
       // 100 goes to the accrued interest and fees, which the principal sits
       // behind: the loan shrinks by the payment, the principal by nothing
-      expect(preview.debt).toBe(1400n);
-      expect(preview.debtChange).toBe(-100n);
+      expect(preview.totalDebt.value).toBe(1400n);
+      expect(preview.totalDebtChange.value).toBe(-100n);
       expect(preview.assets).toEqual([]);
     }
   });
@@ -410,8 +426,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     if (preview.operation === "AdjustCreditAccount") {
       expect(preview.collateralWithdrawn).toMatchObject([amt(USDC, 300n)]);
       // 700 remaining claim repays 600 total debt, 100 underlying is left
-      expect(preview.debt).toBe(0n);
-      expect(preview.debtChange).toBe(-600n);
+      expect(preview.totalDebt.value).toBe(0n);
+      expect(preview.totalDebtChange.value).toBe(-600n);
       expect(preview.assets).toMatchObject([amt(UNDERLYING, 100n)]);
     }
   });
@@ -443,8 +459,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     if (preview.operation === "AdjustCreditAccount") {
       expect(preview.collateralWithdrawn).toMatchObject([amt(USDC, 300n)]);
       // 200 repays interest/fees (100) then principal (100)
-      expect(preview.debt).toBe(400n);
-      expect(preview.debtChange).toBe(-200n);
+      expect(preview.totalDebt.value).toBe(400n);
+      expect(preview.totalDebtChange.value).toBe(-200n);
       // 700 swept into underlying, 200 spent on the repayment
       expect(preview.assets).toMatchObject([amt(UNDERLYING, 500n)]);
     }
@@ -474,8 +490,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.debt).toBe(600n);
-      expect(preview.debtChange).toBe(0n);
+      expect(preview.totalDebt.value).toBe(600n);
+      expect(preview.totalDebtChange.value).toBe(0n);
       expect(preview.assets).toMatchObject([amt(UNDERLYING, 700n)]);
     }
   });
@@ -537,8 +553,8 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 10n)]);
       // 100_000 claimed - 20_000 spent on the withdrawal = 80_000 swept
       // into the underlying; 60_000 repays the total debt in full
-      expect(preview.debt).toBe(0n);
-      expect(preview.debtChange).toBe(-60_000n);
+      expect(preview.totalDebt.value).toBe(0n);
+      expect(preview.totalDebtChange.value).toBe(-60_000n);
       expect(preview.assets).toMatchObject([amt(UNDERLYING, 20_000n)]);
     }
   });
@@ -579,11 +595,11 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     if (preview.operation === "AdjustCreditAccount") {
       expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 30n)]);
       // full 1000 claim repays 600, 400 underlying + 20 WETH remain
-      expect(preview.debt).toBe(0n);
+      expect(preview.totalDebt.value).toBe(0n);
       expect(preview.assets).toEqual(
         expect.arrayContaining([amt(UNDERLYING, 400n), amt(WETH, 20n)]),
       );
-      expect(preview.totalValue).toBe(400n + 20n * 2000n);
+      expect(preview.totalValue.value).toBe(400n + 20n * 2000n);
     }
   });
 
@@ -622,7 +638,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 5n)]);
       // 2 WETH shortfall costs 4000 of the 10_000 claim; the remaining
       // 6000 sweeps into the underlying and repays the 5000 total debt
-      expect(preview.debt).toBe(0n);
+      expect(preview.totalDebt.value).toBe(0n);
       expect(preview.assets).toMatchObject([amt(UNDERLYING, 1000n)]);
     }
   });
@@ -652,9 +668,9 @@ describe("buildDelayedPreview claim-only", () => {
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     collateralWithdrawn: [],
-    totalValue: 1200n,
-    debt: 600n,
-    debtChange: 0n,
+    totalValue: und(1200n),
+    totalDebt: und(600n),
+    totalDebtChange: und(0n),
     quotas: [],
     // the phantom token round trip nets out to nothing vs the pre-state
     quotasChange: [],
@@ -708,7 +724,7 @@ describe("buildDelayedPreview unpriceable tokens", () => {
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.totalValue).toBe(1000n);
+      expect(preview.totalValue.value).toBe(1000n);
       expect(preview.error).toEqual({
         code: ERROR_UNPRICEABLE_TOKEN,
         message: expect.stringContaining(UNPRICEABLE),

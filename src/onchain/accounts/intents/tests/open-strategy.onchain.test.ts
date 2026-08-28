@@ -40,9 +40,14 @@ async function expectCase(c: OpenStrategyCase) {
   }
   const { preview } = outcome;
 
-  expect(preview.collateral).toBe(c.expectedCollateral);
-  expect(preview.debt).toBe(c.expectedDebt);
-  expect(preview.totalValue).toBe(c.expectedCollateral + c.expectedDebt);
+  expect(preview.netValue.value).toBe(c.expectedCollateral);
+  expect(preview.totalDebt.value).toBe(c.expectedDebt);
+  expect(preview.totalValue.value).toBe(c.expectedCollateral + c.expectedDebt);
+  // the read model's plain multiplier, not the LEVERAGE_DECIMALS-scaled figure
+  // the request was made with
+  expect(preview.leverage).toBeCloseTo(
+    Number(c.leverage) / Number(LEVERAGE_DECIMALS),
+  );
   // the preview prices its holdings; the cases name them
   const held = (assets: typeof preview.averageAssets) =>
     assets.map(a => ({ token: a.token.address, balance: a.value }));
@@ -96,6 +101,26 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     expect(preview.liquidationPrice).not.toBeNull();
   });
 
+  it("weighs the safe-price factor at the reserve feed, not the main one", async () => {
+    // An opening hands the pool's funds over, so the credit manager judges it
+    // at safe prices; POS reserves at half its main price, and the reported
+    // factor has to follow that feed rather than repeat `healthFactor`.
+    const { result } = run(
+      case_underlying_3x,
+      buildOpenStrategySdk({
+        reservePrices: { [UND]: toBN("2", 8), [POS]: toBN("1", 8) },
+      }),
+    );
+    const outcome = await result;
+    if (!outcome.ok) {
+      throw new Error(`expected a preview, got error: ${outcome.reason}`);
+    }
+
+    expect(outcome.preview.safeHealthFactor).toBeLessThan(
+      outcome.preview.healthFactor,
+    );
+  });
+
   it("reports no liquidation price when the position holds two targets", async () => {
     const preview = await expectCase(case_mixed_with_leftover);
 
@@ -105,7 +130,7 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
   it("1x draws no debt", async () => {
     const preview = await expectCase(case_underlying_1x);
 
-    expect(preview.debt).toBe(0n);
+    expect(preview.totalDebt.value).toBe(0n);
     expect(preview.averageQuota).toEqual([
       { token: POS, balance: quotaFor(MARGIN_UND, POS) },
     ]);

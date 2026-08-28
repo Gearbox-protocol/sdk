@@ -99,7 +99,7 @@ export async function realize(
   const ledger = new OperationLedger({
     initialAssets: creditAccount.tokens,
     underlying,
-    debt: creditAccount.accountDebt,
+    debt: creditAccount.totalDebt,
     convert: price,
   });
   const operations: AccountCalculatorOperation[] = [];
@@ -471,7 +471,7 @@ export async function realize(
   };
   // debt taken on leaves the pool, debt repaid returns to it
   const projectedPool = {
-    availableLiquidityChange: creditAccount.accountDebt - debt,
+    availableLiquidityChange: creditAccount.totalDebt - debt,
   };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
@@ -500,14 +500,18 @@ export async function realize(
     toUnderlying: (from, amount) => price(from, underlying, amount),
   });
 
+  const oracle = market.priceOracle;
   const state: OperationState = {
-    totalValue,
-    accountDebt: debt,
+    totalValue: market.toUnderlyingAmount(totalValue),
+    totalDebt: market.toUnderlyingAmount(debt),
     leverage: calcPositionLeverage(totalValue, debt),
-    assets: assets.map(a =>
-      market.priceOracle.toTokenAmount(a.token, a.balance),
-    ),
-    quotas: quotasAfter,
+    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
+    // a quota is bought in underlying, so only the token it applies to comes
+    // from the entry itself
+    quotas: Object.values(quotasAfter).map(q => ({
+      token: sdk.tokensMeta.mustGetToken(q.token),
+      ...oracle.toAmount(underlying, q.balance),
+    })),
     priceImpact,
     ...metrics,
   };

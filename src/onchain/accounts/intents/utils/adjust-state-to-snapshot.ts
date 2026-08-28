@@ -4,8 +4,8 @@ import type { OperationState } from "../types.js";
 
 /**
  * Maps an intents {@link OperationState} onto the {@link AccountSnapshot} that
- * position-metric functions take. `accountDebt` is treated as total debt
- * (principal plus accrued interest and fees).
+ * position-metric functions take: the state prices what it reports, a snapshot
+ * only names it.
  **/
 export function adjustStateToSnapshot(
   creditManager: Address,
@@ -18,8 +18,12 @@ export function adjustStateToSnapshot(
       token: a.token.address,
       balance: a.value,
     })),
-    quotas: Object.values(state.quotas),
-    totalDebt: state.accountDebt,
-    totalValue: state.totalValue,
+    // a quota is priced in underlying, so its `value` is what a snapshot wants
+    quotas: state.quotas.map(q => ({
+      token: q.token.address,
+      balance: q.value,
+    })),
+    totalDebt: state.totalDebt.value,
+    totalValue: state.totalValue.value,
   };
 }

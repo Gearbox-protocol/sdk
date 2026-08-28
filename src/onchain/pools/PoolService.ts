@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import type { PoolPosition } from "../../model/index.js";
+import type { Amount, PoolPosition } from "../../model/index.js";
 import {
   BaseContract,
   RWA_UNDERLYING_DEFAULT,
@@ -36,6 +36,19 @@ import type {
  */
 const LIQUIDITY_SAFETY_NUM = 99_999n;
 const LIQUIDITY_SAFETY_DENOM = 100_000n;
+
+/**
+ * What the pool can actually pay out right now, shaved by a hair so a
+ * withdrawal sized against it does not fail on rounding.
+ **/
+function payoutCeiling(market: MarketSuite): Amount {
+  const { pool } = market;
+  return market.priceOracle.toAmount(
+    pool.underlying,
+    (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
+      LIQUIDITY_SAFETY_DENOM,
+  );
+}
 
 export class PoolService extends SDKConstruct implements IPoolsService {
   /**
@@ -208,7 +221,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public simulateDeposit(props: SimulatePoolOperationProps): PoolSimulation {
     const { pool: poolAddr, amount } = props;
-    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+    const market = this.sdk.marketRegister.findByPool(poolAddr);
+    const { pool } = market;
+    const { toTokenAmount } = market.priceOracle;
 
     const tokenIn = props.tokenIn ?? pool.underlying;
     const tokenOut = this.#resolveTokenOut(
@@ -219,8 +234,8 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getDepositMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: { token: tokenIn, balance: amount },
-      tokenOut: { token: tokenOut, balance: toShares(pool.pool, amount) },
+      tokenIn: toTokenAmount(tokenIn, amount),
+      tokenOut: toTokenAmount(tokenOut, toShares(pool.pool, amount)),
       zapper: zapper?.baseParams.addr,
     };
   }
@@ -230,7 +245,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public simulateWithdraw(props: SimulatePoolOperationProps): PoolSimulation {
     const { pool: poolAddr, amount } = props;
-    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+    const market = this.sdk.marketRegister.findByPool(poolAddr);
+    const { pool } = market;
+    const { toTokenAmount } = market.priceOracle;
 
     // Withdrawals are paid in shares, and for a direct redemption the share
     // token *is* the pool contract.
@@ -243,12 +260,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: { token: tokenIn, balance: toSharesUp(pool.pool, amount) },
-      tokenOut: { token: tokenOut, balance: amount },
+      tokenIn: toTokenAmount(tokenIn, toSharesUp(pool.pool, amount)),
+      tokenOut: toTokenAmount(tokenOut, amount),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity:
-        (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
-        LIQUIDITY_SAFETY_DENOM,
+      availableLiquidity: payoutCeiling(market),
     };
   }
 
@@ -257,7 +272,9 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public simulateRedeem(props: SimulatePoolOperationProps): PoolSimulation {
     const { pool: poolAddr, amount } = props;
-    const { pool } = this.sdk.marketRegister.findByPool(poolAddr);
+    const market = this.sdk.marketRegister.findByPool(poolAddr);
+    const { pool } = market;
+    const { toTokenAmount } = market.priceOracle;
 
     const tokenIn = props.tokenIn ?? poolAddr;
     const tokenOut = this.#resolveTokenOut(
@@ -268,12 +285,10 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: { token: tokenIn, balance: amount },
-      tokenOut: { token: tokenOut, balance: toAssets(pool.pool, amount) },
+      tokenIn: toTokenAmount(tokenIn, amount),
+      tokenOut: toTokenAmount(tokenOut, toAssets(pool.pool, amount)),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity:
-        (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
-        LIQUIDITY_SAFETY_DENOM,
+      availableLiquidity: payoutCeiling(market),
     };
   }
 

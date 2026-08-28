@@ -45,6 +45,14 @@ describe("unit conversions", () => {
     expect(usdToNumber(999n)).toBe(0);
     expect(usdToNumber(1_000n)).toBe(0.00001);
   });
+
+  // the model's deltas are negative — a debt repaid, a balance sold — and a
+  // threshold weighed on the signed value would report every one of them as $0
+  it("prices a negative value rather than clamping it", () => {
+    expect(usdToNumber(-150_050_000_000n)).toBe(-1500.5);
+    expect(usdToNumber(-1_000n)).toBe(-0.00001);
+    expect(usdToNumber(-999n)).toBe(0);
+  });
 });
 
 describe("calcUtilizationRaw", () => {

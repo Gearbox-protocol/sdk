@@ -23,18 +23,18 @@ All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked 
 
 [`previewOperation`](./preview/previewOperation.ts) is the async entry point. It decodes the raw calldata internally (see [`parse`](#internals)) and assembles an operation-specific preview:
 
-- **Pool operations** (ERC4626 deposit/withdraw, direct or zapper-routed) produce a [`PoolOperationPreview`](./preview/types.ts): the tokens going in and out.
-- **Credit account opening** (`OpenCreditAccount` and `RWAOpenCreditAccount`) produces an [`OpenCreditAccountPreview`](./preview/types.ts): collateral, debt, quotas, etc.
-- **Credit account adjustment** (`multicall`/`botMulticall` on the facade/RWA factory) produces an [`AdjustCreditAccountPreview`](./preview/types.ts): collateral, debt, quota changes, etc.
-- **Credit account closure/repayment** produces a [`CloseCreditAccountPreview`](./preview/types.ts) (collateral swapped into underlying, debt repaid, underlying withdrawn) or a [`RepayCreditAccountPreview`](./preview/types.ts) (debt covered from the wallet, collateral returned in-kind). The facade `closeCreditAccount` entry point closes the account permanently (`permanent: true`); a plain multicall that fully repays the debt returns `permanent: false`.
+- **Pool operations** (ERC4626 deposit/withdraw, direct or zapper-routed) produce a [`PoolOperationPreview`](../model/previews.ts): the tokens going in and out.
+- **Credit account opening** (`OpenCreditAccount` and `RWAOpenCreditAccount`) produces an [`OpenCreditAccountPreview`](../model/previews.ts): `collateralAdded`, `netValue`, `totalDebt`, `quotas`, etc.
+- **Credit account adjustment** (`multicall`/`botMulticall` on the facade/RWA factory) produces an [`AdjustCreditAccountPreview`](../model/previews.ts): `collateralAdded`, `totalDebtChange`, `quotasChange`, etc.
+- **Credit account closure/repayment** produces a [`CloseCreditAccountPreview`](../model/previews.ts) (collateral swapped into underlying, debt repaid, underlying withdrawn) or a [`RepayCreditAccountPreview`](../model/previews.ts) (debt covered from the wallet, collateral returned in-kind). The facade `closeCreditAccount` entry point closes the account permanently (`permanent: true`); a plain multicall that fully repays the debt returns `permanent: false`.
 - **Any other operation** throws an [`UnsupportedOperationError`](./preview/errors.ts).
 
-When the operation decodes but cannot be fully previewed, the preview is still returned with an [`error`](./preview/types.ts) field set. `error.code` is a numeric http-style code, see the `ERROR_*` constants in [types.ts](./preview/types.ts):
+When the operation decodes but cannot be fully previewed, the preview is still returned with an [`error`](../model/previews.ts) field set. `error.code` is a numeric http-style code, see the `ERROR_*` constants in [previews.ts](../model/previews.ts):
 
 - **1xxx** — the transaction is malformed (broken `storeExpectedBalances`/`compareBalances` brackets, unexpected adapter calls, a `msg.value` that does not fit the declared WETH collateral) and would not execute correctly on-chain.
 - **2xxx** — the transaction may be fine, but the SDK could not fully evaluate the preview (e.g. a token could not be priced by the oracle).
 
-All fields are computed best-effort in either case: fields driven by explicit facade calls (collateral, debt, quotas) are exact, while fields derived from replayed balances (e.g. `assets`, `assetsChange`, `target` asset balance) or oracle prices (`collateralValue`, `totalValue`) may be unreliable. When both categories apply, the more severe 1xxx code is reported.
+All fields are computed best-effort in either case: fields driven by explicit facade calls (`collateralAdded`, `totalDebt`, `quotas`) are exact, while fields derived from replayed balances (e.g. `assets`, `assetsChange`, `targetCollateral` balance) or oracle prices (`netValue`, `totalValue`) may be unreliable. When both categories apply, the more severe 1xxx code is reported.
 
 ### `prerequisites`
 

@@ -46,17 +46,17 @@ export const QUOTA_DELTA = QUOTA_AFTER - QUOTA_BEFORE;
 export interface WithdrawCase {
   intent: WithdrawStrategyIntent;
   tokens: ReturnType<typeof caToken>[];
-  accountDebt: bigint;
+  totalDebt: bigint;
   totalValue: bigint;
-  accountDebtAfter: bigint;
+  totalDebtAfter: bigint;
   ops: ExpectedFlowOp[];
   rwaAssets?: Record<Address, Address>;
 }
 
 const base = {
-  accountDebt: DEBT_BEFORE,
+  totalDebt: DEBT_BEFORE,
   totalValue: TVL_AFTER,
-  accountDebtAfter: DEBT_AFTER,
+  totalDebtAfter: DEBT_AFTER,
 };
 
 /** Row 1 — S = U, T = U: repay, then hand over the underlying. */
@@ -231,9 +231,9 @@ export const M4_SPEND = M4_W + M4_DD;
 export const case_matrix_4_1: WithdrawCase = {
   intent: { type: "WITHDRAW", amount: M4_W, to: WALLET, sourceToken: POS },
   tokens: [caToken(POS, M4_BALANCE, quotaOf(M4_BALANCE))],
-  accountDebt: M4_DEBT,
+  totalDebt: M4_DEBT,
   totalValue: M4_SPEND,
-  accountDebtAfter: M4_DD,
+  totalDebtAfter: M4_DD,
   ops: [
     {
       type: "swap",
@@ -266,9 +266,9 @@ export const case_matrix_4_1: WithdrawCase = {
 export const case_matrix_4_2: WithdrawCase = {
   intent: { type: "WITHDRAW", amount: M4_W, to: WALLET, sourceToken: POS },
   tokens: [caToken(POS, M4_BALANCE, quotaOf(M4_BALANCE))],
-  accountDebt: M4_DEBT,
+  totalDebt: M4_DEBT,
   totalValue: M4_SPEND,
-  accountDebtAfter: M4_DD,
+  totalDebtAfter: M4_DD,
   ops: [
     {
       type: "swap",
@@ -305,7 +305,7 @@ export function buildWithdrawProps(c: WithdrawCase, sdk: OnchainSDK) {
   return {
     intent: c.intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: c.accountDebt,
+      totalDebt: c.totalDebt,
       tokens: c.tokens,
     }),
     sdk,

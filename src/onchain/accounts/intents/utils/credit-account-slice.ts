@@ -6,9 +6,9 @@ import { calcBorrowedAmountPlusInterestAndFees } from "./borrowed-amount-plus-in
 /**
  * Narrows full account data down to the slice the intent engine operates on.
  *
- * `accountDebt` is the total repayable debt (principal + accrued interest +
- * accrued fees) rather than the principal, because every debt-touching intent
- * settles the full outstanding amount.
+ * `totalDebt` is the total repayable debt (principal + accrued interest +
+ * accrued fees) rather than `CreditAccountData.debt`'s principal, because every
+ * debt-touching intent settles the full outstanding amount.
  *
  * Addresses are lowercased so that `eq` comparisons and `AddressMap` lookups
  * behave consistently everywhere downstream.
@@ -23,7 +23,7 @@ export function toCreditAccountSlice(
     underlying: ca.underlying.toLowerCase() as Address,
     enabledTokensMask: ca.enabledTokensMask,
     totalDebtUSD: ca.totalDebtUSD,
-    accountDebt: calcBorrowedAmountPlusInterestAndFees(ca),
+    totalDebt: calcBorrowedAmountPlusInterestAndFees(ca),
     tokens: ca.tokens.map(t => ({
       ...t,
       token: t.token.toLowerCase() as Address,

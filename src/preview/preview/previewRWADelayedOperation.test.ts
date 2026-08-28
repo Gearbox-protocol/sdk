@@ -311,6 +311,15 @@ function untouchedAssets(
 
 describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   const { collateralToken: COLLATERAL, phantomToken: PHANTOM } = spec;
+  /**
+   * An underlying-denominated amount, as the projection reports one. On these
+   * markets the pool holds a compliance wrapper, and the figure has to name the
+   * asset behind it — the same token the wallet is paid out in.
+   */
+  const und = (value: unknown) => ({
+    token: expect.objectContaining({ address: spec.withdrawToken }),
+    value,
+  });
   const {
     txs,
     afterOpen,
@@ -336,16 +345,16 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     expect(preview).toMatchObject({
       operation: spec.openOperation,
       error: undefined,
-      collateral: [
+      collateralAdded: [
         {
           token: expect.objectContaining({ address: USDC }),
           value: 20_000_000000n,
         },
       ],
-      collateralValue: expect.toBeWithinBps(
-        afterOpen.totalValue - afterOpen.debt,
+      netValue: und(
+        expect.toBeWithinBps(afterOpen.totalValue - afterOpen.debt),
       ),
-      debt: afterOpen.debt,
+      totalDebt: und(afterOpen.debt),
       // the desired collateral quota carries a safety buffer above the
       // position value and does not match the on-chain quota exactly
       quotas: [
@@ -363,7 +372,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       ],
       // The min guaranteed collateral position must not exceed the actual
       // on-chain result, and must be within slippage of it
-      target: {
+      targetCollateral: {
         token: expect.objectContaining({ address: COLLATERAL }),
         value: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
       },
@@ -409,10 +418,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         collateralAdded: [],
         collateralWithdrawn: [],
         // debt is untouched until the withdrawal is claimed
-        debt: afterOpen.debt,
-        debtChange: 0n,
+        totalDebt: und(afterOpen.debt),
+        totalDebtChange: und(0n),
         // min guaranteed account value vs the actual post-request state
-        totalValue: expect.toBeWithinBps(afterRequest.totalValue),
+        totalValue: und(expect.toBeWithinBps(afterRequest.totalValue)),
         assets: expect.toEqualUnordered([
           amt(
             PHANTOM,
@@ -441,9 +450,9 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         collateralWithdrawn: [amt(spec.withdrawToken, spec.withdrawAmount)],
         // oracle estimate of the post-claim account value vs the actual
         // state after the claim tx
-        totalValue: expect.toBeWithinBps(afterClaim.totalValue),
-        debt: expect.toBeWithinBps(afterClaim.debt),
-        debtChange: expect.toSatisfy((v: bigint) => v < 0n),
+        totalValue: und(expect.toBeWithinBps(afterClaim.totalValue)),
+        totalDebt: und(expect.toBeWithinBps(afterClaim.debt)),
+        totalDebtChange: und(expect.toSatisfy((v: bigint) => v < 0n)),
         // the claim zeroes the phantom quota: only the (buffered, see
         // instantPreview) collateral quota is left
         quotas: expect.toEqualUnordered([amt(COLLATERAL, expect.anything())]),
@@ -499,11 +508,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // Cross-check against the actual state after the claim tx: the debt
       // may only grow by the interest accrued between the snapshots, the
       // collateral quota is untouched by the claim and must match exactly
-      debt: expect.toBeWithinBpsBelow(afterClaim.debt, 1n),
+      totalDebt: und(expect.toBeWithinBpsBelow(afterClaim.debt, 1n)),
       // the claim remainder repays debt
-      debtChange: expect.toSatisfy((v: bigint) => v < 0n),
+      totalDebtChange: und(expect.toSatisfy((v: bigint) => v < 0n)),
       // min guaranteed account value vs the actual post-claim state
-      totalValue: expect.toBeWithinBps(afterClaim.totalValue),
+      totalValue: und(expect.toBeWithinBps(afterClaim.totalValue)),
       quotas: expect.toEqualUnordered([
         amt(COLLATERAL, findQuota(afterClaim, COLLATERAL)),
       ]),
@@ -541,10 +550,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         collateralAdded: [],
         collateralWithdrawn: [],
         // debt is untouched until the withdrawal is claimed
-        debt: afterClaim.debt,
-        debtChange: 0n,
+        totalDebt: und(afterClaim.debt),
+        totalDebtChange: und(0n),
         // min guaranteed account value vs the actual post-request state
-        totalValue: expect.toBeWithinBps(afterCloseRequest.totalValue),
+        totalValue: und(expect.toBeWithinBps(afterCloseRequest.totalValue)),
         // collateral fully redeemed into the phantom token, the residues
         // left by the claim tx are untouched
         assets: expect.toEqualUnordered([

@@ -52,31 +52,31 @@ function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   if (request.op === "deposit") {
     const meta = sdk.pools.getDepositMetadata(
       pool,
-      tokenIn.token,
-      tokenOut.token,
+      tokenIn.token.address,
+      tokenOut.token.address,
     );
     const result = sdk.pools.addLiquidity({
       pool,
       wallet,
-      collateral: tokenIn,
+      collateral: { token: tokenIn.token.address, balance: tokenIn.value },
       meta,
     });
     if (!result) {
       throw new Error(
-        `pool ${pool} takes no deposit transaction for ${tokenIn.token} (${meta.type})`,
+        `pool ${pool} takes no deposit transaction for ${tokenIn.token.address} (${meta.type})`,
       );
     }
     return result.tx;
   }
   const meta = sdk.pools.getWithdrawalMetadata(
     pool,
-    tokenIn.token,
-    tokenOut.token,
+    tokenIn.token.address,
+    tokenOut.token.address,
   );
   return sdk.pools.removeLiquidity({
     pool,
     wallet,
-    amount: request.op === "withdraw" ? tokenOut.balance : tokenIn.balance,
+    amount: request.op === "withdraw" ? tokenOut.value : tokenIn.value,
     permit: undefined,
     meta,
     mode: request.op === "withdraw" ? "withdraw" : "redeem",
@@ -94,7 +94,7 @@ async function openTx(
     to: wallet,
     collateral,
     ethAmount,
-    debt: preview.debt,
+    debt: preview.totalDebt.value,
     calls: preview.calls,
     averageQuota: preview.averageQuota,
     minQuota: preview.minQuota,

@@ -131,7 +131,10 @@ export class PrepareApi
       tokenOut,
     });
     const call = pools.addLiquidity({
-      collateral: preview.tokenIn,
+      collateral: {
+        token: preview.tokenIn.token.address,
+        balance: preview.tokenIn.value,
+      },
       pool: pool.pool,
       wallet: params.wallet,
       meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),

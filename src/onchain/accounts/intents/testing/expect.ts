@@ -258,7 +258,7 @@ export function expectAdjustPreview(
   result: IntentPreviewResult | DelayedStartResult,
   args: {
     totalValue: bigint;
-    accountDebt: bigint;
+    totalDebt: bigint;
     expectedOps: ExpectedFlowOp[];
     expectedCalls?: MultiCall[];
   },
@@ -274,8 +274,8 @@ export function expectAdjustPreview(
     expect(result.calls).toEqual([]);
   }
 
-  expect(result.preview.totalValue).toBe(args.totalValue);
-  expect(result.preview.accountDebt).toBe(args.accountDebt);
+  expect(result.preview.totalValue.value).toBe(args.totalValue);
+  expect(result.preview.totalDebt.value).toBe(args.totalDebt);
   expectOpsArrayExact(result.operations, args.expectedOps);
   return result.preview;
 }
@@ -292,7 +292,11 @@ export function expectPreviewError(
   expect(result.reason, "failure reason").toBe(reason);
 }
 
-/** What a priced holdings list says the account holds of `token`. */
+/**
+ * What a priced list — holdings or quotas — says the account stands at for
+ * `token`. A quota is denominated in the market underlying, so this reads the
+ * quota bought *for* `token`, not an amount of it.
+ */
 export function assetBalance(
   assets: Array<TokenAmount>,
   token: Address,

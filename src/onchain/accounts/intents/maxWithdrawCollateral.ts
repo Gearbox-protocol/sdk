@@ -48,7 +48,7 @@ export function maxWithdrawCollateral(
   if (!target || target.balance <= DUST_THRESHOLD) {
     return 0n;
   }
-  if (creditAccount.accountDebt === 0n) {
+  if (creditAccount.totalDebt === 0n) {
     return target.balance;
   }
 
@@ -87,7 +87,7 @@ export function maxWithdrawCollateral(
 
   // The debt is what the check divides by: without a price for it there is no
   // ceiling to offer, rather than an unbounded one.
-  const borrowed = usd(priceOracle, underlying, creditAccount.accountDebt);
+  const borrowed = usd(priceOracle, underlying, creditAccount.totalDebt);
   if (borrowed === undefined || borrowed <= 0n) {
     return 0n;
   }

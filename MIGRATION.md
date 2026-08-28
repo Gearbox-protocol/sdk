@@ -318,3 +318,112 @@ The most fundamental issue is reported and the rest are not weighed; `null`
 means nothing refuses the transaction. A 2xxx preview error is not an issue — the transaction
 is fine and only the SDK's evaluation was incomplete, so it stays on
 `preview.error` for the caller to surface as a caveat.
+
+### One vocabulary for `prepare` and `preview`
+
+The two halves of the account story — `prepare`, which walks a request forward
+into calls, and `preview`, which decodes calls and replays them back — answered
+the same questions in different words. They now answer in the read model's:
+`totalDebt`, `totalValue`, `netValue` and `leverage` mean on a projection what
+they mean on a `StrategyPosition`.
+
+The shared shape is **`AccountProjection`** (exported from
+`@gearbox-protocol/sdk/model`). `OperationState`, `OpenCreditAccountPreview` and
+`AdjustCreditAccountPreview` all extend it, so a caller that renders one renders
+all three, and a name drifting apart on one side is now a compile error.
+
+**Renamed fields**
+
+| Type | Was | Now |
+| --- | --- | --- |
+| `OperationState` | `accountDebt` | `totalDebt` |
+| `CreditAccountSlice` | `accountDebt` | `totalDebt` |
+| `OpenStrategyPreview` | `debt` | `totalDebt` |
+| `OpenStrategyPreview` | `collateral` | `netValue` |
+| `OpenCreditAccountPreview` | `debt` | `totalDebt` |
+| `OpenCreditAccountPreview` | `collateralValue` | `netValue` |
+| `OpenCreditAccountPreview` | `collateral` | `collateralAdded` |
+| `OpenCreditAccountPreview` | `target` | `targetCollateral` |
+| `AdjustCreditAccountPreview` | `debt` | `totalDebt` |
+| `AdjustCreditAccountPreview` | `debtChange` | `totalDebtChange` |
+
+`OpenCreditAccountPreview.debt` also read the debt *principal* where every
+metric beside it read the total. The two are equal at opening, so the value is
+unchanged; only the field's meaning is now what its name says.
+
+`RepayCreditAccountPreview.debtRepaid` keeps its name: it is
+`−totalDebtChange`, and a repayment screen reads it with the sign it has.
+
+**Retyped fields**
+
+| Type | Field | Was | Now |
+| --- | --- | --- | --- |
+| `AccountProjection` (both sides) | `totalValue`, `totalDebt` | `bigint` | `TokenAmount` |
+| `OpenCreditAccountPreview` | `netValue` | `bigint` | `TokenAmount` |
+| `AdjustCreditAccountPreview` | `totalDebtChange` | `bigint` | `TokenAmount` |
+| `RepayCreditAccountPreview` | `debtRepaid` | `bigint` | `TokenAmount` |
+| `OpenStrategyPreview` | `totalDebt`, `netValue`, `totalValue` | `bigint` | `TokenAmount` |
+| `OperationState` | `quotas` | `Record<Address, Asset>` | `TokenAmount[]` |
+| `PoolSimulation` | `tokenIn`, `tokenOut` | `Asset` | `TokenAmount` |
+| `PoolSimulation` | `availableLiquidity` | `bigint` | `Amount` |
+| `Open`/`AdjustCreditAccountPreview` | `safeHealthFactor` | `Bps` | `Bps \| undefined` |
+
+The underlying-denominated scalars are now priced, so a caller no longer
+converts them itself: `preview.totalDebt.valueUsd` is filled in where the oracle
+can price the market underlying. A caller that wants the raw figure reads
+`.value`.
+
+`OperationState.quotas` becomes a list in the shape the previews already used —
+`token` names the collateral, `value` is the quota bought for it, denominated in
+the market's underlying (the same convention as `PositionCollateral.quota`).
+A token the account leaves unquoted is absent, as before.
+
+`safeHealthFactor` is optional on the previews because it is optional on
+`OperationState`, where the engine reports it only for an operation that hands
+funds over. `previewOperation` still fills it in every time.
+
+**New fields**
+
+`OpenStrategyPreview` gains `leverage` (the read model's plain multiplier, not
+the `LEVERAGE_DECIMALS`-scaled figure the request asks for) and
+`safeHealthFactor`, so it carries the same metrics as every other credit
+surface.
+
+```diff
+- const debt = preview.debt;
+- const equity = preview.totalValue - preview.debt;
++ const debt = preview.totalDebt.value;
++ const equity = preview.totalValue.value - preview.totalDebt.value;
++ const debtUsd = preview.totalDebt.valueUsd;
+```
+
+`PoolSimulation` moved the same way, and its result is fed straight back into
+`sdk.pools`, which still takes bare `Asset` pairs — so a caller passing one on
+names the two fields the call wants:
+
+```diff
+  const sim = sdk.pools.simulateDeposit({ pool, amount, tokenIn, tokenOut });
+- const meta = sdk.pools.getDepositMetadata(pool, sim.tokenIn.token, sim.tokenOut.token);
+- sdk.pools.addLiquidity({ pool, wallet, collateral: sim.tokenIn, meta });
++ const meta = sdk.pools.getDepositMetadata(
++   pool,
++   sim.tokenIn.token.address,
++   sim.tokenOut.token.address,
++ );
++ sdk.pools.addLiquidity({
++   pool,
++   wallet,
++   collateral: { token: sim.tokenIn.token.address, balance: sim.tokenIn.value },
++   meta,
++ });
+```
+
+`availableLiquidity` is an `Amount` for the same reason `PoolOpportunity`'s is,
+so the payout check reads `sim.tokenOut.value > sim.availableLiquidity.value`.
+
+**One quantity was also being reported wrong.** `usdToNumber` weighed its dust
+threshold on the signed value, so every negative amount priced as `$0`. That was
+invisible while the negative fields (`assetsChange`, `quotasChange`) were the
+only ones carrying it; `totalDebtChange` and `debtRepaid` would have joined them.
+The threshold now weighs the magnitude, so a repayment reports a negative
+`valueUsd` rather than zero.

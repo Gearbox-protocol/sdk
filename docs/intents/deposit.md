@@ -97,5 +97,6 @@ one planner covers every "is the deposit already the position token" shape.
   coin.
 - The swap output is the pathfinder **floor**, so the projected `T` balance and
   its quota are what survives the worst allowed slippage.
-- Leverage in the reported state is `debt / equity` (the read model's
-  convention), not the `TVL / C` used in the formulas above.
+- Leverage in the reported state is the read model's own `TVL / C` —
+  `totalValue / (totalValue − totalDebt)`, as `StrategyPosition.leverage`
+  reports it — not the `LEVERAGE_DECIMALS`-scaled figure the request asks for.

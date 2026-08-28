@@ -113,7 +113,7 @@ describe("decreaseLeverage tail — claim then repay (onchain)", () => {
 
     const state = expectAdjustPreview(result, {
       totalValue: DECREASE_POST_T,
-      accountDebt: DECREASE_POST_D,
+      totalDebt: DECREASE_POST_D,
       expectedOps: [
         claimOp(UND, DECREASE_REPAY),
         decreaseDebtOp(DECREASE_REPAY),
@@ -135,7 +135,7 @@ describe("decreaseLeverage tail — claim then repay (onchain)", () => {
 
     const state = expectAdjustPreview(result, {
       totalValue: DECREASE_POST_T,
-      accountDebt: DECREASE_POST_D,
+      totalDebt: DECREASE_POST_D,
       expectedOps: [
         claimOp(UND, DECREASE_REPAY),
         decreaseDebtOp(DECREASE_REPAY),
@@ -157,7 +157,7 @@ describe("decreaseLeverage tail — claim then repay (onchain)", () => {
 
     const state = expectAdjustPreview(result, {
       totalValue: DECREASE_POST_T,
-      accountDebt: DECREASE_POST_D,
+      totalDebt: DECREASE_POST_D,
       expectedOps: [
         claimOp(RWA_ASSET, DECREASE_REPAY),
         wrapOp(RWA_ASSET, DECREASE_REPAY, UND, DECREASE_REPAY),
@@ -189,7 +189,7 @@ describe("decreaseLeverage tail — claim then repay (onchain)", () => {
 
     const state = expectAdjustPreview(result, {
       totalValue: DECREASE_POST_T,
-      accountDebt: DECREASE_POST_D,
+      totalDebt: DECREASE_POST_D,
       expectedOps: [
         claimOp(ANY, DECREASE_AMOUNT_S),
         swapOp(ANY, DECREASE_AMOUNT_S, UND, DECREASE_REPAY),
@@ -266,7 +266,7 @@ describe("decreaseLeverage tail — test-matrix rows 7.2/7.3 (onchain)", () => {
     const state = expectAdjustPreview(result, {
       // T = 6U, D = 4U: collateral 2U at exactly 3x.
       totalValue: M7_POS_LEFT,
-      accountDebt: M7_DD,
+      totalDebt: M7_DD,
       expectedOps: withOnchainOpCalls([...case_matrix_7_2_tail.ops]),
       expectedCalls: [
         MOCK_CLAIM_CALL,
@@ -275,7 +275,7 @@ describe("decreaseLeverage tail — test-matrix rows 7.2/7.3 (onchain)", () => {
       ],
     });
 
-    expect(state.totalValue - state.accountDebt).toBe(200000000n);
+    expect(state.totalValue.value - state.totalDebt.value).toBe(200000000n);
   });
 
   it("matrix 7.3 tail: claim ANY → swap → decreaseDebt(swap.minAmount) → changeQuota", async () => {
@@ -295,7 +295,7 @@ describe("decreaseLeverage tail — test-matrix rows 7.2/7.3 (onchain)", () => {
 
     expectAdjustPreview(result, {
       totalValue: M7_POS_LEFT,
-      accountDebt: M7_DD,
+      totalDebt: M7_DD,
       expectedOps: withOnchainOpCalls([...case_matrix_7_3_tail.ops]),
       expectedCalls: [
         MOCK_CLAIM_CALL,

@@ -204,7 +204,7 @@ export function caToken(
 
 /** Bare CA slice on the fixture market. */
 export function buildFixtureCreditAccount(args: {
-  accountDebt: bigint;
+  totalDebt: bigint;
   tokens: CreditAccountSlice["tokens"];
 }): CreditAccountSlice {
   return {
@@ -214,7 +214,7 @@ export function buildFixtureCreditAccount(args: {
     underlying: UND,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: args.accountDebt,
+    totalDebt: args.totalDebt,
     tokens: args.tokens,
   };
 }

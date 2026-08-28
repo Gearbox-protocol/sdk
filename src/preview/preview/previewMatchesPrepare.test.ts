@@ -3,7 +3,10 @@ import { resolve } from "node:path";
 import { type Address, custom, encodeFunctionData, parseEther } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import type { AdjustCreditAccountPreview, Token } from "../../model/index.js";
+import type {
+  AdjustCreditAccountPreview,
+  TokenAmount,
+} from "../../model/index.js";
 import { CreditAccountOperationsService } from "../../onchain/accounts/intents/index.js";
 import type {
   OperationState,
@@ -11,7 +14,6 @@ import type {
 } from "../../onchain/accounts/intents/types.js";
 import { toCreditAccountSlice } from "../../onchain/accounts/intents/utils/credit-account-slice.js";
 import {
-  type Asset,
   type CreditAccountData,
   DUST_THRESHOLD,
   json_parse,
@@ -107,32 +109,14 @@ async function roundTrip(intent: StartIntent) {
 }
 
 /**
- * A token/amount pair as either an {@link Asset} (`token` is an address,
- * amount is `balance`) or a {@link TokenAmount} (`token` is a {@link Token},
- * amount is `value`).
+ * Balances keyed by token, dust and zeroes dropped. Both sides now answer in
+ * the same shape, so all this still has to reconcile is the order each built
+ * its list in and the fact that only one of them filters dust.
  */
-interface TokenBalance {
-  token: Address | Token;
-  balance?: bigint;
-  value?: bigint;
-}
-
-/**
- * Balances keyed by token, dust and zeroes dropped: the two sides answer with a
- * list and a map, each in whatever order it built, and only one of them filters.
- */
-function byToken(
-  assets: TokenBalance[] | Record<Address, Asset>,
-): Record<string, bigint> {
-  const list: TokenBalance[] = Array.isArray(assets)
-    ? assets
-    : Object.values(assets);
+function byToken(assets: TokenAmount[]): Record<string, bigint> {
   const out: Record<string, bigint> = {};
-  for (const item of list) {
-    const token =
-      typeof item.token === "string" ? item.token : item.token.address;
-    const amount = item.value ?? item.balance ?? 0n;
-    if (amount > DUST_THRESHOLD) out[token.toLowerCase()] = amount;
+  for (const { token, value } of assets) {
+    if (value > DUST_THRESHOLD) out[token.address.toLowerCase()] = value;
   }
   return out;
 }
@@ -142,10 +126,12 @@ function expectAgreement(
   preview: AdjustCreditAccountPreview,
   projected: OperationState,
 ): void {
-  expect(preview.debt).toBe(projected.accountDebt);
+  expect(preview.totalDebt).toEqual(projected.totalDebt);
   expect(byToken(preview.assets)).toEqual(byToken(projected.assets));
   expect(byToken(preview.quotas)).toEqual(byToken(projected.quotas));
-  expect(preview.totalValue).toBe(projected.totalValue - DUST_VALUE);
+  expect(preview.totalValue.value).toBe(
+    projected.totalValue.value - DUST_VALUE,
+  );
   // Agreeing on the state above is most of the claim, since the metrics are
   // the same functions — but only most of it: each side assembles the snapshot
   // it feeds them on its own.
@@ -176,7 +162,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
       },
     ]);
     // the whole payment goes into the loan, interest and fees first
-    expect(preview.debtChange).toBe(-parseEther("5"));
+    expect(preview.totalDebtChange.value).toBe(-parseEther("5"));
     // it lands and leaves again, so the position is all that is left standing
     expect(preview.assetsChange).toEqual([]);
   });
@@ -204,7 +190,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
         value: parseEther("1"),
       },
     ]);
-    expect(preview.debtChange).toBe(0n);
+    expect(preview.totalDebtChange.value).toBe(0n);
     // the standing quota already covers the grown balance, so the plan writes
     // no quota update and the preview finds none to replay
     expect(preview.quotasChange).toEqual([]);
@@ -228,7 +214,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
         value: parseEther("1"),
       },
     ]);
-    expect(preview.debtChange).toBe(0n);
+    expect(preview.totalDebtChange.value).toBe(0n);
     // the quota is resized down to the balance that is left
     expect(preview.quotasChange[0]?.value).toBeLessThan(0n);
   });
@@ -245,9 +231,9 @@ describe("the preview of what prepare built agrees with what prepare projected",
       throw new Error(`expected a repayment, got ${preview.operation}`);
     }
 
-    expect(projected.accountDebt).toBe(0n);
-    expect(preview.debtRepaid).toBe(
-      toCreditAccountSlice(creditAccount).accountDebt,
+    expect(projected.totalDebt.value).toBe(0n);
+    expect(preview.debtRepaid.value).toBe(
+      toCreditAccountSlice(creditAccount).totalDebt,
     );
     // the account stays open, and the position stays on it
     expect(preview.permanent).toBe(false);
@@ -255,7 +241,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
     // the wallet is charged the debt plus the margin the interest may grow by
     expect(preview.collateralAdded[0]?.token.address).toBe(WETH);
     expect(preview.collateralAdded[0]?.value).toBeGreaterThan(
-      preview.debtRepaid,
+      preview.debtRepaid.value,
     );
   });
 });

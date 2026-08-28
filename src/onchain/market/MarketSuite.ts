@@ -9,6 +9,7 @@ import type {
   PriceFeedSummary,
   QuotaAsset,
   Token,
+  TokenAmount,
   UnderlyingToken,
 } from "../../model/index.js";
 import { isFilterSet, matchesOpportunityFilter } from "../../model/index.js";
@@ -158,6 +159,22 @@ export class MarketSuite extends SDKConstruct {
         : this.underlying,
     };
   }
+
+  /**
+   * Prices a figure already denominated in this market's underlying — a debt,
+   * a TVL, a payout — as the read model reports one.
+   *
+   * The token it names is {@link underlyingToken}, so an amount coming out of a
+   * preview or a simulation carries the same identity as the one on a
+   * `StrategyPosition`: USDC on an RWA market, not the dcUSDC wrapper the pool
+   * actually holds. The two convert one-for-one, so the figure is exact either
+   * way; only the label differs, and a caller showing both side by side must
+   * not see two.
+   **/
+  public toUnderlyingAmount = (value: bigint): TokenAmount => ({
+    token: this.underlyingToken,
+    ...this.priceOracle.toAmount(this.underlying, value),
+  });
 
   /**
    * Display name of this market's pool, e.g. `"USDC Pool"`.

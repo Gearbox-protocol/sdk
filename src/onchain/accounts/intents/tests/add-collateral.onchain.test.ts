@@ -34,21 +34,21 @@ describe("addCollateral.start — position token in, debt fixed", () => {
     const result = await run(case_position_token);
     const state = expectAdjustPreview(result, {
       totalValue: case_position_token.totalValue,
-      accountDebt: case_position_token.accountDebt,
+      totalDebt: case_position_token.totalDebt,
       expectedOps: withOnchainOpCalls([...case_position_token.ops]),
       expectedCalls: [CA_OP_CALLS.addCollateral, CA_OP_CALLS.changeQuota],
     });
 
     expect(assetBalance(state.assets, ANY)).toBe(ADD_ANY);
-    expect(state.quotas[ANY]?.balance).toBe(QUOTA_ANY);
-    expect(state.accountDebt).toBe(case_position_token.accountDebt);
+    expect(assetBalance(state.quotas, ANY)).toBe(QUOTA_ANY);
+    expect(state.totalDebt.value).toBe(case_position_token.totalDebt);
   });
 
   it("underlying → addCollateral only (underlying has no quota)", async () => {
     const result = await run(case_underlying);
     const state = expectAdjustPreview(result, {
       totalValue: case_underlying.totalValue,
-      accountDebt: case_underlying.accountDebt,
+      totalDebt: case_underlying.totalDebt,
       expectedOps: withOnchainOpCalls([...case_underlying.ops]),
       expectedCalls: [CA_OP_CALLS.addCollateral],
     });
@@ -60,13 +60,13 @@ describe("addCollateral.start — position token in, debt fixed", () => {
     const result = await run(case_rwa_asset);
     const state = expectAdjustPreview(result, {
       totalValue: case_rwa_asset.totalValue,
-      accountDebt: case_rwa_asset.accountDebt,
+      totalDebt: case_rwa_asset.totalDebt,
       expectedOps: withOnchainOpCalls([...case_rwa_asset.ops]),
       expectedCalls: [CA_OP_CALLS.addCollateral, CA_OP_CALLS.changeQuota],
     });
 
     expect(assetBalance(state.assets, RWA_ASSET)).toBe(ADD_RWA);
-    expect(state.quotas[RWA_ASSET]?.balance).toBe(QUOTA_RWA);
+    expect(assetBalance(state.quotas, RWA_ASSET)).toBe(QUOTA_RWA);
   });
 
   it("rejects a non-positive amount", async () => {

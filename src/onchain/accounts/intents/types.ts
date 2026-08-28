@@ -1,17 +1,6 @@
 import type { Address } from "viem";
-import type {
-  BorrowRateBreakdown,
-  Bps,
-  DelayedIntent,
-  Leverage,
-  TokenAmount,
-} from "../../../model/index.js";
-import type {
-  Asset,
-  MultiCall,
-  OnchainSDK,
-  RouterCASlice,
-} from "../../index.js";
+import type { AccountProjection, DelayedIntent } from "../../../model/index.js";
+import type { MultiCall, OnchainSDK, RouterCASlice } from "../../index.js";
 import type {
   PreviewErrorReason,
   PreviewRefusal,
@@ -26,7 +15,7 @@ import type { AccountCalculatorOperation } from "./operations.js";
  */
 export type CreditAccountSlice = Omit<RouterCASlice, "debt"> & {
   /** either base debt or debt plus interest and fees */
-  accountDebt: bigint;
+  totalDebt: bigint;
 };
 
 /**
@@ -41,61 +30,12 @@ export interface PathLossRate {
   totalValuePriceImpact: bigint;
 }
 
-/** Projected account metrics once the operations execute. */
-export interface OperationState {
-  /**
-   * Health factor in basis points: below `10000` the account is liquidatable.
-   *
-   * @example `12500` for a health factor of 1.25
-   **/
-  healthFactor: Bps;
-  /**
-   * The same factor with collateral valued at safe prices, present only where
-   * the walk had reason to compute it — a call that hands funds over, which is
-   * the one the credit manager weighs at safe prices on-chain.
-   **/
-  safeHealthFactor?: Bps;
-  /**
-   * Cost of the debt, broken down by source.
-   **/
-  borrowRate: BorrowRateBreakdown;
-  /**
-   * Estimated milliseconds until the health factor decays to `10000` under
-   * the current borrow rate, or `null` when the debt carries no rate (or the
-   * account is already liquidatable).
-   **/
-  timeToLiquidation: bigint | null;
-  /**
-   * Price of the single non-underlying collateral at which the account
-   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
-   * when the account holds zero or several non-underlying assets.
-   **/
-  liquidationPrice: bigint | null;
-  /** Account TVL after operation */
-  totalValue: bigint;
-  /**
-   * Account debt after operation: principal plus accrued interest and fees,
-   * the amount it would take to settle the loan — the same quantity the
-   * preview module reports as `debt`.
-   */
-  accountDebt: bigint;
-  /**
-   * Leverage after operation in the read model's convention — `debt / equity`,
-   * as `Position.leverage` reports it — not the calculator's `TVL / collateral`.
-   */
-  leverage: Leverage;
-  /**
-   * What the account holds after the operation, priced: the same shape the
-   * read model and the transaction previews report holdings in, so a caller
-   * showing them needs no registry or oracle of its own.
-   */
-  assets: TokenAmount[];
-  /**
-   * Every quota the account stands at after the operation: the ones the plan
-   * resized as well as the ones it left alone. Tokens it leaves unquoted are
-   * absent rather than present at zero.
-   */
-  quotas: Record<Address, Asset>;
+/**
+ * What the operations leave the account at, in the shared
+ * {@link AccountProjection} vocabulary, plus the one thing only a routed walk
+ * can report.
+ */
+export interface OperationState extends AccountProjection {
   /**
    * What the routed legs lost to market depth. `undefined` where nothing was
    * routed or nothing could be measured — never a manufactured zero.

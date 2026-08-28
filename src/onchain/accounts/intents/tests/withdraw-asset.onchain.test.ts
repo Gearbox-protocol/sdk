@@ -34,21 +34,21 @@ describe("withdrawAsset.start — one held asset out, debt fixed", () => {
     const result = await run(case_any_token);
     const state = expectAdjustPreview(result, {
       totalValue: case_any_token.totalValue,
-      accountDebt: case_any_token.accountDebt,
+      totalDebt: case_any_token.totalDebt,
       expectedOps: withOnchainOpCalls([...case_any_token.ops]),
       expectedCalls: [CA_OP_CALLS.withdrawCollateral, CA_OP_CALLS.changeQuota],
     });
 
     expect(assetBalance(state.assets, ANY)).toBe(HELD_ANY - OUT_ANY);
-    expect(state.quotas[ANY]?.balance).toBe(QUOTA_ANY_AFTER);
-    expect(state.accountDebt).toBe(case_any_token.accountDebt);
+    expect(assetBalance(state.quotas, ANY)).toBe(QUOTA_ANY_AFTER);
+    expect(state.totalDebt.value).toBe(case_any_token.totalDebt);
   });
 
   it("underlying → withdrawCollateral only", async () => {
     const result = await run(case_underlying);
     const state = expectAdjustPreview(result, {
       totalValue: case_underlying.totalValue,
-      accountDebt: case_underlying.accountDebt,
+      totalDebt: case_underlying.totalDebt,
       expectedOps: withOnchainOpCalls([...case_underlying.ops]),
       expectedCalls: [CA_OP_CALLS.withdrawCollateral],
     });
@@ -60,7 +60,7 @@ describe("withdrawAsset.start — one held asset out, debt fixed", () => {
     const result = await run(case_rwa_underlying);
     const state = expectAdjustPreview(result, {
       totalValue: case_rwa_underlying.totalValue,
-      accountDebt: case_rwa_underlying.accountDebt,
+      totalDebt: case_rwa_underlying.totalDebt,
       expectedOps: withOnchainOpCalls([...case_rwa_underlying.ops]),
       expectedCalls: [MOCK_RWA_UNWRAP_CALL, CA_OP_CALLS.withdrawCollateral],
     });

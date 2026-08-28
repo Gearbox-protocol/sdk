@@ -93,7 +93,7 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
           value: 40_000_107_644_061_378_292n,
         },
       ],
-      debtRepaid: 40_000_002_243_344_061_653n,
+      debtRepaid: amt(WETH, 40_000_002_243_344_061_653n),
       collateralWithdrawn: [
         // entire weETH balance returned in-kind
         {
@@ -127,6 +127,12 @@ interface WalletFundedRepayScenario {
 
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
+
+/** An amount denominated in `token`, as the projection reports one. */
+const amt = (token: Address, value: unknown) => ({
+  token: expect.objectContaining({ address: token }),
+  value,
+});
 
 const WALLET_FUNDED_REPAY_SCENARIOS: WalletFundedRepayScenario[] = [
   {
@@ -230,7 +236,9 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
         collateralWithdrawn: [],
         // interest accrues on top of the snapshot principal between open and
         // repay, so debtRepaid is within a small tolerance of afterOpen.debt
-        debtRepaid: expect.toBeWithinBps(afterOpen.debt),
+        // the loan is denominated in the market underlying — the asset the
+        // wallet repays with, not the wrapper the pool holds
+        debtRepaid: amt(spec.repayToken, expect.toBeWithinBps(afterOpen.debt)),
       });
     });
   },

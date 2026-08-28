@@ -49,9 +49,9 @@ export const QUOTA_DOWN = QUOTA_1000 - QUOTA_1500;
 export interface AdjustLeverageCase {
   intent: AdjustLeverageIntent;
   tokens: ReturnType<typeof caToken>[];
-  accountDebt: bigint;
+  totalDebt: bigint;
   totalValue: bigint;
-  accountDebtAfter: bigint;
+  totalDebtAfter: bigint;
   ops: ExpectedFlowOp[];
   rwaAssets?: Record<Address, Address>;
 }
@@ -60,9 +60,9 @@ export interface AdjustLeverageCase {
 export const case_increase: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_3X, token: POS },
   tokens: [caToken(POS, TVL_2X, QUOTA_1000)],
-  accountDebt: DEBT_2X,
+  totalDebt: DEBT_2X,
   totalValue: TVL_3X,
-  accountDebtAfter: DEBT_3X,
+  totalDebtAfter: DEBT_3X,
   ops: [
     { type: "increaseDebt", amount: STEP },
     {
@@ -84,9 +84,9 @@ export const case_increase: AdjustLeverageCase = {
 export const case_increase_underlying: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_3X, token: UND },
   tokens: [caToken(UND, TVL_2X)],
-  accountDebt: DEBT_2X,
+  totalDebt: DEBT_2X,
   totalValue: TVL_3X,
-  accountDebtAfter: DEBT_3X,
+  totalDebtAfter: DEBT_3X,
   ops: [{ type: "increaseDebt", amount: STEP }],
 };
 
@@ -94,9 +94,9 @@ export const case_increase_underlying: AdjustLeverageCase = {
 export const case_increase_rwa: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_3X, token: RWA_ASSET },
   tokens: [caToken(RWA_ASSET, TVL_2X, QUOTA_1000)],
-  accountDebt: DEBT_2X,
+  totalDebt: DEBT_2X,
   totalValue: TVL_3X,
-  accountDebtAfter: DEBT_3X,
+  totalDebtAfter: DEBT_3X,
   ops: [
     { type: "increaseDebt", amount: STEP },
     {
@@ -120,9 +120,9 @@ export const case_increase_rwa: AdjustLeverageCase = {
 export const case_decrease: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_2X, token: POS },
   tokens: [caToken(POS, TVL_3X, QUOTA_1500)],
-  accountDebt: DEBT_3X,
+  totalDebt: DEBT_3X,
   totalValue: TVL_2X,
-  accountDebtAfter: DEBT_2X,
+  totalDebtAfter: DEBT_2X,
   ops: [
     {
       type: "swap",
@@ -144,9 +144,9 @@ export const case_decrease: AdjustLeverageCase = {
 export const case_decrease_from_idle_underlying: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_2X, token: POS },
   tokens: [caToken(POS, TVL_2X, QUOTA_1000), caToken(UND, STEP)],
-  accountDebt: DEBT_3X,
+  totalDebt: DEBT_3X,
   totalValue: TVL_2X,
-  accountDebtAfter: DEBT_2X,
+  totalDebtAfter: DEBT_2X,
   ops: [{ type: "decreaseDebt", amount: STEP }],
 };
 
@@ -154,9 +154,9 @@ export const case_decrease_from_idle_underlying: AdjustLeverageCase = {
 export const case_decrease_rwa: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_2X, token: RWA_ASSET },
   tokens: [caToken(RWA_ASSET, TVL_3X, QUOTA_1500)],
-  accountDebt: DEBT_3X,
+  totalDebt: DEBT_3X,
   totalValue: TVL_2X,
-  accountDebtAfter: DEBT_2X,
+  totalDebtAfter: DEBT_2X,
   ops: [
     {
       type: "wrapRwaCollateral",
@@ -180,9 +180,9 @@ export const case_decrease_rwa: AdjustLeverageCase = {
 export const case_noop: AdjustLeverageCase = {
   intent: { type: "ADJUST_LEVERAGE", targetLeverage: LEV_2X, token: POS },
   tokens: [caToken(POS, TVL_2X, QUOTA_1000)],
-  accountDebt: DEBT_2X,
+  totalDebt: DEBT_2X,
   totalValue: TVL_2X,
-  accountDebtAfter: DEBT_2X,
+  totalDebtAfter: DEBT_2X,
   ops: [],
 };
 
@@ -197,7 +197,7 @@ export function buildAdjustLeverageProps(
   return {
     intent: c.intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: c.accountDebt,
+      totalDebt: c.totalDebt,
       tokens: c.tokens,
     }),
     sdk,

@@ -59,16 +59,23 @@ const USD_DUST_THRESHOLD = 1_000n; // $0.00001
 /**
  * Converts a USD value in the oracle's 8-decimal fixed point to a float.
  *
- * Values below {@link USD_DUST_THRESHOLD} report as `0`.
+ * Values whose magnitude is below {@link USD_DUST_THRESHOLD} report as `0`.
+ * The threshold is weighed on the magnitude because the deltas the model
+ * carries — a debt repaid, a balance sold — are negative, and dust is dust in
+ * either direction.
  *
  * @example
  * ```ts
  * // usd: $1500.50 in 8-decimal fixed point
  * usdToNumber(150_050_000_000n) // 1500.5
+ * usdToNumber(-150_050_000_000n) // -1500.5
  * ```
  **/
 export function usdToNumber(usd: bigint): number {
-  return usd < USD_DUST_THRESHOLD ? 0 : Number(usd) / Number(PRICE_DECIMALS);
+  const magnitude = usd < 0n ? -usd : usd;
+  return magnitude < USD_DUST_THRESHOLD
+    ? 0
+    : Number(usd) / Number(PRICE_DECIMALS);
 }
 
 /**

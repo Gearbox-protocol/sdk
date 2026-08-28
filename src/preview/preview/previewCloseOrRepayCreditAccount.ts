@@ -139,7 +139,9 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     collateralAdded: collateralAdded.map(a =>
       market.priceOracle.toTokenAmount(a.token, a.balance),
     ),
-    debtRepaid: before.totalDebt - after.account.totalDebt,
+    debtRepaid: market.toUnderlyingAmount(
+      before.totalDebt - after.account.totalDebt,
+    ),
     // On a malformed multicall the MAX_UINT256 withdrawal sentinel resolves
     // against best-effort replayed balances and may be unreliable
     collateralWithdrawn: after.collateralWithdrawn

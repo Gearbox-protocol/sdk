@@ -1,5 +1,6 @@
 import { type Address, isAddressEqual } from "viem";
 import type {
+  AccountProjection,
   AdjustCreditAccountPreview,
   Bps,
   OpenCreditAccountPreview,
@@ -14,6 +15,7 @@ import type {
   OnchainSDK,
   PreviewIssue,
 } from "../../onchain/index.js";
+
 import {
   borrowable,
   checkBorrowLimit,
@@ -93,7 +95,9 @@ export function checkOperation(
       // Neither carries a debt or a health factor: the account is being wound
       // down, so there is no position left for the bars to weigh. Only the
       // market's own state can refuse one.
-      return marketIssues(sdk, preview.creditManager);
+      return marketIssues(
+        sdk.marketRegister.findCreditManager(preview.creditManager),
+      );
   }
 }
 
@@ -127,11 +131,8 @@ function poolIssues(
 }
 
 /** What the market itself refuses, whatever the operation does. */
-function marketIssues(
-  sdk: OnchainSDK,
-  creditManager: Address,
-): PreviewIssue | null {
-  const suite = sdk.marketRegister.findCreditManager(creditManager);
+export function marketIssues(suite: CreditSuite): PreviewIssue | null {
+  const creditManager = suite.creditManager.address;
   return (
     checkCreditManagerPaused({ isPaused: suite.isPaused, creditManager }) ||
     checkMarketExpired({
@@ -155,11 +156,11 @@ function creditIssues(
     preview.operation === "RWAOpenCreditAccount";
 
   return (
-    marketIssues(sdk, preview.creditManager) ||
+    marketIssues(suite) ||
     // An account being opened has to carry a real loan; one being adjusted may
     // end owing nothing at all.
     checkDebtInBand({
-      debt: preview.debt,
+      debt: preview.totalDebt.value,
       minDebt: suite.creditFacade.minDebt,
       maxDebt: suite.creditFacade.maxDebt,
       underlying,
@@ -167,23 +168,38 @@ function creditIssues(
     }) ||
     borrowIssue(suite, preview, underlying) ||
     forbiddenIssue(suite, preview) ||
-    checkQuotaCount({
-      count: preview.quotas.filter(q => q.value > 0n).length,
-      max: suite.creditManager.maxEnabledTokens,
-    }) ||
+    quotaCountIssue(suite, preview) ||
     quotaIssue(market, preview, underlying) ||
-    // A loan-free account is nothing to weigh: the health factor reports its
-    // zero-debt sentinel and no bar applies.
-    (preview.debt === 0n ? null : collateralIssue(preview, options)) ||
-    fundingIssue(options, collateralOf(preview))
+    collateralIssue(preview, options) ||
+    fundingIssue(options, preview.collateralAdded)
   );
+}
+
+/**
+ * A bar that reads nothing but the projected account, so a parsed transaction
+ * and a simulated one are held to it by the same code.
+ *
+ * These stay separate functions rather than one block because the order the
+ * checks run in is the answer: `checkOperation` interleaves the checks that
+ * need an operation's *delta* between them, and the caller acts on the first
+ * issue reported.
+ */
+export function quotaCountIssue(
+  suite: CreditSuite,
+  projection: AccountProjection,
+): PreviewIssue | null {
+  return checkQuotaCount({
+    count: projection.quotas.filter(q => q.value > 0n).length,
+    max: suite.creditManager.maxEnabledTokens,
+  });
 }
 
 /**
  * What the transaction draws, against what the market can lend right now.
  *
  * Only a draw is weighed: repaying, or leaving the debt alone, can never exceed
- * a ceiling. Opening borrows the whole debt; adjusting borrows `debtChange`.
+ * a ceiling. Opening borrows the whole debt; adjusting borrows
+ * `totalDebtChange`.
  *
  * The engine holds every simulation to this already (`assertCanBorrow`), so
  * this is here for the transactions it never saw — a pasted calldata reaches
@@ -196,8 +212,8 @@ function borrowIssue(
 ): PreviewIssue | null {
   const drawn =
     preview.operation === "AdjustCreditAccount"
-      ? preview.debtChange
-      : preview.debt;
+      ? preview.totalDebtChange.value
+      : preview.totalDebt.value;
   if (drawn <= 0n) {
     return null;
   }
@@ -212,17 +228,42 @@ function borrowIssue(
   });
 }
 
-/** The account against whichever bars the caller holds it to. */
-function collateralIssue(
-  preview: CreditPreview,
+/**
+ * The account against whichever bars the caller holds it to.
+ *
+ * A loan-free account is nothing to weigh: the health factor reports its
+ * zero-debt sentinel and no bar applies.
+ *
+ * {@inheritDoc quotaCountIssue}
+ */
+export function collateralIssue(
+  projection: AccountProjection,
   options: CheckOperationOptions,
 ): PreviewIssue | null {
-  return collateralIssuesOf(
-    {
-      healthFactor: preview.healthFactor,
-      safeHealthFactor: preview.safeHealthFactor,
-    },
-    options,
+  const { minHealthFactor, minSafeHealthFactor, currentHealthFactor } = options;
+  if (projection.totalDebt.value === 0n) {
+    return null;
+  }
+  return (
+    (minHealthFactor === undefined
+      ? null
+      : checkCollateralised({
+          healthFactor: projection.healthFactor,
+          required: minHealthFactor,
+          safePrices: false,
+          improvesFrom: currentHealthFactor,
+        })) ||
+    // A projection that does not carry the safe-price factor cannot be held to
+    // a safe-price bar; the engine reports it only for an operation that hands
+    // funds over.
+    (minSafeHealthFactor === undefined ||
+    projection.safeHealthFactor === undefined
+      ? null
+      : checkCollateralised({
+          healthFactor: projection.safeHealthFactor,
+          required: minSafeHealthFactor,
+          safePrices: true,
+        }))
   );
 }
 
@@ -249,19 +290,6 @@ function fundingIssue(
     }
   }
   return null;
-}
-
-/** What the wallet puts in, which is what its balances have to cover. */
-function collateralOf(
-  preview: CreditPreview,
-): Array<{ token: Token; value: bigint }> {
-  if ("collateral" in preview) {
-    return preview.collateral;
-  }
-  if ("collateralAdded" in preview) {
-    return preview.collateralAdded;
-  }
-  return [];
 }
 
 function forbiddenIssue(
@@ -321,29 +349,4 @@ function quotaIssue(
     }
   }
   return null;
-}
-
-/** The two collateral bars, shared by the preview and the simulation paths. */
-export function collateralIssuesOf(
-  factors: { healthFactor: Bps | undefined; safeHealthFactor: Bps | undefined },
-  options: CheckOperationOptions,
-): PreviewIssue | null {
-  const { minHealthFactor, minSafeHealthFactor, currentHealthFactor } = options;
-  return (
-    (minHealthFactor === undefined
-      ? null
-      : checkCollateralised({
-          healthFactor: factors.healthFactor,
-          required: minHealthFactor,
-          safePrices: false,
-          improvesFrom: currentHealthFactor,
-        })) ||
-    (minSafeHealthFactor === undefined || factors.safeHealthFactor === undefined
-      ? null
-      : checkCollateralised({
-          healthFactor: factors.safeHealthFactor,
-          required: minSafeHealthFactor,
-          safePrices: true,
-        }))
-  );
 }

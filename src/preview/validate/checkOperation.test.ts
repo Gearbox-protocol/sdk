@@ -6,6 +6,7 @@ import type {
   AdjustCreditAccountPreview,
   OpenCreditAccountPreview,
   PoolOperationPreview,
+  TokenAmount,
 } from "../../model/index.js";
 import {
   AddressMap,
@@ -31,6 +32,19 @@ const WETH: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const POOL: Address = "0xA9d17f6D3285208280a1Fd9B94479c62e0AABa64";
 const WSTETH: Address = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0";
 
+/** An underlying-denominated amount, which is what the projection reports in. */
+const und = (value: bigint): TokenAmount => ({
+  token: {
+    chainId: 1,
+    address: WETH,
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18,
+  },
+  value,
+  valueUsd: null,
+});
+
 let sdk: OnchainSDK;
 
 beforeAll(() => {
@@ -55,9 +69,9 @@ function adjust(
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     collateralWithdrawn: [],
-    totalValue: 10n ** 20n,
-    debt: 41_574_436_328_452_499_320n,
-    debtChange: 0n,
+    totalValue: und(10n ** 20n),
+    totalDebt: und(41_574_436_328_452_499_320n),
+    totalDebtChange: und(0n),
     assets: [],
     assetsChange: [],
     quotas: [],
@@ -80,10 +94,10 @@ function open(
     operation: "OpenCreditAccount",
     name: "KPK WETH",
     creditManager: CREDIT_MANAGER,
-    collateral: [],
-    collateralValue: 10n ** 19n,
-    totalValue: 10n ** 20n,
-    debt: 41_574_436_328_452_499_320n,
+    collateralAdded: [],
+    netValue: und(10n ** 19n),
+    totalValue: und(10n ** 20n),
+    totalDebt: und(41_574_436_328_452_499_320n),
     assets: [],
     quotas: [],
     healthFactor: 12_500,
@@ -113,7 +127,7 @@ describe("checkOperation", () => {
       adjust({
         error: { code: 1002, message: "adapter call outside bracket" },
         healthFactor: 1,
-        debt: 10n ** 30n,
+        totalDebt: und(10n ** 30n),
       }),
       { minHealthFactor: 10_000 },
     );
@@ -178,6 +192,32 @@ describe("checkOperation", () => {
   });
 
   /**
+   * A projection that never weighed the safe factor cannot be held to a
+   * safe-price bar. The intents engine reports it only for an operation that
+   * hands funds over, so `AccountProjection` types it optional; both preview
+   * builders fill it in every time, which is why no preview reaches this
+   * branch today. Pinned so that stays a deliberate contract rather than an
+   * accident, and so the main-price bar is seen to still fire.
+   */
+  it("skips the safe-price bar, not the main one, when the factor is absent", () => {
+    expect(
+      check(adjust({ healthFactor: 12_500, safeHealthFactor: undefined }), {
+        minSafeHealthFactor: 20_000,
+      }),
+    ).toBeNull();
+
+    expect(
+      check(adjust({ healthFactor: 9_000, safeHealthFactor: undefined }), {
+        minHealthFactor: 10_000,
+        minSafeHealthFactor: 20_000,
+      }),
+    ).toEqual({
+      reason: "insufficientCollateral",
+      detail: { healthFactor: 9_000, required: 10_000, safePrices: false },
+    });
+  });
+
+  /**
    * An account being opened is weighed on the safe factor too. It was not
    * before: the legacy gate reached only the adjust flow, and the omission was
    * invisible while nothing reported the safe factor.
@@ -203,10 +243,13 @@ describe("checkOperation", () => {
 
   it("leaves a loan-free account alone at every bar", () => {
     expect(
-      check(adjust({ debt: 0n, healthFactor: 0, safeHealthFactor: 0 }), {
-        minHealthFactor: 10_101,
-        minSafeHealthFactor: 10_000,
-      }),
+      check(
+        adjust({ totalDebt: und(0n), healthFactor: 0, safeHealthFactor: 0 }),
+        {
+          minHealthFactor: 10_101,
+          minSafeHealthFactor: 10_000,
+        },
+      ),
     ).toBeNull();
   });
 
@@ -227,7 +270,7 @@ describe("checkOperation", () => {
     it("refuses a draw the pool cannot cover", () => {
       const spy = withLiquidity(1n);
       try {
-        const issue = check(adjust({ debtChange: 10n ** 20n }));
+        const issue = check(adjust({ totalDebtChange: und(10n ** 20n) }));
         expect(issue?.reason).toBe("insufficientPoolLiquidity");
       } finally {
         spy.mockRestore();
@@ -245,11 +288,11 @@ describe("checkOperation", () => {
 
     /** Repaying, or leaving the debt alone, can never exceed a ceiling. */
     it.each([0n, -(10n ** 20n)])(
-      "leaves a debtChange of %s alone however dry the pool is",
+      "leaves a totalDebtChange of %s alone however dry the pool is",
       change => {
         const spy = withLiquidity(0n);
         try {
-          expect(check(adjust({ debtChange: change }))).toBeNull();
+          expect(check(adjust({ totalDebtChange: und(change) }))).toBeNull();
         } finally {
           spy.mockRestore();
         }
@@ -259,7 +302,7 @@ describe("checkOperation", () => {
     it("serves a draw the pool covers", () => {
       const spy = withLiquidity(10n ** 30n);
       try {
-        expect(check(adjust({ debtChange: 10n ** 18n }))).toBeNull();
+        expect(check(adjust({ totalDebtChange: und(10n ** 18n) }))).toBeNull();
       } finally {
         spy.mockRestore();
       }
@@ -267,7 +310,7 @@ describe("checkOperation", () => {
   });
 
   it("refuses a debt outside the facade's band", () => {
-    const issues = check(adjust({ debt: 10n ** 30n }));
+    const issues = check(adjust({ totalDebt: und(10n ** 30n) }));
     expect(issues?.reason).toBe("debtOutOfRange");
   });
 
@@ -294,7 +337,7 @@ describe("checkOperation", () => {
         name: "KPK WETH",
         creditManager: CREDIT_MANAGER,
         creditAccount: CREDIT_ACCOUNT,
-        instantPreview: adjust({ debt: 10n ** 30n }),
+        instantPreview: adjust({ totalDebt: und(10n ** 30n) }),
         delayedPreview: adjust(),
       } as never,
     });
@@ -309,7 +352,7 @@ describe("checkOperation", () => {
     // A paused market, a debt out of band and a factor under the bar at once:
     // the market's own state is the one a caller can do nothing about.
     expect(
-      check(adjust({ debt: 10n ** 30n, healthFactor: 1 }), {
+      check(adjust({ totalDebt: und(10n ** 30n), healthFactor: 1 }), {
         minHealthFactor: 10_101,
       })?.reason,
     ).toBe("marketPaused");
@@ -317,7 +360,7 @@ describe("checkOperation", () => {
     paused.mockRestore();
 
     expect(
-      check(adjust({ debt: 10n ** 30n, healthFactor: 1 }), {
+      check(adjust({ totalDebt: und(10n ** 30n), healthFactor: 1 }), {
         minHealthFactor: 10_101,
       })?.reason,
     ).toBe("debtOutOfRange");

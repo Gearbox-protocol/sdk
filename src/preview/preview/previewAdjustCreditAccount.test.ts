@@ -27,7 +27,7 @@ import { previewOperation } from "./previewOperation.js";
 // `options.creditAccount` so they don't hit the credit account compressor.
 //
 // The account owes 40 WETH of principal with 122187064668312 wei of interest
-// and fees accrued on top, and `debt` is the whole of it — which is why the
+// and fees accrued on top, and `totalDebt` is the whole of it — which is why the
 // expectations below are 40 WETH plus that tail rather than round numbers.
 // Regenerate both with `tsx scripts/generate-preview-adjust-ca-fixture.ts`.
 const STATE_FIXTURE = resolve(
@@ -47,6 +47,16 @@ const OWNER: Address = "0xC32FEB4DBd127a1993478Ad6E5250710f838b908";
 
 const WETH: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const CBETH: Address = "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704";
+
+/**
+ * An underlying-denominated amount, as the projection reports one: the market
+ * is KPK WETH, so the token the figure names has to be WETH and not whichever
+ * collateral the operation happened to move.
+ */
+const und = (value: unknown) => ({
+  token: expect.objectContaining({ address: WETH }),
+  value,
+});
 
 let sdk: OnchainSDK;
 let creditAccount: CreditAccountData;
@@ -91,8 +101,8 @@ it("previews raising leverage to 6", async () => {
         value: 1_387_859_676_487_610_985n,
       },
     ],
-    debt: 41_574_436_328_452_499_320n,
-    debtChange: 1_574_314_141_387_831_008n,
+    totalDebt: und(41_574_436_328_452_499_320n),
+    totalDebtChange: und(1_574_314_141_387_831_008n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -117,7 +127,7 @@ it("previews raising leverage to 6", async () => {
         value: -34_681_141_736_785_841n,
       },
     ],
-    totalValue: 49_849_913_868_940_488_429n,
+    totalValue: und(49_849_913_868_940_488_429n),
   });
 });
 
@@ -138,8 +148,8 @@ it("previews depositing 1 WETH collateral", async () => {
       },
     ],
     collateralWithdrawn: [],
-    debt: 43_992_432_141_036_538_039n,
-    debtChange: 3_992_309_953_971_869_727n,
+    totalDebt: und(43_992_432_141_036_538_039n),
+    totalDebtChange: und(3_992_309_953_971_869_727n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -164,7 +174,7 @@ it("previews depositing 1 WETH collateral", async () => {
         value: 3_717_440_632_034_401_115n,
       },
     ],
-    totalValue: 54_106_121_084_072_372_049n,
+    totalValue: und(54_106_121_084_072_372_049n),
   });
 });
 
@@ -183,8 +193,8 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
       },
     ],
     collateralWithdrawn: [],
-    debt: 45_734_608_018_311_792_520n,
-    debtChange: 5_734_485_831_247_124_208n,
+    totalDebt: und(45_734_608_018_311_792_520n),
+    totalDebtChange: und(5_734_485_831_247_124_208n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -209,7 +219,7 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
         value: 3_717_440_669_182_992_789n,
       },
     ],
-    totalValue: 54_106_121_126_211_757_028n,
+    totalValue: und(54_106_121_126_211_757_028n),
   });
 });
 
@@ -228,8 +238,8 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
       },
     ],
     collateralWithdrawn: [],
-    debt: 45_734_594_054_075_830_428n,
-    debtChange: 5_734_471_867_011_162_116n,
+    totalDebt: und(45_734_594_054_075_830_428n),
+    totalDebtChange: und(5_734_471_867_011_162_116n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -254,7 +264,7 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
         value: 3_717_440_669_182_911_911n,
       },
     ],
-    totalValue: 54_106_121_126_211_665_285n,
+    totalValue: und(54_106_121_126_211_665_285n),
   });
 });
 
@@ -274,8 +284,8 @@ it("previews adding 1 WETH collateral", async () => {
       },
     ],
     collateralWithdrawn: [],
-    debt: 40_000_122_187_064_668_312n,
-    debtChange: 0n,
+    totalDebt: und(40_000_122_187_064_668_312n),
+    totalDebtChange: und(0n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -295,7 +305,7 @@ it("previews adding 1 WETH collateral", async () => {
         value: 860_277_672_192_746_062n,
       },
     ],
-    totalValue: 50_865_107_508_901_768_679n,
+    totalValue: und(50_865_107_508_901_768_679n),
   });
 });
 
@@ -316,8 +326,14 @@ it("previews withdrawing 1 cbETH", async () => {
         value: 999_999_999_999_999_999n,
       },
     ],
-    debt: 35_369_517_375_080_970_375n,
-    debtChange: -4_630_604_811_983_697_937n,
+    totalDebt: und(35_369_517_375_080_970_375n),
+    // A repayment is the one figure in the model that is negative, and the
+    // USD side has to follow it down rather than clamp to zero.
+    totalDebtChange: {
+      token: expect.objectContaining({ address: WETH }),
+      value: -4_630_604_811_983_697_937n,
+      valueUsd: expect.toSatisfy((v: number) => v < 0),
+    },
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -350,7 +366,7 @@ it("previews withdrawing 1 cbETH", async () => {
         value: 59_823_460_339_788_484n,
       },
     ],
-    totalValue: 44_184_126_188_300_681_109n,
+    totalValue: und(44_184_126_188_300_681_109n),
   });
 });
 
@@ -371,8 +387,8 @@ it("previews adjusting leverage to 7", async () => {
         value: 2_434_993_499_242_269_892n,
       },
     ],
-    debt: 42_762_249_198_165_825_765n,
-    debtChange: 2_762_127_011_101_157_453n,
+    totalDebt: und(42_762_249_198_165_825_765n),
+    totalDebtChange: und(2_762_127_011_101_157_453n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -397,7 +413,7 @@ it("previews adjusting leverage to 7", async () => {
         value: -65_077_809_156_555_499n,
       },
     ],
-    totalValue: 49_815_433_507_430_804_274n,
+    totalValue: und(49_815_433_507_430_804_274n),
   });
 });
 
@@ -417,8 +433,8 @@ it("previews adjusting leverage to 4", async () => {
       },
     ],
     collateralWithdrawn: [],
-    debt: 37_416_969_936_588_061_170n,
-    debtChange: -2_583_152_250_476_607_142n,
+    totalDebt: und(37_416_969_936_588_061_170n),
+    totalDebtChange: und(-2_583_152_250_476_607_142n),
     quotas: [
       {
         token: expect.objectContaining({ address: CBETH }),
@@ -433,7 +449,7 @@ it("previews adjusting leverage to 4", async () => {
       },
     ],
     assetsChange: [],
-    totalValue: 49_889_254_310_053_293_583n,
+    totalValue: und(49_889_254_310_053_293_583n),
   });
 });
 
@@ -476,8 +492,8 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
     collateralAdded: [
       { token: expect.objectContaining({ address: UNKNOWN }), value: amount },
     ],
-    debt: 40_000_122_187_064_668_312n,
-    debtChange: 0n,
+    totalDebt: und(40_000_122_187_064_668_312n),
+    totalDebtChange: und(0n),
     // best-effort: the unknown token still appears in assets, but only the
     // priceable pre-state cbETH contributes to totalValue (see the
     // "adjusting leverage to 4" case above for the cbETH-only value)
@@ -487,7 +503,7 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
         value: amount,
       }),
     ]),
-    totalValue: 49_889_254_310_053_293_583n,
+    totalValue: und(49_889_254_310_053_293_583n),
     error: { code: ERROR_UNPRICEABLE_TOKEN, message: expect.any(String) },
   });
 });

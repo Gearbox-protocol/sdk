@@ -6,6 +6,19 @@ import { RAY } from "../constants/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { PoolService } from "./PoolService.js";
 
+/** What the stub oracle prices an amount as; the tests pin it whole. */
+const amt = (address: Address, value: bigint) => ({
+  token: {
+    chainId: 1,
+    address,
+    symbol: "TKN",
+    name: "Token",
+    decimals: 18,
+  },
+  value,
+  valueUsd: null,
+});
+
 const POOL = "0x1111111111111111111111111111111111111111" as Address;
 const UNDERLYING = "0x2222222222222222222222222222222222222222" as Address;
 /** Zapper input: what the user pays in on a routed deposit. */
@@ -72,6 +85,11 @@ function buildService(args: MockPool = {}) {
     marketRegister: {
       findByPool: () => ({
         underlying: UNDERLYING,
+        // the read-model mappers the simulation prices its amounts with
+        priceOracle: {
+          toAmount: (_t: Address, value: bigint) => ({ value, valueUsd: null }),
+          toTokenAmount: (token: Address, value: bigint) => amt(token, value),
+        },
         pool: {
           underlying: UNDERLYING,
           pool: {
@@ -101,8 +119,8 @@ describe("PoolService.simulateDeposit", () => {
     expect(
       buildService().simulateDeposit({ pool: POOL, amount: 100n }),
     ).toEqual({
-      tokenIn: { token: UNDERLYING, balance: 100n },
-      tokenOut: { token: POOL, balance: 90n },
+      tokenIn: amt(UNDERLYING, 100n),
+      tokenOut: amt(POOL, 90n),
       zapper: undefined,
     });
   });
@@ -113,8 +131,8 @@ describe("PoolService.simulateDeposit", () => {
     expect(
       service.simulateDeposit({ pool: POOL, amount: 1_000n, tokenIn: USDC }),
     ).toEqual({
-      tokenIn: { token: USDC, balance: 1_000n },
-      tokenOut: { token: POOL, balance: 909n },
+      tokenIn: amt(USDC, 1_000n),
+      tokenOut: amt(POOL, 909n),
       zapper: ZAPPER,
     });
   });
@@ -123,8 +141,8 @@ describe("PoolService.simulateDeposit", () => {
     const service = buildService({ totalSupply: 0n, totalAssets: 0n });
 
     expect(service.simulateDeposit({ pool: POOL, amount: 100n })).toEqual({
-      tokenIn: { token: UNDERLYING, balance: 100n },
-      tokenOut: { token: POOL, balance: 100n },
+      tokenIn: amt(UNDERLYING, 100n),
+      tokenOut: amt(POOL, 100n),
       zapper: undefined,
     });
   });
@@ -146,10 +164,10 @@ describe("PoolService.simulateWithdraw", () => {
     expect(
       buildService().simulateWithdraw({ pool: POOL, amount: 120n }),
     ).toEqual({
-      tokenIn: { token: POOL, balance: 110n },
-      tokenOut: { token: UNDERLYING, balance: 120n },
+      tokenIn: amt(POOL, 110n),
+      tokenOut: amt(UNDERLYING, 120n),
       zapper: undefined,
-      availableLiquidity: LIQUIDITY,
+      availableLiquidity: { value: LIQUIDITY, valueUsd: null },
     });
   });
 
@@ -163,10 +181,10 @@ describe("PoolService.simulateWithdraw", () => {
         tokenIn: FARM_TOKEN,
       }),
     ).toEqual({
-      tokenIn: { token: FARM_TOKEN, balance: 437n },
-      tokenOut: { token: UNDERLYING, balance: 480n },
+      tokenIn: amt(FARM_TOKEN, 437n),
+      tokenOut: amt(UNDERLYING, 480n),
       zapper: ZAPPER,
-      availableLiquidity: LIQUIDITY,
+      availableLiquidity: { value: LIQUIDITY, valueUsd: null },
     });
   });
 });
@@ -175,10 +193,10 @@ describe("PoolService.simulateRedeem", () => {
   it("defaults to pool shares and converts them back to underlying", () => {
     expect(buildService().simulateRedeem({ pool: POOL, amount: 120n })).toEqual(
       {
-        tokenIn: { token: POOL, balance: 120n },
-        tokenOut: { token: UNDERLYING, balance: 132n },
+        tokenIn: amt(POOL, 120n),
+        tokenOut: amt(UNDERLYING, 132n),
         zapper: undefined,
-        availableLiquidity: LIQUIDITY,
+        availableLiquidity: { value: LIQUIDITY, valueUsd: null },
       },
     );
   });
@@ -187,7 +205,7 @@ describe("PoolService.simulateRedeem", () => {
     const service = buildService({ withdrawFee: 100n });
 
     expect(service.simulateRedeem({ pool: POOL, amount: 120n })).toMatchObject({
-      tokenOut: { token: UNDERLYING, balance: 130n },
+      tokenOut: amt(UNDERLYING, 130n),
     });
   });
 
@@ -201,10 +219,10 @@ describe("PoolService.simulateRedeem", () => {
         tokenIn: FARM_TOKEN,
       }),
     ).toEqual({
-      tokenIn: { token: FARM_TOKEN, balance: 480n },
-      tokenOut: { token: UNDERLYING, balance: 528n },
+      tokenIn: amt(FARM_TOKEN, 480n),
+      tokenOut: amt(UNDERLYING, 528n),
       zapper: ZAPPER,
-      availableLiquidity: LIQUIDITY,
+      availableLiquidity: { value: LIQUIDITY, valueUsd: null },
     });
   });
 });

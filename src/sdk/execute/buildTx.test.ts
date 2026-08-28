@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
+import type { TokenAmount } from "../../model/index.js";
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
   LpSimulate,
@@ -28,6 +29,19 @@ const rawTx = (tag: string): RawTx => ({
 const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
 const CALL = { target: POOL, callData: "0xdead" as const };
+
+/** A priced amount of `address`, which is what the simulations report in. */
+const amount = (address: Address, value: bigint): TokenAmount => ({
+  token: {
+    chainId: CHAIN_ID,
+    address,
+    symbol: "TKN",
+    name: "Token",
+    decimals: 18,
+  },
+  value,
+  valueUsd: null,
+});
 
 function mockChain(overrides?: {
   addLiquidity?: unknown;
@@ -74,8 +88,8 @@ describe("buildTx — pool", () => {
     ok: true,
     operations: [],
     preview: {
-      tokenIn: { token: UNDERLYING, balance: 1_000n },
-      tokenOut: { token: DIESEL, balance: 990n },
+      tokenIn: amount(UNDERLYING, 1_000n),
+      tokenOut: amount(DIESEL, 990n),
     },
     calls: [],
   };
@@ -101,7 +115,10 @@ describe("buildTx — pool", () => {
     expect(sdk.pools.addLiquidity).toHaveBeenCalledWith({
       pool: POOL,
       wallet: WALLET,
-      collateral: sim.preview.tokenIn,
+      collateral: {
+        token: sim.preview.tokenIn.token.address,
+        balance: sim.preview.tokenIn.value,
+      },
       meta: DEPOSIT_META,
     });
   });
@@ -112,8 +129,8 @@ describe("buildTx — pool", () => {
       ok: true,
       operations: [],
       preview: {
-        tokenIn: { token: DIESEL, balance: 500n },
-        tokenOut: { token: UNDERLYING, balance: 505n },
+        tokenIn: amount(DIESEL, 500n),
+        tokenOut: amount(UNDERLYING, 505n),
       },
       calls: [],
     };
@@ -149,8 +166,8 @@ describe("buildTx — pool", () => {
       ok: true,
       operations: [],
       preview: {
-        tokenIn: { token: DIESEL, balance: 500n },
-        tokenOut: { token: UNDERLYING, balance: 505n },
+        tokenIn: amount(DIESEL, 500n),
+        tokenOut: amount(UNDERLYING, 505n),
       },
       calls: [],
     };
@@ -213,9 +230,11 @@ describe("buildTx — pool", () => {
 
 describe("buildTx — open", () => {
   const preview = {
-    debt: 2_000n,
-    collateral: 1_000n,
-    totalValue: 3_000n,
+    totalDebt: amount(UNDERLYING, 2_000n),
+    netValue: amount(UNDERLYING, 1_000n),
+    totalValue: amount(UNDERLYING, 3_000n),
+    leverage: 3,
+    safeHealthFactor: 0,
     priceImpact: undefined,
     averageAssets: [],
     minAssets: [],
@@ -252,7 +271,7 @@ describe("buildTx — open", () => {
       to: WALLET,
       collateral,
       ethAmount: 0n,
-      debt: preview.debt,
+      debt: preview.totalDebt.value,
       calls: preview.calls,
       averageQuota: preview.averageQuota,
       minQuota: preview.minQuota,
@@ -361,11 +380,11 @@ describe("buildTx — account", () => {
     ok: true,
     operations: [],
     preview: {
-      totalValue: 3_000n,
-      accountDebt: 2_000n,
+      totalValue: amount(UNDERLYING, 3_000n),
+      totalDebt: amount(UNDERLYING, 2_000n),
       leverage: 2,
       assets: [],
-      quotas: {},
+      quotas: [],
       priceImpact: undefined,
       healthFactor: 0,
       borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },

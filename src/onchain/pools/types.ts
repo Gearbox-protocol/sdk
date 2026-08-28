@@ -4,7 +4,7 @@ import type {
   ContractFunctionArgs,
   ContractFunctionName,
 } from "viem";
-import type { PoolPosition } from "../../model/index.js";
+import type { Amount, PoolPosition, TokenAmount } from "../../model/index.js";
 import type { Asset, PermitResult } from "../base/index.js";
 import type { IZapperContract } from "../market/index.js";
 import type { MultiCall, RawTx } from "../types/transactions.js";
@@ -159,11 +159,11 @@ export interface PoolSimulation {
   /**
    * Token and amount leaving the wallet — exactly what was asked for.
    **/
-  tokenIn: Asset;
+  tokenIn: TokenAmount;
   /**
    * Token and amount arriving in the wallet at the rate the pool state implies.
    **/
-  tokenOut: Asset;
+  tokenOut: TokenAmount;
   /**
    * Zapper the operation would be routed through; unset for direct pool
    * operations.
@@ -174,9 +174,10 @@ export interface PoolSimulation {
    * shaved by a hair so a withdrawal sized against it does not fail on rounding.
    *
    * The conversion is a rate, not a promise that the pool is liquid enough, so
-   * compare `tokenOut.balance` against this to see if the withdrawal fits.
+   * compare `tokenOut.value` against `availableLiquidity.value` to see if the
+   * withdrawal fits.
    **/
-  availableLiquidity?: bigint;
+  availableLiquidity?: Amount;
 }
 
 /**

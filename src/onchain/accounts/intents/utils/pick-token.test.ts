@@ -18,7 +18,7 @@ describe("pickFattestNonPhantomToken", () => {
     // even though its raw balance is numerically far smaller.
     const sdk = buildMarketSdk();
     const creditAccount = buildFixtureCreditAccount({
-      accountDebt: 0n,
+      totalDebt: 0n,
       tokens: [
         caToken(ANY, 2000000000000000000000n),
         caToken(UND, 150000000000n),
@@ -37,7 +37,7 @@ describe("pickFattestNonPhantomToken", () => {
       extraDecimals: { [PHANTOM]: 18 },
     });
     const creditAccount = buildFixtureCreditAccount({
-      accountDebt: 0n,
+      totalDebt: 0n,
       tokens: [
         caToken(PHANTOM, 999000000000000000000000n),
         caToken(ANY, 2000000000000000000000n),
@@ -50,7 +50,7 @@ describe("pickFattestNonPhantomToken", () => {
   it("skips zero balances and excluded tokens", () => {
     const sdk = buildMarketSdk();
     const creditAccount = buildFixtureCreditAccount({
-      accountDebt: 0n,
+      totalDebt: 0n,
       tokens: [
         caToken(UND, 0n),
         caToken(ANY, 2000000000000000000000n),
@@ -67,7 +67,7 @@ describe("pickFattestNonPhantomToken", () => {
   it("returns undefined when nothing is spendable", () => {
     const sdk = buildMarketSdk();
     const creditAccount = buildFixtureCreditAccount({
-      accountDebt: 0n,
+      totalDebt: 0n,
       tokens: [caToken(UND, 0n)],
     });
 
@@ -77,7 +77,7 @@ describe("pickFattestNonPhantomToken", () => {
   it("breaks ties on address so the pick is stable", () => {
     const sdk = buildMarketSdk();
     const creditAccount = buildFixtureCreditAccount({
-      accountDebt: 0n,
+      totalDebt: 0n,
       tokens: [
         caToken(ANY2, 1000000000000000000000n),
         caToken(ANY, 1000000000000000000000n),

@@ -80,7 +80,7 @@ function run(
   return service.startDelayedIntent({
     intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: DEBT_BEFORE,
+      totalDebt: DEBT_BEFORE,
       tokens,
     }),
     sdk,
@@ -125,12 +125,12 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
 
     // The transaction itself repays nothing and hands nothing over: the
     // proceeds do not exist yet.
-    expect(result.delayed.afterRequest.accountDebt).toBe(DEBT_BEFORE);
-    expect(result.delayed.afterRequest.totalValue).toBe(TVL_BEFORE);
+    expect(result.delayed.afterRequest.totalDebt.value).toBe(DEBT_BEFORE);
+    expect(result.delayed.afterRequest.totalValue.value).toBe(TVL_BEFORE);
     // Where the intent ends, though, is with the payout made and the debt down
     // by the dD the tail repays out of the claim.
-    expect(result.preview.accountDebt).toBe(DEBT_BEFORE - W);
-    expect(result.preview.totalValue).toBe(TVL_BEFORE - 2n * W);
+    expect(result.preview.totalDebt.value).toBe(DEBT_BEFORE - W);
+    expect(result.preview.totalValue.value).toBe(TVL_BEFORE - 2n * W);
     expect(result.calls[0]).toEqual(MOCK_REQUEST_CALL);
   });
 
@@ -177,7 +177,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     );
     expectAdjustPreview(result, {
       totalValue: TVL_BEFORE - 2n * W,
-      accountDebt: DEBT_BEFORE - W,
+      totalDebt: DEBT_BEFORE - W,
       expectedOps: withOnchainOpCalls([
         {
           type: "startDelayedWithdrawal",
@@ -225,7 +225,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(assetBalance(assets, UND)).toBe(W);
     expect(assetBalance(assets, PHANTOM)).toBe(W);
     // The tail spends both: W to the wallet, W into the debt.
-    expect(result.preview.accountDebt).toBe(DEBT_BEFORE - W);
+    expect(result.preview.totalDebt.value).toBe(DEBT_BEFORE - W);
     expect(assetBalance(result.preview.assets, PHANTOM)).toBe(0n);
   });
 
@@ -323,7 +323,7 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
     const result = await service.startDelayedIntent({
       intent: { type: "WITHDRAW", amount: M43_W, to: WALLET, sourceToken: POS },
       creditAccount: buildFixtureCreditAccount({
-        accountDebt: M43_DEBT,
+        totalDebt: M43_DEBT,
         tokens: [caToken(POS, M43_BALANCE, quotaOf(M43_BALANCE))],
       }),
       sdk,
@@ -352,12 +352,12 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
 
     // Nothing settled by the transaction: T and D are unchanged and the
     // phantom holds the value in flight.
-    expect(result.delayed.afterRequest.totalValue).toBe(M43_BALANCE);
-    expect(result.delayed.afterRequest.accountDebt).toBe(M43_DEBT);
+    expect(result.delayed.afterRequest.totalValue.value).toBe(M43_BALANCE);
+    expect(result.delayed.afterRequest.totalDebt.value).toBe(M43_DEBT);
     // The matrix's end state: 1U of value paid out and 4U of debt repaid.
     expectAdjustPreview(result, {
       totalValue: M43_BALANCE - M43_SPEND,
-      accountDebt: M43_DEBT - M43_DD,
+      totalDebt: M43_DEBT - M43_DD,
       expectedOps: withOnchainOpCalls([
         {
           type: "startDelayedWithdrawal",

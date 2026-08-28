@@ -54,7 +54,7 @@ function run(args: {
   claimedToken: Address;
   claimedAmount: bigint;
   rest?: ReturnType<typeof caToken>[];
-  accountDebt?: bigint;
+  totalDebt?: bigint;
   sdk?: OnchainSDK;
 }): Promise<IntentPreviewResult> {
   const sdk = args.sdk ?? buildMarketSdk();
@@ -74,7 +74,7 @@ function run(args: {
       claimCalls: [MOCK_CLAIM_CALL],
     } as ClaimableWithdrawal,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: args.accountDebt ?? DEBT_BEFORE,
+      totalDebt: args.totalDebt ?? DEBT_BEFORE,
       tokens: [
         caToken(PHANTOM, args.redeemed, QUOTA_BEFORE),
         ...(args.rest ?? []),
@@ -97,7 +97,7 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
       }),
       {
         totalValue: 0n,
-        accountDebt: 0n,
+        totalDebt: 0n,
         expectedOps: withOnchainOpCalls([
           {
             type: "claimDelayedWithdrawal",
@@ -143,7 +143,7 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
     );
 
     expect(state.assets).toEqual([]);
-    expect(state.quotas).toEqual({});
+    expect(state.quotas).toEqual([]);
   });
 
   it("nothing left to route: the claim alone settles and pays out", async () => {
@@ -168,7 +168,7 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
       redeemed: TVL_BEFORE,
       claimedToken: UND,
       claimedAmount: TVL_BEFORE,
-      accountDebt: 0n,
+      totalDebt: 0n,
     });
     if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
 
@@ -192,7 +192,7 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
       }),
       {
         totalValue: 0n,
-        accountDebt: 0n,
+        totalDebt: 0n,
         expectedOps: withOnchainOpCalls([
           {
             type: "claimDelayedWithdrawal",

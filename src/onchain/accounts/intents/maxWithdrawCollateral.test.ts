@@ -23,9 +23,9 @@ const TARGET_HF = 10_102n;
 
 function account(
   tokens: CreditAccountSlice["tokens"],
-  accountDebt: bigint,
+  totalDebt: bigint,
 ): CreditAccountSlice {
-  return buildFixtureCreditAccount({ accountDebt, tokens });
+  return buildFixtureCreditAccount({ totalDebt, tokens });
 }
 
 function ceiling(
@@ -63,7 +63,7 @@ function hfAfter(
     quotas: tokens
       .filter(t => t.quota > 0n)
       .map(t => ({ token: t.token, balance: t.quota })),
-    totalDebt: creditAccount.accountDebt,
+    totalDebt: creditAccount.totalDebt,
     totalValue: 0n,
   };
   return sdk.positions.healthFactor(snapshot, { safePrices: true });

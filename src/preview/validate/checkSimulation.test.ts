@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+import type { TokenAmount } from "../../model/index.js";
 import type { OperationState } from "../../onchain/index.js";
 import { json_parse, OnchainSDK } from "../../onchain/index.js";
 import { checkSimulation } from "./checkSimulation.js";
@@ -12,6 +13,25 @@ const STATE_FIXTURE = resolve(
 );
 
 const CREDIT_MANAGER: Address = "0x79C6C1ce5B12abCC3E407ce8C160eE1160250921";
+
+/**
+ * An underlying-denominated amount. A quota entry names the collateral it was
+ * bought for while the amount stays in underlying, so the token is a parameter.
+ */
+const und = (
+  value: bigint,
+  address: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+): TokenAmount => ({
+  token: {
+    chainId: 1,
+    address,
+    symbol: "WETH",
+    name: "Wrapped Ether",
+    decimals: 18,
+  },
+  value,
+  valueUsd: null,
+});
 
 let sdk: OnchainSDK;
 
@@ -33,11 +53,11 @@ function state(over: Partial<OperationState> = {}): OperationState {
     borrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
     timeToLiquidation: 86_400_000n,
     liquidationPrice: null,
-    totalValue: 10n ** 20n,
-    accountDebt: 41_574_436_328_452_499_320n,
+    totalValue: und(10n ** 20n),
+    totalDebt: und(41_574_436_328_452_499_320n),
     leverage: 2,
     assets: [],
-    quotas: {},
+    quotas: [],
     priceImpact: undefined,
     ...over,
   } as OperationState;
@@ -99,16 +119,10 @@ describe("checkSimulation", () => {
       .spyOn(suite.creditManager, "maxEnabledTokens", "get")
       .mockReturnValue(1);
 
-    const quotas = {
-      ["0x1111111111111111111111111111111111111111" as Address]: {
-        token: "0x1111111111111111111111111111111111111111" as Address,
-        balance: 1n,
-      },
-      ["0x2222222222222222222222222222222222222222" as Address]: {
-        token: "0x2222222222222222222222222222222222222222" as Address,
-        balance: 1n,
-      },
-    };
+    const quotas = [
+      und(1n, "0x1111111111111111111111111111111111111111"),
+      und(1n, "0x2222222222222222222222222222222222222222"),
+    ];
 
     expect(check({ quotas })).toEqual({
       reason: "quotaCountExceeded",
@@ -120,7 +134,7 @@ describe("checkSimulation", () => {
   it("leaves a loan-free account alone at every bar", () => {
     expect(
       check(
-        { accountDebt: 0n, healthFactor: 0 },
+        { totalDebt: und(0n), healthFactor: 0 },
         {
           minHealthFactor: 10_101,
           minSafeHealthFactor: 10_001,

@@ -114,7 +114,7 @@ export function buildFinishProps<T extends ResumableIntent>(args: {
     underlying: UND,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: c.postClaimDebt,
+    totalDebt: c.postClaimDebt,
     tokens: [
       {
         token: FIXTURE_PHANTOM,

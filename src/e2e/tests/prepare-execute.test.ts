@@ -283,7 +283,7 @@ describe("prepare → execute on a mainnet fork", () => {
     it("borrows exactly the preview's debt", async () => {
       const { before, preview } = await openPosition();
 
-      expect(before.debt).toBe(preview.debt);
+      expect(before.debt).toBe(preview.totalDebt.value);
     });
 
     it("ends with at least the value of the preview's floor assets", async () => {
@@ -353,11 +353,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
+    it("totalDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
@@ -376,7 +376,7 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expectDebtBracket(await account(creditAccount), preview.accountDebt);
+      expectDebtBracket(await account(creditAccount), preview.totalDebt.value);
     });
   });
 
@@ -407,11 +407,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
+    it("totalDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
       const { creditAccount, before } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
@@ -431,9 +431,9 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expectDebtBracket(await account(creditAccount), preview.accountDebt);
+      expectDebtBracket(await account(creditAccount), preview.totalDebt.value);
       // the target was above the leverage held, so the loan grew
-      expect(preview.accountDebt).toBeGreaterThan(before.debt);
+      expect(preview.totalDebt.value).toBeGreaterThan(before.debt);
     });
   });
 
@@ -458,11 +458,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
+    it("totalDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview } = routedPreview(
@@ -480,7 +480,7 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expectDebtBracket(await account(creditAccount), preview.accountDebt);
+      expectDebtBracket(await account(creditAccount), preview.totalDebt.value);
     });
   });
 
@@ -510,11 +510,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is exact with the send block pinned to the sim's timestamp", async () => {
+    it("totalDebt is exact with the send block pinned to the sim's timestamp", async () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = routedPreview(
@@ -535,7 +535,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expect(
         calcBorrowedAmountPlusInterestAndFees(await account(creditAccount)),
-      ).toBe(preview.accountDebt);
+      ).toBe(preview.totalDebt.value);
     });
   });
 
@@ -564,11 +564,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is exact with the send block pinned to the sim's timestamp", async () => {
+    it("totalDebt is exact with the send block pinned to the sim's timestamp", async () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = routedPreview(
@@ -590,7 +590,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expect(
         calcBorrowedAmountPlusInterestAndFees(await account(creditAccount)),
-      ).toBe(preview.accountDebt);
+      ).toBe(preview.totalDebt.value);
     });
 
     it("maxWithdraw leaves the account at the debt floor, still open", async () => {
@@ -642,7 +642,7 @@ describe("prepare → execute on a mainnet fork", () => {
           slippage: S,
         }),
       );
-      expect(preview.accountDebt).toBe(0n);
+      expect(preview.totalDebt.value).toBe(0n);
       await pinTo(timestamp);
       await send({
         kind: "account",
@@ -688,7 +688,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(payouts.map(op => op.token.toLowerCase())).toEqual([
         underlying.toLowerCase(),
       ]);
-      expect(preview.accountDebt).toBe(0n);
+      expect(preview.totalDebt.value).toBe(0n);
       // no pinning here: the exit settles the loan by the `full` flag rather
       // than by a quoted amount, so nothing below is exact to the block
       await send({
@@ -724,7 +724,7 @@ describe("prepare → execute on a mainnet fork", () => {
     /** Interest the wallet covers on top of the quote when settling. */
     const BUFFER = parseUnits("10", 6);
 
-    it("accountDebt is exact with the send block pinned to the sim's timestamp", async () => {
+    it("totalDebt is exact with the send block pinned to the sim's timestamp", async () => {
       const { creditAccount } = await openPosition();
       await sync();
       const { sim, preview, timestamp } = adjustPreview(
@@ -744,7 +744,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expect(
         calcBorrowedAmountPlusInterestAndFees(await account(creditAccount)),
-      ).toBe(preview.accountDebt);
+      ).toBe(preview.totalDebt.value);
     });
 
     it("maxRepay plus a buffer clears the debt and the quotas with it", async () => {
@@ -758,7 +758,7 @@ describe("prepare → execute on a mainnet fork", () => {
           amount: max.data + BUFFER,
         }),
       );
-      expect(preview.accountDebt).toBe(0n);
+      expect(preview.totalDebt.value).toBe(0n);
       await pinTo(timestamp);
       await send({
         kind: "account",
@@ -787,11 +787,11 @@ describe("prepare → execute on a mainnet fork", () => {
       // the wallet is charged the debt plus the margin, and the facade is
       // asked for everything outstanding rather than for that figure
       const paid = sim.operations.find(op => op.type === "addCollateral");
-      expect(paid?.amount).toBeGreaterThan(preview.accountDebt);
+      expect(paid?.amount).toBeGreaterThan(preview.totalDebt.value);
       expect(
         sim.operations.find(op => op.type === "decreaseDebt"),
       ).toMatchObject({ full: true });
-      expect(preview.accountDebt).toBe(0n);
+      expect(preview.totalDebt.value).toBe(0n);
       await pinTo(timestamp);
       await send({
         kind: "account",
@@ -829,11 +829,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
+    it("totalDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
       const { creditAccount, before } = await openPosition();
       await sync();
       const { sim, preview } = adjustPreview(
@@ -842,7 +842,7 @@ describe("prepare → execute on a mainnet fork", () => {
           amount: AMOUNT,
         }),
       );
-      expect(preview.accountDebt).toBe(
+      expect(preview.totalDebt.value).toBe(
         calcBorrowedAmountPlusInterestAndFees(before),
       );
       await send({
@@ -853,7 +853,7 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expectDebtBracket(await account(creditAccount), preview.accountDebt);
+      expectDebtBracket(await account(creditAccount), preview.totalDebt.value);
     });
   });
 
@@ -900,11 +900,11 @@ describe("prepare → execute on a mainnet fork", () => {
 
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
 
-    it("accountDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
+    it("totalDebt is bracketed by the re-read principal and principal + interest + fees", async () => {
       const { creditAccount } = await openPosition();
       await withUnderlying(creditAccount);
       await sync();
@@ -923,7 +923,7 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expectDebtBracket(await account(creditAccount), preview.accountDebt);
+      expectDebtBracket(await account(creditAccount), preview.totalDebt.value);
     });
   });
 
@@ -990,7 +990,7 @@ describe("prepare → execute on a mainnet fork", () => {
       });
       return {
         creditAccount: log.args.creditAccount,
-        debt: sim.data.preview.debt,
+        debt: sim.data.preview.totalDebt.value,
       };
     }
 
@@ -1034,7 +1034,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(await wrappedBalance()).toBe(0n);
       expectValueBracket(
         (await account(creditAccount)).totalValue,
-        preview.totalValue,
+        preview.totalValue.value,
       );
     });
   });
@@ -1188,7 +1188,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // the rate is read a block before the mint, and a share only ever grows,
       // so the mint is that figure or a hair under it — never above
       const minted = (await balance(shares)) - before;
-      const promised = sim.preview.tokenOut.balance;
+      const promised = sim.preview.tokenOut.value;
       expect(minted).toBeLessThanOrEqual(promised);
       expect(minted).toBeGreaterThanOrEqual(promised - promised / 1_000_000n);
     });
@@ -1227,7 +1227,7 @@ describe("prepare → execute on a mainnet fork", () => {
       });
 
       expect((await balance(USDC)) - before).toBeGreaterThanOrEqual(
-        sim.preview.tokenOut.balance,
+        sim.preview.tokenOut.value,
       );
     });
 
@@ -1272,7 +1272,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // send lands a block later, and a share only ever grows, so the payout is
       // that figure or a hair above it — never below.
       const paid = (await balance(USDC)) - before;
-      const promised = sim.preview.tokenOut.balance;
+      const promised = sim.preview.tokenOut.value;
       expect(paid).toBeGreaterThanOrEqual(promised);
       expect(paid).toBeLessThanOrEqual(promised + promised / 1_000_000n + 1n);
     });

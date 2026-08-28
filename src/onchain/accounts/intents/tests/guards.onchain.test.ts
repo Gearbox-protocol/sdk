@@ -44,7 +44,7 @@ function run(
   return new CreditAccountOperationsService(sdk).startIntent({
     intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: DEBT,
+      totalDebt: DEBT,
       tokens: [caToken(POS, TVL, QUOTA)],
     }),
     sdk,
@@ -205,7 +205,7 @@ describe("collateral check — where the transaction has to end", () => {
         to: WALLET,
       },
       creditAccount: buildFixtureCreditAccount({
-        accountDebt: DEBT,
+        totalDebt: DEBT,
         tokens: [caToken(UND, TVL)],
       }),
       sdk,
@@ -254,7 +254,7 @@ describe("openStrategy — the same market, read before there is an account", ()
     const sdk = buildMarketSdk(extras);
     return new CreditAccountOperationsService(sdk).openStrategyIntent({
       sdk,
-      creditManager: buildFixtureCreditAccount({ accountDebt: 0n, tokens: [] })
+      creditManager: buildFixtureCreditAccount({ totalDebt: 0n, tokens: [] })
         .creditManager,
       collateral: [{ token: UND, balance: DEBT }],
       targetToken: POS,
@@ -389,7 +389,7 @@ describe("refusal details", () => {
         to: WALLET,
       },
       creditAccount: buildFixtureCreditAccount({
-        accountDebt: DEBT,
+        totalDebt: DEBT,
         tokens: [caToken(UND, TVL)],
       }),
       sdk,

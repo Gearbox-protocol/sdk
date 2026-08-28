@@ -1,10 +1,11 @@
 import type { Address } from "viem";
 import type {
-  BorrowRateBreakdown,
+  AccountProjection,
   Bps,
   TokenAmount,
 } from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import { calcPositionLeverage } from "../../market/math.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
@@ -55,42 +56,29 @@ export interface OpenStrategyProps {
  * hands back expected and floor balances from a single call, and `openCA` wants
  * both `minQuota` and `averageQuota`, so there is nothing to gain by dropping one.
  */
-export interface OpenStrategyPreview {
+export interface OpenStrategyPreview
+  extends Omit<AccountProjection, "assets" | "quotas"> {
   /**
-   * Health factor in basis points: below `10000` the account is liquidatable.
-   *
-   * @example `12500` for a health factor of 1.25
+   * The same factor with collateral valued at safe prices, which is what the
+   * credit manager weighs an opening at on-chain. Always reported here: an
+   * opening always hands the pool's funds over.
    **/
-  healthFactor: Bps;
-  /**
-   * Cost of the debt, broken down by source.
-   **/
-  borrowRate: BorrowRateBreakdown;
-  /**
-   * Estimated milliseconds until the health factor decays to `10000` under
-   * the current borrow rate, or `null` when the debt carries no rate (or the
-   * account is already liquidatable).
-   **/
-  timeToLiquidation: bigint | null;
-  /**
-   * Price of the single non-underlying collateral at which the account
-   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
-   * when the account holds zero or several non-underlying assets.
-   **/
-  liquidationPrice: bigint | null;
-  /** Debt drawn, in underlying. */
-  debt: bigint;
-  /** Collateral supplied, valued in underlying. */
-  collateral: bigint;
-  /** Position size — collateral plus debt, in underlying. */
-  totalValue: bigint;
+  safeHealthFactor: Bps;
+  /** Own funds put in, valued in underlying. */
+  netValue: TokenAmount;
   /** What the routed leg lost to market depth; `undefined` if not measured. */
   priceImpact: PathLossRate | undefined;
   /** Expected post-open balances. */
   averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */
   minAssets: TokenAmount[];
-  /** Quotas to buy against `averageAssets`; feeds `openCA.averageQuota`. */
+  /**
+   * Quotas to buy against `averageAssets`; feeds `openCA.averageQuota`.
+   *
+   * Bare pairs rather than priced amounts, like `calls` below: these three are
+   * transport for the transaction, handed to `openCA` untouched, and are the
+   * only fields here a caller is not meant to display.
+   **/
   averageQuota: Asset[];
   /** Quotas to buy against `minAssets`; feeds `openCA.minQuota`. */
   minQuota: Asset[];
@@ -155,7 +143,7 @@ export async function previewOpenStrategy(
     underlying,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: 0n,
+    totalDebt: 0n,
     tokens: [],
   };
   assertDebtInBand(sdk, debt, suite.creditFacade, underlying);
@@ -210,6 +198,9 @@ export async function previewOpenStrategy(
   const projectedPool = { availableLiquidityChange: -debt };
   const metrics = {
     healthFactor: sdk.positions.healthFactor(snapshot),
+    safeHealthFactor: sdk.positions.healthFactor(snapshot, {
+      safePrices: true,
+    }),
     borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
     timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
     liquidationPrice: sdk.positions.liquidationPrice(snapshot),
@@ -224,9 +215,10 @@ export async function previewOpenStrategy(
   });
 
   return {
-    debt,
-    collateral: margin,
-    totalValue: margin + debt,
+    totalDebt: market.toUnderlyingAmount(debt),
+    netValue: market.toUnderlyingAmount(margin),
+    totalValue: market.toUnderlyingAmount(margin + debt),
+    leverage: calcPositionLeverage(margin + debt, debt),
     priceImpact,
     averageAssets: averageAssets.map(priced),
     minAssets: minAssets.map(priced),

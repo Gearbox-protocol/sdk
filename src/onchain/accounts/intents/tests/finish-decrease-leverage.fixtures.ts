@@ -94,7 +94,7 @@ export function buildDecreaseTailProps(args: {
     underlying: UND,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: DECREASE_PRE_D,
+    totalDebt: DECREASE_PRE_D,
     tokens: args.tokens ?? [
       {
         token: PHANTOM,
@@ -257,7 +257,7 @@ export function buildMatrixDecreaseTailProps(c: MatrixDecreaseTailCase) {
     underlying: UND,
     enabledTokensMask: 0n,
     totalDebtUSD: 0n,
-    accountDebt: M7_DEBT,
+    totalDebt: M7_DEBT,
     tokens: [
       {
         token: POS,

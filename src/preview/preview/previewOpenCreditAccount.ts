@@ -46,7 +46,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // price the native token. Best-effort: tokens the oracle cannot price
   // contribute nothing.
   let priceError: OperationPreviewError | undefined;
-  const collateralValue = state.collateralAdded.sum((token, balance) => {
+  const netValue = state.collateralAdded.sum((token, balance) => {
     try {
       return oracle.convert(token, market.underlying, balance);
     } catch {
@@ -71,7 +71,7 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   // On opening, initial quotas are zero, so the folded quotas are the
   // applied changes.
   const quotas = account.quotas.toAssets(0n);
-  const totalValue = collateralValue + account.totalDebt;
+  const totalValue = netValue + account.totalDebt;
   const snap = account.toSnapshot(totalValue);
   const targetAsset = inferTargetAsset(operation.multicall, account.balances);
 
@@ -79,14 +79,15 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
     operation: operation.operation,
     creditManager: operation.creditManager,
     name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
-    target: targetAsset
+    targetCollateral: targetAsset
       ? oracle.toTokenAmount(targetAsset.token, targetAsset.balance)
       : undefined,
-    collateral: collateral.map(a => oracle.toTokenAmount(a.token, a.balance)),
-    collateralValue,
-    totalValue,
-    debt: account.debt,
-    // WARNING: quota values are underlying-denominated
+    collateralAdded: collateral.map(a =>
+      oracle.toTokenAmount(a.token, a.balance),
+    ),
+    netValue: market.toUnderlyingAmount(netValue),
+    totalValue: market.toUnderlyingAmount(totalValue),
+    totalDebt: market.toUnderlyingAmount(account.totalDebt),
     quotas: quotas.map(q => ({
       token: sdk.tokensMeta.mustGetToken(q.token),
       ...oracle.toAmount(market.underlying, q.balance),

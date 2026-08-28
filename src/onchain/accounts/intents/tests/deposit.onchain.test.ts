@@ -40,7 +40,7 @@ async function expectCase(c: DepositCase, expectedCalls: unknown[]) {
   const result = await run(c);
   return expectAdjustPreview(result, {
     totalValue: c.totalValue,
-    accountDebt: c.accountDebtAfter,
+    totalDebt: c.totalDebtAfter,
     expectedOps: withOnchainOpCalls([...c.ops]),
     expectedCalls: expectedCalls as never,
   });
@@ -57,9 +57,11 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
 
     expect(assetBalance(state.assets, POS)).toBe(P2000);
     expect(assetBalance(state.assets, UND)).toBe(0n);
-    expect(state.quotas[POS]?.balance).toBe(QUOTA_2000);
+    expect(assetBalance(state.quotas, POS)).toBe(QUOTA_2000);
     // TVL 2000 against debt 1000 leaves collateral at 1000: still 2x.
-    expect(state.totalValue - state.accountDebt).toBe(state.accountDebt);
+    expect(state.totalValue.value - state.totalDebt.value).toBe(
+      state.totalDebt.value,
+    );
   });
 
   it("1.2 levers up to the target while depositing", async () => {
@@ -71,9 +73,9 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
     ]);
 
     expect(assetBalance(state.assets, POS)).toBe(P3000);
-    expect(state.quotas[POS]?.balance).toBe(QUOTA_3000);
+    expect(assetBalance(state.quotas, POS)).toBe(QUOTA_3000);
     // TVL 3000 on collateral 1000 is exactly 3x.
-    expect(state.totalValue).toBe(P3000);
+    expect(state.totalValue.value).toBe(P3000);
   });
 
   it("matrix 3.2 deposits the native coin: value rides on addCollateral", async () => {
@@ -85,7 +87,7 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
     ]);
 
     // TVL 15U against debt 12U leaves collateral at 3U: still 5x.
-    expect(state.totalValue - state.accountDebt).toBe(300000000n);
+    expect(state.totalValue.value - state.totalDebt.value).toBe(300000000n);
   });
 
   it("skips the swap when the position token is the underlying", async () => {
@@ -173,17 +175,17 @@ describe("deposit.start — price impact of the routed leg", () => {
   it("states the same loss against equity and against position size", async () => {
     const result = await run(case_fixed_leverage, withDepth);
     if (!result.ok) throw new Error("expected a preview");
-    const { priceImpact, totalValue, accountDebt } = result.preview;
+    const { priceImpact, totalValue, totalDebt } = result.preview;
     if (!priceImpact) throw new Error("expected a measurement");
 
     // The same absolute loss over two different bases, so the ratio of the two
     // rates is the ratio of the bases. Catches a swapped denominator, which no
     // single-rate assertion can.
-    const netValue = totalValue - accountDebt;
+    const netValue = totalValue.value - totalDebt.value;
     expect(
       priceImpact.netValuePriceImpact * netValue -
-        priceImpact.totalValuePriceImpact * totalValue,
-    ).toBeLessThanOrEqual(totalValue / 1_000n);
+        priceImpact.totalValuePriceImpact * totalValue.value,
+    ).toBeLessThanOrEqual(totalValue.value / 1_000n);
     // Equity is the smaller base, so the same loss reads worse against it.
     expect(priceImpact.netValuePriceImpact).toBeLessThan(
       priceImpact.totalValuePriceImpact,

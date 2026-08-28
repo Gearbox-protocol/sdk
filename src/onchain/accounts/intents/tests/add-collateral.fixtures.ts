@@ -45,7 +45,7 @@ export interface AddCollateralCase {
   intent: AddCollateralIntent;
   /** Balances already on the account. */
   tokens: ReturnType<typeof caToken>[];
-  accountDebt: bigint;
+  totalDebt: bigint;
   /** Expected TVL in UND after the operation. */
   totalValue: bigint;
   ops: ExpectedFlowOp[];
@@ -56,7 +56,7 @@ export interface AddCollateralCase {
 export const case_position_token: AddCollateralCase = {
   intent: { type: "ADD_COLLATERAL", token: ANY, amount: ADD_ANY },
   tokens: [caToken(UND, BASE_UND)],
-  accountDebt: DEBT,
+  totalDebt: DEBT,
   totalValue: BASE_UND + valueInUnd(ADD_ANY, ANY),
   ops: [
     { type: "addCollateral", token: ANY, amount: ADD_ANY, value: undefined },
@@ -73,7 +73,7 @@ export const case_position_token: AddCollateralCase = {
 export const case_underlying: AddCollateralCase = {
   intent: { type: "ADD_COLLATERAL", token: UND, amount: ADD_UND },
   tokens: [caToken(ANY, ADD_ANY, QUOTA_ANY)],
-  accountDebt: DEBT,
+  totalDebt: DEBT,
   totalValue: valueInUnd(ADD_ANY, ANY) + ADD_UND,
   ops: [
     { type: "addCollateral", token: UND, amount: ADD_UND, value: undefined },
@@ -84,7 +84,7 @@ export const case_underlying: AddCollateralCase = {
 export const case_rwa_asset: AddCollateralCase = {
   intent: { type: "ADD_COLLATERAL", token: RWA_ASSET, amount: ADD_RWA },
   tokens: [caToken(UND, BASE_UND)],
-  accountDebt: DEBT,
+  totalDebt: DEBT,
   totalValue: BASE_UND + valueInUnd(ADD_RWA, RWA_ASSET),
   ops: [
     {
@@ -111,7 +111,7 @@ export function buildAddCollateralProps(c: AddCollateralCase, sdk: OnchainSDK) {
   return {
     intent: c.intent,
     creditAccount: buildFixtureCreditAccount({
-      accountDebt: c.accountDebt,
+      totalDebt: c.totalDebt,
       tokens: c.tokens,
     }),
     sdk,

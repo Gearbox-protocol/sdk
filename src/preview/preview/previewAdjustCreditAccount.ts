@@ -94,10 +94,11 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     collateralWithdrawn: after.collateralWithdrawn
       .toAssets()
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    totalValue,
-    debt: account.totalDebt,
-    debtChange: account.totalDebt - before.totalDebt,
-    // WARNING: quota values are underlying-denominated
+    totalValue: market.toUnderlyingAmount(totalValue),
+    totalDebt: market.toUnderlyingAmount(account.totalDebt),
+    totalDebtChange: market.toUnderlyingAmount(
+      account.totalDebt - before.totalDebt,
+    ),
     quotas: quotas.map(q => ({
       token: sdk.tokensMeta.mustGetToken(q.token),
       ...oracle.toAmount(market.underlying, q.balance),

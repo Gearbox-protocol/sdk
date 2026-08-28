@@ -121,8 +121,11 @@ it("previews RWA account opening with an unwrap call", async () => {
   expect(preview).toMatchObject({
     operation: "RWAOpenCreditAccount",
     creditManager: CREDIT_MANAGER,
-    debt,
-    collateral: [
+    totalDebt: {
+      token: expect.objectContaining({ address: USDC }),
+      value: debt,
+    },
+    collateralAdded: [
       {
         token: expect.objectContaining({ address: DS_TOKEN }),
         value: dsAmount,
@@ -134,7 +137,7 @@ it("previews RWA account opening with an unwrap call", async () => {
         value: 55_000_000_000n,
       },
     ],
-    target: {
+    targetCollateral: {
       token: expect.objectContaining({ address: DS_TOKEN }),
       value: dsAmount,
     },
@@ -195,8 +198,16 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
     collateralWithdrawn: [
       { token: expect.objectContaining({ address: USDC }), value: shares },
     ],
-    debt: 5_000_000_000n,
-    debtChange: 0n,
+    // An underlying-denominated figure names the asset the read model names —
+    // USDC, not the dcUSDC-style vault share the pool actually holds.
+    totalDebt: {
+      token: expect.objectContaining({ address: USDC }),
+      value: 5_000_000_000n,
+    },
+    totalDebtChange: {
+      token: expect.objectContaining({ address: USDC }),
+      value: 0n,
+    },
     assetsChange: [
       { token: expect.objectContaining({ address: VAULT }), value: -shares },
     ],

@@ -1,15 +1,13 @@
 import type { Address } from "viem";
 import type { OperationState, PreviewIssue } from "../../onchain/index.js";
-import {
-  checkCreditManagerPaused,
-  checkDebtInBand,
-  checkMarketExpired,
-  checkQuotaCount,
-  toToken,
-} from "../../onchain/index.js";
+import { checkDebtInBand, toToken } from "../../onchain/index.js";
 import type { OnchainSDK } from "../../onchain/OnchainSDK.js";
 import type { CheckOperationOptions } from "./checkOperation.js";
-import { collateralIssuesOf } from "./checkOperation.js";
+import {
+  collateralIssue,
+  marketIssues,
+  quotaCountIssue,
+} from "./checkOperation.js";
 
 /**
  * Whether a simulated operation clears the caller's own bars.
@@ -39,33 +37,16 @@ export function checkSimulation(
   const suite = sdk.marketRegister.findCreditManager(creditManager);
 
   return (
-    checkCreditManagerPaused({ isPaused: suite.isPaused, creditManager }) ||
-    checkMarketExpired({
-      isExpired: suite.isExpired,
-      creditManager,
-      expirationDate: suite.creditFacade.expirationDate,
-    }) ||
+    marketIssues(suite) ||
     checkDebtInBand({
-      debt: state.accountDebt,
+      debt: state.totalDebt.value,
       minDebt: suite.creditFacade.minDebt,
       maxDebt: suite.creditFacade.maxDebt,
       underlying: toToken(sdk, suite.market.pool.underlying),
       // A simulated adjustment may end owing nothing, as one being previewed may.
       allowZero: true,
     }) ||
-    checkQuotaCount({
-      count: Object.values(state.quotas).filter(q => q.balance > 0n).length,
-      max: suite.creditManager.maxEnabledTokens,
-    }) ||
-    // A loan-free account is nothing to weigh against.
-    (state.accountDebt === 0n
-      ? null
-      : collateralIssuesOf(
-          {
-            healthFactor: state.healthFactor,
-            safeHealthFactor: state.safeHealthFactor,
-          },
-          options,
-        ))
+    quotaCountIssue(suite, state) ||
+    collateralIssue(state, options)
   );
 }
