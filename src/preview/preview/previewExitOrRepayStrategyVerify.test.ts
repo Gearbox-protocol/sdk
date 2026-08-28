@@ -81,7 +81,7 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
     operation: "OpenCreditAccount",
     creditManager: CM_PLAIN,
     name: expect.any(String),
-    leverage: expect.any(Number),
+    estLeverage: expect.any(Number),
     targetCollateral: undefined,
     collateralAdded: [
       {
@@ -89,10 +89,10 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
         value: 1_000_000_000n,
       },
     ],
-    netValue: amt(USDC, 1_000_000_000n),
+    estNetValue: amt(USDC, 1_000_000_000n),
     totalDebt: amt(USDC, 7_000_000_000n),
     quotas: [],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: USDC }),
         value: 8_000_000_000n,
@@ -121,7 +121,7 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
         value: 100_893_608_181_830_735_543n,
       },
     ],
-    netValue: amt(WSTETH, 81_462_650_139_176_631_035n),
+    estNetValue: amt(WSTETH, 81_462_650_139_176_631_035n),
     totalDebt: amt(WSTETH, parseEther("75")),
     quotas: [
       {
@@ -129,7 +129,7 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
         value: 79_553_249_999_999_990_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: WETH }),
         value: 100_893_608_181_830_735_543n,
@@ -158,7 +158,7 @@ it("previews strategy 1: ETH collateral and WETH debt swapped into weETH target"
         value: parseEther("10"),
       },
     ],
-    netValue: amt(WETH, parseEther("10")),
+    estNetValue: amt(WETH, parseEther("10")),
     totalDebt: amt(WETH, parseEther("87.5")),
     quotas: [
       {
@@ -166,7 +166,7 @@ it("previews strategy 1: ETH collateral and WETH debt swapped into weETH target"
         value: 95_186_632_231_615_560_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: WEETH }),
         value: 88_711_008_598_339_891_555n,
@@ -195,7 +195,7 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
         value: 5_000_000_000_000_000_000n,
       },
     ],
-    netValue: amt(WETH, 6_192_629_874_516_533_829n),
+    estNetValue: amt(WETH, 6_192_629_874_516_533_829n),
     totalDebt: amt(WETH, 77_526_880_236_650_455_507n),
     quotas: [
       {
@@ -203,7 +203,7 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
         value: 83_512_022_535_704_630_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: WSTETH }),
         value: 67_539_176_884_849_002_897n,
@@ -232,7 +232,7 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
         value: parseEther("10"),
       },
     ],
-    netValue: amt(WETH, 12_385_259_749_033_067_658n),
+    estNetValue: amt(WETH, 12_385_259_749_033_067_658n),
     totalDebt: amt(WETH, 49_544_083_514_075_663_524n),
     quotas: [
       {
@@ -244,7 +244,7 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
         value: 12_355_055_826_322_610_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: WSTETH }),
         value: parseEther("10"),

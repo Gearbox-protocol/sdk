@@ -93,7 +93,7 @@ it("previews raising leverage to 6", async () => {
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
     name: expect.any(String),
-    leverage: expect.any(Number),
+    estLeverage: expect.any(Number),
     collateralAdded: [],
     collateralWithdrawn: [
       {
@@ -115,7 +115,7 @@ it("previews raising leverage to 6", async () => {
         value: -2_356_436_935_552_180_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 43_945_921_284_867_266_790n,
@@ -127,7 +127,7 @@ it("previews raising leverage to 6", async () => {
         value: -34_681_141_736_785_841n,
       },
     ],
-    totalValue: und(49_849_913_868_940_488_429n),
+    estTotalValue: und(49_849_913_868_940_488_429n),
   });
 });
 
@@ -162,7 +162,7 @@ it("previews depositing 1 WETH collateral", async () => {
         value: 1_601_835_774_520_470_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 47_698_043_058_638_453_746n,
@@ -174,7 +174,7 @@ it("previews depositing 1 WETH collateral", async () => {
         value: 3_717_440_632_034_401_115n,
       },
     ],
-    totalValue: und(54_106_121_084_072_372_049n),
+    estTotalValue: und(54_106_121_084_072_372_049n),
   });
 });
 
@@ -207,7 +207,7 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
         value: 1_601_835_813_710_100_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 47_698_043_095_787_045_420n,
@@ -219,7 +219,7 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
         value: 3_717_440_669_182_992_789n,
       },
     ],
-    totalValue: und(54_106_121_126_211_757_028n),
+    estTotalValue: und(54_106_121_126_211_757_028n),
   });
 });
 
@@ -252,7 +252,7 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
         value: 1_601_835_813_710_010_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 47_698_043_095_786_964_542n,
@@ -264,7 +264,7 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
         value: 3_717_440_669_182_911_911n,
       },
     ],
-    totalValue: und(54_106_121_126_211_665_285n),
+    estTotalValue: und(54_106_121_126_211_665_285n),
   });
 });
 
@@ -293,7 +293,7 @@ it("previews adding 1 WETH collateral", async () => {
       },
     ],
     quotasChange: [],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 44_840_880_098_796_798_693n,
@@ -305,7 +305,7 @@ it("previews adding 1 WETH collateral", async () => {
         value: 860_277_672_192_746_062n,
       },
     ],
-    totalValue: und(50_865_107_508_901_768_679n),
+    estTotalValue: und(50_865_107_508_901_768_679n),
   });
 });
 
@@ -346,7 +346,7 @@ it("previews withdrawing 1 cbETH", async () => {
         value: -7_681_255_296_663_200_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 38_898_424_970_816_037_377n,
@@ -366,7 +366,7 @@ it("previews withdrawing 1 cbETH", async () => {
         value: 59_823_460_339_788_484n,
       },
     ],
-    totalValue: und(44_184_126_188_300_681_109n),
+    estTotalValue: und(44_184_126_188_300_681_109n),
   });
 });
 
@@ -401,7 +401,7 @@ it("previews adjusting leverage to 7", async () => {
         value: -2_388_503_671_756_190_000n,
       },
     ],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 43_915_524_617_447_497_132n,
@@ -413,7 +413,7 @@ it("previews adjusting leverage to 7", async () => {
         value: -65_077_809_156_555_499n,
       },
     ],
-    totalValue: und(49_815_433_507_430_804_274n),
+    estTotalValue: und(49_815_433_507_430_804_274n),
   });
 });
 
@@ -442,14 +442,14 @@ it("previews adjusting leverage to 4", async () => {
       },
     ],
     quotasChange: [],
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: CBETH }),
         value: 43_980_602_426_604_052_631n,
       },
     ],
     assetsChange: [],
-    totalValue: und(49_889_254_310_053_293_583n),
+    estTotalValue: und(49_889_254_310_053_293_583n),
   });
 });
 
@@ -497,13 +497,13 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
     // best-effort: the unknown token still appears in assets, but only the
     // priceable pre-state cbETH contributes to totalValue (see the
     // "adjusting leverage to 4" case above for the cbETH-only value)
-    assets: expect.arrayContaining([
+    estAssets: expect.arrayContaining([
       expect.objectContaining({
         token: expect.objectContaining({ address: UNKNOWN }),
         value: amount,
       }),
     ]),
-    totalValue: und(49_889_254_310_053_293_583n),
+    estTotalValue: und(49_889_254_310_053_293_583n),
     error: { code: ERROR_UNPRICEABLE_TOKEN, message: expect.any(String) },
   });
 });
@@ -520,6 +520,8 @@ it("reports the health factor at both pricings", async () => {
     throw new Error("expected AdjustCreditAccount");
   }
 
-  expect(result.safeHealthFactor).toEqual(expect.any(Number));
-  expect(result.safeHealthFactor).toBeLessThanOrEqual(result.healthFactor);
+  expect(result.estSafeHealthFactor).toEqual(expect.any(Number));
+  expect(result.estSafeHealthFactor).toBeLessThanOrEqual(
+    result.estHealthFactor,
+  );
 });

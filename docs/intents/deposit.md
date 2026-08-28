@@ -95,8 +95,10 @@ one planner covers every "is the deposit already the position token" shape.
 
 - `value` rides along on `addCollateral` for a wrapped-native market paid in the
   coin.
-- The swap output is the pathfinder **floor**, so the projected `T` balance and
-  its quota are what survives the worst allowed slippage.
+- The swap is signed at the pathfinder **floor** and reported at what it expects
+  to return: the calls and the quota they buy are what survives the worst allowed
+  slippage, while the projected `T` balance is where the position lands. See
+  [Two amounts per routed leg](./README.md#two-amounts-per-routed-leg).
 - Leverage in the reported state is the read model's own `TVL / C` —
   `totalValue / (totalValue − totalDebt)`, as `StrategyPosition.leverage`
   reports it — not the `LEVERAGE_DECIMALS`-scaled figure the request asks for.

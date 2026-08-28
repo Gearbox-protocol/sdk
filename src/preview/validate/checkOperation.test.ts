@@ -3,9 +3,9 @@ import { resolve } from "node:path";
 import { type Address, custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type {
-  AdjustCreditAccountPreview,
-  OpenCreditAccountPreview,
-  PoolOperationPreview,
+  PreviewAdjustStrategyVerify,
+  PreviewLpVerify,
+  PreviewOpenStrategyVerify,
   TokenAmount,
 } from "../../model/index.js";
 import {
@@ -60,8 +60,8 @@ beforeAll(() => {
 
 /** A healthy adjustment of the fixture's account, as the preview reports one. */
 function adjust(
-  over: Partial<AdjustCreditAccountPreview> = {},
-): AdjustCreditAccountPreview {
+  over: Partial<PreviewAdjustStrategyVerify> = {},
+): PreviewAdjustStrategyVerify {
   return {
     operation: "AdjustCreditAccount",
     name: "KPK WETH",
@@ -69,49 +69,49 @@ function adjust(
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     collateralWithdrawn: [],
-    totalValue: und(10n ** 20n),
+    estTotalValue: und(10n ** 20n),
     totalDebt: und(41_574_436_328_452_499_320n),
     totalDebtChange: und(0n),
-    assets: [],
+    estAssets: [],
     assetsChange: [],
     quotas: [],
     quotasChange: [],
-    healthFactor: 12_500,
-    safeHealthFactor: 11_800,
-    borrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
-    timeToLiquidation: 86_400_000n,
-    liquidationPrice: null,
-    leverage: 2,
+    estHealthFactor: 12_500,
+    estSafeHealthFactor: 11_800,
+    estBorrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
+    estTimeToLiquidation: 86_400_000n,
+    estLiquidationPrice: null,
+    estLeverage: 2,
     ...over,
-  } as AdjustCreditAccountPreview;
+  } as PreviewAdjustStrategyVerify;
 }
 
 /** The same account at the moment it is opened, as the preview reports one. */
 function open(
-  over: Partial<OpenCreditAccountPreview> = {},
-): OpenCreditAccountPreview {
+  over: Partial<PreviewOpenStrategyVerify> = {},
+): PreviewOpenStrategyVerify {
   return {
     operation: "OpenCreditAccount",
     name: "KPK WETH",
     creditManager: CREDIT_MANAGER,
     collateralAdded: [],
-    netValue: und(10n ** 19n),
-    totalValue: und(10n ** 20n),
+    estNetValue: und(10n ** 19n),
+    estTotalValue: und(10n ** 20n),
     totalDebt: und(41_574_436_328_452_499_320n),
-    assets: [],
+    estAssets: [],
     quotas: [],
-    healthFactor: 12_500,
-    safeHealthFactor: 11_800,
-    borrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
-    timeToLiquidation: 86_400_000n,
-    liquidationPrice: null,
-    leverage: 2,
+    estHealthFactor: 12_500,
+    estSafeHealthFactor: 11_800,
+    estBorrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
+    estTimeToLiquidation: 86_400_000n,
+    estLiquidationPrice: null,
+    estLeverage: 2,
     ...over,
-  } as OpenCreditAccountPreview;
+  } as PreviewOpenStrategyVerify;
 }
 
 const check = (
-  preview: AdjustCreditAccountPreview | OpenCreditAccountPreview,
+  preview: PreviewAdjustStrategyVerify | PreviewOpenStrategyVerify,
   options: Parameters<typeof checkOperation>[1] = {},
 ) => checkOperation({ sdk, preview }, options);
 
@@ -126,7 +126,7 @@ describe("checkOperation", () => {
     const issues = check(
       adjust({
         error: { code: 1002, message: "adapter call outside bracket" },
-        healthFactor: 1,
+        estHealthFactor: 1,
         totalDebt: und(10n ** 30n),
       }),
       { minHealthFactor: 10_000 },
@@ -145,9 +145,9 @@ describe("checkOperation", () => {
   });
 
   it("holds the account to the bar it was given, and to none when given none", () => {
-    expect(check(adjust({ healthFactor: 10_000 }))).toBeNull();
+    expect(check(adjust({ estHealthFactor: 10_000 }))).toBeNull();
 
-    const issues = check(adjust({ healthFactor: 10_000 }), {
+    const issues = check(adjust({ estHealthFactor: 10_000 }), {
       minHealthFactor: 10_101,
     });
     expect(issues).toEqual({
@@ -161,14 +161,14 @@ describe("checkOperation", () => {
     // and the confirm screen refuses it, so a position cannot be rescued
     // through the interface at all.
     expect(
-      check(adjust({ healthFactor: 10_080 }), {
+      check(adjust({ estHealthFactor: 10_080 }), {
         minHealthFactor: 10_101,
         currentHealthFactor: 10_050,
       }),
     ).toBeNull();
 
     expect(
-      check(adjust({ healthFactor: 10_080 }), {
+      check(adjust({ estHealthFactor: 10_080 }), {
         minHealthFactor: 10_101,
         currentHealthFactor: 10_090,
       })?.reason,
@@ -178,7 +178,7 @@ describe("checkOperation", () => {
   it("weighs the safe-price factor against its own bar", () => {
     // Main prices clear 10_000, the safe ones do not: only the safe check fires.
     const issues = check(
-      adjust({ healthFactor: 12_500, safeHealthFactor: 9_000 }),
+      adjust({ estHealthFactor: 12_500, estSafeHealthFactor: 9_000 }),
       {
         minHealthFactor: 10_000,
         minSafeHealthFactor: 10_000,
@@ -192,24 +192,22 @@ describe("checkOperation", () => {
   });
 
   /**
-   * A projection that never weighed the safe factor cannot be held to a
-   * safe-price bar. The intents engine reports it only for an operation that
-   * hands funds over, so `AccountProjection` types it optional; both preview
-   * builders fill it in every time, which is why no preview reaches this
-   * branch today. Pinned so that stays a deliberate contract rather than an
-   * accident, and so the main-price bar is seen to still fire.
+   * The safe-price bar is weighed only when the caller names one — it is what
+   * the credit manager holds a call handing funds over to, and a transaction
+   * that hands nothing over is not judged at those prices. Pinned along with
+   * the main bar still firing beside it.
    */
-  it("skips the safe-price bar, not the main one, when the factor is absent", () => {
+  it("skips the safe-price bar, not the main one, when no safe bar is named", () => {
     expect(
-      check(adjust({ healthFactor: 12_500, safeHealthFactor: undefined }), {
-        minSafeHealthFactor: 20_000,
-      }),
+      check(
+        adjust({ estHealthFactor: 12_500, estSafeHealthFactor: 11_800 }),
+        {},
+      ),
     ).toBeNull();
 
     expect(
-      check(adjust({ healthFactor: 9_000, safeHealthFactor: undefined }), {
+      check(adjust({ estHealthFactor: 9_000, estSafeHealthFactor: 8_500 }), {
         minHealthFactor: 10_000,
-        minSafeHealthFactor: 20_000,
       }),
     ).toEqual({
       reason: "insufficientCollateral",
@@ -224,7 +222,7 @@ describe("checkOperation", () => {
    */
   it("weighs the safe-price factor on an account being opened as well", () => {
     expect(
-      check(open({ healthFactor: 12_500, safeHealthFactor: 9_000 }), {
+      check(open({ estHealthFactor: 12_500, estSafeHealthFactor: 9_000 }), {
         minHealthFactor: 10_000,
         minSafeHealthFactor: 10_000,
       }),
@@ -244,7 +242,11 @@ describe("checkOperation", () => {
   it("leaves a loan-free account alone at every bar", () => {
     expect(
       check(
-        adjust({ totalDebt: und(0n), healthFactor: 0, safeHealthFactor: 0 }),
+        adjust({
+          totalDebt: und(0n),
+          estHealthFactor: 0,
+          estSafeHealthFactor: 0,
+        }),
         {
           minHealthFactor: 10_101,
           minSafeHealthFactor: 10_000,
@@ -352,7 +354,7 @@ describe("checkOperation", () => {
     // A paused market, a debt out of band and a factor under the bar at once:
     // the market's own state is the one a caller can do nothing about.
     expect(
-      check(adjust({ totalDebt: und(10n ** 30n), healthFactor: 1 }), {
+      check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
         minHealthFactor: 10_101,
       })?.reason,
     ).toBe("marketPaused");
@@ -360,7 +362,7 @@ describe("checkOperation", () => {
     paused.mockRestore();
 
     expect(
-      check(adjust({ totalDebt: und(10n ** 30n), healthFactor: 1 }), {
+      check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
         minHealthFactor: 10_101,
       })?.reason,
     ).toBe("debtOutOfRange");
@@ -449,9 +451,7 @@ describe("checkOperation", () => {
 });
 
 describe("checkOperation — pool operations", () => {
-  const deposit = (
-    over: Partial<PoolOperationPreview> = {},
-  ): PoolOperationPreview =>
+  const deposit = (over: Partial<PreviewLpVerify> = {}): PreviewLpVerify =>
     ({
       operation: "Deposit",
       pool: POOL,
@@ -467,7 +467,7 @@ describe("checkOperation — pool operations", () => {
         valueUsd: null,
       },
       ...over,
-    }) as PoolOperationPreview;
+    }) as PreviewLpVerify;
 
   it("passes a deposit into a live pool", () => {
     expect(checkOperation({ sdk, preview: deposit() })).toBeNull();

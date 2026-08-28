@@ -141,7 +141,7 @@ it("previews RWA account opening with an unwrap call", async () => {
       token: expect.objectContaining({ address: DS_TOKEN }),
       value: dsAmount,
     },
-    assets: [
+    estAssets: [
       {
         token: expect.objectContaining({ address: DS_TOKEN }),
         value: dsAmount,

@@ -103,8 +103,11 @@ flowchart TD
 ```
 
 The payout is the **floor** of the second swap, so the wallet is never promised
-more than the worst allowed slippage delivers. When `S == T` the second convert
-is an identity and the payout comes straight off the existing balance.
+more than the worst allowed slippage delivers, and the projected state carries
+whatever the route is expected to deliver beyond it — see
+[Two amounts per routed leg](./README.md#two-amounts-per-routed-leg). When
+`S == T` the second convert is an identity and the payout comes straight off the
+existing balance.
 
 ## Exit (`W == MAX_UINT256`, or `W >= C0`)
 
@@ -142,6 +145,13 @@ Why the sentinels rather than the quoted amounts:
   that beat its floor does not strand the surplus on the account.
 - `updateQuota(MIN_INT96)` — a reset, rather than an amount quota interest may
   have moved.
+
+The RWA unwrap is the one leg that names an amount, and it names the floor —
+`redeem(shares)` takes a figure, unlike the sentinel withdrawals around it. So a
+route that beats its floor on an RWA market leaves that difference wrapped on the
+account instead of handing it over, and the projected state reports the leftover
+rather than an empty account. `assembleRedeemDiffCalls` would drain it; nothing
+uses that yet.
 
 `tokenOut` and `sourceToken` are ignored by an exit: everything is sold, and the
 payout is whatever the route produced.

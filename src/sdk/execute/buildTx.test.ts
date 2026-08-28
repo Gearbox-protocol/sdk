@@ -392,6 +392,7 @@ describe("buildTx — account", () => {
       quotas: [],
       priceImpact: undefined,
       healthFactor: 0,
+      safeHealthFactor: 0,
       borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
       timeToLiquidation: null,
       liquidationPrice: null,

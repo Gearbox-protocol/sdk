@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 import { type Address, custom, type Hex } from "viem";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type {
-  AdjustCreditAccountPreview,
-  CloseCreditAccountPreview,
-  DelayedCreditAccountOperationPreview,
-  OpenCreditAccountPreview,
+  PreviewAdjustStrategyVerify,
+  PreviewDelayedStrategyVerify,
+  PreviewExitStrategyVerify,
+  PreviewOpenStrategyVerify,
 } from "../../model/index.js";
 import {
   type CreditAccountData,
@@ -340,7 +340,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       calldata: txs.open.calldata,
       sender: investor,
       value: 0n,
-    })) as OpenCreditAccountPreview;
+    })) as PreviewOpenStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: spec.openOperation,
@@ -351,7 +351,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
           value: 20_000_000000n,
         },
       ],
-      netValue: und(
+      estNetValue: und(
         expect.toBeWithinBps(afterOpen.totalValue - afterOpen.debt),
       ),
       totalDebt: und(afterOpen.debt),
@@ -364,7 +364,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         },
       ],
       // the min guaranteed post-open assets: the collateral position only
-      assets: [
+      estAssets: [
         {
           token: expect.objectContaining({ address: COLLATERAL }),
           value: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
@@ -393,7 +393,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterOpen },
-    )) as DelayedCreditAccountOperationPreview;
+    )) as PreviewDelayedStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
@@ -421,8 +421,8 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         totalDebt: und(afterOpen.debt),
         totalDebtChange: und(0n),
         // min guaranteed account value vs the actual post-request state
-        totalValue: und(expect.toBeWithinBps(afterRequest.totalValue)),
-        assets: expect.toEqualUnordered([
+        estTotalValue: und(expect.toBeWithinBps(afterRequest.totalValue)),
+        estAssets: expect.toEqualUnordered([
           amt(
             PHANTOM,
             expect.toBeWithinBpsBelow(findBalance(afterRequest, PHANTOM)),
@@ -450,13 +450,13 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         collateralWithdrawn: [amt(spec.withdrawToken, spec.withdrawAmount)],
         // oracle estimate of the post-claim account value vs the actual
         // state after the claim tx
-        totalValue: und(expect.toBeWithinBps(afterClaim.totalValue)),
+        estTotalValue: und(expect.toBeWithinBps(afterClaim.totalValue)),
         totalDebt: und(expect.toBeWithinBps(afterClaim.debt)),
         totalDebtChange: und(expect.toSatisfy((v: bigint) => v < 0n)),
         // the claim zeroes the phantom quota: only the (buffered, see
         // instantPreview) collateral quota is left
         quotas: expect.toEqualUnordered([amt(COLLATERAL, expect.anything())]),
-        assets: expect.toEqualUnordered([
+        estAssets: expect.toEqualUnordered([
           amt(COLLATERAL, findBalance(afterClaim, COLLATERAL)),
         ]),
       },
@@ -481,7 +481,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterRequest },
-    )) as AdjustCreditAccountPreview;
+    )) as PreviewAdjustStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
@@ -512,11 +512,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // the claim remainder repays debt
       totalDebtChange: und(expect.toSatisfy((v: bigint) => v < 0n)),
       // min guaranteed account value vs the actual post-claim state
-      totalValue: und(expect.toBeWithinBps(afterClaim.totalValue)),
+      estTotalValue: und(expect.toBeWithinBps(afterClaim.totalValue)),
       quotas: expect.toEqualUnordered([
         amt(COLLATERAL, findQuota(afterClaim, COLLATERAL)),
       ]),
-      assets: expect.toEqualUnordered([
+      estAssets: expect.toEqualUnordered([
         amt(COLLATERAL, findBalance(afterClaim, COLLATERAL)),
       ]),
     });
@@ -534,7 +534,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterClaim },
-    )) as DelayedCreditAccountOperationPreview;
+    )) as PreviewDelayedStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
@@ -553,10 +553,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         totalDebt: und(afterClaim.debt),
         totalDebtChange: und(0n),
         // min guaranteed account value vs the actual post-request state
-        totalValue: und(expect.toBeWithinBps(afterCloseRequest.totalValue)),
+        estTotalValue: und(expect.toBeWithinBps(afterCloseRequest.totalValue)),
         // collateral fully redeemed into the phantom token, the residues
         // left by the claim tx are untouched
-        assets: expect.toEqualUnordered([
+        estAssets: expect.toEqualUnordered([
           amt(
             PHANTOM,
             expect.toBeWithinBpsBelow(findBalance(afterCloseRequest, PHANTOM)),
@@ -600,7 +600,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterCloseRequest },
-    )) as CloseCreditAccountPreview;
+    )) as PreviewExitStrategyVerify;
 
     // decreaseDebt(MAX) + withdrawCollateral(MAX) and no new withdrawal
     // request: a zero-debt closure (the account stays open but empty)

@@ -1,6 +1,6 @@
 import type {
-  CloseCreditAccountPreview,
-  RepayCreditAccountPreview,
+  PreviewExitStrategyVerify,
+  PreviewRepayStrategyVerify,
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
@@ -34,12 +34,12 @@ export type CloseOrRepayOperation =
   | MulticallOperation
   | RWAMulticallOperation;
 
-export async function previewCloseOrRepayCreditAccount<P extends PluginsMap>(
+export async function previewExitOrRepayStrategyVerify<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: CloseOrRepayOperation,
   permanent: boolean,
   options: PreviewOperationOptions<true>,
-): Promise<CloseCreditAccountPreview | RepayCreditAccountPreview> {
+): Promise<PreviewExitStrategyVerify | PreviewRepayStrategyVerify> {
   const { sdk } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -70,7 +70,7 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
-): CloseCreditAccountPreview {
+): PreviewExitStrategyVerify {
   const { sdk } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -114,7 +114,7 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
-): RepayCreditAccountPreview {
+): PreviewRepayStrategyVerify {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,

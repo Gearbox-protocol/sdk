@@ -1,11 +1,13 @@
 import { type Address, isAddressEqual } from "viem";
 import type {
+  AccountHoldings,
+  AccountMetrics,
   AccountProjection,
-  AdjustCreditAccountPreview,
   Bps,
-  OpenCreditAccountPreview,
   OperationPreview,
-  PoolOperationPreview,
+  PreviewAdjustStrategyVerify,
+  PreviewLpVerify,
+  PreviewOpenStrategyVerify,
   Token,
 } from "../../model/index.js";
 import type {
@@ -103,7 +105,7 @@ export function checkOperation(
 
 function poolIssues(
   sdk: OnchainSDK,
-  preview: PoolOperationPreview,
+  preview: PreviewLpVerify,
   options: CheckOperationOptions,
   isDeposit: boolean,
 ): PreviewIssue | null {
@@ -170,7 +172,15 @@ function creditIssues(
     forbiddenIssue(suite, preview) ||
     quotaCountIssue(suite, preview) ||
     quotaIssue(market, preview, underlying) ||
-    collateralIssue(preview, options) ||
+    // The floor branch, since that is the only one a parsed transaction carries.
+    collateralIssue(
+      {
+        totalDebt: preview.totalDebt,
+        healthFactor: preview.estHealthFactor,
+        safeHealthFactor: preview.estSafeHealthFactor,
+      },
+      options,
+    ) ||
     fundingIssue(options, preview.collateralAdded)
   );
 }
@@ -186,10 +196,10 @@ function creditIssues(
  */
 export function quotaCountIssue(
   suite: CreditSuite,
-  projection: AccountProjection,
+  account: Pick<AccountProjection, "quotas">,
 ): PreviewIssue | null {
   return checkQuotaCount({
-    count: projection.quotas.filter(q => q.value > 0n).length,
+    count: account.quotas.filter(q => q.value > 0n).length,
     max: suite.creditManager.maxEnabledTokens,
   });
 }
@@ -229,6 +239,17 @@ function borrowIssue(
 }
 
 /**
+ * An account's factors, in whichever branch of a routed leg the caller means to
+ * be held to: `prepare` reports the outcome the router expects, `preview` the
+ * floor its calldata guarantees. The bar is indifferent — it weighs the numbers
+ * it is handed — and passing them one by one is what makes the choice visible
+ * where it is made.
+ */
+export interface WeighedFactors
+  extends Pick<AccountHoldings, "totalDebt">,
+    Pick<AccountMetrics, "healthFactor" | "safeHealthFactor"> {}
+
+/**
  * The account against whichever bars the caller holds it to.
  *
  * A loan-free account is nothing to weigh: the health factor reports its
@@ -237,30 +258,29 @@ function borrowIssue(
  * {@inheritDoc quotaCountIssue}
  */
 export function collateralIssue(
-  projection: AccountProjection,
+  account: WeighedFactors,
   options: CheckOperationOptions,
 ): PreviewIssue | null {
   const { minHealthFactor, minSafeHealthFactor, currentHealthFactor } = options;
-  if (projection.totalDebt.value === 0n) {
+  if (account.totalDebt.value === 0n) {
     return null;
   }
   return (
     (minHealthFactor === undefined
       ? null
       : checkCollateralised({
-          healthFactor: projection.healthFactor,
+          healthFactor: account.healthFactor,
           required: minHealthFactor,
           safePrices: false,
           improvesFrom: currentHealthFactor,
         })) ||
-    // A projection that does not carry the safe-price factor cannot be held to
-    // a safe-price bar; the engine reports it only for an operation that hands
-    // funds over.
-    (minSafeHealthFactor === undefined ||
-    projection.safeHealthFactor === undefined
+    // The safe-price bar is only weighed when the caller names one: it is what
+    // the credit manager holds a call that hands funds over to, and a
+    // transaction that hands nothing over is not judged at those prices.
+    (minSafeHealthFactor === undefined
       ? null
       : checkCollateralised({
-          healthFactor: projection.safeHealthFactor,
+          healthFactor: account.safeHealthFactor,
           required: minSafeHealthFactor,
           safePrices: true,
         }))
@@ -268,7 +288,7 @@ export function collateralIssue(
 }
 
 /** The two previews that carry a position for the bars to weigh. */
-type CreditPreview = OpenCreditAccountPreview | AdjustCreditAccountPreview;
+type CreditPreview = PreviewOpenStrategyVerify | PreviewAdjustStrategyVerify;
 
 /** The wallet's side of the operation, against the balances it was given. */
 function fundingIssue(
@@ -299,7 +319,7 @@ function forbiddenIssue(
   const obtained =
     preview.operation === "AdjustCreditAccount"
       ? preview.assetsChange
-      : preview.assets;
+      : preview.estAssets;
   const forbidden = suite.forbiddenTokens;
 
   for (const asset of obtained) {

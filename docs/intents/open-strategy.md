@@ -82,7 +82,10 @@ flowchart LR
   there are no `AccountCalculatorOperation`s and no quota "update" — a fresh
   account starts at zero quota, so the increase **is** the level to buy.
 - Growth, headroom and the collateral check are all judged on the **expected**
-  branch; the floor branch only feeds `minQuota`.
+  branch; the floor branch only feeds `minQuota`. The collateral check differs
+  from the one every other flow makes, which weighs the floor — `openCA` hands
+  the facade both branches, so the floor is not the whole of what the transaction
+  promises. See [Two amounts per routed leg](./README.md#two-amounts-per-routed-leg).
 - The requested `leverage` is total leverage (`300n` = 3x), not the debt
   multiple. The `leverage` the preview answers with is the read model's plain
   multiplier (`3`), as `StrategyPosition.leverage` reports it.

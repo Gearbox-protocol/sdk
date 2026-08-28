@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 import type { MultiCall, OnchainSDK } from "../../index.js";
-import { calcPositionLeverage } from "../../market/math.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
@@ -96,16 +95,39 @@ export async function realize(
     creditAccount.creditManager,
   );
 
-  const ledger = new OperationLedger({
+  const start = {
     initialAssets: creditAccount.tokens,
     underlying,
     debt: creditAccount.totalDebt,
     convert: price,
-  });
+  };
+  /**
+   * The floor: every routed leg counted at the amount it guarantees. This is
+   * what the calls are built from — a repayment may only spend underlying the
+   * route promises to have raised — and what the guards are answered on, since
+   * a floor that does not clear the facade's bar is a transaction that can
+   * revert.
+   */
+  const ledger = new OperationLedger(start);
+  /**
+   * The same walk with every routed leg counted at the amount the pathfinder
+   * expects to return. Nothing is built from it: it is where the position
+   * actually lands, so it is what the reported state is read off.
+   */
+  const expected = new OperationLedger(start);
   const operations: AccountCalculatorOperation[] = [];
-  const push = (op: AccountCalculatorOperation): void => {
+  /**
+   * @param asExpected - The operation as the expected branch sees it, for the
+   * legs where the two differ. Defaults to the operation itself, which is the
+   * case for everything whose amount the calldata fixes.
+   */
+  const push = (
+    op: AccountCalculatorOperation,
+    asExpected: AccountCalculatorOperation = op,
+  ): void => {
     operations.push(op);
     ledger.apply(op);
+    expected.apply(asExpected);
   };
 
   /** One per routed leg, each already awaiting its quote; folded after the guards. */
@@ -242,15 +264,14 @@ export async function realize(
         if (leg.probe) {
           probes.push(leg.probe);
         }
-        push(
-          buildSwapOperation({
-            tokenIn: step.from,
-            amountIn: amount,
-            tokenOut: step.to,
-            amountOut: leg.minAmount,
-            calls: leg.calls,
-          }),
-        );
+        const swap = buildSwapOperation({
+          tokenIn: step.from,
+          amountIn: amount,
+          tokenOut: step.to,
+          amountOut: leg.minAmount,
+          calls: leg.calls,
+        });
+        push(swap, { ...swap, amountOut: leg.amount });
         raised = leg.minAmount;
         break;
       }
@@ -284,14 +305,23 @@ export async function realize(
           // Nothing to sell comes back empty on both counts; a projection comes
           // back with an amount and no calls, and still has to move the ledger.
           if (leg.calls.length > 0 || leg.minAmount > 0n) {
-            push(
-              buildCloseSwapOperation({
-                from: balances,
-                tokenOut: underlying,
-                amountOut: leg.minAmount,
-                calls: leg.calls,
-              }),
-            );
+            const sale = buildCloseSwapOperation({
+              from: balances,
+              tokenOut: underlying,
+              amountOut: leg.minAmount,
+              calls: leg.calls,
+            });
+            // A close path sells down to a leftover rather than by the amount it
+            // was quoted on, so on the expected branch it takes whatever that
+            // branch holds of each token.
+            push(sale, {
+              ...sale,
+              from: balances.map(a => ({
+                token: a.token,
+                balance: expected.balanceOf(a.token),
+              })),
+              amountOut: leg.amount,
+            });
           }
         }
         raised = ledger.balanceOf(underlying);
@@ -398,19 +428,20 @@ export async function realize(
           );
         }
         for (const { token, balance } of ledger.snapshot().assets) {
-          push(
-            buildWithdrawCollateralOperation({
-              token,
-              amount: balance,
-              to: step.to,
-              // The account is being emptied, and what it holds by then is
-              // whatever the legs before happened to produce — so the facade
-              // reads the balance rather than trusting the quote.
-              all: true,
-              creditAccount,
-              sdk,
-            }),
-          );
+          const payout = buildWithdrawCollateralOperation({
+            token,
+            amount: balance,
+            to: step.to,
+            // The account is being emptied, and what it holds by then is
+            // whatever the legs before happened to produce — so the facade
+            // reads the balance rather than trusting the quote.
+            all: true,
+            creditAccount,
+            sdk,
+          });
+          // The call names no amount, so it takes whichever balance the branch
+          // it is applied to arrived at, and leaves the token at zero either way.
+          push(payout, { ...payout, amount: expected.balanceOf(token) });
         }
         break;
       }
@@ -422,16 +453,24 @@ export async function realize(
     }
   }
 
-  const { assets, totalValue, debt } = ledger.snapshot();
+  const floor = ledger.snapshot();
+  const { assets, debt } = floor;
+  // What the account is expected to hold. The forbidden-token check reads it
+  // rather than the floor: a token the route is expected to deliver is one the
+  // facade will see, whether or not the floor admits it could arrive empty.
+  const projected = expected.snapshot();
   assertGrowthAllowed({
     sdk,
     suite,
     market,
     before: creditAccount.tokens,
-    after: assets,
+    after: projected.assets,
   });
-  // Quotas the plan already settled are not sized again: it dropped them
-  // because the loan ends here, and the balances left behind do not argue.
+  // Sized off the floor, like every other amount a call names: a quota bought
+  // for a balance the route only expects to raise is a fee paid on collateral
+  // that may not arrive. Quotas the plan already settled are not sized again —
+  // it dropped them because the loan ends here, and the balances left behind do
+  // not argue.
   const quotas =
     cleared ??
     getQuotasForUpdate({
@@ -462,62 +501,44 @@ export async function realize(
     quotas.desiredQuota,
   );
 
+  // Debt and quotas are the calls' own words, so both branches share them; the
+  // balances are what the branch is about.
+  const quoted = Object.values(quotasAfter);
   const snapshot: AccountSnapshot = {
     creditManager: creditAccount.creditManager,
-    assets,
-    quotas: Object.values(quotasAfter),
+    assets: projected.assets,
+    quotas: quoted,
     totalDebt: debt,
-    totalValue,
+    totalValue: projected.totalValue,
   };
-  // debt taken on leaves the pool, debt repaid returns to it
-  const projectedPool = {
+  // The same builder the preview module fills its answers from, so a state this
+  // walk plans and the state read back out of the calls it produced are
+  // described by one piece of code. Debt taken on leaves the pool, debt repaid
+  // returns to it.
+  const projection = sdk.positions.projection(snapshot, {
     availableLiquidityChange: creditAccount.totalDebt - debt,
-  };
-  const metrics = {
-    healthFactor: sdk.positions.healthFactor(snapshot),
-    // Reported only where the walk had reason to weigh it, which is the same
-    // condition the guard below reads it under.
-    safeHealthFactor: paysOut
-      ? sdk.positions.healthFactor(snapshot, { safePrices: true })
-      : undefined,
-    borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
-    liquidationPrice: sdk.positions.liquidationPrice(snapshot),
-  };
-  // A call that hands funds over is checked against safe prices on-chain, so
-  // the reported health factor is not the one that decides whether it lands.
+  });
+  // The guard answers "would this revert", and a revert is decided by what the
+  // route actually delivers — so it is weighed on the floor, the only outcome
+  // the transaction can be signed against. A call that hands funds over is
+  // checked against safe prices on-chain, so the factor that decides it is not
+  // the one reported either.
   assertCollateralised(
-    paysOut
-      ? sdk.positions.healthFactor(snapshot, { safePrices: true })
-      : metrics.healthFactor,
+    sdk.positions.healthFactor(
+      { ...snapshot, assets, totalValue: floor.totalValue },
+      { safePrices: paysOut },
+    ),
     paysOut,
   );
 
   // After the guards, so a refusal never waits on a measurement it will not report.
   const priceImpact = await collectPriceImpact(probes, {
-    totalValue,
-    netValue: totalValue - debt,
+    totalValue: projected.totalValue,
+    netValue: projected.totalValue - debt,
     toUnderlying: (from, amount) => price(from, underlying, amount),
   });
 
-  const oracle = market.priceOracle;
-  const state: OperationState = {
-    creditManager: creditAccount.creditManager,
-    name: suite.name,
-    totalValue: market.toUnderlyingAmount(totalValue),
-    totalDebt: market.toUnderlyingAmount(debt),
-    netValue: market.toUnderlyingAmount(totalValue - debt),
-    leverage: calcPositionLeverage(totalValue, debt),
-    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
-    // a quota is bought in underlying, so only the token it applies to comes
-    // from the entry itself
-    quotas: Object.values(quotasAfter).map(q => ({
-      token: sdk.tokensMeta.mustGetToken(q.token),
-      ...oracle.toAmount(underlying, q.balance),
-    })),
-    priceImpact,
-    ...metrics,
-  };
+  const state: OperationState = { ...projection, priceImpact };
 
   return {
     operations,

@@ -110,7 +110,49 @@ debt including accrued interest and fees, `L` total leverage scaled by
 Prices come from the market oracle, RWA-aware (a wrapper and its asset convert
 1:1 up to decimals). A call that hands funds over is judged at **safe prices** —
 the lower of a token's main and reserve feed — because that is what the credit
-manager does.
+manager does. Both factors are reported either way: `healthFactor` at main
+prices, `safeHealthFactor` beside it, since which one decides a transaction is a
+property of the call that ends up being sent.
+
+The state the walk arrives at is turned into the `OperationState` a caller reads
+by `sdk.positions.projection` — the same builder the `preview` module fills its
+own results from, so an operation this engine plans and the same operation read
+back out of its calldata are described by one piece of code. What it is handed is
+taken at its word, which is where the two halves are still allowed to differ:
+the engine's ledger keeps wei-level balances and the preview drops anything at or
+below `DUST_THRESHOLD`. `previewMatchesPrepare.test.ts` runs a request through
+both and holds every field to the other.
+
+## Two amounts per routed leg
+
+The pathfinder answers twice about one swap: what it expects the leg to return,
+and the floor it guarantees once slippage is allowed for. Both are used, for
+different things, and the walk keeps two ledgers so that neither has to stand in
+for the other:
+
+| | Floor | Expected |
+| --- | --- | --- |
+| The calls, and every amount in them | ✓ | |
+| The quota the update buys | ✓ | |
+| The guards (`assertCollateralised`) | ✓ | |
+| The forbidden-token and quota-need check | | ✓ |
+| The reported `OperationState` | | ✓ |
+
+The rule behind the split: anything the transaction promises the facade is
+promised on the floor, because that is the only outcome the route is willing to
+guarantee — a repayment may not spend underlying a swap has not certainly raised,
+and a plan whose floor lands the account under water is refused whatever the
+expectation says. Everything reported to the caller follows the expectation,
+because that is where the position lands. `openNewStrategy` reports both branches
+outright (`averageAssets`/`minAssets`), since `openCA` wants both.
+
+Two consequences worth knowing. The reported balances can carry a surplus the
+calls do not spend — a swap that over-delivers against a fixed-amount repayment
+leaves the difference on the account, and the projection says so. And the health
+factor reported weighs expected balances against the quota actually bought, which
+is exactly what the account will stand at if the route delivers what it expects.
+`routed-branches.onchain.test.ts` pins both directions by quoting a market whose
+floor sits a percent under its expectation.
 
 ## Guards
 
@@ -150,9 +192,10 @@ only some of which hold the numbers.
 | `forbiddenToken`            | the plan would grow the balance of a forbidden token                        | `token` |
 | `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `required`, `safePrices` |
 
-`insufficientCollateral`'s `healthFactor` is the factor the check compared, and
-a call that hands funds over is compared at safe prices while a preview reports
-main ones. `safePrices` says which, so the two differing is not a contradiction.
+`insufficientCollateral`'s `healthFactor` is the factor the check compared: safe
+prices for a call that hands funds over, main prices otherwise. `safePrices` says
+which, so it differing from the projection's `healthFactor` is not a
+contradiction — the safe factor is reported there as `safeHealthFactor`.
 
 ## Two routes for the flows that sell
 

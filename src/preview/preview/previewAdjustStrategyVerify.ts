@@ -1,10 +1,10 @@
 import {
-  type AdjustCreditAccountPreview,
+  asEstimated,
   ERROR_UNPRICEABLE_TOKEN,
+  type PreviewAdjustStrategyVerify,
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
-  calcPositionLeverage,
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
@@ -27,11 +27,11 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
  * minimal guaranteed post-state alongside the changes relative to the
  * pre-state.
  */
-export async function previewAdjustCreditAccount<P extends PluginsMap>(
+export async function previewAdjustStrategyVerify<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: MulticallOperation | RWAMulticallOperation,
   options: PreviewOperationOptions<true>,
-): Promise<AdjustCreditAccountPreview> {
+): Promise<PreviewAdjustStrategyVerify> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -54,11 +54,6 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     );
   error ??= unwrapError;
 
-  // On a malformed multicall the replayed balances are best-effort and may
-  // be unreliable.
-  const assets = account.balances.toAssets(DUST_THRESHOLD);
-  const quotas = account.quotas.toAssets(0n);
-
   // The replayed state is seeded with all initial tokens and entries are
   // never deleted, so its keys are the union of tokens present before or
   // after
@@ -70,23 +65,40 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
   // converted to underlying and summed. Best-effort: tokens the oracle
   // cannot price contribute nothing. Malformed-transaction (1xxx) errors
   // recorded above take precedence over this preview limitation (2xxx).
-  const totalValue = assets.reduce((acc, { token, balance }) => {
-    try {
-      return acc + oracle.convert(token, market.underlying, balance);
-    } catch {
-      error ??= {
-        code: ERROR_UNPRICEABLE_TOKEN,
-        message: `cannot price token ${token}`,
-      };
-      return acc;
-    }
-  }, 0n);
+  //
+  // On a malformed multicall the replayed balances the sum is taken over are
+  // best-effort and may be unreliable.
+  const totalValue = account.balances
+    .toAssets(DUST_THRESHOLD)
+    .reduce((acc, { token, balance }) => {
+      try {
+        return acc + oracle.convert(token, market.underlying, balance);
+      } catch {
+        error ??= {
+          code: ERROR_UNPRICEABLE_TOKEN,
+          message: `cannot price token ${token}`,
+        };
+        return acc;
+      }
+    }, 0n);
   const snap = account.toSnapshot(totalValue);
 
   return {
     operation: "AdjustCreditAccount",
-    creditManager: operation.creditManager,
-    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    // The state itself comes from the builder the intents engine reports its
+    // own projections from, so a transaction this module reads back and the
+    // request that produced it are described in one voice — `est` on the fields
+    // a swap decides, because what the calls guarantee is a floor and what the
+    // engine planned against was the amount the route expects to return.
+    // Best-effort like the rest of the preview: tokens the oracle cannot price
+    // (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
+    //
+    // Debt taken on leaves the pool, debt repaid returns to it.
+    ...asEstimated(
+      sdk.positions.projection(snap, {
+        availableLiquidityChange: before.totalDebt - account.totalDebt,
+      }),
+    ),
     creditAccount: operation.creditAccount,
     collateralAdded: collateralAdded.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
@@ -94,16 +106,9 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
     collateralWithdrawn: after.collateralWithdrawn
       .toAssets()
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    totalValue: market.toUnderlyingAmount(totalValue),
-    totalDebt: market.toUnderlyingAmount(account.totalDebt),
-    netValue: market.toUnderlyingAmount(totalValue - account.totalDebt),
     totalDebtChange: market.toUnderlyingAmount(
       account.totalDebt - before.totalDebt,
     ),
-    quotas: quotas.map(q => ({
-      token: sdk.tokensMeta.mustGetToken(q.token),
-      ...oracle.toAmount(market.underlying, q.balance),
-    })),
     quotasChange: account.quotas
       .difference(before.quotas)
       .toAssets()
@@ -111,23 +116,9 @@ export async function previewAdjustCreditAccount<P extends PluginsMap>(
         token: sdk.tokensMeta.mustGetToken(q.token),
         ...oracle.toAmount(market.underlying, q.balance),
       })),
-    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
     assetsChange: assetsChange.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
     error,
-    // Best-effort like the rest of the preview: tokens the oracle cannot
-    // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
-    healthFactor: sdk.positions.healthFactor(snap),
-    safeHealthFactor: sdk.positions.healthFactor(snap, { safePrices: true }),
-    // debt taken on leaves the pool, debt repaid returns to it
-    borrowRate: sdk.positions.borrowRate(snap, {
-      availableLiquidityChange: before.totalDebt - account.totalDebt,
-    }),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snap, {
-      availableLiquidityChange: before.totalDebt - account.totalDebt,
-    }),
-    liquidationPrice: sdk.positions.liquidationPrice(snap),
-    leverage: calcPositionLeverage(totalValue, account.totalDebt),
   };
 }

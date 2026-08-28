@@ -1,14 +1,13 @@
 import {
+  asEstimated,
   ERROR_UNPRICEABLE_TOKEN,
-  type OpenCreditAccountPreview,
   type OperationPreviewError,
+  type PreviewOpenStrategyVerify,
 } from "../../model/index.js";
 import {
   type AddressMap,
   AP_WETH_TOKEN,
   type Asset,
-  calcPositionLeverage,
-  DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
 } from "../../onchain/index.js";
@@ -25,10 +24,10 @@ import {
 } from "./replayInnerOperations.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
-export async function previewOpenCreditAccount<P extends PluginsMap>(
+export async function previewOpenStrategyVerify<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
-): Promise<OpenCreditAccountPreview> {
+): Promise<PreviewOpenStrategyVerify> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -64,49 +63,37 @@ export async function previewOpenCreditAccount<P extends PluginsMap>(
   );
   error ??= unwrapError ?? priceError;
 
-  // filter out dust, including the 1-wei leftovers of drained inputs and
-  // intermediate tokens. On a malformed multicall the replayed balances are
-  // best-effort and may be unreliable.
-  const assets = account.balances.toAssets(DUST_THRESHOLD);
-  // On opening, initial quotas are zero, so the folded quotas are the
-  // applied changes.
-  const quotas = account.quotas.toAssets(0n);
-  const totalValue = netValue + account.totalDebt;
-  const snap = account.toSnapshot(totalValue);
+  // `toSnapshot` filters out dust, including the 1-wei leftovers of drained
+  // inputs and intermediate tokens, and on opening the folded quotas are the
+  // applied changes since the account started at zero. On a malformed multicall
+  // the replayed balances are best-effort and may be unreliable.
+  const snap = account.toSnapshot(netValue + account.totalDebt);
   const targetAsset = inferTargetAsset(operation.multicall, account.balances);
 
   return {
     operation: operation.operation,
-    creditManager: operation.creditManager,
-    name: sdk.marketRegister.findCreditManager(operation.creditManager).name,
+    // The state itself comes from the builder the intents engine reports its
+    // own projections from, so an opening this module reads back and the one
+    // `prepare.openNewStrategy` planned are described in one voice — `est` on
+    // the fields the route decides, because the balances replayed here are the
+    // floor the calls guarantee while that flow reports the branch it opens on
+    // (`averageAssets`). Best-effort like the rest of the preview: tokens the
+    // oracle cannot price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the
+    // metrics.
+    //
+    // Opening borrows the whole debt from the pool.
+    ...asEstimated(
+      sdk.positions.projection(snap, {
+        availableLiquidityChange: -account.totalDebt,
+      }),
+    ),
     targetCollateral: targetAsset
       ? oracle.toTokenAmount(targetAsset.token, targetAsset.balance)
       : undefined,
     collateralAdded: collateral.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
-    netValue: market.toUnderlyingAmount(netValue),
-    totalValue: market.toUnderlyingAmount(totalValue),
-    totalDebt: market.toUnderlyingAmount(account.totalDebt),
-    quotas: quotas.map(q => ({
-      token: sdk.tokensMeta.mustGetToken(q.token),
-      ...oracle.toAmount(market.underlying, q.balance),
-    })),
-    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
     error,
-    // Best-effort like the rest of the preview: tokens the oracle cannot
-    // price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
-    healthFactor: sdk.positions.healthFactor(snap),
-    safeHealthFactor: sdk.positions.healthFactor(snap, { safePrices: true }),
-    // opening borrows the whole debt from the pool
-    borrowRate: sdk.positions.borrowRate(snap, {
-      availableLiquidityChange: -account.totalDebt,
-    }),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snap, {
-      availableLiquidityChange: -account.totalDebt,
-    }),
-    liquidationPrice: sdk.positions.liquidationPrice(snap),
-    leverage: calcPositionLeverage(totalValue, account.totalDebt),
   };
 }
 

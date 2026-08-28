@@ -144,6 +144,7 @@ export interface MarketSdkExtras {
   forbiddenTokens?: Address[];
   /** What a routed swap returns; linear when omitted. */
   routeQuote?: (amount: bigint) => bigint;
+  routeFloor?: (amount: bigint) => bigint;
 }
 
 /** Mock SDK on the shared fixture market. */
@@ -160,6 +161,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     creditFacade: CREDIT_FACADE,
     underlying: UND,
     routeQuote: extras?.routeQuote,
+    routeFloor: extras?.routeFloor,
     rwaAssets: extras?.rwaAssets,
     phantoms: extras?.phantoms,
     creditAccounts: extras?.creditAccounts,

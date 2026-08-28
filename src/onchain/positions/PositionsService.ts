@@ -1,5 +1,7 @@
 import type { Address } from "viem";
 import type {
+  AccountMetrics,
+  AccountProjection,
   BorrowRateBreakdown,
   Bps,
   DelayedReceivedAsset,
@@ -283,6 +285,103 @@ export class PositionsService extends SDKConstruct {
       decimals: data.decimals,
       liquidationThresholds: data.liquidationThresholds,
     });
+  }
+
+  /**
+   * Every derived number of an account state at once — the whole
+   * {@link AccountMetrics} half of a projection.
+   *
+   * This is what both halves of the SDK fill their answers from: `prepare`, for
+   * a state it walked an intent into, and `preview`, for one it replayed out of
+   * calldata. One snapshot in, one set of metrics out, so the two descriptions
+   * of the same operation cannot disagree because one of them grew its own
+   * formula.
+   *
+   * Identical to the four methods above field for field, and cheaper than
+   * calling them one by one: the market data is collected once, and the health
+   * factor and borrow rate the time to liquidation decays at are the very ones
+   * reported beside it.
+   **/
+  public metrics(
+    snapshot: AccountSnapshot,
+    options?: ProjectedPoolOptions,
+  ): AccountMetrics {
+    const data = this.#marketData(snapshot);
+    const factor = (safePrices: boolean): Bps =>
+      calcHealthFactor({
+        snapshot,
+        underlying: data.underlying,
+        decimals: data.decimals,
+        prices: data.prices,
+        reservePrices: data.reservePrices,
+        safePrices,
+        liquidationThresholds: data.liquidationThresholds,
+        activeQuotas: data.activeQuotas,
+      });
+    const healthFactor = factor(false);
+    const borrowRate = calcBorrowRate({
+      snapshot,
+      baseInterestRate: this.#baseInterestRate(snapshot, data, options),
+      feeInterest: data.feeInterest,
+      quotaRates: data.quotaRates,
+      resolveToken: address => this.sdk.tokensMeta.mustGetToken(address),
+    });
+
+    return {
+      healthFactor,
+      safeHealthFactor: factor(true),
+      borrowRate,
+      timeToLiquidation: calcTimeToLiquidationMs(
+        healthFactor,
+        BigInt(borrowRate.totalOnDebt),
+      ),
+      liquidationPrice: calcLiquidationPrice({
+        snapshot,
+        underlying: data.underlying,
+        decimals: data.decimals,
+        liquidationThresholds: data.liquidationThresholds,
+      }),
+      leverage: calcPositionLeverage(snapshot.totalValue, snapshot.totalDebt),
+    };
+  }
+
+  /**
+   * A projected account state as both halves of the SDK report it: the holdings
+   * priced and named, and the metrics of {@link PositionsService.metrics}.
+   *
+   * The snapshot is taken at its word — what it lists is what comes back, so a
+   * caller that drops dust before the walk reports an account without it, and
+   * one that keeps wei reports them. That is the whole of the policy left to
+   * the caller; everything downstream of the balances is decided here.
+   *
+   * @param options - The operation's effect on the pool, for the rate the
+   * metrics are quoted at, see {@link ProjectedPoolOptions}.
+   **/
+  public projection(
+    snapshot: AccountSnapshot,
+    options?: ProjectedPoolOptions,
+  ): AccountProjection {
+    const { creditManager, totalValue, totalDebt } = snapshot;
+    const market = this.sdk.marketRegister.findByCreditManager(creditManager);
+    const { priceOracle } = market;
+
+    return {
+      creditManager,
+      name: this.sdk.marketRegister.findCreditManager(creditManager).name,
+      totalValue: market.toUnderlyingAmount(totalValue),
+      totalDebt: market.toUnderlyingAmount(totalDebt),
+      netValue: market.toUnderlyingAmount(totalValue - totalDebt),
+      assets: snapshot.assets.map(a =>
+        priceOracle.toTokenAmount(a.token, a.balance),
+      ),
+      // a quota is bought in underlying, so only the token it applies to comes
+      // from the entry itself
+      quotas: snapshot.quotas.map(q => ({
+        token: this.sdk.tokensMeta.mustGetToken(q.token),
+        ...priceOracle.toAmount(market.underlying, q.balance),
+      })),
+      ...this.metrics(snapshot, options),
+    };
   }
 
   /**

@@ -1,11 +1,6 @@
 import type { Address } from "viem";
-import type {
-  AccountProjection,
-  Bps,
-  TokenAmount,
-} from "../../../model/index.js";
+import type { AccountProjection, TokenAmount } from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
-import { calcPositionLeverage } from "../../market/math.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
@@ -58,12 +53,6 @@ export interface OpenStrategyProps {
  */
 export interface OpenStrategyPreview
   extends Omit<AccountProjection, "assets" | "quotas"> {
-  /**
-   * The same factor with collateral valued at safe prices, which is what the
-   * credit manager weighs an opening at on-chain. Always reported here: an
-   * opening always hands the pool's funds over.
-   **/
-  safeHealthFactor: Bps;
   /** What the routed leg lost to market depth; `undefined` if not measured. */
   priceImpact: PathLossRate | undefined;
   /** Expected post-open balances. */
@@ -183,8 +172,8 @@ export async function previewOpenStrategy(
   assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
   assertQuotaHeadroom(sdk, market, averageQuota);
 
-  // The floor branch is what the open is signed against, so it is the one that
-  // has to clear the collateral check.
+  // The expected branch is what the account is weighed as: the floor is what
+  // the transaction is signed against, but it is not where the position lands.
   const snapshot: AccountSnapshot = {
     creditManager,
     assets: averageAssets,
@@ -192,18 +181,17 @@ export async function previewOpenStrategy(
     totalDebt: debt,
     totalValue: margin + debt,
   };
-  // opening borrows the whole debt from the pool
-  const projectedPool = { availableLiquidityChange: -debt };
-  const metrics = {
-    healthFactor: sdk.positions.healthFactor(snapshot),
-    safeHealthFactor: sdk.positions.healthFactor(snapshot, {
-      safePrices: true,
-    }),
-    borrowRate: sdk.positions.borrowRate(snapshot, projectedPool),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snapshot, projectedPool),
-    liquidationPrice: sdk.positions.liquidationPrice(snapshot),
-  };
-  assertCollateralised(metrics.healthFactor, false);
+  // The shared builder, as everywhere else — the two branches are what this
+  // flow reports instead of `assets` and `quotas`, so those are dropped.
+  // Opening borrows the whole debt from the pool.
+  const {
+    assets: _assets,
+    quotas: _quotas,
+    ...projection
+  } = sdk.positions.projection(snapshot, {
+    availableLiquidityChange: -debt,
+  });
+  assertCollateralised(projection.healthFactor, false);
 
   const priceImpact = await collectPriceImpact(leg.probe ? [leg.probe] : [], {
     totalValue: margin + debt,
@@ -213,21 +201,15 @@ export async function previewOpenStrategy(
   });
 
   return {
-    creditManager,
-    name: suite.name,
-    totalDebt: market.toUnderlyingAmount(debt),
-    netValue: market.toUnderlyingAmount(margin),
-    totalValue: market.toUnderlyingAmount(margin + debt),
-    leverage: calcPositionLeverage(margin + debt, debt),
+    // metrics follow the expected branch, not the slippage floor; the target
+    // for the liquidation price comes out of `averageAssets`
+    ...projection,
     priceImpact,
     averageAssets: averageAssets.map(priced),
     minAssets: minAssets.map(priced),
     averageQuota,
     minQuota,
     calls: [...leg.calls],
-    // metrics follow the expected branch, not the slippage floor; the target
-    // for the liquidation price comes out of `averageAssets`
-    ...metrics,
   };
 }
 

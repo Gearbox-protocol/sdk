@@ -7,12 +7,8 @@ import {
   type ConvertFn,
   type OnchainSDK,
 } from "../../onchain/index.js";
-import { calcBorrowRate } from "../../onchain/positions/calcBorrowRate.js";
-import { calcHealthFactor } from "../../onchain/positions/calcHealthFactor.js";
-import { calcLiquidationPrice } from "../../onchain/positions/calcLiquidationPrice.js";
-import { calcTimeToLiquidationMs } from "../../onchain/positions/calcTimeToLiquidationMs.js";
-import type { AccountSnapshot } from "../../onchain/positions/types.js";
-import { buildDelayedPreview } from "./buildDelayedPreview.js";
+import { PositionsService } from "../../onchain/positions/PositionsService.js";
+import { buildDelayedStrategyVerify } from "./buildDelayedStrategyVerify.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
 
@@ -95,7 +91,7 @@ const metricsSdk = (() => {
     value,
     valueUsd: safeUsdValue(token, value),
   });
-  return {
+  const sdk = {
     chainId: 1,
     chain: { nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 } },
     tokensMeta: {
@@ -131,6 +127,23 @@ const metricsSdk = (() => {
             const d = decimals[addr] ?? 18;
             return (amount * price) / 10n ** BigInt(d);
           },
+          // what `PositionsService` collects the metrics from; a token with no
+          // price throws, as the real oracle does, and is left out of the sum
+          mainPrice: (token: Address) => {
+            const price = prices[getAddress(token)];
+            if (price === undefined) {
+              throw new Error(`no answer found for token ${token}`);
+            }
+            return price;
+          },
+          // the stub has one feed per token, so safe prices are the main ones
+          reservePrice: (token: Address) => {
+            const price = prices[getAddress(token)];
+            if (price === undefined) {
+              throw new Error(`no answer found for token ${token}`);
+            }
+            return price;
+          },
           safeConvertToUSD: (token: Address, amount: bigint) => {
             const addr = getAddress(token);
             const price = prices[addr];
@@ -158,48 +171,12 @@ const metricsSdk = (() => {
         },
       }),
     },
-    positions: (() => {
-      const healthFactor = (snapshot: AccountSnapshot) =>
-        calcHealthFactor({
-          snapshot,
-          underlying: UNDERLYING,
-          decimals,
-          prices,
-          liquidationThresholds: lts,
-          activeQuotas: {},
-        });
-      const borrowRate = (snapshot: AccountSnapshot) =>
-        calcBorrowRate({
-          snapshot,
-          baseInterestRate: 0n,
-          feeInterest: 0,
-          quotaRates: {},
-          resolveToken: address => ({
-            chainId: 1,
-            address,
-            symbol: "TOKEN",
-            name: "TOKEN",
-            decimals: 18,
-          }),
-        });
-      return {
-        healthFactor,
-        borrowRate,
-        timeToLiquidation: (snapshot: AccountSnapshot) =>
-          calcTimeToLiquidationMs(
-            healthFactor(snapshot),
-            BigInt(borrowRate(snapshot).totalOnDebt),
-          ),
-        liquidationPrice: (snapshot: AccountSnapshot) =>
-          calcLiquidationPrice({
-            snapshot,
-            underlying: UNDERLYING,
-            decimals,
-            liquidationThresholds: lts,
-          }),
-      };
-    })(),
   } as unknown as OnchainSDK;
+
+  // The real service over the stub, so the metrics under test are the ones
+  // shipped rather than a second implementation of the same formulas.
+  Object.assign(sdk, { positions: new PositionsService(sdk) });
+  return sdk;
 })();
 
 /**
@@ -256,7 +233,7 @@ function amt(token: Address, value: unknown) {
   });
 }
 
-describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
+describe("buildDelayedStrategyVerify CLOSE_ACCOUNT", () => {
   // Post-instant state of the step-1 close tx from tmp/rwa/step1.json:
   // all ACRED redeemed into the phantom token, debt untouched
   const account = makeAccount({
@@ -277,7 +254,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
   });
 
   it("previews an account closure with the leftover after full repayment", () => {
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
@@ -301,7 +278,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
   it("floors receivedAmount at zero when the debt exceeds the total value", () => {
     const indebted = account.clone();
     indebted.totalDebt = 999_999_999_999_999n;
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       indebted,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
@@ -316,7 +293,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
   });
 
   it("does not mutate the input account state", () => {
-    buildDelayedPreview(
+    buildDelayedStrategyVerify(
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
@@ -329,7 +306,7 @@ describe("buildDelayedPreview CLOSE_ACCOUNT", () => {
   });
 });
 
-describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
+describe("buildDelayedStrategyVerify DECREASE_LEVERAGE", () => {
   it("claims and repays the debt with the claimed amount", () => {
     // Post-instant state: everything was redeemed into the phantom token,
     // the pre-transaction state (the diff base) held nothing
@@ -340,7 +317,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       quotas: new AssetsMap([{ token: PHANTOM, balance: 900n }]),
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
@@ -349,25 +326,25 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       metricsSdk,
     );
     // toMatchObject: the preview also carries position metrics
-    // (healthFactor, borrowRate, timeToLiquidation,
-    // liquidationPrice), which this test does not pin down
+    // (estHealthFactor, estBorrowRate, estTimeToLiquidation,
+    // estLiquidationPrice), which this test does not pin down
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
       creditManager: CREDIT_MANAGER,
       creditAccount: CREDIT_ACCOUNT,
       name: "TestCreditManager",
-      leverage: expect.any(Number),
+      estLeverage: expect.any(Number),
       collateralAdded: [],
       collateralWithdrawn: [],
       // 1000 claimed - 600 repaid
-      totalValue: und(400n),
+      estTotalValue: und(400n),
       totalDebt: und(0n),
       totalDebtChange: und(-600n),
       quotas: [],
       // relative to the pre-transaction state: the transient phantom token
       // (minted by the instant part, burned by the claim) nets out to nothing
       quotasChange: [],
-      assets: [amt(UNDERLYING, 400n)],
+      estAssets: [amt(UNDERLYING, 400n)],
       assetsChange: [amt(UNDERLYING, 400n)],
       error: undefined,
     });
@@ -380,7 +357,7 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       totalDebt: 1500n,
     });
     const before = makeAccount({ debt: 1000n, totalDebt: 1500n });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
@@ -394,12 +371,12 @@ describe("buildDelayedPreview DECREASE_LEVERAGE", () => {
       // behind: the loan shrinks by the payment, the principal by nothing
       expect(preview.totalDebt.value).toBe(1400n);
       expect(preview.totalDebtChange.value).toBe(-100n);
-      expect(preview.assets).toEqual([]);
+      expect(preview.estAssets).toEqual([]);
     }
   });
 });
 
-describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
+describe("buildDelayedStrategyVerify WITHDRAW_COLLATERAL", () => {
   it("withdraws the claim token and repays with the rest of the claim, capped by debtRepaid", () => {
     const account = makeAccount({
       balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
@@ -407,7 +384,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       totalDebt: 600n,
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({
@@ -428,7 +405,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       // 700 remaining claim repays 600 total debt, 100 underlying is left
       expect(preview.totalDebt.value).toBe(0n);
       expect(preview.totalDebtChange.value).toBe(-600n);
-      expect(preview.assets).toMatchObject([amt(UNDERLYING, 100n)]);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 100n)]);
     }
   });
 
@@ -439,7 +416,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       totalDebt: 600n,
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({
@@ -462,7 +439,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       expect(preview.totalDebt.value).toBe(400n);
       expect(preview.totalDebtChange.value).toBe(-200n);
       // 700 swept into underlying, 200 spent on the repayment
-      expect(preview.assets).toMatchObject([amt(UNDERLYING, 500n)]);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 500n)]);
     }
   });
 
@@ -473,7 +450,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       totalDebt: 600n,
     });
     const before = makeAccount({ debt: 500n, totalDebt: 600n });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({
@@ -492,7 +469,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     if (preview.operation === "AdjustCreditAccount") {
       expect(preview.totalDebt.value).toBe(600n);
       expect(preview.totalDebtChange.value).toBe(0n);
-      expect(preview.assets).toMatchObject([amt(UNDERLYING, 700n)]);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 700n)]);
     }
   });
 
@@ -500,7 +477,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     const account = makeAccount({
       balances: new AssetsMap([{ token: PHANTOM, balance: 100n }]),
     });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       makeAccount(),
       detected({
@@ -519,7 +496,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
     if (preview.operation === "AdjustCreditAccount") {
       // only the claimed 100 is there to withdraw, nothing left to repay
       expect(preview.collateralWithdrawn).toMatchObject([amt(USDC, 100n)]);
-      expect(preview.assets).toEqual([]);
+      expect(preview.estAssets).toEqual([]);
     }
   });
 
@@ -532,7 +509,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       totalDebt: 60_000n,
     });
     const before = makeAccount({ debt: 50_000n, totalDebt: 60_000n });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({
@@ -555,7 +532,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       // into the underlying; 60_000 repays the total debt in full
       expect(preview.totalDebt.value).toBe(0n);
       expect(preview.totalDebtChange.value).toBe(-60_000n);
-      expect(preview.assets).toMatchObject([amt(UNDERLYING, 20_000n)]);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 20_000n)]);
     }
   });
 
@@ -576,7 +553,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       debt: 500n,
       totalDebt: 600n,
     });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({
@@ -596,10 +573,10 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 30n)]);
       // full 1000 claim repays 600, 400 underlying + 20 WETH remain
       expect(preview.totalDebt.value).toBe(0n);
-      expect(preview.assets).toEqual(
+      expect(preview.estAssets).toEqual(
         expect.arrayContaining([amt(UNDERLYING, 400n), amt(WETH, 20n)]),
       );
-      expect(preview.totalValue.value).toBe(400n + 20n * 2000n);
+      expect(preview.estTotalValue.value).toBe(400n + 20n * 2000n);
     }
   });
 
@@ -618,7 +595,7 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       debt: 4000n,
       totalDebt: 5000n,
     });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({
@@ -639,12 +616,12 @@ describe("buildDelayedPreview WITHDRAW_COLLATERAL", () => {
       // 2 WETH shortfall costs 4000 of the 10_000 claim; the remaining
       // 6000 sweeps into the underlying and repays the 5000 total debt
       expect(preview.totalDebt.value).toBe(0n);
-      expect(preview.assets).toMatchObject([amt(UNDERLYING, 1000n)]);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 1000n)]);
     }
   });
 });
 
-describe("buildDelayedPreview claim-only", () => {
+describe("buildDelayedStrategyVerify claim-only", () => {
   const account = makeAccount({
     balances: new AssetsMap([
       { token: PHANTOM, balance: 1000n },
@@ -668,19 +645,22 @@ describe("buildDelayedPreview claim-only", () => {
     creditAccount: CREDIT_ACCOUNT,
     collateralAdded: [],
     collateralWithdrawn: [],
-    totalValue: und(1200n),
+    estTotalValue: und(1200n),
     totalDebt: und(600n),
     totalDebtChange: und(0n),
     quotas: [],
     // the phantom token round trip nets out to nothing vs the pre-state
     quotasChange: [],
-    assets: expect.arrayContaining([amt(UNDERLYING, 200n), amt(USDC, 1000n)]),
+    estAssets: expect.arrayContaining([
+      amt(UNDERLYING, 200n),
+      amt(USDC, 1000n),
+    ]),
     assetsChange: [amt(USDC, 1000n)],
     error: undefined,
   };
 
   it("applies only the claim step for resume intents with an unrecoverable swap target", () => {
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected({ type: "DEPOSIT" }),
@@ -692,7 +672,7 @@ describe("buildDelayedPreview claim-only", () => {
   });
 
   it("applies only the claim step when the intent is undefined (Mellow, legacy txs)", () => {
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       before,
       detected(undefined),
@@ -705,7 +685,7 @@ describe("buildDelayedPreview claim-only", () => {
   });
 });
 
-describe("buildDelayedPreview unpriceable tokens", () => {
+describe("buildDelayedStrategyVerify unpriceable tokens", () => {
   it("sets ERROR_UNPRICEABLE_TOKEN and counts only priceable tokens", () => {
     const account = makeAccount({
       balances: new AssetsMap([
@@ -714,7 +694,7 @@ describe("buildDelayedPreview unpriceable tokens", () => {
         { token: UNPRICEABLE, balance: 50n },
       ]),
     });
-    const preview = buildDelayedPreview(
+    const preview = buildDelayedStrategyVerify(
       account,
       makeAccount(),
       detected(undefined),
@@ -724,7 +704,7 @@ describe("buildDelayedPreview unpriceable tokens", () => {
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.totalValue.value).toBe(1000n);
+      expect(preview.estTotalValue.value).toBe(1000n);
       expect(preview.error).toEqual({
         code: ERROR_UNPRICEABLE_TOKEN,
         message: expect.stringContaining(UNPRICEABLE),

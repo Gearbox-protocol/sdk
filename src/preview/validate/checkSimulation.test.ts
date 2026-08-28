@@ -50,6 +50,7 @@ beforeAll(() => {
 function state(over: Partial<OperationState> = {}): OperationState {
   return {
     healthFactor: 12_500,
+    safeHealthFactor: 11_800,
     borrowRate: { total: 300, totalOnDebt: 320, base: 250, quotas: [] },
     timeToLiquidation: 86_400_000n,
     liquidationPrice: null,
@@ -98,9 +99,10 @@ describe("checkSimulation", () => {
     expect(at(10_090)?.reason).toBe("insufficientCollateral");
   });
 
-  it("weighs the safe-price factor only where the walk reported one", () => {
-    // Absent on an operation that hands nothing over, so the bar stands down.
-    expect(check({}, { minSafeHealthFactor: 10_001 })).toBeNull();
+  it("weighs the safe-price factor against its own bar", () => {
+    // The bar only applies where the caller names one: it is what the credit
+    // manager holds a call handing funds over to.
+    expect(check({ safeHealthFactor: 10_000 })).toBeNull();
 
     expect(
       check({ safeHealthFactor: 10_000 }, { minSafeHealthFactor: 10_001 })

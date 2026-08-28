@@ -1,17 +1,16 @@
 import { type Address, isAddressEqual } from "viem";
 import type {
-  AdjustCreditAccountPreview,
-  CloseCreditAccountPreview,
   DelayedWithdrawCollateralIntent,
-  InstantOperationPreview,
   OperationPreviewError,
+  PreviewAdjustStrategyVerify,
+  PreviewExitStrategyVerify,
+  PreviewInstantStrategyVerify,
 } from "../../model/index.js";
-import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
+import { asEstimated, ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
 import {
   AssetsMap,
   type ConvertFn,
-  calcPositionLeverage,
   DUST_THRESHOLD,
   type OnchainSDK,
 } from "../../onchain/index.js";
@@ -41,14 +40,14 @@ import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
  * @param sdk - Market data source for the position metrics of the resulting
  * state; read synchronously, no network access.
  */
-export function buildDelayedPreview(
+export function buildDelayedStrategyVerify(
   afterInstant: CreditAccountState,
   before: CreditAccountState,
   detected: DetectedDelayedOperation,
   convert: ConvertFn,
   receivedToken: Address,
   sdk: OnchainSDK,
-): InstantOperationPreview {
+): PreviewInstantStrategyVerify {
   const { request, intent } = detected;
 
   const post = afterInstant.clone();
@@ -263,7 +262,7 @@ function buildClosePreview(
   converter: SafeConverter,
   receivedToken: Address,
   sdk: OnchainSDK,
-): CloseCreditAccountPreview {
+): PreviewExitStrategyVerify {
   const totalValue = totalValueInUnderlying(post, converter.convert, 0n);
   const oracle = sdk.marketRegister.findByCreditManager(
     post.creditManager,
@@ -290,39 +289,38 @@ function buildAdjustPreview(
   collateralWithdrawn: AssetsMap,
   converter: SafeConverter,
   sdk: OnchainSDK,
-): AdjustCreditAccountPreview {
-  const totalValue = totalValueInUnderlying(
-    post,
-    converter.convert,
-    DUST_THRESHOLD,
+): PreviewAdjustStrategyVerify {
+  const snap = post.toSnapshot(
+    totalValueInUnderlying(post, converter.convert, DUST_THRESHOLD),
   );
-  const assets = post.balances.toAssets(DUST_THRESHOLD);
-  const quotas = post.quotas.toAssets(0n);
-  const snap = post.toSnapshot(totalValue);
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
   const oracle = market.priceOracle;
   return {
     operation: "AdjustCreditAccount",
-    creditManager: post.creditManager,
-    name: sdk.marketRegister.findCreditManager(post.creditManager).name,
+    // {@inheritDoc previewAdjustStrategyVerify} — the same shared builder, so
+    // the far side of a delayed operation is described exactly as the near side
+    // of an instant one. Debt taken on leaves the pool, debt repaid returns to
+    // it.
+    //
+    // `est` here is doubly earned: the instant half rests on the floor the
+    // calldata encodes, and the tail on oracle prices for a trade no pathfinder
+    // can quote yet.
+    ...asEstimated(
+      sdk.positions.projection(snap, {
+        availableLiquidityChange: before.totalDebt - post.totalDebt,
+      }),
+    ),
     creditAccount: post.creditAccount,
     // the resume flow adds nothing from the wallet
     collateralAdded: [],
     collateralWithdrawn: collateralWithdrawn
       .toAssets()
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    totalValue: market.toUnderlyingAmount(totalValue),
-    totalDebt: market.toUnderlyingAmount(post.totalDebt),
-    netValue: market.toUnderlyingAmount(totalValue - post.totalDebt),
     // relative to the pre-transaction state: where the account will end up
     // compared to now, once the withdrawal is claimed and the intent resumed
     totalDebtChange: market.toUnderlyingAmount(
       post.totalDebt - before.totalDebt,
     ),
-    quotas: quotas.map(q => ({
-      token: sdk.tokensMeta.mustGetToken(q.token),
-      ...oracle.toAmount(market.underlying, q.balance),
-    })),
     quotasChange: post.quotas
       .difference(before.quotas)
       .toAssets()
@@ -330,22 +328,10 @@ function buildAdjustPreview(
         token: sdk.tokensMeta.mustGetToken(q.token),
         ...oracle.toAmount(market.underlying, q.balance),
       })),
-    assets: assets.map(a => oracle.toTokenAmount(a.token, a.balance)),
     assetsChange: post.balances
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD)
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
     error: converter.error,
-    healthFactor: sdk.positions.healthFactor(snap),
-    safeHealthFactor: sdk.positions.healthFactor(snap, { safePrices: true }),
-    // debt taken on leaves the pool, debt repaid returns to it
-    borrowRate: sdk.positions.borrowRate(snap, {
-      availableLiquidityChange: before.totalDebt - post.totalDebt,
-    }),
-    timeToLiquidation: sdk.positions.timeToLiquidation(snap, {
-      availableLiquidityChange: before.totalDebt - post.totalDebt,
-    }),
-    liquidationPrice: sdk.positions.liquidationPrice(snap),
-    leverage: calcPositionLeverage(totalValue, post.totalDebt),
   };
 }

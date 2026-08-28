@@ -21,7 +21,7 @@ import { checkPrerequisites } from "./checkPrerequisites.js";
 
 // Scoped (KPK market configurator only) snapshot of the Gearbox anvil Mainnet
 // fork, replayed via `hydrate` so calldata parsing runs fully offline. Same
-// fixture as previewAdjustCreditAccount.test.ts.
+// fixture as previewAdjustStrategyVerify.test.ts.
 const STATE_FIXTURE = resolve(
   import.meta.dirname,
   "../__fixtures__/Mainnet-25475508-adjust-credit-account.json",

@@ -170,6 +170,13 @@ interface BuildMockSdkArgs {
    * same proportion.
    */
   routeQuote?: (amount: bigint) => bigint;
+  /**
+   * The floor a route guarantees, from what it expects to return. The default
+   * quotes no slippage at all — floor and expectation coincide — which is what
+   * every case that is not about the difference between the two wants, since it
+   * keeps the projected state and the amounts in the calls one number.
+   */
+  routeFloor?: (amount: bigint) => bigint;
 }
 
 /** One redemption venue of the mock compressor. */
@@ -326,6 +333,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
   const market = {
     toUnderlyingAmount,
+    /** {@inheritDoc MarketSuite.underlying} */
+    underlying: args.underlying,
     priceOracle: {
       convert,
       safeConvert,
@@ -434,6 +443,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
 
   /** Linear unless the case says otherwise — see `routeQuote`. */
   const quote = args.routeQuote ?? ((amount: bigint) => amount);
+  /** Slippage-free unless the case says otherwise — see `routeFloor`. */
+  const floor = args.routeFloor ?? ((amount: bigint) => amount);
 
   const router = {
     findOneTokenPath: vi.fn(
@@ -447,7 +458,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         tokenOut: Address;
       }) => ({
         amount: quote(amount),
-        minAmount: quote(amount),
+        minAmount: floor(quote(amount)),
         calls: routeCalls(tokenIn, tokenOut),
       }),
     ),
@@ -467,7 +478,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         const tokenIn = expectedBalances[0]?.token ?? target;
         return {
           amount: quote(spent),
-          minAmount: quote(spent),
+          minAmount: floor(quote(spent)),
           calls: routeCalls(tokenIn, target),
         };
       },
@@ -508,11 +519,17 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         }
         balances[targetLc] = (balances[targetLc] ?? 0n) + amount;
 
+        // Only what the route buys is subject to slippage; the balances it
+        // leaves alone are already on the account.
+        const untouched = (balances[targetLc] ?? 0n) - amount;
         return {
           amount,
-          minAmount: amount,
+          minAmount: floor(amount),
           balances,
-          minBalances: { ...balances },
+          minBalances: {
+            ...balances,
+            [targetLc]: untouched + floor(amount),
+          },
           calls: [MOCK_ROUTER_CALL],
         };
       },
@@ -537,7 +554,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         );
         return {
           amount,
-          minAmount: amount,
+          minAmount: floor(amount),
           underlyingBalance: amount,
           calls: sold.length === 0 ? [] : [MOCK_CLOSE_CALL],
         };

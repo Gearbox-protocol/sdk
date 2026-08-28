@@ -4,7 +4,7 @@ import type { BorrowRateBreakdown } from "./positions.js";
 import type { Bps, ChainId, Leverage, TokenAmount } from "./primitives.js";
 
 /**
- * ERC4626 pool operation kind, as surfaced on a {@link PoolOperationPreview}.
+ * ERC4626 pool operation kind, as surfaced on a {@link PreviewLpVerify}.
  **/
 export type PoolOperationType = "Deposit" | "Mint" | "Withdraw" | "Redeem";
 
@@ -108,7 +108,12 @@ export interface OperationPreviewError {
   message: string;
 }
 
-export interface PoolOperationPreview {
+/**
+ * What a pool transaction that already exists would do — the counterpart of
+ * `prepare.deposit`, `prepare.withdraw` and `prepare.redeem`, read off calldata
+ * rather than planned into it.
+ **/
+export interface PreviewLpVerify {
   operation: PoolOperationType;
   /**
    * Pool address
@@ -151,65 +156,12 @@ export interface PoolOperationPreview {
 }
 
 /**
- * A credit account as an operation leaves it, answered by both halves of the
- * SDK: `prepare`, which walks a request forward into the calls that realise it,
- * and `preview`, which decodes calls that already exist and replays them back.
+ * What an account is worth and what it is made of, once an operation has run.
  *
- * `totalDebt`, `totalValue`, `leverage` and `healthFactor` mean here exactly
- * what they mean on a {@link StrategyPosition}, down to the token an amount
- * names — an RWA market reports USDC, not the dcUSDC wrapper the pool holds.
+ * The measured half of a {@link AccountProjection}: read off the balances the
+ * walk arrived at, without a formula between them and the answer.
  **/
-export interface AccountProjection {
-  /**
-   * Credit manager the account belongs to. Carried on the projection itself so
-   * a caller weighing one — `checkSimulation` among them — needs nothing beside
-   * it to find the market.
-   */
-  creditManager: Address;
-  /**
-   * Human-readable credit manager name.
-   */
-  name: string;
-  /**
-   * Health factor in basis points: below `10000` the account is liquidatable.
-   *
-   * @example `12500` for a health factor of 1.25
-   **/
-  healthFactor: Bps;
-  /**
-   * The same factor with collateral valued at safe prices — the lower of each
-   * token's main and reserve oracle feeds, which is what the credit manager
-   * switches to for a call that hands funds over.
-   *
-   * Absent only where the walk had no reason to weigh it: the intents engine
-   * computes it for an operation that hands funds over, which is the one the
-   * credit manager holds to safe prices on-chain. Both preview builders and
-   * `openNewStrategy` always report it.
-   *
-   * @example `11800` where `healthFactor` is `12500`
-   **/
-  safeHealthFactor?: Bps;
-  /**
-   * Cost of the debt, broken down by source.
-   **/
-  borrowRate: BorrowRateBreakdown;
-  /**
-   * Estimated milliseconds until the health factor decays to `10000` under
-   * the current borrow rate, or `null` when the debt carries no rate (or the
-   * account is already liquidatable).
-   **/
-  timeToLiquidation: bigint | null;
-  /**
-   * Price of the single non-underlying collateral at which the account
-   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
-   * when the account holds zero or several non-underlying assets.
-   **/
-  liquidationPrice: bigint | null;
-  /**
-   * Total-value leverage: `totalValue / (totalValue − totalDebt)`. `1` =
-   * unleveraged; `0` if underwater.
-   **/
-  leverage: Leverage;
+export interface AccountHoldings {
   /**
    * Everything the account holds, denominated in the market's underlying.
    **/
@@ -239,11 +191,222 @@ export interface AccountProjection {
   quotas: TokenAmount[];
 }
 
-export interface OpenCreditAccountPreview extends AccountProjection {
+/**
+ * The risk and cost of an account, derived from what it holds.
+ *
+ * The computed half of a {@link AccountProjection}, and the reason it is a type
+ * of its own: every one of these is a formula over the same
+ * {@link AccountSnapshot}, so both halves of the SDK get them from one place —
+ * `sdk.positions.metrics` — and cannot drift into two answers for one account.
+ **/
+export interface AccountMetrics {
+  /**
+   * Health factor in basis points: below `10000` the account is liquidatable.
+   *
+   * @example `12500` for a health factor of 1.25
+   **/
+  healthFactor: Bps;
+  /**
+   * The same factor with collateral valued at safe prices — the lower of each
+   * token's main and reserve oracle feeds, which is what the credit manager
+   * switches to for a call that hands funds over.
+   *
+   * Always reported, whether or not the operation in question hands anything
+   * over: which of the two factors decides a transaction is a property of the
+   * call the caller ends up sending, and a screen showing the account is
+   * entitled to both.
+   *
+   * @example `11800` where `healthFactor` is `12500`
+   **/
+  safeHealthFactor: Bps;
+  /**
+   * Cost of the debt, broken down by source.
+   *
+   * Half of the breakdown rests on the debt and the quotas alone (`base`,
+   * `totalOnDebt`) and half on the position's value (`total`, `quotas[].rate`),
+   * which is why it counts as a {@link RoutedField}.
+   **/
+  borrowRate: BorrowRateBreakdown;
+  /**
+   * Estimated milliseconds until the health factor decays to `10000` under
+   * the current borrow rate, or `null` when the debt carries no rate (or the
+   * account is already liquidatable).
+   **/
+  timeToLiquidation: bigint | null;
+  /**
+   * Price of the single non-underlying collateral at which the account
+   * becomes liquidatable, in the oracle's 8-decimal fixed point, or `null`
+   * when the account holds zero or several non-underlying assets.
+   **/
+  liquidationPrice: bigint | null;
+  /**
+   * Total-value leverage: `totalValue / (totalValue − totalDebt)`. `1` =
+   * unleveraged; `0` if underwater.
+   **/
+  leverage: Leverage;
+}
+
+/**
+ * A credit account as an operation leaves it, answered by both halves of the
+ * SDK: `prepare`, which walks a request forward into the calls that realise it,
+ * and `preview`, which decodes calls that already exist and replays them back.
+ *
+ * Both answer in this same vocabulary, and from the same builder
+ * (`sdk.positions.projection`), so the two descriptions of one operation can be
+ * compared field by field — which is what
+ * `previewMatchesPrepare.test.ts` does.
+ *
+ * This shape is the expected branch of a routed leg, which is what `prepare`
+ * reports; `preview` sees only the floor and answers with an
+ * {@link EstimatedProjection}, the same fields with the routed ones marked
+ * `est`. Where nothing routes the two coincide exactly.
+ *
+ * `totalDebt`, `totalValue`, `leverage` and `healthFactor` mean here exactly
+ * what they mean on a {@link StrategyPosition}, down to the token an amount
+ * names — an RWA market reports USDC, not the dcUSDC wrapper the pool holds.
+ **/
+export interface AccountProjection extends AccountHoldings, AccountMetrics {
+  /**
+   * Credit manager the account belongs to. Carried on the projection itself so
+   * a caller weighing one — `checkSimulation` among them — needs nothing beside
+   * it to find the market.
+   */
+  creditManager: Address;
+  /**
+   * Human-readable credit manager name.
+   */
+  name: string;
+}
+
+/**
+ * The fields of an {@link AccountProjection} a routed leg's outcome decides.
+ *
+ * A swap is quoted twice: the amount the pathfinder expects to return, and the
+ * floor it is willing to guarantee once slippage is allowed for. `prepare` has
+ * both and reports the expected one — that is where the position lands.
+ * `preview` reads a transaction that already exists, and calldata carries only
+ * the floor, so its answer is the worst case the same operation can settle at.
+ *
+ * Everything not listed here is the same number on either branch: the debt and
+ * the quotas are named by the calls themselves.
+ *
+ * The borrow rate is listed despite being half made of those two. `base` and
+ * `totalOnDebt` are branch-independent — the pool's rate at the projected
+ * utilization, and the quota rates over the debt — but `total` and the per-token
+ * `quotas[].rate` normalize against `totalValue`, so a floor-branch breakdown
+ * quotes the same cost against a smaller position and comes out higher. One
+ * field cannot be half prefixed, and the half that moves is the half a screen
+ * shows, so the whole breakdown carries the marker.
+ **/
+export type RoutedField =
+  | "totalValue"
+  | "netValue"
+  | "assets"
+  | "healthFactor"
+  | "safeHealthFactor"
+  | "borrowRate"
+  | "timeToLiquidation"
+  | "liquidationPrice"
+  | "leverage";
+
+/**
+ * `x` becomes `estX`, for a projection assembled from the guaranteed floor.
+ *
+ * The prefix is not decoration: an `estHealthFactor` and a `healthFactor` are
+ * answers to different questions, and naming them alike would invite a screen
+ * to show one as the other or a test to hold them equal.
+ **/
+export type Estimated<T> = {
+  [K in keyof T as `est${Capitalize<string & K>}`]: T[K];
+};
+
+/**
+ * A projection as `preview` can answer it: the branch-independent half under the
+ * shared names, and everything a route decides marked `est`.
+ *
+ * Same builder, same formulas, same units as an {@link AccountProjection} — only
+ * the snapshot underneath is the floor rather than the expected outcome.
+ **/
+export type EstimatedProjection = Omit<AccountProjection, RoutedField> &
+  Estimated<Pick<AccountProjection, RoutedField>>;
+
+/**
+ * Renames a projection's routed fields, for a caller that built one from floor
+ * balances.
+ *
+ * Lives beside the type so the two cannot drift: a field added to
+ * {@link RoutedField} fails to compile until it is renamed here too.
+ **/
+export function asEstimated(p: AccountProjection): EstimatedProjection {
+  const {
+    totalValue,
+    netValue,
+    assets,
+    healthFactor,
+    safeHealthFactor,
+    borrowRate,
+    timeToLiquidation,
+    liquidationPrice,
+    leverage,
+    ...settled
+  } = p;
+  return {
+    ...settled,
+    estTotalValue: totalValue,
+    estNetValue: netValue,
+    estAssets: assets,
+    estHealthFactor: healthFactor,
+    estSafeHealthFactor: safeHealthFactor,
+    estBorrowRate: borrowRate,
+    estTimeToLiquidation: timeToLiquidation,
+    estLiquidationPrice: liquidationPrice,
+    estLeverage: leverage,
+  };
+}
+
+/**
+ * What an operation moved, as opposed to where it left the account.
+ *
+ * Only `preview` reports these: it is handed both sides of the transaction and
+ * diffs them, while `prepare` is asked to reach a state and answers with the
+ * calls that get there. Split out so the two halves agree on the names for the
+ * day prepare reports deltas too.
+ **/
+export interface AccountStateChange {
+  /**
+   * Debt after minus debt before. A repayment settles interest and fees
+   * before principal, so this is the payment itself rather than the part of
+   * it the principal happened to absorb.
+   */
+  totalDebtChange: TokenAmount;
+  /**
+   * Quotas after minus quotas before. Denominated in the market's underlying
+   * like {@link AccountHoldings.quotas}, so `token` names the collateral the
+   * quota applies to rather than the amount's own unit.
+   */
+  quotasChange: TokenAmount[];
+  /**
+   * Assets after minus assets before.
+   *
+   * Unprefixed despite resting on the same floor balances as
+   * {@link EstimatedProjection.estAssets}: `prepare` reports no deltas at all,
+   * so there is no expected-branch figure of this name to be mistaken for.
+   */
+  assetsChange: TokenAmount[];
+}
+
+/**
+ * What an account-opening transaction that already exists would do — the
+ * counterpart of `prepare.openNewStrategy`, read off calldata rather than
+ * planned into it.
+ **/
+export interface PreviewOpenStrategyVerify extends EstimatedProjection {
   operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
    * Collateral token this position is a strategy in: the first quoted token,
-   * with its balance taken from `assets`. Undefined when nothing is quoted.
+   * with its balance taken from `estAssets` — so, like them, the floor the
+   * route guarantees rather than what it expects to return.
+   * Undefined when nothing is quoted.
    */
   targetCollateral?: TokenAmount;
   /**
@@ -256,13 +419,21 @@ export interface OpenCreditAccountPreview extends AccountProjection {
   collateralAdded: TokenAmount[];
   /**
    * Set when preview encountered non-fatal errors, all fields are
-   * still computed best-effort, but derived fields (`assets`,
-   * `targetCollateral`, `netValue`) may be unreliable in that case.
+   * still computed best-effort, but derived fields (`estAssets`,
+   * `targetCollateral`, `estNetValue`) may be unreliable in that case.
    */
   error?: OperationPreviewError;
 }
 
-export interface AdjustCreditAccountPreview extends AccountProjection {
+/**
+ * What a transaction on an existing account would do — the counterpart of the
+ * `prepare` flows that adjust one (`depositStrategy`, `withdrawStrategy`,
+ * `addCollateral`, `withdrawCollateral`, `adjustLeverage`), read off calldata
+ * rather than planned into it.
+ **/
+export interface PreviewAdjustStrategyVerify
+  extends EstimatedProjection,
+    AccountStateChange {
   operation: "AdjustCreditAccount";
   /**
    * Credit account that is being adjusted
@@ -281,35 +452,28 @@ export interface AdjustCreditAccountPreview extends AccountProjection {
    */
   collateralWithdrawn: TokenAmount[];
   /**
-   * Debt after minus debt before. A repayment settles interest and fees
-   * before principal, so this is the payment itself rather than the part of
-   * it the principal happened to absorb.
-   */
-  totalDebtChange: TokenAmount;
-  /**
-   * Quotas after minus quotas before. Denominated in the market's underlying
-   * like {@link AccountProjection.quotas}, so `token` names the collateral the
-   * quota applies to rather than the amount's own unit.
-   */
-  quotasChange: TokenAmount[];
-  /**
-   * Assets after minus assets before
-   */
-  assetsChange: TokenAmount[];
-  /**
    * Intent of the delayed withdrawal this transaction claims; set when the
    * multicall claims a delayed withdrawal
    */
   intent?: DelayedIntent;
   /**
    * Set when preview encountered non-fatal errors, all fields are
-   * still computed best-effort, but derived fields (`assets`, `assetsChange`,
-   * `totalValue`) may be unreliable in that case.
+   * still computed best-effort, but derived fields (`estAssets`, `assetsChange`,
+   * `estTotalValue`) may be unreliable in that case.
    */
   error?: OperationPreviewError;
 }
 
-export interface CloseCreditAccountPreview {
+/**
+ * What an exit transaction that already exists would do — the counterpart of
+ * `prepare.withdrawStrategy` asked for everything, read off calldata rather
+ * than planned into it.
+ *
+ * Carries no {@link AccountProjection}: the account it describes ends up empty,
+ * so there is no position left to weigh — what a caller wants to know is the
+ * payout.
+ **/
+export interface PreviewExitStrategyVerify {
   operation: "CloseCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -350,7 +514,15 @@ export interface CloseCreditAccountPreview {
   error?: OperationPreviewError;
 }
 
-export interface RepayCreditAccountPreview {
+/**
+ * What a settling repayment that already exists would do — the counterpart of
+ * `prepare.repayStrategy` asked for the whole debt, read off calldata rather
+ * than planned into it.
+ *
+ * Carries no {@link AccountProjection} for the same reason the exit does not:
+ * the loan ends here, so the risk metrics have nothing left to describe.
+ **/
+export interface PreviewRepayStrategyVerify {
   operation: "RepayCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -386,7 +558,7 @@ export interface RepayCreditAccountPreview {
   /**
    * Total debt repaid: principal + accrued interest + fees, in underlying.
    *
-   * The same quantity an {@link AdjustCreditAccountPreview} reports as
+   * The same quantity a {@link PreviewAdjustStrategyVerify} reports as
    * `totalDebtChange`, with the sign a repayment screen reads: positive for
    * what the wallet parted with.
    */
@@ -409,10 +581,10 @@ export interface RepayCreditAccountPreview {
  * account: what the transaction does in the same block, before any delayed
  * withdrawal is claimed.
  */
-export type InstantOperationPreview =
-  | AdjustCreditAccountPreview
-  | CloseCreditAccountPreview
-  | RepayCreditAccountPreview;
+export type PreviewInstantStrategyVerify =
+  | PreviewAdjustStrategyVerify
+  | PreviewExitStrategyVerify
+  | PreviewRepayStrategyVerify;
 
 /**
  * Preview of a multicall that requests a delayed withdrawal (e.g. Securitize
@@ -420,7 +592,7 @@ export type InstantOperationPreview =
  * the actual claim token materializes later, when the withdrawal is claimed and
  * the recorded (if any) is resumed
  */
-export interface DelayedCreditAccountOperationPreview {
+export interface PreviewDelayedStrategyVerify {
   operation: "DelayedCreditAccountOperation";
   /**
    * Credit account the operation is performed on
@@ -443,13 +615,13 @@ export interface DelayedCreditAccountOperationPreview {
    * What this transaction does right now: the delayed withdrawal is
    * represented by the phantom token among the account's assets
    */
-  instantPreview: InstantOperationPreview;
+  instantPreview: PreviewInstantStrategyVerify;
   /**
    * Best-effort state after the withdrawal is claimed and the intent is
    * resumed; claim-only (phantom burned, claim token received) when
    * `intent` is undefined
    */
-  delayedPreview: InstantOperationPreview;
+  delayedPreview: PreviewInstantStrategyVerify;
 }
 
 /**
@@ -458,9 +630,9 @@ export interface DelayedCreditAccountOperationPreview {
  * withdrawal operations are supported.
  */
 export type OperationPreview =
-  | PoolOperationPreview
-  | OpenCreditAccountPreview
-  | AdjustCreditAccountPreview
-  | CloseCreditAccountPreview
-  | RepayCreditAccountPreview
-  | DelayedCreditAccountOperationPreview;
+  | PreviewLpVerify
+  | PreviewOpenStrategyVerify
+  | PreviewAdjustStrategyVerify
+  | PreviewExitStrategyVerify
+  | PreviewRepayStrategyVerify
+  | PreviewDelayedStrategyVerify;
