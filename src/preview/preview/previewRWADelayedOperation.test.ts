@@ -16,6 +16,7 @@ import {
   type RedemptionLog,
   RedemptionLoggerV310Contract,
 } from "../../onchain/index.js";
+import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewOperation } from "./previewOperation.js";
 
 // Integration-style tests for delayed RWA operations: three 5-transaction
@@ -274,6 +275,10 @@ beforeAll(() => {
     }),
   });
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
+
+  // `estClaimableAt` is `Date.now()/1000 + withdrawalLength`; freeze the
+  // clock so the delayed-request assertions are deterministic.
+  vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
 });
 
 afterAll(() => {
@@ -407,6 +412,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         sourceToken: COLLATERAL,
         debtRepaid: expect.toSatisfy((v: bigint) => v > 0n),
       },
+      estClaimableAt: estimateClaimableAt(sdk, PHANTOM),
       // Instant preview vs the actual state after the request tx: the
       // request only moves collateral into the phantom token, debt is
       // untouched. The phantom balance is a min guarantee, the quota is set
@@ -466,6 +472,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     // adjustment previews carry no intent of their own
     expect(preview.instantPreview.intent).toBeUndefined();
     expect(preview.delayedPreview.intent).toBeUndefined();
+    expect(preview.estClaimableAt).toEqual(expect.any(Number));
   });
 
   // Tx 3: the claim with the intent's resume tail. Not a delayed operation
@@ -540,6 +547,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       operation: "DelayedCreditAccountOperation",
       name: expect.any(String),
       intent: { type: "CLOSE_ACCOUNT", to: investor },
+      estClaimableAt: estimateClaimableAt(sdk, PHANTOM),
       // Instant preview vs the actual state after the request: collateral
       // fully redeemed, the phantom balance is a min guarantee, the phantom
       // quota is set explicitly by the tx and must match exactly
@@ -586,6 +594,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     // instant/close previews carry no intent of their own
     expect(preview.instantPreview.intent).toBeUndefined();
     expect(preview.delayedPreview.intent).toBeUndefined();
+    expect(preview.estClaimableAt).toEqual(expect.any(Number));
   });
 
   // Tx 5: the final claim + close: claim USDC, sweep everything into the

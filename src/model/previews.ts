@@ -2,7 +2,13 @@ import type { Address, Hex } from "viem";
 import type { Curator } from "./curators.js";
 import type { DelayedIntent } from "./delayed-intents.js";
 import type { BorrowRateBreakdown } from "./positions.js";
-import type { Bps, ChainId, Leverage, TokenAmount } from "./primitives.js";
+import type {
+  Bps,
+  ChainId,
+  Leverage,
+  Timestamp,
+  TokenAmount,
+} from "./primitives.js";
 
 /**
  * ERC4626 pool operation kind, as surfaced on a {@link PoolPositionOperationPreview}.
@@ -617,6 +623,12 @@ export interface DelayedStrategyPositionOperationPreview
    * request carries no intent (e.g. Mellow)
    */
   intent?: DelayedIntent;
+  /**
+   * Estimated unix timestamp (seconds) when the delayed outputs become
+   * claimable: `now + withdrawalLength` of phantom token.
+   * Undefined when the compressor has no information about the asset.
+   */
+  estClaimableAt?: Timestamp;
   /**
    * What this transaction does right now: the delayed withdrawal is
    * represented by the phantom token among the account's assets

@@ -4,6 +4,7 @@ export * from "./detectCloseOrRepay.js";
 export * from "./detectDelayedClaim.js";
 export * from "./detectDelayedOperation.js";
 export * from "./errors.js";
+export * from "./estimateClaimableAt.js";
 export * from "./previewAdjustStrategyPosition.js";
 export * from "./previewExitOrRepayStrategyPosition.js";
 export * from "./previewOperation.js";

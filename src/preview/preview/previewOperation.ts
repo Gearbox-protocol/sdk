@@ -19,6 +19,7 @@ import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
 import { UnsupportedOperationError } from "./errors.js";
+import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
 import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
 import { previewOpenStrategyPosition } from "./previewOpenStrategyPosition.js";
@@ -157,6 +158,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
       sdk.marketRegister.findCreditManager(operation.creditManager),
     ),
     intent: delayed.intent,
+    estClaimableAt: estimateClaimableAt(sdk, delayed.request.phantomToken),
     instantPreview,
     delayedPreview: buildDelayedStrategyPositionOperationPreview(
       after.account,
