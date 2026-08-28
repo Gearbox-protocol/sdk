@@ -71,10 +71,10 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       case "exactDiffInputSingle": {
         const [params] = decoded.args;
@@ -89,7 +89,7 @@ export class CamelotV3AdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

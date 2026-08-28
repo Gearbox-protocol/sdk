@@ -27,11 +27,11 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
  * minimal guaranteed post-state alongside the changes relative to the
  * pre-state.
  */
-export async function previewAdjustStrategyPosition<P extends PluginsMap>(
+export function previewAdjustStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: MulticallOperation | RWAMulticallOperation,
   options: PreviewOperationOptions<true>,
-): Promise<AdjustStrategyPositionPreview> {
+): AdjustStrategyPositionPreview {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -42,7 +42,7 @@ export async function previewAdjustStrategyPosition<P extends PluginsMap>(
     before,
     after,
     error: replayError,
-  } = await replayMulticall(sdk, operation, options);
+  } = replayMulticall(sdk, operation, options);
   const account = after.account;
   let error = replayError;
 

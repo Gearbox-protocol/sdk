@@ -82,10 +82,10 @@ export class VelodromeV2RouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       case "swapDiffTokensForTokens": {
         const [leftoverAmount, , routes] = decoded.args;
@@ -93,7 +93,7 @@ export class VelodromeV2RouterAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

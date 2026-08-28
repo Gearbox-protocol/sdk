@@ -84,10 +84,10 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
     return { operation: "LidoSubmit", ...swapFromTransfers(transfers) };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       // the adapter targets the WETH gateway, so WETH is spent
       case "submitDiff": {
@@ -96,7 +96,7 @@ export class LidoV1AdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

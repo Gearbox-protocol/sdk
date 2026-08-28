@@ -55,10 +55,10 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       // pure "accept" of transferred pending assets, coupled with a Mellow
       // withdrawal request: it moves no ERC-20s, and the withdrawal phantom
@@ -84,7 +84,7 @@ export class MellowClaimerAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

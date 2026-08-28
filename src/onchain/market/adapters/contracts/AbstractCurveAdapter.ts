@@ -26,10 +26,10 @@ export abstract class AbstractCurveAdapterContract<
     );
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     const { functionName, args } = decoded as {
       functionName: string;
       args: readonly unknown[];
@@ -51,7 +51,7 @@ export abstract class AbstractCurveAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 

@@ -65,10 +65,10 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       // swaps the liquidity token into dsToken
       case "swapDiff": {
@@ -77,7 +77,7 @@ export class SecuritizeOnRampAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

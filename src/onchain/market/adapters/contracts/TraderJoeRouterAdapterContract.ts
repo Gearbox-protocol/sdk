@@ -86,10 +86,10 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       case "swapDiffTokensForTokens": {
         const [leftoverAmount, , path] = decoded.args;
@@ -97,7 +97,7 @@ export class TraderJoeRouterAdapterContract extends AbstractAdapterContract<
         break;
       }
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

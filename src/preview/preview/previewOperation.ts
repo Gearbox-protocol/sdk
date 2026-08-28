@@ -51,7 +51,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
 
   if (operation.operation === "CloseCreditAccount") {
     const resolved = await resolveCreditAccount(input, operation, options);
-    const preview = await previewExitOrRepayStrategyPosition(
+    const preview = previewExitOrRepayStrategyPosition(
       input,
       operation,
       true,
@@ -118,8 +118,8 @@ async function previewMulticallOperation<P extends PluginsMap>(
   // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
   // zero-debt closure/repay: the account stays open but debt is cleared.
   const instantPreview = isCloseOrRepay(operation.multicall)
-    ? await previewExitOrRepayStrategyPosition(input, operation, false, options)
-    : await previewAdjustStrategyPosition(input, operation, options);
+    ? previewExitOrRepayStrategyPosition(input, operation, false, options)
+    : previewAdjustStrategyPosition(input, operation, options);
 
   const delayed = detectDelayedOperation(sdk, operation.multicall);
   if (!delayed) {
@@ -134,7 +134,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
     return instantPreview;
   }
 
-  const { before, after } = await replayMulticall(sdk, operation, options);
+  const { before, after } = replayMulticall(sdk, operation, options);
 
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,

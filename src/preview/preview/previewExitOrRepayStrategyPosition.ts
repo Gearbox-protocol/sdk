@@ -35,12 +35,12 @@ export type CloseOrRepayOperation =
   | MulticallOperation
   | RWAMulticallOperation;
 
-export async function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
+export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: CloseOrRepayOperation,
   permanent: boolean,
   options: PreviewOperationOptions<true>,
-): Promise<ExitStrategyPositionPreview | RepayStrategyPositionPreview> {
+): ExitStrategyPositionPreview | RepayStrategyPositionPreview {
   const { sdk } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -54,7 +54,7 @@ export async function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
     exitTokens.push(meta.asset);
   }
 
-  const replay = await replayMulticall(sdk, operation, options);
+  const replay = replayMulticall(sdk, operation, options);
   const kind = classifyCloseOrRepay(operation.multicall, exitTokens);
   return kind === "close"
     ? previewCloseCreditAccount(input, operation, permanent, replay)

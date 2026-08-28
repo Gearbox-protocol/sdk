@@ -108,10 +108,10 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       case "stakeDiff": {
         const [leftoverAmount] = decoded.args;
@@ -127,7 +127,7 @@ export class StakingRewardsAdapterContract extends AbstractAdapterContract<
       case "getReward":
         break;
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

@@ -94,10 +94,10 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
     };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       case "swapSingleTokenDiffIn": {
         const [, tokenIn, , leftoverAmount] = decoded.args;
@@ -118,7 +118,7 @@ export class BalancerV3RouterAdapterContract extends AbstractAdapterContract<
           `previewBalanceChanges cannot resolve pool tokens for addLiquidityUnbalancedDiff on ${this.contractType} adapter at ${this.address}`,
         );
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

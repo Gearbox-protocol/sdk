@@ -41,17 +41,17 @@ export interface ReplayMulticallResult {
  * Replays the operation's multicall over the account's pre-resolved
  * pre-state (`options.creditAccount`) via {@link replayInnerOperations}.
  */
-export async function replayMulticall<P extends PluginsMap>(
+export function replayMulticall<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   operation: ReplayableOperation,
   options: PreviewOperationOptions<true>,
-): Promise<ReplayMulticallResult> {
+): ReplayMulticallResult {
   const before = CreditAccountState.fromCreditAccountData(
     options.creditAccount,
   );
   const after = makeReplayState(before.clone());
 
-  const error = await replayInnerOperations(sdk, operation.multicall, after);
+  const error = replayInnerOperations(sdk, operation.multicall, after);
 
   return { before, after, error };
 }

@@ -122,10 +122,10 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
     return { redeemer: redeemers[0] };
   }
 
-  protected override async applyBalanceChanges(
+  protected override applyBalanceChanges(
     balances: AssetsMap,
     decoded: DecodeFunctionDataReturnType<abi>,
-  ): Promise<void> {
+  ): void {
     switch (decoded.functionName) {
       // no-op:
       // `redeem` is only emitted by the withdrawal compressor, and
@@ -143,7 +143,7 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
       case "claim":
         break;
       default:
-        await super.applyBalanceChanges(balances, decoded);
+        super.applyBalanceChanges(balances, decoded);
     }
   }
 }

@@ -24,10 +24,10 @@ import {
 } from "./replayInnerOperations.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
-export async function previewOpenStrategyPosition<P extends PluginsMap>(
+export function previewOpenStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
-): Promise<OpenStrategyPositionPreview> {
+): OpenStrategyPositionPreview {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -38,7 +38,7 @@ export async function previewOpenStrategyPosition<P extends PluginsMap>(
   const state = makeReplayState(
     CreditAccountState.beforeOpen(operation.creditManager, market.underlying),
   );
-  let error = await replayInnerOperations(sdk, operation.multicall, state);
+  let error = replayInnerOperations(sdk, operation.multicall, state);
   const account = state.account;
 
   // collateral value is computed before unwrapping since the oracle cannot

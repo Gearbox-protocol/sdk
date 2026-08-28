@@ -67,11 +67,11 @@ export function makeReplayState(account: CreditAccountState): ReplayState {
  *
  * @returns `undefined` on success, the error on a malformed multicall.
  */
-export async function replayInnerOperations<P extends PluginsMap>(
+export function replayInnerOperations<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
   state: ReplayState,
-): Promise<OperationPreviewError | undefined> {
+): OperationPreviewError | undefined {
   // True between `StoreExpectedBalances` and `CompareBalances`
   let inBracket = false;
   let error: OperationPreviewError | undefined;
@@ -119,12 +119,7 @@ export async function replayInnerOperations<P extends PluginsMap>(
         inBracket = false;
         break;
       case "Execute":
-        opError = await applyExecute(
-          sdk,
-          op,
-          inBracket,
-          state.account.balances,
-        );
+        opError = applyExecute(sdk, op, inBracket, state.account.balances);
         break;
     }
 
@@ -172,12 +167,12 @@ function applyWithdrawCollateral(
  * accepts are allowed; nothing enforces the outcome of any other out-of-bracket
  * adapter call on-chain, so its effect on balances cannot be previewed.
  */
-async function applyExecute<P extends PluginsMap>(
+function applyExecute<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   op: AdapterOperation,
   inBracket: boolean,
   balances: AssetsMap,
-): Promise<OperationPreviewError | undefined> {
+): OperationPreviewError | undefined {
   const adapter = sdk.getContract(op.adapter);
 
   if (!inBracket) {
@@ -208,7 +203,7 @@ async function applyExecute<P extends PluginsMap>(
   }
 
   try {
-    await adapter.previewBalanceChanges(balances, op.calldata);
+    adapter.previewBalanceChanges(balances, op.calldata);
     return undefined;
   } catch (e) {
     return {
