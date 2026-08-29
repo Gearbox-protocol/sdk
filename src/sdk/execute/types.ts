@@ -24,7 +24,7 @@ export interface PoolPrepareRequest {
   pool: Address;
   wallet: Address;
   op: "deposit" | "withdraw" | "redeem";
-  sim: Extract<LpPrepare, { ok: true }>;
+  sim: Extract<LpPrepare, { success: true }>;
 }
 
 /**
@@ -38,7 +38,7 @@ export interface OpenPrepareRequest {
   chainId: ChainId;
   creditManager: Address;
   wallet: Address;
-  sim: Extract<OpenStrategyPrepare, { ok: true }>;
+  sim: Extract<OpenStrategyPrepare, { success: true }>;
   /** What leaves the wallet, token by token. */
   collateral: Asset[];
   /** Native value to attach when paying a wrapped-native market in the coin. */
@@ -64,7 +64,7 @@ export interface AccountPrepareRequest {
   chainId: ChainId;
   creditAccount: Address;
   wallet: Address;
-  sim: Extract<StrategyPrepare, { ok: true }>;
+  sim: Extract<StrategyPrepare, { success: true }>;
 }
 
 /**
@@ -90,9 +90,9 @@ export interface IOpportunitiesExecute {
    * the state's router path and quotas to `openCA`, `pool` requests encode the
    * deposit / redeem the result priced.
    *
-   * @throws on a `prepare` result that is not `ok`; when a `pool` request names a
-   * route the pool has no metadata for, or one the pool does not accept a
-   * transaction for (RWA on-demand deposits)
+   * @throws on a refused `prepare` result; when a `pool` request names a route
+   * the pool has no metadata for, or one the pool does not accept a transaction
+   * for (RWA on-demand deposits)
    **/
   buildTx(request: PrepareRequest): Promise<RawTx>;
 }

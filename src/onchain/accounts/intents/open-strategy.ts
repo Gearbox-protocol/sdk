@@ -16,7 +16,7 @@ import {
   assertLeverageAtLeastOne,
   debtForLeverage,
 } from "./math.js";
-import type { CreditAccountSlice, PreparedPrices } from "./types.js";
+import type { CreditAccountSlice, SimulationPrices } from "./types.js";
 import {
   collectPriceImpact,
   createRouterPaths,
@@ -53,7 +53,7 @@ export interface OpenStrategyProps {
  */
 export interface OpenStrategyState
   extends Omit<AccountProjection, "assets" | "quotas">,
-    PreparedPrices {
+    SimulationPrices {
   /** Expected post-open balances. */
   averageAssets: TokenAmount[];
   /** Floor post-open balances after slippage. */
@@ -74,7 +74,7 @@ export interface OpenStrategyState
 
 /**
  * Builds the state opening a leveraged position out of wallet collateral would
- * land in.
+ * reach.
  *
  * Debt follows from the target leverage against the supplied margin
  * (`debt = margin * (L - 1)`, `totalValue = margin * L`); the collateral and the

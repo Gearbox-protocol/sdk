@@ -27,7 +27,7 @@ export class ExecuteApi implements IOpportunitiesExecute {
    * {@inheritDoc IOpportunitiesExecute.buildTx}
    **/
   public async buildTx(request: PrepareRequest): Promise<RawTx> {
-    if (!request.sim.ok) {
+    if (!request.sim.success) {
       // the types rule this out; a caller that skipped them still gets no
       // transaction out of a `prepare` result that failed
       throw new Error(
@@ -48,7 +48,7 @@ export class ExecuteApi implements IOpportunitiesExecute {
 
 function poolTx(sdk: OnchainSDK, request: PoolPrepareRequest): RawTx {
   const { pool, wallet, sim } = request;
-  const { tokenIn, tokenOut } = sim.state;
+  const { tokenIn, tokenOut } = sim.data.state;
   if (request.op === "deposit") {
     const meta = sdk.pools.getDepositMetadata(
       pool,
@@ -88,7 +88,7 @@ async function openTx(
   request: OpenPrepareRequest,
 ): Promise<RawTx> {
   const { creditManager, wallet, collateral, ethAmount, sim } = request;
-  const { state } = sim;
+  const { state } = sim.data;
   return sdk.accounts.openCA({
     creditManager,
     to: wallet,
@@ -141,8 +141,8 @@ async function accountTx(
   if (!account) {
     throw new Error(`credit account not found: ${request.creditAccount}`);
   }
-  return sdk.accounts.executeCaUpdate(account, request.sim.calls, {
-    ethAmount: nativeValue(request.sim.operations),
+  return sdk.accounts.executeCaUpdate(account, request.sim.data.calls, {
+    ethAmount: nativeValue(request.sim.data.operations),
   });
 }
 

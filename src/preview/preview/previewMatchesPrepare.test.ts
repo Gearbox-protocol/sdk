@@ -324,7 +324,6 @@ function expectSameMarket(
     projected.creditManager.toLowerCase(),
   );
   expect(preview.name).toBe(projected.name);
-  expect(preview.underlyingToken).toEqual(projected.underlyingToken);
   expect(preview.curator).toEqual(projected.curator);
   expect(preview.liquidationDiscount).toBe(projected.liquidationDiscount);
   // Not vacuously: a side that stopped carrying the market half would otherwise

@@ -66,9 +66,9 @@ describe("prepare quotes the delayed route with the instant one", () => {
     // one call quotes both routes, so the delayed request is a branch of the
     // answer rather than a method of its own
     expectTypeOf<
-      Extract<StrategyRoutesPrepare, { ok: true }>["delayed"]
+      Extract<StrategyRoutesPrepare, { success: true }>["data"]["delayed"]
     >().toEqualTypeOf<
-      Extract<DelayedStrategyPrepare, { ok: true }> | undefined
+      Extract<DelayedStrategyPrepare, { success: true }>["data"] | undefined
     >();
   });
 });

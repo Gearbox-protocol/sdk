@@ -32,7 +32,7 @@ While the phantom balance sits on the account it is neither sellable nor
 withdrawable, so a second request for the same asset is refused
 (`withdrawalInProgress`), and so is an instant exit.
 
-## What `prepare` reports
+## What the result reports
 
 The request is half an operation, so the state it lands in is not an answer to
 "what does this do to my position": the debt still stands, nothing has been paid

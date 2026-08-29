@@ -8,6 +8,7 @@ import type {
   StrategyOpportunityKey,
   StrategyPosition,
   StrategyPositionKey,
+  WithError,
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
@@ -18,10 +19,10 @@ import type {
   OpenStrategyState,
   OperationState,
   PoolSimulation,
-  PreviewRefusal,
   ResumableIntent,
   RouteRefusals,
 } from "../../onchain/index.js";
+import type { PrepareError, RoutesPrepareError } from "./errors.js";
 
 export type {
   LeverageBand,
@@ -31,113 +32,121 @@ export type {
 /**
  * The vocabulary the failure half of everything below is written in.
  *
- * Published here because these are the types of the fields on the results this
- * module hands out: a caller switching on `reason` or reading `detail` should
- * not have to reach into `@gearbox-protocol/sdk/onchain` for the names to do
- * it with. They are defined in the intents engine and have no second home
- * here. `reason` is the discriminant — narrowing it narrows `detail` and
- * settles whether there is a `state` — so no runtime guard is needed to
- * read one of these.
+ * Published here because the codes on the errors this module hands out are
+ * these reasons: a caller switching on `error.code` should not have to reach
+ * into `@gearbox-protocol/sdk/onchain` for the names to do it with. They are
+ * defined in the intents engine and have no second home here.
  **/
 export * from "../../onchain/validation/refusal.js";
 
 /**
- * What a pool deposit or withdrawal would yield.
+ * What a pool deposit or withdrawal comes to.
  *
- * Shaped like {@link StrategyPrepare} so both kinds of result are consumed the
+ * Shaped like {@link StrategyPlan} so both kinds of result are consumed the
  * same way, with the pool's own numbers as the state: the ERC-4626
  * conversion applied to the amount, at the rate of the block the market was
  * loaded at.
  **/
-export type LpPrepare =
-  | {
-      ok: true;
-      /**
-       * Always empty: a pool operation is a single transaction, so there is no
-       * chain of steps to show. Present so callers can treat both kinds of
-       * result alike.
-       **/
-      operations: [];
-      /**
-       * What the wallet parts with and what it receives, plus the zapper the
-       * transaction goes through when one is involved.
-       **/
-      state: PoolSimulation;
-      /**
-       * The transaction implementing the operation: exactly one, since a pool
-       * operation is a single call on the pool or on its zapper.
-       **/
-      calls: MultiCall[];
-    }
-  | PreviewRefusal;
+export interface LpPlan {
+  /**
+   * Always empty: a pool operation is a single transaction, so there is no
+   * chain of steps to show. Present so callers can treat both kinds of
+   * result alike.
+   **/
+  operations: [];
+  /**
+   * What the wallet parts with and what it receives, plus the zapper the
+   * transaction goes through when one is involved.
+   **/
+  state: PoolSimulation;
+  /**
+   * The transaction implementing the operation: exactly one, since a pool
+   * operation is a single call on the pool or on its zapper.
+   **/
+  calls: MultiCall[];
+}
 
 /**
- * What an operation on an existing credit account would yield.
- *
- * `ok: false` means the request itself is not viable — not that a call failed —
- * so the reason is a value rather than an exception: too much leverage, too
- * little of the source token, a token the flow does not accept.
+ * {@link LpPlan}, or why the pool cannot serve the request.
  **/
-export type StrategyPrepare =
-  | {
-      ok: true;
-      /**
-       * The logical steps, each carrying the amounts it was computed from.
-       * Useful for showing the user what will happen, and for pinning behaviour
-       * in tests.
-       **/
-      operations: AccountCalculatorOperation[];
-      /**
-       * Projected account state once the operations execute: TVL, debt,
-       * balances and quotas.
-       **/
-      state: OperationState;
-      /**
-       * Credit-facade multicall implementing the operations, ready to be sent
-       * through `sdk.accounts`.
-       **/
-      calls: MultiCall[];
-    }
-  | PreviewRefusal;
+export type LpPrepare = WithError<LpPlan, PrepareError>;
 
 /**
- * What the leading half of a delayed operation would yield: the request
+ * What an operation on an existing credit account comes to.
+ **/
+export interface StrategyPlan {
+  /**
+   * The logical steps, each carrying the amounts it was computed from.
+   * Useful for showing the user what will happen, and for pinning behaviour
+   * in tests.
+   **/
+  operations: AccountCalculatorOperation[];
+  /**
+   * Projected account state once the operations execute: TVL, debt,
+   * balances and quotas.
+   **/
+  state: OperationState;
+  /**
+   * Credit-facade multicall implementing the operations, ready to be sent
+   * through `sdk.accounts`.
+   **/
+  calls: MultiCall[];
+}
+
+/**
+ * {@link StrategyPlan}, or why the request cannot be served.
+ *
+ * A failure here means the request itself is not viable — not that a call
+ * failed — so it is a value rather than an exception: too much leverage, too
+ * little of the source token, a token the flow does not accept. What could not
+ * be done is `error.code`, and the limit that was missed is on the error beside
+ * it, see {@link PrepareError}.
+ **/
+export type StrategyPrepare = WithError<StrategyPlan, PrepareError>;
+
+/**
+ * What the leading half of a delayed operation comes to: the request
  * transaction, plus what it recorded for the tail and where that tail leads.
  *
- * Shaped like {@link StrategyPrepare} with one field more, so the instant and
+ * Shaped like {@link StrategyPlan} with one field more, so the instant and
  * the delayed route of the same request are compared side by side — and they
  * are meant to be compared on the same footing, so `state` is the end of the
  * operation in both, not the end of the transaction.
  **/
-export type DelayedStrategyPrepare =
-  | {
-      ok: true;
-      /**
-       * {@inheritDoc StrategyPrepare.operations}
-       **/
-      operations: AccountCalculatorOperation[];
-      /**
-       * Where the operation ends: the account once the redemption has matured,
-       * been claimed and the tail has run — the same place the instant route
-       * reaches in one transaction, which is what makes the two comparable.
-       *
-       * The tail's half of it is an estimate priced by the oracle: the funds it
-       * trades do not exist yet, so no route can be quoted for them. The state
-       * the request alone lands in — source spent, withdrawal position in its
-       * place, debt untouched — is `delayed.afterRequest`.
-       **/
-      state: OperationState;
-      /**
-       * {@inheritDoc StrategyPrepare.calls}
-       **/
-      calls: MultiCall[];
-      /**
-       * When the tail can be run, and what the request recorded for it, see
-       * {@link DelayedStart}.
-       **/
-      delayed: DelayedStart;
-    }
-  | PreviewRefusal;
+export interface DelayedStrategyPlan {
+  /**
+   * {@inheritDoc StrategyPlan.operations}
+   **/
+  operations: AccountCalculatorOperation[];
+  /**
+   * Where the operation ends: the account once the redemption has matured,
+   * been claimed and the tail has run — the same place the instant route
+   * reaches in one transaction, which is what makes the two comparable.
+   *
+   * The tail's half of it is an estimate priced by the oracle: the funds it
+   * trades do not exist yet, so no route can be quoted for them. The state
+   * the request alone lands in — source spent, withdrawal position in its
+   * place, debt untouched — is `delayed.afterRequest`.
+   **/
+  state: OperationState;
+  /**
+   * {@inheritDoc StrategyPlan.calls}
+   **/
+  calls: MultiCall[];
+  /**
+   * When the tail can be run, and what the request recorded for it, see
+   * {@link DelayedStart}.
+   **/
+  delayed: DelayedStart;
+}
+
+/**
+ * {@link DelayedStrategyPlan}, or why the redemption route cannot be taken.
+ **/
+export type DelayedStrategyPrepare = WithError<
+  DelayedStrategyPlan,
+  PrepareError
+>;
 
 /**
  * What one of the two flows that sell a position asset —
@@ -149,48 +158,54 @@ export type DelayedStrategyPrepare =
  * issuer, or both, is not something the caller can know up front, so both routes
  * are quoted from one request. A route the account cannot take is `undefined`
  * with its refusal in `refused`, which is what lets a form offer exactly the
- * routes that exist; `ok: false` means neither does.
+ * routes that exist; a failure means neither does, and the error still carries
+ * `refused`, see {@link RoutesPrepareError}.
  **/
-export type StrategyRoutesPrepare =
-  | {
-      ok: true;
-      /**
-       * The router route: one transaction, settled on the spot. `undefined`
-       * when the asset cannot be sold, see `refused.instant`.
-       **/
-      instant: Extract<StrategyPrepare, { ok: true }> | undefined;
-      /**
-       * The request half of the redemption route, which
-       * {@link IOpportunitiesPrepare.finalize} completes once it matures.
-       * `undefined` when the route does not exist — no redemption venue for the
-       * asset, or a request that settles at once anyway — see `refused.delayed`.
-       **/
-      delayed: Extract<DelayedStrategyPrepare, { ok: true }> | undefined;
-      /**
-       * Why a missing route was refused, see {@link RouteRefusals}.
-       **/
-      refused: RouteRefusals;
-    }
+export interface StrategyRoutes {
   /**
-   * The instant route's refusal, which is the one a caller can usually act on;
-   * the delayed route's when the instant one did not even get that far.
+   * The router route: one transaction, settled on the spot. `undefined`
+   * when the asset cannot be sold, see `refused.instant`.
    **/
-  | (PreviewRefusal & {
-      /**
-       * {@inheritDoc StrategyRoutesPrepare.refused}
-       **/
-      refused: RouteRefusals;
-    });
+  instant: StrategyPlan | undefined;
+  /**
+   * The request half of the redemption route, which
+   * {@link IOpportunitiesPrepare.finalize} completes once it matures.
+   * `undefined` when the route does not exist — no redemption venue for the
+   * asset, or a request that settles at once anyway — see `refused.delayed`.
+   **/
+  delayed: DelayedStrategyPlan | undefined;
+  /**
+   * Why a missing route was refused, see {@link RouteRefusals}.
+   **/
+  refused: RouteRefusals;
+}
 
 /**
- * What opening a new leveraged position would yield.
+ * {@link StrategyRoutes}, or the refusal of both routes at once.
+ **/
+export type StrategyRoutesPrepare = WithError<
+  StrategyRoutes,
+  RoutesPrepareError
+>;
+
+/**
+ * What opening a new leveraged position comes to.
  *
  * The only result that reports both an expected and a floor branch: opening
  * takes both from a single pathfinder call, and `openCA` consumes both.
  **/
-export type OpenStrategyPrepare =
-  | { ok: true; state: OpenStrategyState }
-  | PreviewRefusal;
+export interface OpenStrategyPlan {
+  /**
+   * Everything the opening arrives at: the projection, both branches of the
+   * post-open balances and quotas, and the router path `openCA` is handed.
+   **/
+  state: OpenStrategyState;
+}
+
+/**
+ * {@link OpenStrategyPlan}, or why the position cannot be opened.
+ **/
+export type OpenStrategyPrepare = WithError<OpenStrategyPlan, PrepareError>;
 
 /**
  * Shared knobs. Both default to the SDK's own defaults when omitted.

@@ -2,18 +2,10 @@ import type { Address, Hex } from "viem";
 import type { Curator } from "./curators.js";
 import type { DelayedIntent } from "./delayed-intents.js";
 import type { BorrowRateBreakdown } from "./positions.js";
-import type {
-  Bps,
-  ChainId,
-  Leverage,
-  Timestamp,
-  Token,
-  TokenAmount,
-  UnderlyingToken,
-} from "./primitives.js";
+import type { Bps, ChainId, Leverage, TokenAmount } from "./primitives.js";
 
 /**
- * ERC4626 pool operation kind, as surfaced on a {@link PoolPositionOperationPreview}.
+ * ERC4626 pool operation kind, as surfaced on a {@link PreviewLpVerify}.
  **/
 export type PoolOperationType = "Deposit" | "Mint" | "Withdraw" | "Redeem";
 
@@ -122,7 +114,7 @@ export interface OperationPreviewError {
  * `prepare.deposit`, `prepare.withdraw` and `prepare.redeem`, read off calldata
  * rather than planned into it.
  **/
-export interface PoolPositionOperationPreview {
+export interface PreviewLpVerify {
   operation: PoolOperationType;
   /**
    * Pool address
@@ -132,13 +124,6 @@ export interface PoolPositionOperationPreview {
    * Human-readable pool name
    */
   name: string;
-  /**
-   * Pool underlying token.
-   *
-   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
-   * dcUSDC (the pool's on-chain underlying). Same as {@link PoolPosition.underlyingToken}.
-   */
-  underlyingToken: UnderlyingToken;
   /**
    * Token that goes from user to pool
    * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit
@@ -185,18 +170,9 @@ export interface CreditOperationMarket {
    */
   creditManager: Address;
   /**
-   * Human-readable strategy name, e.g. `"wstETH / WETH"`. Same as
-   * {@link StrategyPosition.name}
+   * Human-readable credit manager name.
    */
   name: string;
-  /**
-   * Pool underlying token.
-   *
-   * For RWA markets this is the unwrapped asset, e.g. USDC rather than
-   * dcUSDC (the pool's on-chain underlying). Same as
-   * {@link StrategyPosition.underlyingToken}.
-   */
-  underlyingToken: UnderlyingToken;
   /**
    * Curator of the market {@link creditManager} belongs to, in the same shape
    * {@link StrategyOpportunity} reports it: the market configurator's address,
@@ -453,7 +429,7 @@ export interface AccountStateChange {
  * counterpart of `prepare.openNewStrategy`, read off calldata rather than
  * planned into it.
  **/
-export interface OpenStrategyPositionPreview extends EstimatedProjection {
+export interface PreviewOpenStrategyVerify extends EstimatedProjection {
   operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
   /**
    * Collateral token this position is a strategy in: the first quoted token,
@@ -484,7 +460,7 @@ export interface OpenStrategyPositionPreview extends EstimatedProjection {
  * `addCollateral`, `withdrawCollateral`, `adjustLeverage`), read off calldata
  * rather than planned into it.
  **/
-export interface AdjustStrategyPositionPreview
+export interface PreviewAdjustStrategyVerify
   extends EstimatedProjection,
     AccountStateChange {
   operation: "AdjustCreditAccount";
@@ -492,11 +468,6 @@ export interface AdjustStrategyPositionPreview
    * Credit account that is being adjusted
    */
   creditAccount: Address;
-  /**
-   * Collateral token this position is a strategy in. Same as
-   * {@link StrategyPosition.targetCollateral}
-   */
-  targetCollateral: Token | null;
   /**
    * Tokens that were added as collateral during account opening.
    *
@@ -531,7 +502,7 @@ export interface AdjustStrategyPositionPreview
  * so there is no position left to weigh — what a caller wants to know is the
  * payout. The market it happened in is still named, as everywhere else.
  **/
-export interface ExitStrategyPositionPreview extends CreditOperationMarket {
+export interface PreviewExitStrategyVerify extends CreditOperationMarket {
   operation: "CloseCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -543,11 +514,6 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
    * Credit account that is being closed
    */
   creditAccount: Address;
-  /**
-   * Collateral token this position is a strategy in. Same as
-   * {@link StrategyPosition.targetCollateral}
-   */
-  targetCollateral: Token | null;
   /**
    * Token withdrawn to the user and its minimal guaranteed amount, from the
    * multicall replay (all collateral is swapped into the received token
@@ -577,7 +543,7 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
  * Carries no {@link AccountProjection} for the same reason the exit does not:
  * the loan ends here, so the risk metrics have nothing left to describe.
  **/
-export interface RepayStrategyPositionPreview extends CreditOperationMarket {
+export interface PreviewRepayStrategyVerify extends CreditOperationMarket {
   operation: "RepayCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -589,11 +555,6 @@ export interface RepayStrategyPositionPreview extends CreditOperationMarket {
    * Credit account that is being repaid
    */
   creditAccount: Address;
-  /**
-   * Collateral token this position is a strategy in. Same as
-   * {@link StrategyPosition.targetCollateral}
-   */
-  targetCollateral: Token | null;
   /**
    * Tokens added from the wallet to cover the debt (`addCollateral` calls).
    *
@@ -610,7 +571,7 @@ export interface RepayStrategyPositionPreview extends CreditOperationMarket {
   /**
    * Total debt repaid: principal + accrued interest + fees, in underlying.
    *
-   * The same quantity a {@link AdjustStrategyPositionPreview} reports as
+   * The same quantity a {@link PreviewAdjustStrategyVerify} reports as
    * `totalDebtChange`, with the sign a repayment screen reads: positive for
    * what the wallet parted with.
    */
@@ -633,10 +594,10 @@ export interface RepayStrategyPositionPreview extends CreditOperationMarket {
  * account: what the transaction does in the same block, before any delayed
  * withdrawal is claimed.
  */
-export type InstantStrategyPositionOperationPreview =
-  | AdjustStrategyPositionPreview
-  | ExitStrategyPositionPreview
-  | RepayStrategyPositionPreview;
+export type PreviewInstantStrategyVerify =
+  | PreviewAdjustStrategyVerify
+  | PreviewExitStrategyVerify
+  | PreviewRepayStrategyVerify;
 
 /**
  * Preview of a multicall that requests a delayed withdrawal (e.g. Securitize
@@ -644,40 +605,28 @@ export type InstantStrategyPositionOperationPreview =
  * the actual claim token materializes later, when the withdrawal is claimed and
  * the recorded (if any) is resumed
  */
-export interface DelayedStrategyPositionOperationPreview
-  extends CreditOperationMarket {
+export interface PreviewDelayedStrategyVerify extends CreditOperationMarket {
   operation: "DelayedCreditAccountOperation";
   /**
    * Credit account the operation is performed on
    */
   creditAccount: Address;
   /**
-   * Collateral token this position is a strategy in. Same as
-   * {@link StrategyPosition.targetCollateral}
-   */
-  targetCollateral: Token | null;
-  /**
    * Decoded from the withdrawal request's extraData; undefined when the
    * request carries no intent (e.g. Mellow)
    */
   intent?: DelayedIntent;
   /**
-   * Estimated unix timestamp (seconds) when the delayed outputs become
-   * claimable: `now + withdrawalLength` of phantom token.
-   * Undefined when the compressor has no information about the asset.
-   */
-  estClaimableAt?: Timestamp;
-  /**
    * What this transaction does right now: the delayed withdrawal is
    * represented by the phantom token among the account's assets
    */
-  instantPreview: InstantStrategyPositionOperationPreview;
+  instantPreview: PreviewInstantStrategyVerify;
   /**
    * Best-effort state after the withdrawal is claimed and the intent is
    * resumed; claim-only (phantom burned, claim token received) when
    * `intent` is undefined
    */
-  delayedPreview: InstantStrategyPositionOperationPreview;
+  delayedPreview: PreviewInstantStrategyVerify;
 }
 
 /**
@@ -686,9 +635,9 @@ export interface DelayedStrategyPositionOperationPreview
  * withdrawal operations are supported.
  */
 export type OperationPreview =
-  | PoolPositionOperationPreview
-  | OpenStrategyPositionPreview
-  | AdjustStrategyPositionPreview
-  | ExitStrategyPositionPreview
-  | RepayStrategyPositionPreview
-  | DelayedStrategyPositionOperationPreview;
+  | PreviewLpVerify
+  | PreviewOpenStrategyVerify
+  | PreviewAdjustStrategyVerify
+  | PreviewExitStrategyVerify
+  | PreviewRepayStrategyVerify
+  | PreviewDelayedStrategyVerify;

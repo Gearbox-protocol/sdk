@@ -35,7 +35,7 @@ const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
 const CALL = { target: POOL, callData: "0xdead" as const };
 
-/** A priced amount of `address`, which is what a `prepare` result reports in. */
+/** A priced amount of `address`, which is what the simulations report in. */
 const amount = (address: Address, value: bigint): TokenAmount => ({
   token: {
     chainId: CHAIN_ID,
@@ -89,14 +89,16 @@ function mockChain(overrides?: {
 }
 
 describe("buildTx — pool", () => {
-  const sim: Extract<LpPrepare, { ok: true }> = {
-    ok: true,
-    operations: [],
-    state: {
-      tokenIn: amount(UNDERLYING, 1_000n),
-      tokenOut: amount(DIESEL, 990n),
+  const sim: Extract<LpPrepare, { success: true }> = {
+    success: true,
+    data: {
+      operations: [],
+      state: {
+        tokenIn: amount(UNDERLYING, 1_000n),
+        tokenOut: amount(DIESEL, 990n),
+      },
+      calls: [],
     },
-    calls: [],
   };
 
   it("deposit: metadata resolved inside, the tx is PoolService.addLiquidity's", async () => {
@@ -121,8 +123,8 @@ describe("buildTx — pool", () => {
       pool: POOL,
       wallet: WALLET,
       collateral: {
-        token: sim.state.tokenIn.token.address,
-        balance: sim.state.tokenIn.value,
+        token: sim.data.state.tokenIn.token.address,
+        balance: sim.data.state.tokenIn.value,
       },
       meta: DEPOSIT_META,
     });
@@ -130,14 +132,16 @@ describe("buildTx — pool", () => {
 
   it("withdraw: the tx is PoolService.removeLiquidity's on the underlying the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const withdrawSim: Extract<LpPrepare, { ok: true }> = {
-      ok: true,
-      operations: [],
-      state: {
-        tokenIn: amount(DIESEL, 500n),
-        tokenOut: amount(UNDERLYING, 505n),
+    const withdrawSim: Extract<LpPrepare, { success: true }> = {
+      success: true,
+      data: {
+        operations: [],
+        state: {
+          tokenIn: amount(DIESEL, 500n),
+          tokenOut: amount(UNDERLYING, 505n),
+        },
+        calls: [],
       },
-      calls: [],
     };
 
     const tx = await execute.buildTx({
@@ -167,14 +171,16 @@ describe("buildTx — pool", () => {
 
   it("redeem: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const redeemSim: Extract<LpPrepare, { ok: true }> = {
-      ok: true,
-      operations: [],
-      state: {
-        tokenIn: amount(DIESEL, 500n),
-        tokenOut: amount(UNDERLYING, 505n),
+    const redeemSim: Extract<LpPrepare, { success: true }> = {
+      success: true,
+      data: {
+        operations: [],
+        state: {
+          tokenIn: amount(DIESEL, 500n),
+          tokenOut: amount(UNDERLYING, 505n),
+        },
+        calls: [],
       },
-      calls: [],
     };
 
     const tx = await execute.buildTx({
@@ -237,7 +243,6 @@ describe("buildTx — open", () => {
   const state = {
     creditManager: CREDIT_MANAGER,
     name: "Test CM",
-    underlyingToken: { ...amount(UNDERLYING, 0n).token, wrappedAddress: null },
     totalDebt: amount(UNDERLYING, 2_000n),
     netValue: amount(UNDERLYING, 1_000n),
     totalValue: amount(UNDERLYING, 3_000n),
@@ -257,9 +262,9 @@ describe("buildTx — open", () => {
     curator: CURATOR,
     liquidationDiscount: 0,
   };
-  const sim: Extract<OpenStrategyPrepare, { ok: true }> = {
-    ok: true,
-    state,
+  const sim: Extract<OpenStrategyPrepare, { success: true }> = {
+    success: true,
+    data: { state },
   };
   const collateral = [{ token: UNDERLYING, balance: 1_000n }];
 
@@ -300,7 +305,7 @@ describe("buildTx — open", () => {
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
         wallet: WALLET,
-        sim: { ok: false, reason: "debtOutOfRange" } as never,
+        sim: { success: false, error: { code: "debtOutOfRange" } } as never,
         collateral,
         ethAmount: 0n,
       }),
@@ -387,36 +392,34 @@ describe("buildTx — open", () => {
 });
 
 describe("buildTx — account", () => {
-  const sim: Extract<StrategyPrepare, { ok: true }> = {
-    ok: true,
-    operations: [],
-    state: {
-      creditManager: CREDIT_MANAGER,
-      name: "Test CM",
-      underlyingToken: {
-        ...amount(UNDERLYING, 0n).token,
-        wrappedAddress: null,
+  const sim: Extract<StrategyPrepare, { success: true }> = {
+    success: true,
+    data: {
+      operations: [],
+      state: {
+        creditManager: CREDIT_MANAGER,
+        name: "Test CM",
+        curator: CURATOR,
+        liquidationDiscount: 0,
+        currentPrice: null,
+        totalValue: amount(UNDERLYING, 3_000n),
+        totalDebt: amount(UNDERLYING, 2_000n),
+        netValue: amount(UNDERLYING, 1_000n),
+        leverage: 2,
+        assets: [],
+        quotas: [],
+        priceImpact: undefined,
+        healthFactor: 0,
+        safeHealthFactor: 0,
+        borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
+        timeToLiquidation: null,
+        liquidationPrice: null,
       },
-      curator: CURATOR,
-      liquidationDiscount: 0,
-      currentPrice: null,
-      totalValue: amount(UNDERLYING, 3_000n),
-      totalDebt: amount(UNDERLYING, 2_000n),
-      netValue: amount(UNDERLYING, 1_000n),
-      leverage: 2,
-      assets: [],
-      quotas: [],
-      priceImpact: undefined,
-      healthFactor: 0,
-      safeHealthFactor: 0,
-      borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
-      timeToLiquidation: null,
-      liquidationPrice: null,
+      calls: [CALL, { target: POOL, callData: "0xbeef" }],
     },
-    calls: [CALL, { target: POOL, callData: "0xbeef" }],
   };
 
-  it("submits the result's own multicall through executeCaUpdate on the re-read account", async () => {
+  it("submits the simulation's own multicall through executeCaUpdate on the re-read account", async () => {
     const { execute, sdk, txs, account } = mockChain();
 
     const tx = await execute.buildTx({
@@ -433,7 +436,7 @@ describe("buildTx — account", () => {
     );
     expect(sdk.accounts.executeCaUpdate).toHaveBeenCalledWith(
       account,
-      sim.calls,
+      sim.data.calls,
       { ethAmount: 0n },
     );
   });
@@ -448,21 +451,24 @@ describe("buildTx — account", () => {
       wallet: WALLET,
       sim: {
         ...sim,
-        operations: [
-          {
-            type: "addCollateral",
-            token: POOL,
-            amount: 1_000n,
-            value: 1_000n,
-            calls: [CALL],
-          },
-        ],
+        data: {
+          ...sim.data,
+          operations: [
+            {
+              type: "addCollateral",
+              token: POOL,
+              amount: 1_000n,
+              value: 1_000n,
+              calls: [CALL],
+            },
+          ],
+        },
       },
     });
 
     expect(sdk.accounts.executeCaUpdate).toHaveBeenCalledWith(
       account,
-      sim.calls,
+      sim.data.calls,
       { ethAmount: 1_000n },
     );
   });
@@ -490,7 +496,7 @@ describe("buildTx — account", () => {
         chainId: CHAIN_ID,
         creditAccount: CREDIT_ACCOUNT,
         wallet: WALLET,
-        sim: { ok: false, reason: "debtOutOfRange" } as never,
+        sim: { success: false, error: { code: "debtOutOfRange" } } as never,
       }),
     ).rejects.toThrow(/failed account preparation/);
     expect(sdk.accounts.executeCaUpdate).not.toHaveBeenCalled();

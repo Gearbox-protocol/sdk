@@ -13,8 +13,11 @@ import type {
   CreditAccountSlice,
   DelayableIntent,
   DelayedIntentExtended,
+  IntentPreviewResult,
+  IntentRoutesResult,
   LeverageBand,
   OnchainSDK,
+  OpenStrategyPreviewResult,
   ResumableIntent,
   StartIntent,
 } from "../../onchain/index.js";
@@ -25,10 +28,10 @@ import {
   hexEq,
   MultichainConstruct,
   type MultichainSDK,
-  refuse,
   toToken,
 } from "../../onchain/index.js";
 import type { EnsureFreshChains } from "../types.js";
+import { toPrepareError } from "./errors.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
@@ -104,16 +107,24 @@ export class PrepareApi
       run: async sdk => {
         const intent = resumable(params.intent ?? params.claimable.intent);
         if (!intent) {
-          return refuse("noRecordedIntent", undefined);
+          return {
+            success: false,
+            error: toPrepareError({
+              reason: "noRecordedIntent",
+              detail: undefined,
+            }),
+          };
         }
-        return service(sdk).finishIntent({
-          intent,
-          claimable: toClaimableWithdrawal(params.claimable),
-          creditAccount: await slice(sdk, position.creditAccount),
-          sdk,
-          slippage: params.slippage,
-          quotaReserve: params.quotaReserve,
-        });
+        return planned(
+          await service(sdk).finishIntent({
+            intent,
+            claimable: toClaimableWithdrawal(params.claimable),
+            creditAccount: await slice(sdk, position.creditAccount),
+            sdk,
+            slippage: params.slippage,
+            quotaReserve: params.quotaReserve,
+          }),
+        );
       },
     });
   }
@@ -154,7 +165,10 @@ export class PrepareApi
       return unroutable(chain, tokenIn, tokenOut);
     }
 
-    return { ok: true, operations: [], state, calls: call.calls };
+    return {
+      success: true,
+      data: { operations: [], state, calls: call.calls },
+    };
   }
 
   /**
@@ -189,7 +203,7 @@ export class PrepareApi
       mode: "withdraw",
     });
 
-    return { ok: true, operations: [], state, calls };
+    return { success: true, data: { operations: [], state, calls } };
   }
 
   /**
@@ -221,7 +235,7 @@ export class PrepareApi
       mode: "redeem",
     });
 
-    return { ok: true, operations: [], state, calls };
+    return { success: true, data: { operations: [], state, calls } };
   }
 
   /**
@@ -233,7 +247,7 @@ export class PrepareApi
   ): Promise<DataResponse<OpenStrategyPrepare>> {
     return this.queryChain({
       network: strategy.chainId,
-      run: sdk => {
+      run: async sdk => {
         const targetToken =
           params.targetToken ??
           sdk.marketRegister.findCreditManager(strategy.creditManager)
@@ -243,16 +257,18 @@ export class PrepareApi
             `credit manager ${strategy.creditManager} has no strategy target collateral`,
           );
         }
-        return service(sdk).openStrategyIntent({
-          sdk,
-          creditManager: strategy.creditManager,
-          collateral: params.collateral,
-          targetToken,
-          leverage: params.leverage,
-          leftoverBalances: params.leftoverBalances,
-          slippage: params.slippage,
-          quotaReserve: params.quotaReserve,
-        });
+        return opened(
+          await service(sdk).openStrategyIntent({
+            sdk,
+            creditManager: strategy.creditManager,
+            collateral: params.collateral,
+            targetToken,
+            leverage: params.leverage,
+            leftoverBalances: params.leftoverBalances,
+            slippage: params.slippage,
+            quotaReserve: params.quotaReserve,
+          }),
+        );
       },
     });
   }
@@ -445,13 +461,15 @@ export class PrepareApi
     return this.queryChain({
       network: position.chainId,
       run: async sdk =>
-        service(sdk).intentRoutes({
-          intent,
-          creditAccount: await slice(sdk, position.creditAccount),
-          sdk,
-          slippage: options.slippage,
-          quotaReserve: options.quotaReserve,
-        }),
+        routed(
+          await service(sdk).intentRoutes({
+            intent,
+            creditAccount: await slice(sdk, position.creditAccount),
+            sdk,
+            slippage: options.slippage,
+            quotaReserve: options.quotaReserve,
+          }),
+        ),
     });
   }
 
@@ -469,13 +487,15 @@ export class PrepareApi
       run: async sdk => {
         const creditAccount = await slice(sdk, position.creditAccount);
 
-        return service(sdk).startIntent({
-          intent,
-          creditAccount,
-          sdk,
-          slippage: options.slippage,
-          quotaReserve: options.quotaReserve,
-        });
+        return planned(
+          await service(sdk).startIntent({
+            intent,
+            creditAccount,
+            sdk,
+            slippage: options.slippage,
+            quotaReserve: options.quotaReserve,
+          }),
+        );
       },
     });
   }
@@ -542,10 +562,74 @@ function unroutable(
   from: Address,
   to: Address | undefined,
 ): LpPrepare {
-  return refuse("unsupportedTokenPair", {
-    from: toToken(sdk, from),
-    to: to === undefined ? undefined : toToken(sdk, to),
-  });
+  return {
+    success: false,
+    error: toPrepareError({
+      reason: "unsupportedTokenPair",
+      detail: {
+        from: toToken(sdk, from),
+        to: to === undefined ? undefined : toToken(sdk, to),
+      },
+    }),
+  };
+}
+
+/**
+ * The engine's answer, as the envelope the namespace speaks in: what the
+ * operation comes to under `data`, or the refusal as an error carrying its own
+ * numbers, see {@link toPrepareError}.
+ *
+ * The engine keeps its `ok` union — it is the shape the planners, the guards
+ * and their tests are written against — and the boundary is the one place the
+ * two vocabularies meet.
+ **/
+function planned(result: IntentPreviewResult): StrategyPrepare {
+  if (!result.ok) {
+    return { success: false, error: toPrepareError(result) };
+  }
+  const { operations, state, calls } = result;
+  return { success: true, data: { operations, state, calls } };
+}
+
+/**
+ * {@inheritDoc planned}
+ **/
+function opened(result: OpenStrategyPreviewResult): OpenStrategyPrepare {
+  return result.ok
+    ? { success: true, data: { state: result.state } }
+    : { success: false, error: toPrepareError(result) };
+}
+
+/**
+ * {@inheritDoc planned}
+ *
+ * Both routes are payload, refusal and all: `refused` says why a missing one is
+ * missing, and it stays on the error when neither route answered, since that is
+ * the same question asked of a request that has no viable half at all.
+ **/
+function routed(result: IntentRoutesResult): StrategyRoutesPrepare {
+  if (!result.ok) {
+    const { refused, ...issue } = result;
+    return { success: false, error: { ...toPrepareError(issue), refused } };
+  }
+  const { instant, delayed, refused } = result;
+  return {
+    success: true,
+    data: {
+      instant: instant && {
+        operations: instant.operations,
+        state: instant.state,
+        calls: instant.calls,
+      },
+      delayed: delayed && {
+        operations: delayed.operations,
+        state: delayed.state,
+        calls: delayed.calls,
+        delayed: delayed.delayed,
+      },
+      refused,
+    },
+  };
 }
 
 /**

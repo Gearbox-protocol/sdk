@@ -10,7 +10,6 @@ import {
   tokenAmountSchema,
   tokenSchema,
   txCallSchema,
-  underlyingTokenSchema,
 } from "./primitives.schema.js";
 
 /**
@@ -35,7 +34,6 @@ export const liquidatableAccountFilterSchema = z.object({
 export const liquidatableAccountSchema = z.object({
   creditManager: ZodAddress(),
   name: z.string(),
-  underlyingToken: underlyingTokenSchema,
   curator: curatorSchema,
   liquidationDiscount: bpsSchema,
   chainId: chainIdSchema,

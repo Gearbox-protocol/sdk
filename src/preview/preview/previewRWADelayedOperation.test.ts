@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 import { type Address, custom, type Hex } from "viem";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type {
-  AdjustStrategyPositionPreview,
-  DelayedStrategyPositionOperationPreview,
-  ExitStrategyPositionPreview,
-  OpenStrategyPositionPreview,
+  PreviewAdjustStrategyVerify,
+  PreviewDelayedStrategyVerify,
+  PreviewExitStrategyVerify,
+  PreviewOpenStrategyVerify,
 } from "../../model/index.js";
 import {
   type CreditAccountData,
@@ -16,7 +16,6 @@ import {
   type RedemptionLog,
   RedemptionLoggerV310Contract,
 } from "../../onchain/index.js";
-import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewOperation } from "./previewOperation.js";
 
 // Integration-style tests for delayed RWA operations: three 5-transaction
@@ -275,10 +274,6 @@ beforeAll(() => {
     }),
   });
   sdk.hydrate(json_parse(readFileSync(STATE_FIXTURE, "utf-8")));
-
-  // `estClaimableAt` is `Date.now()/1000 + withdrawalLength`; freeze the
-  // clock so the delayed-request assertions are deterministic.
-  vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
 });
 
 afterAll(() => {
@@ -345,15 +340,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       calldata: txs.open.calldata,
       sender: investor,
       value: 0n,
-    })) as OpenStrategyPositionPreview;
+    })) as PreviewOpenStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: spec.openOperation,
       error: undefined,
-      name: expect.any(String),
-      underlyingToken: expect.objectContaining({
-        address: expect.any(String),
-      }),
       collateralAdded: [
         {
           token: expect.objectContaining({ address: USDC }),
@@ -402,17 +393,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterOpen },
-    )) as DelayedStrategyPositionOperationPreview;
+    )) as PreviewDelayedStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
       name: expect.any(String),
-      underlyingToken: expect.objectContaining({
-        address: expect.any(String),
-      }),
-      targetCollateral: expect.objectContaining({
-        address: expect.stringMatching(/^0x/i),
-      }),
       // The decoded intent carries the new sourceToken/debtRepaid fields
       intent: {
         type: "WITHDRAW_COLLATERAL",
@@ -422,7 +407,6 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         sourceToken: COLLATERAL,
         debtRepaid: expect.toSatisfy((v: bigint) => v > 0n),
       },
-      estClaimableAt: estimateClaimableAt(sdk, PHANTOM),
       // Instant preview vs the actual state after the request tx: the
       // request only moves collateral into the phantom token, debt is
       // untouched. The phantom balance is a min guarantee, the quota is set
@@ -482,7 +466,6 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     // adjustment previews carry no intent of their own
     expect(preview.instantPreview.intent).toBeUndefined();
     expect(preview.delayedPreview.intent).toBeUndefined();
-    expect(preview.estClaimableAt).toEqual(expect.any(Number));
   });
 
   // Tx 3: the claim with the intent's resume tail. Not a delayed operation
@@ -498,17 +481,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterRequest },
-    )) as AdjustStrategyPositionPreview;
+    )) as PreviewAdjustStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
-      name: expect.any(String),
-      underlyingToken: expect.objectContaining({
-        address: expect.any(String),
-      }),
-      targetCollateral: expect.objectContaining({
-        address: expect.stringMatching(/^0x/i),
-      }),
       // the intent recorded by the request tx, served by the redemption
       // logger
       intent: {
@@ -558,19 +534,12 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterClaim },
-    )) as DelayedStrategyPositionOperationPreview;
+    )) as PreviewDelayedStrategyVerify;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
       name: expect.any(String),
-      underlyingToken: expect.objectContaining({
-        address: expect.any(String),
-      }),
-      targetCollateral: expect.objectContaining({
-        address: expect.stringMatching(/^0x/i),
-      }),
       intent: { type: "CLOSE_ACCOUNT", to: investor },
-      estClaimableAt: estimateClaimableAt(sdk, PHANTOM),
       // Instant preview vs the actual state after the request: collateral
       // fully redeemed, the phantom balance is a min guarantee, the phantom
       // quota is set explicitly by the tx and must match exactly
@@ -617,7 +586,6 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     // instant/close previews carry no intent of their own
     expect(preview.instantPreview.intent).toBeUndefined();
     expect(preview.delayedPreview.intent).toBeUndefined();
-    expect(preview.estClaimableAt).toEqual(expect.any(Number));
   });
 
   // Tx 5: the final claim + close: claim USDC, sweep everything into the
@@ -632,20 +600,13 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterCloseRequest },
-    )) as ExitStrategyPositionPreview;
+    )) as PreviewExitStrategyVerify;
 
     // decreaseDebt(MAX) + withdrawCollateral(MAX) and no new withdrawal
     // request: a zero-debt closure (the account stays open but empty)
     expect(preview).toMatchObject({
       operation: "CloseCreditAccount",
       error: undefined,
-      name: expect.any(String),
-      underlyingToken: expect.objectContaining({
-        address: expect.any(String),
-      }),
-      targetCollateral: expect.objectContaining({
-        address: expect.stringMatching(/^0x/i),
-      }),
       // zero-debt closure via a plain multicall, not the facade
       // closeCreditAccount entry point
       permanent: false,

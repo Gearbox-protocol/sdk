@@ -56,7 +56,6 @@ function state(over: Partial<OperationState> = {}): OperationState {
     liquidationPrice: null,
     creditManager: CREDIT_MANAGER,
     name: "KPK WETH",
-    underlyingToken: { ...und(0n).token, wrappedAddress: null },
     totalValue: und(10n ** 20n),
     totalDebt: und(41_574_436_328_452_499_320n),
     netValue: und(10n ** 20n - 41_574_436_328_452_499_320n),

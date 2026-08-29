@@ -4,6 +4,7 @@ import type {
   DelayedIntent,
   PositionClaimableWithdrawal,
   TokenAmount,
+  WithError,
 } from "../../model/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
@@ -19,7 +20,19 @@ import {
 import { MAX_UINT256 } from "../../onchain/constants/math.js";
 import type { MultichainSDK } from "../../onchain/index.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
+import type { PrepareError } from "./errors.js";
 import { PrepareApi } from "./PrepareApi.js";
+
+/**
+ * What a preparation came to, or the refusal named as the test's failure — the
+ * envelope narrowing every assertion below would otherwise have to repeat.
+ */
+function plan<D>(result: WithError<D, PrepareError>): D {
+  if (!result.success) {
+    throw new Error(`prepare refused: ${result.error.code}`);
+  }
+  return result.data;
+}
 
 const CHAIN_ID = 1;
 const POOL = "0x1000000000000000000000000000000000000001" as Address;
@@ -77,7 +90,7 @@ describe("PrepareApi.withdraw", () => {
       { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
     );
 
-    expect(result).toMatchObject({ ok: true });
+    expect(result).toMatchObject({ success: true });
     expect(pools.simulateWithdraw).toHaveBeenCalledWith({
       pool: POOL,
       amount: 110n,
@@ -139,11 +152,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
 
     expect(meta.chains[0]?.status).toBe("success");
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
+    const prepared = plan(data);
     // the credit manager's strategyTargetCollateral stands in for an unnamed target token
-    expect(data.state.totalDebt.value).toBe(40000000000n);
+    expect(prepared.state.totalDebt.value).toBe(40000000000n);
     expect(
-      data.state.averageAssets.map(a => ({
+      prepared.state.averageAssets.map(a => ({
         token: a.token.address,
         balance: a.value,
       })),
@@ -158,9 +171,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: 10000000000n,
     });
 
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
+    const prepared = plan(data);
     // 100 UND of margin at the account's 2x borrows another 100
-    expect(data.state.totalDebt.value).toBe(DEBT + 10000000000n);
+    expect(prepared.state.totalDebt.value).toBe(DEBT + 10000000000n);
   });
 
   it("repayStrategy pays the debt down with wallet funds", async () => {
@@ -172,9 +185,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
 
     expect(meta.chains[0]?.status).toBe("success");
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
-    expect(data.state.totalDebt.value).toBe(DEBT - 20000000000n);
-    expect(data.operations.map(op => op.type)).toEqual([
+    const prepared = plan(data);
+    expect(prepared.state.totalDebt.value).toBe(DEBT - 20000000000n);
+    expect(prepared.operations.map(op => op.type)).toEqual([
       "addCollateral",
       "decreaseDebt",
     ]);
@@ -199,7 +212,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: max,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
+    // the ceiling the read answered with is one the flow accepts
+    plan(data);
   });
 
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
@@ -212,10 +226,10 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: max,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
+    const prepared = plan(data);
     // this market has no redemption venue, so only the instant route answers
-    expect(data.instant).toBeDefined();
-    expect(data.refused.delayed).toBe("noDelayedRoute");
+    expect(prepared.instant).toBeDefined();
+    expect(prepared.refused.delayed).toBe("noDelayedRoute");
   });
 
   it("withdrawStrategy past the net value exits the account", async () => {
@@ -225,9 +239,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: TVL,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
-    expect(data.instant?.state.totalDebt.value).toBe(0n);
-    expect(data.instant?.state.assets).toEqual([]);
+    const prepared = plan(data);
+    expect(prepared.instant?.state.totalDebt.value).toBe(0n);
+    expect(prepared.instant?.state.assets).toEqual([]);
   });
 
   it("withdrawStrategy with MAX_UINT256 sells the position and empties the account", async () => {
@@ -237,8 +251,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: MAX_UINT256,
       to: WALLET,
     });
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
-    const exit = data.instant;
+    const prepared = plan(data);
+    const exit = prepared.instant;
     if (!exit) throw new Error("expected the instant route");
 
     expect(exit.operations.map(op => op.type)).toEqual([
@@ -258,7 +272,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(exit.state.assets).toEqual([]);
     expect(exit.state.quotas).toEqual([]);
     // an exit is the router's business; the issuer cannot serve one
-    expect(data.refused.delayed).toBe("noDelayedRoute");
+    expect(prepared.refused.delayed).toBe("noDelayedRoute");
   });
 
   it("repayStrategy with MAX_UINT256 settles the debt and drops the quotas", async () => {
@@ -268,18 +282,18 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       token: UND,
       amount: MAX_UINT256,
     });
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
+    const prepared = plan(data);
 
-    expect(data.operations.map(op => op.type)).toEqual([
+    expect(prepared.operations.map(op => op.type)).toEqual([
       "addCollateral",
       "changeQuota",
       "decreaseDebt",
     ]);
     expect(
-      data.operations.find(op => op.type === "decreaseDebt"),
+      prepared.operations.find(op => op.type === "decreaseDebt"),
     ).toMatchObject({ amount: DEBT, full: true });
-    expect(data.state.totalDebt.value).toBe(0n);
-    expect(data.state.quotas).toEqual([]);
+    expect(prepared.state.totalDebt.value).toBe(0n);
+    expect(prepared.state.quotas).toEqual([]);
   });
 
   it("adjustLeverage retargets the debt and quotes both routes", async () => {
@@ -289,9 +303,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       targetLeverage: 300n,
       token: POS,
     });
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
+    const prepared = plan(data);
     // collateral is the invariant: 500 of it at 3x is 1000 of debt
-    expect(data.instant?.state.totalDebt.value).toBe(TVL);
+    expect(prepared.instant?.state.totalDebt.value).toBe(TVL);
   });
 
   it("addCollateral and withdrawCollateral leave the debt where it was", async () => {
@@ -307,13 +321,12 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       to: WALLET,
     });
 
-    if (!added.data.ok || !taken.data.ok) {
-      throw new Error("prepare refused a flow that leaves debt alone");
-    }
-    expect(added.data.state.totalDebt.value).toBe(DEBT);
-    expect(taken.data.state.totalDebt.value).toBe(DEBT);
-    expect(added.data.state.totalValue.value).toBe(TVL + 10000000000n);
-    expect(taken.data.state.totalValue.value).toBe(TVL - 10000000000n);
+    const grown = plan(added.data);
+    const shrunk = plan(taken.data);
+    expect(grown.state.totalDebt.value).toBe(DEBT);
+    expect(shrunk.state.totalDebt.value).toBe(DEBT);
+    expect(grown.state.totalValue.value).toBe(TVL + 10000000000n);
+    expect(shrunk.state.totalValue.value).toBe(TVL - 10000000000n);
   });
 
   it("reports the market's refusal rather than throwing it", async () => {
@@ -336,9 +349,12 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     );
 
     expect(data).toEqual({
-      ok: false,
-      reason: "marketPaused",
-      detail: { creditManager: CREDIT_MANAGER },
+      success: false,
+      error: {
+        code: "marketPaused",
+        message: expect.any(String),
+        creditManager: CREDIT_MANAGER,
+      },
     });
   });
 });
@@ -368,9 +384,10 @@ describe("PrepareApi — the two-transaction route", () => {
       to: WALLET,
     });
 
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
-    const start = data.delayed;
-    if (!start) throw new Error(`no delayed route: ${data.refused.delayed}`);
+    const prepared = plan(data);
+    const start = prepared.delayed;
+    if (!start)
+      throw new Error(`no delayed route: ${prepared.refused.delayed}`);
 
     expect(start.delayed).toMatchObject({
       record: {
@@ -395,8 +412,10 @@ describe("PrepareApi — the two-transaction route", () => {
       targetLeverage: 150n,
     });
 
-    if (!data.ok) throw new Error(`prepare refused: ${data.reason}`);
-    expect(data.delayed?.delayed.record).toEqual({ type: "DECREASE_LEVERAGE" });
+    const prepared = plan(data);
+    expect(prepared.delayed?.delayed.record).toEqual({
+      type: "DECREASE_LEVERAGE",
+    });
   });
 
   it("finalize refuses a claim that names nothing to resume", async () => {
@@ -409,9 +428,8 @@ describe("PrepareApi — the two-transaction route", () => {
     });
 
     expect(data).toEqual({
-      ok: false,
-      reason: "noRecordedIntent",
-      detail: undefined,
+      success: false,
+      error: { code: "noRecordedIntent", message: expect.any(String) },
     });
   });
 
@@ -422,12 +440,12 @@ describe("PrepareApi — the two-transaction route", () => {
       claimable: claimableOf({ type: "CLOSE_ACCOUNT", to: WALLET }),
     });
 
-    if (!data.ok) throw new Error(`finalize refused: ${data.reason}`);
+    const prepared = plan(data);
     // Everything left is sold, the loan is settled and the rest handed over.
-    expect(data.state.totalDebt.value).toBe(0n);
-    expect(data.state.totalValue.value).toBe(0n);
-    expect(data.state.assets).toEqual([]);
-    expect(data.operations.map(o => o.type)).toEqual([
+    expect(prepared.state.totalDebt.value).toBe(0n);
+    expect(prepared.state.totalValue.value).toBe(0n);
+    expect(prepared.state.assets).toEqual([]);
+    expect(prepared.operations.map(o => o.type)).toEqual([
       "claimDelayedWithdrawal",
       "changeQuota",
       "swap",
@@ -446,7 +464,7 @@ describe("PrepareApi.redeem", () => {
       { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
     );
 
-    expect(result).toMatchObject({ ok: true });
+    expect(result).toMatchObject({ success: true });
     expect(pools.simulateRedeem).toHaveBeenCalledWith({
       pool: POOL,
       amount: 100n,

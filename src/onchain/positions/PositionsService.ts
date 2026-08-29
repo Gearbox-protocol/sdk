@@ -6,13 +6,9 @@ import type {
   Bps,
   DelayedReceivedAsset,
   Position,
-  PositionClaimableWithdrawal,
   PositionCollateral,
   PositionKind,
-  PositionPendingWithdrawal,
-  PositionWithdrawals,
   StrategyPosition,
-  TxCall,
 } from "../../model/index.js";
 import {
   isFilterSet,
@@ -21,13 +17,14 @@ import {
 } from "../../model/index.js";
 import type {
   ClaimableWithdrawal,
-  CurrentWithdrawals,
   PendingWithdrawal,
   WithdrawalOutput,
 } from "../accounts/withdrawal-compressor/index.js";
 import type { CreditAccountData } from "../base/index.js";
 import { SDKConstruct } from "../base/index.js";
+import { getAccountTargetCollateral } from "../chain/chains.js";
 import { DUST_THRESHOLD } from "../constants/index.js";
+import { creditOperationMarket } from "../market/credit/creditOperationMarket.js";
 import {
   bpsToRay,
   calcBorrowApy,
@@ -36,13 +33,12 @@ import {
   usdToNumber,
 } from "../market/math.js";
 import { collateralPriceInUnderlying } from "../market/oracle/collateralPriceInUnderlying.js";
-import type { IPriceOracleContract } from "../market/oracle/index.js";
 import {
   borrowRateAtUtilization,
   type RateModelParams,
   utilizationAfterLiquidityChange,
 } from "../market/pool/math.js";
-import type { MultiCall } from "../types/index.js";
+import { strategyName } from "../market/strategyName.js";
 import { AddressMap } from "../utils/index.js";
 import { calcBorrowRate } from "./calcBorrowRate.js";
 import { calcHealthFactor } from "./calcHealthFactor.js";
@@ -54,7 +50,6 @@ import { calcTimeToLiquidationMs } from "./calcTimeToLiquidationMs.js";
 import {
   type AccountSnapshot,
   accountSnapshotFromCreditAccountData,
-  type GetCurrentWithdrawalsProps,
   type ListPositionsProps,
   type ListStrategyPositionsProps,
 } from "./types.js";
@@ -163,26 +158,6 @@ export class PositionsService extends SDKConstruct {
 
     return accounts.map((ca, i) =>
       this.#toStrategyPosition(ca, withdrawals[i] ?? new AddressMap()),
-    );
-  }
-
-  /**
-   * Returns delayed withdrawals of a strategy position
-   **/
-  public async getCurrentWithdrawals(
-    props: GetCurrentWithdrawalsProps,
-  ): Promise<PositionWithdrawals> {
-    const { creditAccount, creditManager, blockNumber } = props;
-    const empty: PositionWithdrawals = { claimable: [], pending: [] };
-    const compressor = this.sdk.withdrawalCompressor;
-    if (!compressor?.getWithdrawableAssets(creditManager).length) {
-      return empty;
-    }
-    const { priceOracle } =
-      this.sdk.marketRegister.findByCreditManager(creditManager);
-    return this.#toPositionWithdrawals(
-      await compressor.getCurrentWithdrawals(creditAccount, blockNumber),
-      priceOracle,
     );
   }
 
@@ -419,9 +394,9 @@ export class PositionsService extends SDKConstruct {
     const { priceOracle } = market;
 
     return {
-      ...this.sdk.marketRegister
-        .findCreditManager(creditManager)
-        .creditOperationMarket(),
+      ...creditOperationMarket(
+        this.sdk.marketRegister.findCreditManager(creditManager),
+      ),
       totalValue: market.toUnderlyingAmount(totalValue),
       totalDebt: market.toUnderlyingAmount(totalDebt),
       netValue: market.toUnderlyingAmount(totalValue - totalDebt),
@@ -455,8 +430,11 @@ export class PositionsService extends SDKConstruct {
 
     // for RWA markets, amounts are denominated in the unwrapped asset
     // (e.g. USDC instead of dcUSDC); the wrapped underlying converts 1:1
-    const token = suite.underlyingToken;
+    const token = market.underlyingToken;
     const totalDebtValue = ca.debt + ca.accruedInterest + ca.accruedFees;
+    const target =
+      getAccountTargetCollateral(ca.creditAccount, this.sdk.chainId) ??
+      suite.strategyTargetCollateral;
 
     // compressor totals only cover enabled tokens; after a full repay the
     // remaining collateral is disabled, so zero-debt totals are summed from
@@ -506,8 +484,12 @@ export class PositionsService extends SDKConstruct {
       creditManager: ca.creditManager,
       creditAccount: ca.creditAccount,
       underlyingToken: token,
-      name: suite.accountStrategyName(ca.creditAccount),
-      targetCollateral: suite.accountTargetCollateral(ca.creditAccount),
+      name: target
+        ? strategyName(this.sdk.tokensMeta.mustGetToken(target), token)
+        : token.symbol,
+      targetCollateral: target
+        ? this.sdk.tokensMeta.mustGetToken(target)
+        : null,
       leverage: calcPositionLeverage(totalValue, totalDebtValue),
       borrowApy: calcBorrowApy(
         pool.baseInterestRate,
@@ -596,72 +578,6 @@ export class PositionsService extends SDKConstruct {
       add(w, w.expectedOutputs, w.claimableAt);
     }
     return byPhantomToken;
-  }
-
-  /**
-   * Maps compressor withdrawals into the read model's vocabulary.
-   **/
-  #toPositionWithdrawals(
-    raw: CurrentWithdrawals,
-    priceOracle: IPriceOracleContract,
-  ): PositionWithdrawals {
-    return {
-      claimable: raw.claimable.map(w =>
-        this.#toPositionClaimableWithdrawal(w, priceOracle),
-      ),
-      pending: raw.pending.map(w =>
-        this.#toPositionPendingWithdrawal(w, priceOracle),
-      ),
-    };
-  }
-
-  #toPositionClaimableWithdrawal(
-    w: ClaimableWithdrawal,
-    priceOracle: IPriceOracleContract,
-  ): PositionClaimableWithdrawal {
-    return {
-      sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
-      withdrawalPhantomToken: priceOracle.toTokenAmount(
-        w.withdrawalPhantomToken,
-        w.withdrawalTokenSpent,
-      ),
-      outputs: w.outputs.map(o => priceOracle.toTokenAmount(o.token, o.amount)),
-      claimCall: this.#claimTx(w.claimCalls, w.token),
-      redeemer: w.redeemer,
-      intent: w.intent,
-    };
-  }
-
-  #toPositionPendingWithdrawal(
-    w: PendingWithdrawal,
-    priceOracle: IPriceOracleContract,
-  ): PositionPendingWithdrawal {
-    return {
-      sourceToken: this.sdk.tokensMeta.mustGetToken(w.token),
-      withdrawalPhantomToken: this.sdk.tokensMeta.mustGetToken(
-        w.withdrawalPhantomToken,
-      ),
-      expectedOutputs: w.expectedOutputs.map(o =>
-        priceOracle.toTokenAmount(o.token, o.amount),
-      ),
-      claimableAt: Number(w.claimableAt),
-      redeemer: w.redeemer,
-      intent: w.intent,
-    };
-  }
-
-  /**
-   * Subcompressors always report exactly one adapter call per claimable
-   * withdrawal.
-   **/
-  #claimTx(claimCalls: readonly MultiCall[], sourceToken: Address): TxCall {
-    const call = claimCalls[0];
-    if (claimCalls.length !== 1 || !call) {
-      throw new Error(
-        `expected exactly one claim call for withdrawal of ${sourceToken}, got ${claimCalls.length}`,
-      );
-    }
-    return { to: call.target, callData: call.callData };
   }
 
   /**

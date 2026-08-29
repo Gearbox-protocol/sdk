@@ -34,7 +34,7 @@ flowchart TD
   quota["quota update: cleared by the plan,<br/>or sized to the projected balances"]
   head{"quota headroom left in the market?"}
   hf{"projected health factor >= 1.0?<br/>safe prices when funds leave"}
-  ok["ok: operations + preview + calls"]
+  ok["ok: operations + state + calls"]
   no["ok: false, reason"]
 
   req --> op
@@ -174,6 +174,12 @@ Every refusal carries a `detail` with the numbers behind it, so a caller reads
 the limit that was missed instead of re-deriving it. Anything with a token and
 an amount is an `Asset`; `undefined` marks a reason raised from several places,
 only some of which hold the numbers.
+
+This is the engine's own shape. The `prepare` namespace answers in the SDK's
+error envelope instead — `{ success: false, error }`, where `error.code` is the
+reason below and the `detail` is spread onto the error beside it — so a caller
+of `sdk.prepare.*` reads `error.code === "debtOutOfRange"` and `error.maxDebt`.
+One table, two spellings of it: `PrepareApi` is the only place that converts.
 
 | Reason                      | Raised when                                                                 | Detail |
 | --------------------------- | --------------------------------------------------------------------------- | ------ |
