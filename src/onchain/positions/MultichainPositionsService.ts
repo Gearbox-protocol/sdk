@@ -49,6 +49,7 @@ export class MultichainPositionsService<const Plugins extends PluginsMap = {}>
       run: (sdk, block) =>
         sdk.positions.getCurrentWithdrawals({
           creditAccount: props.creditAccount,
+          creditManager: props.creditManager,
           blockNumber: block.blockNumber,
         }),
     });

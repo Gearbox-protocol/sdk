@@ -89,7 +89,7 @@ describe("positions.getCurrentWithdrawals", () => {
       maxOffchainLagSeconds: 120,
     });
 
-    const props = { chainId: 1, creditAccount: WALLET };
+    const props = { chainId: 1, creditAccount: WALLET, creditManager: WALLET };
     await expect(namespace.getCurrentWithdrawals(props)).resolves.toEqual(
       envelope({ claimable: [], pending: [] }),
     );
@@ -103,7 +103,11 @@ describe("positions.getCurrentWithdrawals", () => {
     });
 
     await expect(
-      namespace.getCurrentWithdrawals({ chainId: 1, creditAccount: WALLET }),
+      namespace.getCurrentWithdrawals({
+        chainId: 1,
+        creditAccount: WALLET,
+        creditManager: WALLET,
+      }),
     ).rejects.toThrow(SourceUnavailableError);
   });
 });

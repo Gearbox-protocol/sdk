@@ -55,6 +55,11 @@ export interface GetCurrentWithdrawalsPropsBase {
    **/
   creditAccount: Address;
   /**
+   * Credit manager the account belongs to.
+   *
+   **/
+  creditManager: Address;
+  /**
    * Block to read at. Defaults to the latest block.
    **/
   blockNumber?: bigint;

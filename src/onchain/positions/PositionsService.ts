@@ -169,28 +169,32 @@ export class PositionsService extends SDKConstruct {
   /**
    * Returns delayed withdrawals of a strategy position
    *
-   * Empty when this chain has no withdrawal compressor, or the account does
-   * not exist.
+   * Empty when this chain has no withdrawal compressor, or when the account's
+   * credit manager has no withdrawal config — no config, no withdrawal, and
+   * nothing to ask the chain about.
+   *
+   * The manager comes from the caller. It used to be read off the account
+   * here, which cost an uncached read of the whole account to learn one field
+   * every caller already knows.
    **/
   public async getCurrentWithdrawals(
     props: GetCurrentWithdrawalsProps,
   ): Promise<PositionWithdrawals> {
-    const { creditAccount, blockNumber } = props;
+    const { creditAccount, creditManager, blockNumber } = props;
     const empty: PositionWithdrawals = { claimable: [], pending: [] };
     const compressor = this.sdk.withdrawalCompressor;
     if (!compressor) {
       return empty;
     }
-    const ca = await this.sdk.accounts.getCreditAccountData(
-      creditAccount,
-      blockNumber,
-    );
-    if (!ca) {
+    // Idempotent, and warmed during attach — so this is a no-op afterwards,
+    // awaited anyway so the gate below owns its own precondition rather than
+    // depending on bootstrap order.
+    await compressor.loadWithdrawableAssets();
+    if (compressor.getWithdrawableAssets(creditManager).length === 0) {
       return empty;
     }
-    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
-      ca.creditManager,
-    );
+    const { priceOracle } =
+      this.sdk.marketRegister.findByCreditManager(creditManager);
     return this.#toPositionWithdrawals(
       await compressor.getCurrentWithdrawals(creditAccount, blockNumber),
       priceOracle,
