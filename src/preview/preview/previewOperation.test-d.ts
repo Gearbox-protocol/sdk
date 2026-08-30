@@ -8,7 +8,7 @@ import {
 } from "../../onchain/index.js";
 // @ts-expect-error IntentPreviewError left the public validation barrel: the
 // engine keeps it internally (refusal.js), the public surface answers plain
-// verdict objects instead.
+// refusal objects instead.
 import { IntentPreviewError } from "../../onchain/validation/index.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
 import type {
@@ -16,11 +16,15 @@ import type {
   UnsupportedTargetError,
   UnsupportedZapperFunctionError,
 } from "../parse/errors.js";
+import { UnsupportedTargetError as UnsupportedTargetValue } from "../parse/errors.js";
 import type { PreviewSimulationError } from "../simulate/errors.js";
 import type { UnsupportedOperationError } from "./errors.js";
 import { previewOperation } from "./previewOperation.js";
 
 void IntentPreviewError;
+// @ts-expect-error the class-era alias survives as a type only since the
+// declassing: using it as a value must fail.
+void UnsupportedTargetValue;
 
 const to: Address = "0x0000000000000000000000000000000000000001";
 const sender: Address = "0x0000000000000000000000000000000000000002";
@@ -52,7 +56,7 @@ describe("previewOperation sdk typing", () => {
 });
 
 describe("previewOperation result envelope", () => {
-  it("answers SDKReturn over the exact union of preview verdicts", () => {
+  it("answers SDKReturn over the exact union of preview refusal errors", () => {
     expectTypeOf(previewOperation).returns.resolves.toEqualTypeOf<
       SDKReturn<
         OperationPreview,
@@ -66,7 +70,7 @@ describe("previewOperation result envelope", () => {
     >();
   });
 
-  it("narrows to the preview or the verdict on the ok discriminant", async () => {
+  it("narrows to the preview or the refusal on the ok discriminant", async () => {
     const answer = await previewOperation({
       sdk: sdkWithoutPlugins,
       to,

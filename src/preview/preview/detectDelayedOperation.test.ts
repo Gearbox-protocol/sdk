@@ -6,7 +6,6 @@ import {
   type Asset,
   type DelayedWithdrawalRequest,
   encodeDelayedIntent,
-  InvalidDelayedIntentError,
   type OnchainSDK,
 } from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
@@ -130,18 +129,23 @@ describe("detectDelayedOperation", () => {
     });
   });
 
-  it("throws InvalidDelayedIntentError on non-empty undecodable extraData", () => {
+  it("throws the invalidDelayedIntent refusal on non-empty undecodable extraData", () => {
     const request: DelayedWithdrawalRequest = {
       phantomToken: PHANTOM,
       claimToken: USDC,
       extraData: "0xdeadbeef",
     };
-    expect(() =>
+    let raised: unknown;
+    try {
       detectDelayedOperation(
         stubSdk({ [ADAPTER]: stubAdapter(request) }),
         bracket([execute()]),
-      ),
-    ).toThrow(InvalidDelayedIntentError);
+      );
+    } catch (e) {
+      raised = e;
+    }
+    expect(raised).toMatchObject({ code: "invalidDelayedIntent" });
+    expect(raised instanceof Error).toBe(false);
   });
 
   it("returns undefined when the bracket has no positive phantom delta (fully instant withdrawal)", () => {

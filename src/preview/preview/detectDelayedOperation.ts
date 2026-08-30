@@ -5,7 +5,7 @@ import {
   type Asset,
   type DelayedWithdrawalRequest,
   decodeDelayedIntent,
-  InvalidDelayedIntentError,
+  invalidDelayedIntent,
   type OnchainSDK,
   type PluginsMap,
 } from "../../onchain/index.js";
@@ -81,7 +81,7 @@ export function detectDelayedOperation<P extends PluginsMap>(
       try {
         intent = decodeDelayedIntent(request.extraData);
       } catch (e) {
-        throw new InvalidDelayedIntentError(request.extraData, e);
+        throw invalidDelayedIntent(request.extraData, e);
       }
     }
     return { request, intent };

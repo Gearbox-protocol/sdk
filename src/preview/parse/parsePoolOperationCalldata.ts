@@ -1,6 +1,6 @@
 import type { Address, Hex } from "viem";
 import type { OnchainSDK, PoolV310Contract } from "../../onchain/index.js";
-import { UnsupportedPoolFunctionError } from "./errors.js";
+import { unsupportedPoolFunction } from "./errors.js";
 import type { PoolOperation } from "./types.js";
 
 /**
@@ -80,6 +80,6 @@ export function parsePoolOperationCalldata(
         zapper: undefined,
       };
     default:
-      throw new UnsupportedPoolFunctionError(pool.address, parsed.functionName);
+      throw unsupportedPoolFunction(pool.address, parsed.functionName);
   }
 }

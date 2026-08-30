@@ -2,7 +2,6 @@ import { type Address, getAddress, padHex } from "viem";
 import { describe, expect, it } from "vitest";
 import type { OnchainSDK } from "../../onchain/index.js";
 import type { PoolOperation } from "../parse/index.js";
-import { PreviewSimulationError } from "./errors.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
 
 const addr = (hex: string): Address =>
@@ -192,6 +191,6 @@ describe("simulatePoolOperation", () => {
         to: POOL,
         calldata: "0x",
       }),
-    ).rejects.toThrow(PreviewSimulationError);
+    ).rejects.toMatchObject({ code: "previewSimulationFailed" });
   });
 });

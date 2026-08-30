@@ -3,7 +3,7 @@ import { iRedemptionLoggerV310Abi } from "../../../abi/iRedemptionLoggerV310.js"
 import type { DelayedIntent } from "../../../model/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { InvalidDelayedIntentError } from "./errors.js";
+import { invalidDelayedIntent } from "./errors.js";
 import { decodeDelayedIntent } from "./intent-codec.js";
 import type { IRedemptionLoggerContract, RedemptionLog } from "./types.js";
 
@@ -63,7 +63,7 @@ export class RedemptionLoggerV310Contract
     try {
       return decodeDelayedIntent(log.extraData);
     } catch (e) {
-      throw new InvalidDelayedIntentError(log.extraData, e);
+      throw invalidDelayedIntent(log.extraData, e);
     }
   }
 }

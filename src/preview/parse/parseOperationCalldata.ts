@@ -6,7 +6,7 @@ import {
   ZapperContract,
 } from "../../onchain/index.js";
 import type { PreviewOperationInput } from "../types.js";
-import { UnsupportedTargetError } from "./errors.js";
+import { unsupportedTarget } from "./errors.js";
 import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";
 import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
 import { parseRWAFactoryOperationCalldata } from "./parseRWAFactoryOperationCalldata.js";
@@ -69,5 +69,5 @@ export function parseOperationCalldata<P extends PluginsMap>(
     return parseRWAFactoryOperationCalldata(sdk, contract, calldata);
   }
 
-  throw new UnsupportedTargetError(to);
+  throw unsupportedTarget(to);
 }

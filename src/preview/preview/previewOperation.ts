@@ -1,17 +1,20 @@
 import type { OperationPreview } from "../../model/index.js";
 import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
-import type { ConvertFn, PluginsMap } from "../../onchain/index.js";
-import { InvalidDelayedIntentError } from "../../onchain/index.js";
+import type {
+  ConvertFn,
+  InvalidDelayedIntentError,
+  PluginsMap,
+} from "../../onchain/index.js";
 import {
   isPoolOperation,
   type MulticallOperation,
   parseOperationCalldata,
   type RWAMulticallOperation,
-  UnsupportedPoolFunctionError,
-  UnsupportedTargetError,
-  UnsupportedZapperFunctionError,
+  type UnsupportedPoolFunctionError,
+  type UnsupportedTargetError,
+  type UnsupportedZapperFunctionError,
 } from "../parse/index.js";
-import { PreviewSimulationError } from "../simulate/errors.js";
+import type { PreviewSimulationError } from "../simulate/errors.js";
 import type {
   PreviewOperationInput,
   PreviewOperationOptions,
@@ -20,7 +23,10 @@ import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStra
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
-import { UnsupportedOperationError } from "./errors.js";
+import {
+  type UnsupportedOperationError,
+  unsupportedOperation,
+} from "./errors.js";
 import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
 import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
@@ -32,11 +38,11 @@ import {
 } from "./replayMulticall.js";
 
 /**
- * Everything {@link previewOperation} can refuse with: the verdicts its
- * pipeline raises, discriminated by `code`. Each is a plain object — never a
- * thrown `Error` — per the SDK's refusal vocabulary.
+ * Everything {@link previewOperation} can refuse with: the refusal errors
+ * its pipeline raises, discriminated by `code`. Each is a plain object —
+ * never a thrown `Error` — per the SDK's refusal vocabulary.
  */
-export type PreviewVerdictError =
+export type PreviewOperationError =
   | UnsupportedTargetError
   | UnsupportedPoolFunctionError
   | UnsupportedZapperFunctionError
@@ -45,12 +51,30 @@ export type PreviewVerdictError =
   | PreviewSimulationError;
 
 /**
- * Narrows a raised value to the verdict vocabulary: a plain non-`Error`
- * object whose `code` is one of the preview verdicts. Genuine exceptions —
- * bugs, outages, calldata the parser cannot read at all — fail the check and
- * keep propagating as throws.
+ * Compile-total map of the refusal codes: a member added to or removed from
+ * {@link PreviewOperationError} breaks the build here.
  */
-function isPreviewVerdict(raised: unknown): raised is PreviewVerdictError {
+const PREVIEW_OPERATION_ERROR_CODES: Record<
+  PreviewOperationError["code"],
+  true
+> = {
+  unsupportedTarget: true,
+  unsupportedPoolFunction: true,
+  unsupportedZapperFunction: true,
+  unsupportedOperation: true,
+  invalidDelayedIntent: true,
+  previewSimulationFailed: true,
+};
+
+/**
+ * Narrows a raised value to the refusal vocabulary: a plain non-`Error`
+ * object whose `code` is one of the preview refusal codes. Genuine
+ * exceptions — bugs, outages, calldata the parser cannot read at all — fail
+ * the check and keep propagating as throws.
+ */
+export function isPreviewOperationError(
+  raised: unknown,
+): raised is PreviewOperationError {
   if (
     typeof raised !== "object" ||
     raised === null ||
@@ -58,13 +82,10 @@ function isPreviewVerdict(raised: unknown): raised is PreviewVerdictError {
   ) {
     return false;
   }
+  const code = (raised as { code?: unknown }).code;
   return (
-    raised instanceof UnsupportedTargetError ||
-    raised instanceof UnsupportedPoolFunctionError ||
-    raised instanceof UnsupportedZapperFunctionError ||
-    raised instanceof UnsupportedOperationError ||
-    raised instanceof InvalidDelayedIntentError ||
-    raised instanceof PreviewSimulationError
+    typeof code === "string" &&
+    Object.hasOwn(PREVIEW_OPERATION_ERROR_CODES, code)
   );
 }
 
@@ -74,14 +95,14 @@ function isPreviewVerdict(raised: unknown): raised is PreviewVerdictError {
  *
  * Answers an {@link SDKReturn} envelope: the preview behind `ok: true`, or —
  * when the transaction is one the previewer refuses to read — a
- * {@link PreviewVerdictError} behind `ok: false`. A thrown exception still
- * means the SDK could not do its job (a read failed, the targeted credit
- * account could not be resolved), not a verdict on the transaction.
+ * {@link PreviewOperationError} behind `ok: false`. A thrown exception
+ * still means the SDK could not do its job (a read failed, the targeted
+ * credit account could not be resolved), not a refusal of the transaction.
  */
 export async function previewOperation<P extends PluginsMap = PluginsMap>(
   input: PreviewOperationInput<P>,
   options?: PreviewOperationOptions,
-): Promise<SDKReturn<OperationPreview, PreviewVerdictError>> {
+): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
   try {
     const operation = parseOperationCalldata(input);
 
@@ -124,9 +145,9 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
       return sdkOk(await previewMulticallOperation(input, operation, resolved));
     }
 
-    return sdkErr(UnsupportedOperationError(operation.operation));
+    return sdkErr(unsupportedOperation(operation.operation));
   } catch (raised) {
-    if (isPreviewVerdict(raised)) {
+    if (isPreviewOperationError(raised)) {
       return sdkErr(raised);
     }
     throw raised;

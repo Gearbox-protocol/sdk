@@ -1,12 +1,13 @@
 import type { Address } from "viem";
 import type { IGearboxError } from "../../model/index.js";
 
+export type { UnsupportedZapperFunctionError } from "../../onchain/market/zapper/errors.js";
 // Re-exported from the SDK zapper module, where it is raised, to keep the
 // preview public API stable.
-export { UnsupportedZapperFunctionError } from "../../onchain/market/zapper/errors.js";
+export { unsupportedZapperFunction } from "../../onchain/market/zapper/errors.js";
 
 /**
- * Verdict answered when the target of a transaction is neither a known
+ * Refusal answered when the target of a transaction is neither a known
  * Gearbox pool nor a credit facade. A plain returned object per the SDK's
  * refusal vocabulary — not a thrown `Error`.
  */
@@ -16,7 +17,8 @@ export interface UnsupportedTargetError extends IGearboxError {
   target: Address;
 }
 
-function unsupportedTarget(target: Address): UnsupportedTargetError {
+/** Builds the refusal — a plain returned object, never a thrown `Error`. */
+export function unsupportedTarget(target: Address): UnsupportedTargetError {
   return {
     code: "unsupportedTarget",
     message: `unsupported transaction target: ${target}`,
@@ -24,25 +26,8 @@ function unsupportedTarget(target: Address): UnsupportedTargetError {
   };
 }
 
-Object.defineProperty(unsupportedTarget, Symbol.hasInstance, {
-  value: (value: unknown): boolean =>
-    typeof value === "object" &&
-    value !== null &&
-    (value as UnsupportedTargetError).code === "unsupportedTarget",
-});
-
 /**
- * Builds the verdict. Callable with or without `new`, so pre-declassing raise
- * sites keep compiling; `instanceof` matches on the `code` discriminant, and
- * the answer is never an `Error`.
- */
-export const UnsupportedTargetError = unsupportedTarget as {
-  (target: Address): UnsupportedTargetError;
-  new (target: Address): UnsupportedTargetError;
-};
-
-/**
- * Verdict answered when a pool call uses a function other than ERC4626
+ * Refusal answered when a pool call uses a function other than ERC4626
  * `deposit`/`redeem`. A plain returned object per the SDK's refusal
  * vocabulary — not a thrown `Error`.
  */
@@ -54,7 +39,8 @@ export interface UnsupportedPoolFunctionError extends IGearboxError {
   functionName: string;
 }
 
-function unsupportedPoolFunction(
+/** Builds the refusal — a plain returned object, never a thrown `Error`. */
+export function unsupportedPoolFunction(
   pool: Address,
   functionName: string,
 ): UnsupportedPoolFunctionError {
@@ -65,20 +51,3 @@ function unsupportedPoolFunction(
     functionName,
   };
 }
-
-Object.defineProperty(unsupportedPoolFunction, Symbol.hasInstance, {
-  value: (value: unknown): boolean =>
-    typeof value === "object" &&
-    value !== null &&
-    (value as UnsupportedPoolFunctionError).code === "unsupportedPoolFunction",
-});
-
-/**
- * Builds the verdict. Callable with or without `new`, so pre-declassing raise
- * sites keep compiling; `instanceof` matches on the `code` discriminant, and
- * the answer is never an `Error`.
- */
-export const UnsupportedPoolFunctionError = unsupportedPoolFunction as {
-  (pool: Address, functionName: string): UnsupportedPoolFunctionError;
-  new (pool: Address, functionName: string): UnsupportedPoolFunctionError;
-};
