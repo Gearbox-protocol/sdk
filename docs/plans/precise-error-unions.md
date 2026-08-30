@@ -288,20 +288,21 @@ Of which verification: 3 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S1-T1 — package.json gains the seven agent:* scripts and the unrun devDependency (pnpm-lock.yaml follows); agentScripts.test.ts proves both. (12 min)
+- [x] D1-S1-T1 — package.json gains the seven agent:* scripts and the unrun devDependency (pnpm-lock.yaml follows); agentScripts.test.ts proves both. (12 min) — 634c8791f5c1dd668618ebcff28a20fdba5b11a5
 <!-- plan:task-meta:{"writes":["package.json","pnpm-lock.yaml","src/quality/agentScripts.test.ts"],"predictedActiveMinutes":12,"predictedCredits":3,"how":"thin aliases over pnpm/vitest","red":"bun run agent:test:backend -- src/quality/agentScripts.test.ts"} -->
 
 ##### Acceptance criteria
 
 - [ ] fresh check: `rm -rf node_modules && bun run agent:install` then the RED test passes — proves unrun really fixes the clean install
 - [ ] each of the seven scripts runs (N/A lanes exit 0 with their reason printed)
-- [ ] Commit
+- [x] Commit — 634c8791f5c1dd668618ebcff28a20fdba5b11a5
 
 ##### Results
 
 <!-- plan:results:D1-S1:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S1-T1 | 634c8791f5c1dd668618ebcff28a20fdba5b11a5 | 2026-08-30T09:34:19.851Z–2026-08-30T09:35:26.000Z | 1 / 1 min | unavailable: runner did not expose usage | Seven contract scripts + agent:typecheck exposed; unrun in devDependencies; cold rm-rf install then RED-test and tsc both green. |
 <!-- plan:results:D1-S1:end -->
 <!-- plan:stage:D1-S1:end -->
 
@@ -642,4 +643,8 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - replace-stage D1-S3
 
 - approve sha256:cc369304924dcab046d054b2219edc34dc81fac048a6d987262a63fecbb658ba owner:фиксируем так (owner, 2026-08-30): базовые AccountFlowError/OpenFlowError + inline flow-коды, unexpectedFailure в базе
+
+- record-result D1-S1 commit:634c8791f5c1dd668618ebcff28a20fdba5b11a5
+
+- close D1-S1 partial commit:634c8791f5c1dd668618ebcff28a20fdba5b11a5
 <!-- plan:execution:end -->
