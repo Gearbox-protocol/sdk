@@ -502,11 +502,7 @@ describe("replayInnerOperations on malformed multicalls", () => {
 
   it("reports an error on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", async () => {
     const sdk = stubSdkWithRWAAdapter(USDC, RWA_SHARE);
-    const { error } = apply(
-      [execute(ADAPTER, "0xdeadbeef")],
-      zeroState(),
-      sdk,
-    );
+    const { error } = apply([execute(ADAPTER, "0xdeadbeef")], zeroState(), sdk);
     expect(error).toEqual({
       code: ERROR_UNSUPPORTED_OUT_OF_BRACKET_CALL,
       message: expect.any(String),

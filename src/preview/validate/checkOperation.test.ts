@@ -3,9 +3,9 @@ import { resolve } from "node:path";
 import { type Address, custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import type {
-  PreviewAdjustStrategyVerify,
-  PreviewLpVerify,
-  PreviewOpenStrategyVerify,
+  AdjustStrategyPositionPreview,
+  OpenStrategyPositionPreview,
+  PoolPositionOperationPreview,
   TokenAmount,
 } from "../../model/index.js";
 import {
@@ -60,13 +60,15 @@ beforeAll(() => {
 
 /** A healthy adjustment of the fixture's account, as the preview reports one. */
 function adjust(
-  over: Partial<PreviewAdjustStrategyVerify> = {},
-): PreviewAdjustStrategyVerify {
+  over: Partial<AdjustStrategyPositionPreview> = {},
+): AdjustStrategyPositionPreview {
   return {
     operation: "AdjustCreditAccount",
     name: "KPK WETH",
+    underlyingToken: { ...und(0n).token, wrappedAddress: null },
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
+    targetCollateral: null,
     collateralAdded: [],
     collateralWithdrawn: [],
     estTotalValue: und(10n ** 20n),
@@ -83,16 +85,17 @@ function adjust(
     estLiquidationPrice: null,
     estLeverage: 2,
     ...over,
-  } as PreviewAdjustStrategyVerify;
+  } as AdjustStrategyPositionPreview;
 }
 
 /** The same account at the moment it is opened, as the preview reports one. */
 function open(
-  over: Partial<PreviewOpenStrategyVerify> = {},
-): PreviewOpenStrategyVerify {
+  over: Partial<OpenStrategyPositionPreview> = {},
+): OpenStrategyPositionPreview {
   return {
     operation: "OpenCreditAccount",
     name: "KPK WETH",
+    underlyingToken: { ...und(0n).token, wrappedAddress: null },
     creditManager: CREDIT_MANAGER,
     collateralAdded: [],
     estNetValue: und(10n ** 19n),
@@ -107,11 +110,11 @@ function open(
     estLiquidationPrice: null,
     estLeverage: 2,
     ...over,
-  } as PreviewOpenStrategyVerify;
+  } as OpenStrategyPositionPreview;
 }
 
 const check = (
-  preview: PreviewAdjustStrategyVerify | PreviewOpenStrategyVerify,
+  preview: AdjustStrategyPositionPreview | OpenStrategyPositionPreview,
   options: Parameters<typeof checkOperation>[1] = {},
 ) => checkOperation({ sdk, preview }, options);
 
@@ -337,6 +340,7 @@ describe("checkOperation", () => {
       preview: {
         operation: "DelayedCreditAccountOperation",
         name: "KPK WETH",
+        underlyingToken: { ...und(0n).token, wrappedAddress: null },
         creditManager: CREDIT_MANAGER,
         creditAccount: CREDIT_ACCOUNT,
         instantPreview: adjust({ totalDebt: und(10n ** 30n) }),
@@ -438,6 +442,7 @@ describe("checkOperation", () => {
         preview: {
           operation: "CloseCreditAccount",
           name: "KPK WETH",
+          underlyingToken: { ...und(0n).token, wrappedAddress: null },
           creditManager: CREDIT_MANAGER,
           creditAccount: CREDIT_ACCOUNT,
           permanent: true,
@@ -451,11 +456,22 @@ describe("checkOperation", () => {
 });
 
 describe("checkOperation — pool operations", () => {
-  const deposit = (over: Partial<PreviewLpVerify> = {}): PreviewLpVerify =>
+  const deposit = (
+    over: Partial<PoolPositionOperationPreview> = {},
+  ): PoolPositionOperationPreview =>
     ({
       operation: "Deposit",
       pool: POOL,
       name: "wstETH pool",
+      underlyingToken: {
+        chainId: 1,
+        address: WSTETH,
+        symbol: "wstETH",
+        name: "Wrapped liquid staked Ether 2.0",
+        decimals: 18,
+        wrappedAddress: null,
+      },
+      shareRate: 10n ** 27n,
       tokenIn: {
         token: toToken(sdk, WSTETH),
         value: 10n ** 18n,
@@ -467,7 +483,7 @@ describe("checkOperation — pool operations", () => {
         valueUsd: null,
       },
       ...over,
-    }) as PreviewLpVerify;
+    }) as PoolPositionOperationPreview;
 
   it("passes a deposit into a live pool", () => {
     expect(checkOperation({ sdk, preview: deposit() })).toBeNull();

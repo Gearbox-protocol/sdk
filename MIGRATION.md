@@ -494,20 +494,21 @@ so the two halves of one operation are found under one name:
 
 | Was | Now | `prepare` counterpart |
 | --- | --- | --- |
-| `OpenCreditAccountPreview` | `PreviewOpenStrategyVerify` | `prepare.openNewStrategy` |
-| `AdjustCreditAccountPreview` | `PreviewAdjustStrategyVerify` | `prepare.depositStrategy`, `withdrawStrategy`, `addCollateral`, `withdrawCollateral`, `adjustLeverage` |
-| `RepayCreditAccountPreview` | `PreviewRepayStrategyVerify` | `prepare.repayStrategy` (whole debt) |
-| `CloseCreditAccountPreview` | `PreviewExitStrategyVerify` | `prepare.withdrawStrategy` (everything) |
-| `DelayedCreditAccountOperationPreview` | `PreviewDelayedStrategyVerify` | the delayed route of either |
-| `InstantOperationPreview` | `PreviewInstantStrategyVerify` | — (union of the three above) |
-| `PoolOperationPreview` | `PreviewLpVerify` | `prepare.deposit`, `withdraw`, `redeem` |
+| `OpenCreditAccountPreview` | `OpenStrategyPositionPreview` | `prepare.openNewStrategy` |
+| `AdjustCreditAccountPreview` | `AdjustStrategyPositionPreview` | `prepare.depositStrategy`, `withdrawStrategy`, `addCollateral`, `withdrawCollateral`, `adjustLeverage` |
+| `RepayCreditAccountPreview` | `RepayStrategyPositionPreview` | `prepare.repayStrategy` (whole debt) |
+| `CloseCreditAccountPreview` | `ExitStrategyPositionPreview` | `prepare.withdrawStrategy` (everything) |
+| `DelayedCreditAccountOperationPreview` | `DelayedStrategyPositionOperationPreview` | the delayed route of either |
+| `InstantOperationPreview` | `InstantStrategyPositionOperationPreview` | — (union of the three above) |
+| `PoolOperationPreview` | `PoolPositionOperationPreview` | `prepare.deposit`, `withdraw`, `redeem` |
 
 `OperationPreview`, the union `previewOperation` returns, keeps its name. The
 builders behind it are renamed to match their results
-(`previewAdjustCreditAccount` → `previewAdjustStrategyVerify`,
-`previewCloseOrRepayCreditAccount` → `previewExitOrRepayStrategyVerify`,
-`buildDelayedPreview` → `buildDelayedStrategyVerify`, and so on); the `Verify`
-suffix is there because `prepare` already owns the plain names.
+(`previewAdjustCreditAccount` → `previewAdjustStrategyPosition`,
+`previewCloseOrRepayCreditAccount` → `previewExitOrRepayStrategyPosition`,
+`buildDelayedPreview` → `buildDelayedStrategyPositionOperationPreview`, and so
+on); the `Position` in the middle is there because `prepare` already owns the
+plain names.
 
 **Renamed fields**
 
@@ -517,21 +518,21 @@ suffix is there because `prepare` already owns the plain names.
 | `CreditAccountSlice` | `accountDebt` | `totalDebt` |
 | `OpenStrategyState` | `debt` | `totalDebt` |
 | `OpenStrategyState` | `collateral` | `netValue` |
-| `PreviewOpenStrategyVerify` | `debt` | `totalDebt` |
-| `PreviewOpenStrategyVerify` | `collateralValue` | `estNetValue` |
-| `PreviewOpenStrategyVerify` | `collateral` | `collateralAdded` |
-| `PreviewOpenStrategyVerify` | `target` | `targetCollateral` |
-| `PreviewAdjustStrategyVerify` | `debt` | `totalDebt` |
-| `PreviewAdjustStrategyVerify` | `debtChange` | `totalDebtChange` |
+| `OpenStrategyPositionPreview` | `debt` | `totalDebt` |
+| `OpenStrategyPositionPreview` | `collateralValue` | `estNetValue` |
+| `OpenStrategyPositionPreview` | `collateral` | `collateralAdded` |
+| `OpenStrategyPositionPreview` | `target` | `targetCollateral` |
+| `AdjustStrategyPositionPreview` | `debt` | `totalDebt` |
+| `AdjustStrategyPositionPreview` | `debtChange` | `totalDebtChange` |
 
 The `est` prefix on the rest of both previews' projection fields is covered
 above.
 
-`PreviewOpenStrategyVerify.debt` also read the debt *principal* where every
+`OpenStrategyPositionPreview.debt` also read the debt *principal* where every
 metric beside it read the total. The two are equal at opening, so the value is
 unchanged; only the field's meaning is now what its name says.
 
-`PreviewRepayStrategyVerify.debtRepaid` keeps its name: it is
+`RepayStrategyPositionPreview.debtRepaid` keeps its name: it is
 `−totalDebtChange`, and a repayment screen reads it with the sign it has.
 
 **Retyped fields**
@@ -539,9 +540,9 @@ unchanged; only the field's meaning is now what its name says.
 | Type | Field | Was | Now |
 | --- | --- | --- | --- |
 | `AccountProjection` (both sides) | `totalValue`, `totalDebt` | `bigint` | `TokenAmount` |
-| `PreviewOpenStrategyVerify` | `estNetValue` | `bigint` | `TokenAmount` |
-| `PreviewAdjustStrategyVerify` | `totalDebtChange` | `bigint` | `TokenAmount` |
-| `PreviewRepayStrategyVerify` | `debtRepaid` | `bigint` | `TokenAmount` |
+| `OpenStrategyPositionPreview` | `estNetValue` | `bigint` | `TokenAmount` |
+| `AdjustStrategyPositionPreview` | `totalDebtChange` | `bigint` | `TokenAmount` |
+| `RepayStrategyPositionPreview` | `debtRepaid` | `bigint` | `TokenAmount` |
 | `OpenStrategyState` | `totalDebt`, `netValue`, `totalValue` | `bigint` | `TokenAmount` |
 | `OperationState` | `quotas` | `Record<Address, Asset>` | `TokenAmount[]` |
 | `PoolSimulation` | `tokenIn`, `tokenOut` | `Asset` | `TokenAmount` |
@@ -621,13 +622,13 @@ credit previews, `OperationState` and `OpenStrategyState` — now carries them:
 | `name` | `string` | on the previews only |
 | `curator` | `Curator` | read off the market configurator by the caller |
 | `liquidationDiscount` | `Bps` | read off the credit manager's fees by the caller |
-| `netValue` | `TokenAmount` | on `PreviewOpenStrategyVerify` and `OpenStrategyState` only; elsewhere the caller subtracted |
+| `netValue` | `TokenAmount` | on `OpenStrategyPositionPreview` and `OpenStrategyState` only; elsewhere the caller subtracted |
 
 The four market fields are **`CreditOperationMarket`**, exported beside
 `AccountProjection` and filled from one place (`creditOperationMarket(suite)`),
 so they cannot drift between the halves. The results that carry no projection
-carry it too — `PreviewExitStrategyVerify`, `PreviewRepayStrategyVerify` and
-`PreviewDelayedStrategyVerify` — because the market an operation happened in is
+carry it too — `ExitStrategyPositionPreview`, `RepayStrategyPositionPreview` and
+`DelayedStrategyPositionOperationPreview` — because the market an operation happened in is
 worth naming even where the position it left behind is empty.
 
 **`LiquidatableAccount` carries it as well**, so a liquidation row and a

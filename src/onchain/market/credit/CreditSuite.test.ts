@@ -89,9 +89,7 @@ describe("CreditSuite.accountStrategyName", () => {
   });
 });
 
-const CREDIT_MANAGER = getAddress(
-  "0x1000000000000000000000000000000000000001",
-);
+const CREDIT_MANAGER = getAddress("0x1000000000000000000000000000000000000001");
 const CURATOR: Curator = {
   address: getAddress("0x2000000000000000000000000000000000000002"),
   name: "Chaos Labs",

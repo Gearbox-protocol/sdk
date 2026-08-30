@@ -14,6 +14,7 @@ import type {
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
+import { CreditSuite } from "../../../market/credit/CreditSuite.js";
 import { calcMaxLeverage, usdToNumber } from "../../../market/math.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
@@ -421,9 +422,32 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
 
   const facadePaused = args.facadePaused ?? false;
   const expirationDate = args.expirationDate ?? 0;
+  const strategyTargetCollateral =
+    args.strategyTargetCollateral ??
+    collateralTokens.find(t => t !== args.underlying.toLowerCase());
+  const unwrappedUnderlying =
+    args.rwaAssets?.[args.underlying.toLowerCase() as Address] ??
+    args.underlying;
+  const underlyingToken = {
+    ...tokenOf(unwrappedUnderlying),
+    wrappedAddress:
+      unwrappedUnderlying.toLowerCase() === args.underlying.toLowerCase()
+        ? null
+        : args.underlying,
+  };
+  const strategyName = strategyTargetCollateral
+    ? `${tokenOf(strategyTargetCollateral).symbol} / ${underlyingToken.symbol}`
+    : undefined;
   const creditManagerSuite = {
     name: "TestCreditManager",
+    strategyName,
+    underlyingToken,
+    accountTargetCollateral: () =>
+      strategyTargetCollateral ? tokenOf(strategyTargetCollateral) : null,
+    accountStrategyName: () => strategyName ?? underlyingToken.symbol,
     liquidationFees: () => MOCK_LIQUIDATION_FEES,
+    totalLiquidationDiscount: CreditSuite.prototype.totalLiquidationDiscount,
+    creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,
@@ -445,9 +469,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     market,
     isPaused: facadePaused || poolPaused,
     forbiddenTokens: [...forbidden] as Address[],
-    strategyTargetCollateral:
-      args.strategyTargetCollateral ??
-      collateralTokens.find(t => t !== args.underlying.toLowerCase()),
+    strategyTargetCollateral,
     isExpired: expirationDate > 0 && expirationDate < (args.timestamp ?? 0),
   };
 

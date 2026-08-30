@@ -182,7 +182,8 @@ const metricsSdk = (() => {
           feeLiquidation: 150,
           liquidationDiscount: 9700,
         }),
-        totalLiquidationDiscount: CreditSuite.prototype.totalLiquidationDiscount,
+        totalLiquidationDiscount:
+          CreditSuite.prototype.totalLiquidationDiscount,
         creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
         creditManager: {
           address: CREDIT_MANAGER,
