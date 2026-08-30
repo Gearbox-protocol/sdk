@@ -741,4 +741,6 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - deviation D1-S7: the D2 seed lives as impact.md's client-v3 section until the client plan is initialized
 
 - close D1-S7 partial commit:6db4f029dba74616d7218fb82c2b73de699ee0d2
+
+- deviation D1-S4: post-closure fixup: MarketPausedError narrowed to required creditManager (I7) — the S4 lane shipped the optional pair; the S8 pack check caught it.
 <!-- plan:execution:end -->
