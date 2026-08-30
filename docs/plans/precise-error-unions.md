@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:d23980fc0f55153d109187096a7d2ace6728f95cb3765b14ed9960507ba24f43 owner:фиксируем так (owner) — six consumer test files need the one-line unwrap
+Implementation lock: sha256:5e0c40fa61ad28098a74e2474b760b3e3b369af95498074de3074be1e370b9ec owner:фиксируем так (owner) — the orphaned IPreview alignment joins the integration stage
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -419,19 +419,21 @@ Of which verification: 8 active min / 2 credits.
 <!-- plan:stage:D1-S5:end -->
 
 <!-- plan:stage:D1-S6:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S4"],"parallelWith":[],"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/throwSweep.test.ts","src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S6","verifyActiveMinutes":5,"verifyCredits":1} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S4"],"parallelWith":[],"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/throwSweep.test.ts","src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts","src/sdk/preview/types.ts","src/sdk/preview/PreviewNamespace.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S6","verifyActiveMinutes":5,"verifyCredits":1} -->
 #### Stage D1-S6 — Bare-throw sweep
 
 Owner: agent; Profile: fast; Depends: D1-S4; Parallel with: none.
 Writes: `src/sdk/prepare/PrepareApi.ts`, `src/sdk/prepare/throwSweep.test.ts`, `src/onchain/accounts/intents/index.ts`, `src/onchain/accounts/intents/tail.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S6` (must be absent at handoff).
-Predict: 27 active min / 5 credits.
+Predict: 33 active min / 6 credits.
 Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
 - [ ] D1-S6-T1 — Claim-input throws in src/onchain/accounts/intents/index.ts and tail.ts become their own codes instead of the unexpectedFailure catch-all; throwSweep.test.ts walks the disposition list. (22 min)
 <!-- plan:task-meta:{"writes":["src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts","src/sdk/prepare/throwSweep.test.ts"],"predictedActiveMinutes":22,"predictedCredits":4,"how":"only the audited sites move; invariant guards keep a justified throw wrapped as unexpectedFailure","red":"bun run agent:test:backend -- src/sdk/prepare/throwSweep.test.ts"} -->
+- [ ] D1-S6-T2 — Align the IPreview declaration in src/sdk/preview/types.ts and the PreviewNamespace.test.ts mocks with the SDKReturn preview signature. (6 min)
+<!-- plan:task-meta:{"writes":["src/sdk/preview/types.ts","src/sdk/preview/PreviewNamespace.test.ts"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"one return-type change plus mock typings; no behavior","red":"bun run agent:test:backend -- src/sdk/preview"} -->
 
 ##### Acceptance criteria
 
@@ -720,4 +722,8 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - deviation D1-S5: src/sdk/preview/types.ts alignment left to the integrator (owned by no stage at the time)
 
 - close D1-S5 partial commit:e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
+
+- amend implementation owner:фиксируем так (owner) — the orphaned IPreview alignment joins the integration stage sha256:1efe5d005c5212cf33ad6d6ffab9f3aa8d037e920a89c70befa4029407ebe466
+
+- amend implementation owner:фиксируем так (owner) — the orphaned IPreview alignment joins the integration stage sha256:5e0c40fa61ad28098a74e2474b760b3e3b369af95498074de3074be1e370b9ec
 <!-- plan:execution:end -->
