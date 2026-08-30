@@ -1,7 +1,7 @@
 # Per-method error unions in sdk
 
-Status: SPEC_DRAFT
-Spec lock: unlocked
+Status: SPEC_LOCKED
+Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
 Implementation lock: unlocked
 Active Delivery: none
 Unattended decisions: allowed
@@ -271,4 +271,6 @@ without it).
 
 <!-- plan:execution:start -->
 ## Execution log
+
+- lock-spec sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
 <!-- plan:execution:end -->
