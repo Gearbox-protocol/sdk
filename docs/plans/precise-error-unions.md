@@ -9,192 +9,213 @@ Unattended decisions: allowed
 <!-- plan:spec:start -->
 # Goal
 
-Every refusable function of the sdk `prepare` namespace answers with a flat,
-per-method-precise union — `Promise<XResult | Error1 | ... | ErrorN>` — where
-the error list is exactly the set that method can produce, proven by the
-engine trace and locked by type tests. The colleague's half-landed branch
-(`next` @ 7d00fb38) builds again, its `WithError`/blanket-`PrepareError`
-envelope is replaced, result types carry the `Result` suffix, and
-`DataResponse` disappears from single-chain prepare signatures (block
-provenance moves onto the result). Errors are plain discriminated objects —
-the old classes' well-described content survives, the class wrappers do not.
-
-# Owner requirements (verbatim intent)
-
-1. Signature must enumerate: `): Result | Error1 | ... | ErrorN` per method —
-   not a blanket 18-member union on every method.
-2. All result types end in `Result`.
-3. No `DataResponse` on prepare: single-chain, single-source; the envelope
-   carries nothing there. Multi-chain reads keep it.
-4. Old sdk errors were well described — keep the content, drop the classes.
-5. client-v3 must not silently break: the rename impact is enumerated by its
-   compiler (7 files / 31 mentions, chokepoint `hooks/sdk/index.tsx`), and the
-   client migration is its own follow-up Delivery.
-
-# Design
-
-## Error objects (extends colleague's model, declassed)
+One error system for the whole sdk. A new result catalog defines the single
+envelope every refusable function answers with:
 
 ```ts
-// model/errors.ts — keep IGearboxError { code, message, cause? } as the base.
-// Add the one guard a flat union needs:
-export function isGearboxError(value: object): value is IGearboxError;
-// WithError<D, E> is REMOVED — the flat union replaces it.
+export interface SDKResult<T> { ok: true; data: T }
+export interface SDKError<E extends IGearboxError = IGearboxError> {
+  ok: false;
+  error: E;
+}
+export type SDKReturn<T, E extends IGearboxError> = SDKResult<T> | SDKError<E>;
 ```
 
-One interface per code stays (colleague's `src/sdk/prepare/errors.ts`
-content), tightened where the trace proves shapes narrower:
+Everything is rewritten onto it — prepare, preview, the verdict-classes that
+throw today — EXCEPT the multichain reads (`list*`, `totals`, `charts`, …),
+which keep `DataResponse` because their per-chain metadata is real
+information and their shape feeds gearbox-backend and client-v3 today. Each
+method's `E` is its exact per-method union (from the engine raise-site
+trace), result payloads carry the `Result` suffix, and the deptrack graph
+drives a committed consumer-impact report so backend/client-v3 breakage is
+enumerated, not discovered.
 
-- `MarketPausedError` from prepare always carries `creditManager` (the pool
-  variant is preview-only).
-- `InsufficientPoolLiquidityError.binding` excludes `"poolDebtLimit"` in
-  prepare (borrowable() weighs three ceilings).
-- `poolSunset` / `quotaCountExceeded` / `malformedTransaction` leave the
-  prepare vocabulary entirely — they are raisable only by
-  `preview/validate/checkOperation`.
+# Owner decisions (fixed)
 
-## Results
+1. Envelope: `SDKResult<T> { ok: true, data: T }` | `SDKError<E> { ok: false,
+   error: E }`, union `SDKReturn<T, E>`. Discriminant is `ok` — deliberately
+   the discriminant client-v3 already narrows on today, so consumer diffs
+   stay mechanical.
+2. Per-method precision stays: `E` is a named per-method union
+   (`SDKReturn<StrategyResult, DepositStrategyError>`), never a blanket
+   18-member union.
+3. Result payload types end in `Result`.
+4. No `DataResponse` on single-chain operations; `blockNumber`/`timestamp`
+   move onto the `*Result` payloads. Multichain reads keep `DataResponse`
+   untouched.
+5. Old error content survives as plain discriminated objects
+   (`IGearboxError { code, message, cause? }`); no Error-class wrappers for
+   verdicts. Thrown exceptions remain only for bugs and outages.
+6. The colleague's branch (`next` @ 7d00fb38) is the base: built upon,
+   finished, never rewritten; his `WithError`/`success` envelope is replaced
+   by `SDKReturn`/`ok`.
 
-`LpPlan/StrategyPlan/OpenStrategyPlan/DelayedStrategyPlan/StrategyRoutes` →
-`LpResult / StrategyResult / OpenStrategyResult / DelayedStrategyResult /
-StrategyRoutesResult`, each gaining `blockNumber: number` and
-`timestamp: Timestamp` (the surviving payload of `DataResponse.meta`).
+# The catalog (new)
 
-## Signatures (per-method unions, named aliases)
-
-Each method gets a named union alias declared beside the interface, so the
-signature stays readable while the alias enumerates exactly (owner may veto
-in favour of inline unions — flagged decision):
+`src/model/result.ts` (model-level, importable by every namespace; re-exported
+from every entrypoint's barrel): `SDKResult`, `SDKError`, `SDKReturn`,
+`IGearboxError` (moves in from model/errors.ts or stays and is re-exported —
+one home, no duplicates), plus the two helpers every caller and implementer
+need:
 
 ```ts
-export type DepositStrategyError =
-  | DebtOutOfRangeError | ForbiddenTokenError | InsufficientCollateralError
-  | InsufficientPoolLiquidityError | InsufficientSourceBalanceError
-  | LeverageOutOfRangeError | MarketExpiredError | MarketPausedError
-  | QuotaLimitReachedError | UnsupportedCollateralTokenError
-  | UnsupportedTokenPairError;
-
-depositStrategy(position, params): Promise<StrategyResult | DepositStrategyError>;
+export function sdkOk<T>(data: T): SDKResult<T>;
+export function sdkErr<E extends IGearboxError>(error: E): SDKError<E>;
+export function isSDKError<T, E extends IGearboxError>(
+  r: SDKReturn<T, E>,
+): r is SDKError<E>;  // r.ok === false — trivial, but names the intent
 ```
 
-Per-method sets, from the engine trace (audit table, file:line-backed):
+# Scope of the rewrite
 
-| method | codes |
-|---|---|
-| deposit / withdraw / redeem (LP) | unsupportedTokenPair (1) |
-| openNewStrategy | 10: debtOutOfRange, forbiddenToken, insufficientCollateral, insufficientPoolLiquidity, insufficientSourceBalance, leverageOutOfRange, marketExpired, marketPaused, quotaLimitReached, unsupportedTokenPair |
-| depositStrategy | 11: + unsupportedCollateralToken, − none |
-| repayStrategy | 8: debtOutOfRange, forbiddenToken, insufficientCollateral, insufficientSourceBalance, marketExpired, marketPaused, quotaLimitReached, unsupportedCollateralToken |
-| addCollateral / withdrawCollateral | 6: forbiddenToken, insufficientCollateral, insufficientSourceBalance, marketExpired, marketPaused, quotaLimitReached |
-| withdrawStrategy | 11: + multipleDelayedWithdrawals, noDelayedRoute, withdrawalInProgress, debtOutOfRange, unsupportedTokenPair − insufficientPoolLiquidity |
-| adjustLeverage | 13 (widest): withdrawStrategy's + insufficientPoolLiquidity + leverageOutOfRange |
-| finalize | 10: plumbing 6 + noDelayedRoute, noRecordedIntent, withdrawalInProgress, unsupportedTokenPair |
-| maxWithdraw / maxRepay / maxWithdrawCollateral / leverageBand / withdrawableCollaterals | not refusable — plain values, no envelope |
+## Tier 1 — prepare namespace (per-method unions from the audit trace)
 
-Routes methods (`withdrawStrategy`, `adjustLeverage`): the routes error keeps
-`refused: RouteRefusals`, with `refused.instant` / `refused.delayed` narrowed
-to that route's own reason set.
+| method | E = | codes |
+|---|---|---|
+| deposit / withdraw / redeem | `LpError` | unsupportedTokenPair (1) |
+| addCollateral / withdrawCollateral | `CollateralError` | 6 plumbing codes |
+| repayStrategy | `RepayStrategyError` | 8 |
+| openNewStrategy | `OpenStrategyError` | 10 |
+| depositStrategy | `DepositStrategyError` | 11 |
+| withdrawStrategy | `WithdrawStrategyError` | 11 (no insufficientPoolLiquidity) |
+| adjustLeverage | `AdjustLeverageError` | 13 |
+| finalize | `FinalizeError` | 10 (only home of noRecordedIntent) |
+| max* / leverageBand / withdrawableCollaterals | — | not refusable, plain values |
 
-## Boundary and engine
+Signatures: `depositStrategy(...): Promise<SDKReturn<StrategyResult,
+DepositStrategyError>>`. Renames: `LpPlan/StrategyPlan/OpenStrategyPlan/
+DelayedStrategyPlan/StrategyRoutes` → `LpResult/StrategyResult/
+OpenStrategyResult/DelayedStrategyResult/StrategyRoutesResult`. Precision
+extras locked by types: `poolSunset`/`quotaCountExceeded`/
+`malformedTransaction` are unreachable from prepare and leave its
+vocabulary; prepare's `MarketPausedError` has no `pool` variant; `binding`
+excludes `poolDebtLimit`; routes errors keep `refused` with per-route
+narrowed reason sets.
 
-The engine's `PreviewIssue`/`refuse()`/`IntentPreviewError` machinery stays
-unchanged — `PrepareApi` remains the single conversion boundary
-(`toPrepareError` becomes per-method-typed). Thrown exceptions keep their
-meaning: bugs and outages throw, verdicts return.
+## Tier 2 — preview namespace
 
-# Also in scope: finish the colleague's branch (it does not build)
+- `previewOperation` and friends: `SDKReturn<OperationPreviewResult, …>`
+  instead of throw-or-value; the numeric-code `OperationPreviewError`
+  (1xxx/2xxx) is re-expressed with string codes in the common vocabulary
+  (`malformedTransaction` / `previewIncomplete`), keeping the numeric code
+  as a field for backend compatibility.
+- The six verdict classes stop throwing and become returned errors:
+  `UnsupportedTargetError`, `UnsupportedPoolFunctionError`,
+  `UnsupportedOperationError`, `UnsupportedZapperFunctionError`,
+  `InvalidDelayedIntentError`, `PreviewSimulationError` — same fields,
+  declassed, `code` assigned, wrapped in `SDKError`.
+- `checkOperation`/`checkSimulation` keep `PreviewIssue | null` (they are
+  predicates, not operations) — unchanged.
 
-1. `creditOperationMarket` missing from `market/credit/index.ts` barrel
-   (breaks LiquidationsService and buildDelayedStrategyVerify).
-2. Complete the half-landed preview rewire: `preview/index.ts` and
-   `previewOperation.ts` still wire the OLD files; the new `*Verify` files
-   have zero importers; two old files have no new counterpart and get the
-   7-name rename map applied in place.
-3. Removed fields still assigned: `targetCollateral` ×6, `underlyingToken`
-   ×2 (`CreditSuite.ts:292`, `previewPoolPositionOperation.ts:27`),
-   `estClaimableAt` ×1.
-4. Flagged behaviour deltas in the new Verify files, resolved conservatively:
-   keep `accountStrategyName` for the preview `name` (the new files silently
-   change the string), and drop the gratuitous `async` on replay calls
-   (`replayMulticall` is synchronous). Deviation-recorded if the colleague
-   objects.
-5. `unrun` added to devDependencies — tsdown cannot load its TS config
-   without it and the build fails on a clean install.
+## Tier 3 — engine boundary
+
+Engine internals stay (`PreviewIssue`, `refuse()`, and the internal-only
+transport `IntentPreviewError`); `IntentPreviewError` stops being exported
+from `/onchain` (it never was a public verdict channel — the boundary
+converts it). `PrepareApi`/preview boundaries construct `SDKError` via one
+retyped adapter.
+
+## Out of scope (unchanged)
+
+- Multichain reads and their `DataResponse` envelopes (`list`, `totals`,
+  `charts`, merges) — the backend/client contract stands.
+- Thrown outage classes: root source errors (`AllSourcesFailedError`, …),
+  `/offchain` transport classes, core lifecycle `Sdk*Error`s — genuine
+  failures keep throwing. (A later delivery may give them `code`s; not this
+  one.)
+- Consumer repos: gearbox-backend and client-v3 migrate in their own
+  Deliveries, driven by the impact report below.
+
+# Also in scope: finish the colleague's branch (does not build)
+
+Barrel export for `creditOperationMarket`; the 7-name preview rename map
+applied and the half-landed `*Verify` rewire completed (old files deleted,
+`preview/index.ts`/`previewOperation.ts` rewired); removed-field
+assignments fixed (`targetCollateral` ×6, `underlyingToken` ×2,
+`estClaimableAt`); conservative resolution of his two behaviour deltas
+(keep `accountStrategyName` for preview `name`; drop the gratuitous
+`async`); `unrun` added to devDependencies (clean-install build fails
+without it).
+
+# Impact tracking with deptrack (the graph tool)
+
+- Rescan the sdk internal graph on this branch; `link` the built dist into
+  gearbox-backend and client-v3 checkouts; run their typechecks; parse.
+- Commit `docs/plans/precise-error-unions.impact.md`: per consumer, the
+  file:line list every signature change touches (known floor: client-v3
+  7 files / 31 mentions via the `*Prepare` renames; backend expected ~0 on
+  prepare — it does not consume the facade — verified, not assumed).
+- The impact report is a Delivery gate artifact: no publish until it exists
+  and names every consumer break.
 
 # Constraints
 
-- Branch `feat/precise-error-unions` from `origin/next` — the colleague's
-  commit stays in history untouched; we build on top, never rewrite.
-- Engine internals (`src/onchain/accounts/intents/**`,
-  `onchain/validation/refusal.ts`) unchanged except where a per-method
-  raise-site audit finding requires a comment; `guards.onchain.test.ts`
-  passes untouched.
-- Multi-chain reads (`positions.list`, `opportunities.list`, totals, charts)
-  keep `DataResponse` — out of scope.
-- Preview namespace's own return-shape migration (checkOperation etc. to
-  flat unions) is a follow-up Delivery, not this one; preview keeps
-  `PreviewIssue | null`.
-- client-v3 changes are a follow-up Delivery; this one ships the rename map
-  and MIGRATION.md so that migration is mechanical.
-- Process prerequisite: sdk has no `agent:*` scripts — add the seven
-  contract aliases (test lanes → vitest projects, verify:pr → check:ci +
-  typecheck:ci + test).
-- Node 22 for vitest; sdk's own tsc 7 for typecheck:ci.
+- Branch `feat/precise-error-unions` from `origin/next`; colleague's history
+  untouched.
+- Engine raise sites unchanged; `guards.onchain.test.ts` passes without
+  assertion edits.
+- One vocabulary invariant: every `code` value across prepare and preview is
+  a member of one union (`SDKErrorCode`), no numeric-only codes remain.
+- Process: sdk gets the seven `agent:*` scripts (vitest lanes, check:ci +
+  typecheck:ci + test as verify:pr). Node 22 for vitest; tsc 7 for
+  typecheck.
+- MIGRATION.md §"prepare answers in the SDK's error envelope" is rewritten
+  to `SDKReturn` (it documents `WithError` today) and extended with the
+  per-method table, Tier-2 changes, and the consumer rename map.
 
 # Reuse
 
-- Colleague's `IGearboxError`, per-code interfaces, `MESSAGES` table,
-  `toPrepareError` adapter (retyped), MIGRATION.md §"prepare answers in the
-  SDK's error envelope" (extended, not rewritten).
-- `refusal.test-d.ts` as the precedent for exact-union type tests; vitest
-  `typecheck.include` already wired.
-- `previewMatchesPrepare.test.ts` as the drift harness between the two
-  vocabularies.
-- e2e `prepare-execute.test.ts` assertions (rewritten by the colleague to
-  `success/error.code`) migrate to flat unions.
+- Colleague's per-code error interfaces, `MESSAGES` table, `toPrepareError`
+  adapter (retyped to per-method unions), MIGRATION.md structure.
+- `refusal.test-d.ts` as precedent for exact-union type tests; vitest
+  `typecheck.include` already wired; `previewMatchesPrepare.test.ts` as the
+  prepare/preview drift harness.
+- deptrack (`~/Coding/deptrack`) for graph + link + consumer typecheck.
 
 # Testable invariants
 
-- I1. Per-method exactness: a `src/sdk/prepare/types.test-d.ts` proves each
-  method's awaited return equals `XResult | <exact union>` via
-  `expectTypeOf().toEqualTypeOf<>()` — a code added to or removed from a
-  method's real raise set fails typecheck until the alias moves.
-- I2. `poolSunset` / `quotaCountExceeded` / `malformedTransaction` are not
-  assignable to any prepare return (negative type test).
-- I3. The branch builds: `tsdown` exits 0 and `typecheck:ci` is clean on a
-  fresh install.
-- I4. Engine untouched: `guards.onchain.test.ts` and
-  `previewMatchesPrepare.test.ts` pass without edits to their assertions on
-  engine shapes.
-- I5. No `DataResponse` in any prepare signature; every `*Result` carries
-  `blockNumber`/`timestamp`; multi-chain read signatures byte-identical.
-- I6. `isGearboxError` narrows the flat union in both directions (type test
-  + runtime test), and no `*Result` type structurally matches it.
-- I7. Prepare error shapes are narrowed per the trace: `MarketPausedError`
-  (prepare) has no `pool` variant; `binding` excludes `poolDebtLimit`
-  (type tests).
-- I8. Existing prepare error-path tests (`PrepareApi.test.ts:332,421`, e2e
-  `prepare-execute.test.ts` refusal describe-block) assert the flat shape
-  and pass.
-- I9. MIGRATION.md documents the per-method table, the `*Result` renames,
-  the `DataResponse` removal on prepare, and the client-v3 rename map
-  (7 files / 31 mentions known).
-- I10. No Error subclass is constructed for a refusal on any prepare path;
-  classes that remain thrown are the audited bug/outage list.
+- I1. Envelope: `SDKReturn` narrows on `ok` in both directions (type test);
+  `sdkOk`/`sdkErr`/`isSDKError` behave (unit test); no `WithError<` and no
+  `success:` discriminant remain in src (grep-backed test).
+- I2. Per-method exactness: `src/sdk/prepare/types.test-d.ts` proves each
+  method's awaited return equals `SDKReturn<XResult, ExactUnion>`; adding or
+  removing a code without moving the raise site fails typecheck.
+- I3. `poolSunset`/`quotaCountExceeded`/`malformedTransaction` not
+  assignable to any prepare `E`; `MarketPausedError` (prepare) has no pool
+  variant; no `poolDebtLimit` binding (negative type tests).
+- I4. Preview: the six former verdict classes are returned, never thrown —
+  a spec drives each construction path and asserts no throw crosses the
+  public API; every error `code` (prepare + preview) is a member of
+  `SDKErrorCode` (type test).
+- I5. No `DataResponse` in any prepare/preview operation signature; every
+  `*Result` carries `blockNumber`/`timestamp`; multichain read signatures
+  byte-identical (type test pinning them).
+- I6. Build: tsdown exit 0 and `typecheck:ci` clean on a fresh install;
+  colleague's breaks fixed.
+- I7. Engine untouched: `guards.onchain.test.ts`,
+  `previewMatchesPrepare.test.ts` pass; `IntentPreviewError` no longer
+  exported from `/onchain` (type test on the barrel).
+- I8. Existing error-path tests (PrepareApi.test.ts, e2e
+  prepare-execute.test.ts refusal block) assert the `SDKReturn` shape and
+  pass.
+- I9. Impact report exists, generated from deptrack link + consumer
+  typechecks, listing every backend/client-v3 break with file:line.
+- I10. MIGRATION.md documents the catalog, the per-method table, Tier-2,
+  and the consumer rename map.
 
 # Success metrics
 
-- Poison: adding a fake member to one method's union alias without a raise
-  site is caught by the exactness type test (and vice versa).
-- `PrepareError`-the-blanket no longer exists; grep finds no
-  `WithError<` in src.
-- Unit suite + type tests green; build artifact produced.
+- Poison: a fake code added to one method's union without a raise site — or
+  a raise site added without a union member — fails `agent:typecheck`.
+- Grep zero: `WithError<`, `success: true`, `extends Error` on any verdict
+  path in `src/sdk/prepare/**` and `src/preview/**` (outage classes exempt).
+- Unit + type-test suites green; impact report committed.
 
 # Non-goals
 
-- No preview-namespace flat-union migration; no client-v3 edits; no
-  publishing/version bump; no engine redesign; no changes to multi-chain
-  read envelopes.
+- No changes to multichain read envelopes or their consumers.
+- No `code` retrofit on thrown outage classes (root/offchain/core) — later.
+- No consumer-repo edits; no npm publish/version bump in this Delivery.
 <!-- plan:spec:end -->
 
 <!-- plan:implementation:start -->
