@@ -1,8 +1,8 @@
 # Preview errors cleanup: shims out, PreviewOperationError in
 
 Status: APPROVED
-Spec lock: sha256:2485eb8f1a52977422f865812e17c53cd517c06667755b44765b68899fe40245 owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 1 REAL findings)
-Implementation lock: sha256:46f39ade76d8e9a5a392add0befc0a0fc243876bb45540d504595421781d82a7 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+Spec lock: sha256:a406b8f13e450953c794a91f35bd2873ccc197b085b1050a8608a1823b367d7f owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 2 findings)
+Implementation lock: sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -40,7 +40,8 @@ codes and fields behind the same `SDKReturn` envelope.
   shim's spec — legacy `new`, `instanceof` matching),
   `detectDelayedOperation.test.ts:144` `toThrow(Class)`,
   `simulatePoolOperation.test.ts:195` `rejects.toThrow(Class)`.
-- The word "verdict": 21 src files + the MIGRATION.md preview section; the
+- The word "verdict": 21 src files + MIGRATION.md — the preview section
+  plus the compat and dispositions tables (lines 219/436/444); the
   union name `PreviewVerdictError` is referenced by sdk/preview/types.ts,
   PreviewNamespace.ts and previewOperation.test-d.ts.
 - External consumers of the six value exports: zero, measured — client-v3
@@ -113,7 +114,7 @@ codes and fields behind the same `SDKReturn` envelope.
 <!-- plan:delivery-meta:{"active":true,"depends":[]} -->
 ### PR Delivery D1 — Preview errors cleanup: shims out, PreviewOperationError in (one PR to next)
 
-Branch: `feat/verdict-shim-removal`; Depends: none; Gate: cold gate: rm -rf node_modules, bun run agent:install, bun run agent:verify:pr exits 0, poison evidence: code-map totality broken both ways, diagnostics quoted, restored byte-exact (docs/plans/verdict-shim-removal.evidence.md), grep-zero in src: Symbol.hasInstance, new on the six error names, verdict wording (src/quality/errorSurface.test.ts green), previewOperation answers the same codes and fields as on next (same matchObject payloads in previewOperationErrors.test.ts).
+Branch: `feat/verdict-shim-removal`; Depends: none; Gate: cold gate: rm -rf node_modules, bun run agent:install, bun run agent:verify:pr exits 0, poison evidence: code-map totality broken both ways, diagnostics quoted, restored byte-exact (docs/plans/verdict-shim-removal.evidence.md), grep-zero in src and MIGRATION.md: Symbol.hasInstance, new on the six error names, verdict wording (src/quality/errorSurface.test.ts green), previewOperation answers the same codes and fields as on next (exact toEqual payloads in previewOperationErrors.test.ts).
 
 Stage graph: `S1 -> S2 -> S3 (sequential: rename feeds the wording sweep, the sweep feeds the gate)`.
 
@@ -124,7 +125,7 @@ Stage graph: `S1 -> S2 -> S3 (sequential: rename feeds the wording sweep, the sw
 Owner: session-main; Profile: fast; Depends: none; Parallel with: none.
 Writes: `src/preview/parse/errors.ts`, `src/preview/parse/parseOperationCalldata.ts`, `src/preview/parse/parsePoolOperationCalldata.ts`, `src/preview/previewOperationErrors.test.ts`, `src/onchain/market/zapper/errors.ts`, `src/onchain/market/zapper/ZapperContract.ts`, `src/onchain/accounts/withdrawal-compressor/errors.ts`, `src/onchain/accounts/withdrawal-compressor/RedemptionLoggerV310Contract.ts`, `src/preview/preview/errors.ts`, `src/preview/preview/detectDelayedOperation.ts`, `src/preview/preview/detectDelayedOperation.test.ts`, `src/preview/simulate/errors.ts`, `src/preview/simulate/simulatePoolOperation.test.ts`, `src/preview/preview/previewOperation.ts`, `src/sdk/preview/types.ts`, `src/sdk/preview/PreviewNamespace.ts`, `src/preview/preview/previewOperation.test-d.ts`, `src/preview/index.ts`, `src/preview/simulate/index.ts`, `src/preview/verdictErrors.test.ts`.
 Temp root: `.tmp/code-production/verdict-shim-removal/D1-S1` (must be absent at handoff).
-Predict: 57 active min / 14 credits.
+Predict: 61 active min / 15 credits.
 Of which verification: 8 active min / 2 credits.
 
 ##### Tasks
@@ -139,8 +140,10 @@ Of which verification: 8 active min / 2 credits.
 <!-- plan:task-meta:{"writes":["src/preview/preview/errors.ts","src/preview/preview/detectDelayedOperation.ts","src/preview/preview/detectDelayedOperation.test.ts","src/preview/previewOperationErrors.test.ts"],"predictedActiveMinutes":7,"predictedCredits":2,"how":"declass the preview/errors.ts family; rewrite the toThrow(class) assertion to the toSatisfy-on-code house pattern; toEqual pins the payload","red":"bun run agent:test:backend -- src/preview/previewOperationErrors.test.ts -t 'unsupportedOperation factory'"} -->
 - [ ] VSR_105 — declass previewSimulationFailed in errors.ts, asPreviewSimulationError narrows by code; simulatePoolOperation.test.ts asserts the code; payload in previewOperationErrors.test.ts (7 min)
 <!-- plan:task-meta:{"writes":["src/preview/simulate/errors.ts","src/preview/simulate/simulatePoolOperation.test.ts","src/preview/previewOperationErrors.test.ts"],"predictedActiveMinutes":7,"predictedCredits":2,"how":"declass the simulate family; the pass-through narrows object/null-safely and compares code === \"previewSimulationFailed\" (string literal), matching objects pass through by identity, primitives/null/non-matching normalise; rewrite the rejects.toThrow(class); toEqual pins failures and cause","red":"bun run agent:test:backend -- src/preview/previewOperationErrors.test.ts -t 'previewSimulationFailed factory'"} -->
-- [ ] VSR_106 — PreviewVerdictError becomes PreviewOperationError: previewOperation.ts exports the compile-total isPreviewOperationError code map; types.ts, PreviewNamespace.ts and previewOperation.test-d.ts follow (10 min)
-<!-- plan:task-meta:{"writes":["src/preview/preview/previewOperation.ts","src/sdk/preview/types.ts","src/sdk/preview/PreviewNamespace.ts","src/preview/preview/previewOperation.test-d.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"rename the union; membership check via Object.hasOwn on a Record<PreviewOperationError[\"code\"], true> after object/code narrowing; export the guard; swap the direct UnsupportedOperationError(operation.operation) call (:127) to the factory; guard negatives: genuine Error, primitives, null, unknown code, toString/constructor","red":"bun run agent:test:backend -- src/preview/previewOperationErrors.test.ts -t 'isPreviewOperationError'"} -->
+- [ ] VSR_106 — PreviewVerdictError becomes PreviewOperationError: previewOperation.ts exports the compile-total isPreviewOperationError guard (Object.hasOwn map); guard spec in previewOperationErrors.test.ts (10 min)
+<!-- plan:task-meta:{"writes": ["src/preview/preview/previewOperation.ts", "src/preview/previewOperationErrors.test.ts"], "predictedActiveMinutes": 10, "predictedCredits": 2, "how": "rename the union; membership via Object.hasOwn on a Record<PreviewOperationError[\"code\"], true> after object/code narrowing; export the guard; swap the direct UnsupportedOperationError(operation.operation) call (:127) to the factory; guard tests: all six codes accepted; genuine Error, primitives, null, unknown code, toString/constructor rejected", "red": "bun run agent:test:backend -- src/preview/previewOperationErrors.test.ts -t 'isPreviewOperationError'"} -->
+- [ ] VSR_108 — the union rename follows through: sdk/preview/types.ts and PreviewNamespace.ts import PreviewOperationError; previewOperation.test-d.ts probes the renamed union (4 min)
+<!-- plan:task-meta:{"writes": ["src/sdk/preview/types.ts", "src/sdk/preview/PreviewNamespace.ts", "src/preview/preview/previewOperation.test-d.ts"], "predictedActiveMinutes": 4, "predictedCredits": 1, "how": "mechanical rename of the type imports and the test-d probe; no runtime change", "red": "bun run agent:test:backend -- src/preview/preview/previewOperation.test-d.ts"} -->
 - [ ] VSR_107 — barrels export factories and type-only names: preview/index.ts and simulate/index.ts swap the six exports; verdictErrors.test.ts is deleted; barrel spec lands in previewOperationErrors.test.ts (6 min)
 <!-- plan:task-meta:{"writes":["src/preview/index.ts","src/preview/simulate/index.ts","src/preview/verdictErrors.test.ts","src/preview/previewOperationErrors.test.ts"],"predictedActiveMinutes":6,"predictedCredits":2,"how":"value exports become the factories plus isPreviewOperationError, the six interfaces go type-only; the envelope test moves over from the deleted file","red":"bun run agent:test:backend -- src/preview/previewOperationErrors.test.ts -t 'barrel'"} -->
 
@@ -266,4 +269,12 @@ Of which verification: 10 active min / 2 credits.
 - amend spec owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 1 REAL findings) sha256:2485eb8f1a52977422f865812e17c53cd517c06667755b44765b68899fe40245
 
 - approve sha256:46f39ade76d8e9a5a392add0befc0a0fc243876bb45540d504595421781d82a7 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend implementation owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 2 findings) sha256:2186ecaf1f49b91cfb29e147c84af701413653f954d54d500ef37243d728860a
+
+- amend implementation owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 2 findings) sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266
+
+- amend spec owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 2 findings) sha256:a406b8f13e450953c794a91f35bd2873ccc197b085b1050a8608a1823b367d7f
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
 <!-- plan:execution:end -->
