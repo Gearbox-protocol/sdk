@@ -226,7 +226,7 @@ Of which verification: 10 active min / 2 credits.
 
 - [ ] poison A and poison B both break bun run agent:typecheck inside the isPreviewOperationError code map; diagnostics quoted; tree restored byte-exact
 - [ ] cold gate: rm -rf node_modules && bun run agent:install && bun run agent:verify:pr exits 0
-- [ ] Commit
+- [x] Commit — a765209ec4f5070213224506c10cc6680eb382c2
 
 ##### Results
 
@@ -303,4 +303,6 @@ Of which verification: 10 active min / 2 credits.
 - close D1-S2 partial commit:da14336e5509be7581165250c989e4dedca6ec52
 
 - record-result D1-S3 commit:5182511cf3ce9703dd7d7379e0e71e046c7603dc
+
+- close D1-S3 partial commit:a765209ec4f5070213224506c10cc6680eb382c2
 <!-- plan:execution:end -->
