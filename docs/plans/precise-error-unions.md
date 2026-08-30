@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:8c33a22689d4901a7b5fe6756b5436134d9721ebb73f3928b357a538749cd5ab owner:фиксируем так (owner) — three orphaned test files consume the deleted shapes; no other stage owns them
+Implementation lock: sha256:abe978db5d63dc0492b9bb22baa2ec1a3b58ed10cd0898a79568e1d3d71d464e owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -348,12 +348,12 @@ Of which verification: 10 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; prove exactness in types.test-d.ts. (25 min)
-<!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
-- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts and e2e prepare-execute.test.ts assert the new shape. (25 min)
-<!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/e2e/tests/prepare-execute.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
+- [ ] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; exactness in types.test-d.ts, mode.test-d.ts follows. (25 min)
+<!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/opportunities/mode.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
+- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts, e2e prepare-execute.test.ts and GearboxSDK.loading.test.ts assert the new shape. (25 min)
+<!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/e2e/tests/prepare-execute.test.ts","src/sdk/GearboxSDK.loading.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
 - [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data; buildTx.test.ts, mode.test-d.ts and GearboxSDK.loading.test.ts follow the shape. (10 min)
-<!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
+<!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts","src/sdk/execute/buildTx.test.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
 
 ##### Acceptance criteria
 
@@ -676,4 +676,14 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner) — three orphaned test files consume the deleted shapes; no other stage owns them sha256:8c33a22689d4901a7b5fe6756b5436134d9721ebb73f3928b357a538749cd5ab
 
 - deviation D1-S4: adapter renamed toRefusalError (grep-gate collision with the deleted blanket name); max* readers throw creditAccountNotFound message on a missing account (bare Promise<bigint> has no failure half); one documented as-unknown-as narrows the correlated union inside refusal()/routed().
+
+- amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:939e91caf53822606a13fd926559eab4da2876b6d0f0a0a3a06d042051d8f31c
+
+- amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:a4920ce10aced9cae8e54211703d966423269a6b453d6af9b5c7ae8192c20c10
+
+- amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:f246a174d3aa05a8dcaf2671c24a2b3a95a0b07373c0e871e82281cd25c56db9
+
+- amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:5fc7e58cb87155631875a0528728bbbd95a9545e4abdf0c46611fc89bdd9e9ae
+
+- amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:abe978db5d63dc0492b9bb22baa2ec1a3b58ed10cd0898a79568e1d3d71d464e
 <!-- plan:execution:end -->
