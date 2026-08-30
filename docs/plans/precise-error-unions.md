@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:abe978db5d63dc0492b9bb22baa2ec1a3b58ed10cd0898a79568e1d3d71d464e owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them
+Implementation lock: sha256:d23980fc0f55153d109187096a7d2ace6728f95cb3765b14ed9960507ba24f43 owner:фиксируем так (owner) — six consumer test files need the one-line unwrap
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -375,13 +375,13 @@ Of which verification: 10 active min / 2 credits.
 <!-- plan:stage:D1-S4:end -->
 
 <!-- plan:stage:D1-S5:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S4"],"writes":["src/preview/preview/previewOperation.ts","src/preview/preview/previewOperation.test-d.ts","src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts","src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts","src/sdk/preview/PreviewNamespace.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S5","verifyActiveMinutes":8,"verifyCredits":2} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S4"],"writes":["src/preview/preview/previewOperation.ts","src/preview/preview/previewOperation.test-d.ts","src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts","src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts","src/sdk/preview/PreviewNamespace.ts","src/preview/preview/previewMatchesPrepare.test.ts","src/preview/preview/previewRWADelayedOperation.test.ts","src/preview/preview/previewAdjustStrategyPosition.test.ts","src/preview/preview/previewCloseOrRepay.test.ts","src/preview/preview/previewExitOrRepayStrategyPosition.test.ts","src/preview/preview/previewRWAOperation.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S5","verifyActiveMinutes":8,"verifyCredits":2} -->
 #### Stage D1-S5 — Preview on SDKReturn, verdicts declassed
 
 Owner: agent; Profile: fast; Depends: D1-S3; Parallel with: D1-S4.
 Writes: `src/preview/preview/previewOperation.ts`, `src/model/previews.ts`, `src/preview/preview/previewOperation.test-d.ts`, `src/preview/preview/errors.ts`, `src/preview/parse/errors.ts`, `src/preview/simulate/errors.ts`, `src/preview/verdictErrors.test.ts`, `src/onchain/market/zapper/errors.ts`, `src/onchain/accounts/withdrawal-compressor/errors.ts`, `src/onchain/validation/index.ts`, `src/preview/index.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S5` (must be absent at handoff).
-Predict: 58 active min / 11 credits.
+Predict: 68 active min / 13 credits.
 Of which verification: 8 active min / 2 credits.
 
 ##### Tasks
@@ -392,6 +392,10 @@ Of which verification: 8 active min / 2 credits.
 <!-- plan:task-meta:{"writes":["src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts"],"predictedActiveMinutes":15,"predictedCredits":3,"how":"same fields, no Error inheritance","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts"} -->
 - [ ] D1-S5-T3 — Declass zapper/errors.ts and withdrawal-compressor/errors.ts; IntentPreviewError leaves src/onchain/validation/index.ts and src/preview/index.ts. (15 min)
 <!-- plan:task-meta:{"writes":["src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts"],"predictedActiveMinutes":15,"predictedCredits":2,"how":"two declassings, two barrel removals","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts -t onchain"} -->
+- [ ] D1-S5-T4 — Unwrap the SDKReturn once in previewMatchesPrepare.test.ts, previewRWADelayedOperation.test.ts, previewAdjustStrategyPosition.test.ts and previewCloseOrRepay.test.ts. (6 min)
+<!-- plan:task-meta:{"writes":["src/preview/preview/previewMatchesPrepare.test.ts","src/preview/preview/previewRWADelayedOperation.test.ts","src/preview/preview/previewAdjustStrategyPosition.test.ts","src/preview/preview/previewCloseOrRepay.test.ts"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"mechanical: if (!res.ok) throw; use res.data \u2014 no assertion changes","red":"bun run agent:test:backend -- src/preview/preview/previewMatchesPrepare.test.ts"} -->
+- [ ] D1-S5-T5 — Unwrap the SDKReturn once in previewExitOrRepayStrategyPosition.test.ts and previewRWAOperation.test.ts. (4 min)
+<!-- plan:task-meta:{"writes":["src/preview/preview/previewExitOrRepayStrategyPosition.test.ts","src/preview/preview/previewRWAOperation.test.ts"],"predictedActiveMinutes":4,"predictedCredits":1,"how":"mechanical: if (!res.ok) throw; use res.data \u2014 no assertion changes","red":"bun run agent:test:backend -- src/preview/preview/previewRWAOperation.test.ts"} -->
 
 ##### Acceptance criteria
 
@@ -697,4 +701,8 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - deviation D1-S4: adapter renamed toRefusalError; max* readers throw on missing account; one documented correlated-union assertion inside refusal()/routed()
 
 - close D1-S4 partial commit:406f317d796778a6fbd9a48715fc446d339e93a6
+
+- amend implementation owner:фиксируем так (owner) — six consumer test files need the one-line unwrap the new return shape implies sha256:9ac1bb35d12beca7f794050034a80ca745baf2d2bc4eb0b76cbe63ac88556694
+
+- amend implementation owner:фиксируем так (owner) — six consumer test files need the one-line unwrap sha256:d23980fc0f55153d109187096a7d2ace6728f95cb3765b14ed9960507ba24f43
 <!-- plan:execution:end -->
