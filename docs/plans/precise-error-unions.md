@@ -277,13 +277,14 @@ Branch: `feat/precise-error-unions`; Depends: none; Gate: bun run agent:verify:p
 Stage graph: `S1 -> {S2,S3}; {S2,S3} -> S4; {S2,S3} -> S5 (S4 parallel S5); S4 -> S6; {S4,S5,S6} -> S7; S7 -> S8`.
 
 <!-- plan:stage:D1-S1:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":[],"parallelWith":[],"writes":["package.json","pnpm-lock.yaml","src/quality/agentScripts.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S1"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":[],"parallelWith":[],"writes":["package.json","pnpm-lock.yaml","src/quality/agentScripts.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S1","verifyActiveMinutes":3,"verifyCredits":1} -->
 #### Stage D1-S1 — Environment
 
 Owner: agent; Profile: fast; Depends: none; Parallel with: none.
 Writes: `package.json`, `pnpm-lock.yaml`, `src/quality/agentScripts.test.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S1` (must be absent at handoff).
-Predict: 12 active min / 3 credits.
+Predict: 15 active min / 4 credits.
+Of which verification: 3 active min / 1 credits.
 
 ##### Tasks
 
@@ -305,13 +306,14 @@ Predict: 12 active min / 3 credits.
 <!-- plan:stage:D1-S1:end -->
 
 <!-- plan:stage:D1-S2:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S1"],"parallelWith":["D1-S3"],"writes":["src/onchain/market/credit/index.ts","src/onchain/market/credit/CreditSuite.ts","src/preview/preview/index.ts","src/preview/preview/previewOperation.ts","src/preview/preview/previewOpenStrategyPosition.ts","src/preview/preview/previewAdjustStrategyPosition.ts","src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts","src/preview/preview/previewPoolPositionOperation.ts","src/preview/preview/previewExitOrRepayStrategyPosition.ts","src/preview/preview/previewOpenStrategyVerify.ts","src/preview/preview/previewAdjustStrategyVerify.ts","src/preview/preview/buildDelayedStrategyVerify.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S2"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S1"],"parallelWith":["D1-S3"],"writes":["src/onchain/market/credit/index.ts","src/onchain/market/credit/CreditSuite.ts","src/preview/preview/index.ts","src/preview/preview/previewOperation.ts","src/preview/preview/previewOpenStrategyPosition.ts","src/preview/preview/previewAdjustStrategyPosition.ts","src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts","src/preview/preview/previewPoolPositionOperation.ts","src/preview/preview/previewExitOrRepayStrategyPosition.ts","src/preview/preview/previewOpenStrategyVerify.ts","src/preview/preview/previewAdjustStrategyVerify.ts","src/preview/preview/buildDelayedStrategyVerify.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S2","verifyActiveMinutes":8,"verifyCredits":1} -->
 #### Stage D1-S2 — Restore the build after the Verify rename
 
 Owner: agent; Profile: fast; Depends: D1-S1; Parallel with: D1-S3.
 Writes: `src/onchain/market/credit/index.ts`, `src/onchain/market/credit/CreditSuite.ts`, `src/preview/preview/index.ts`, `src/preview/preview/previewOperation.ts`, `src/preview/preview/previewOpenStrategyPosition.ts`, `src/preview/preview/previewAdjustStrategyPosition.ts`, `src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts`, `src/preview/preview/previewPoolPositionOperation.ts`, `src/preview/preview/previewExitOrRepayStrategyPosition.ts`, `src/preview/preview/previewOpenStrategyVerify.ts`, `src/preview/preview/previewAdjustStrategyVerify.ts`, `src/preview/preview/buildDelayedStrategyVerify.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S2` (must be absent at handoff).
-Predict: 35 active min / 6 credits.
+Predict: 43 active min / 7 credits.
+Of which verification: 8 active min / 1 credits.
 
 ##### Tasks
 
@@ -345,13 +347,14 @@ Predict: 35 active min / 6 credits.
 <!-- plan:stage:D1-S2:end -->
 
 <!-- plan:stage:D1-S3:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S1"],"parallelWith":["D1-S2"],"writes":["src/model/result.ts","src/model/result.test.ts","src/model/errors.ts","src/model/index.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S3"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S1"],"parallelWith":["D1-S2"],"writes":["src/model/result.ts","src/model/result.test.ts","src/model/errors.ts","src/model/index.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S3","verifyActiveMinutes":4,"verifyCredits":1} -->
 #### Stage D1-S3 — The SDKReturn catalog
 
 Owner: agent; Profile: fast; Depends: D1-S1; Parallel with: D1-S2.
 Writes: `src/model/result.ts`, `src/model/result.test.ts`, `src/model/errors.ts`, `src/model/index.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S3` (must be absent at handoff).
-Predict: 20 active min / 4 credits.
+Predict: 24 active min / 5 credits.
+Of which verification: 4 active min / 1 credits.
 
 ##### Tasks
 
@@ -373,13 +376,14 @@ Predict: 20 active min / 4 credits.
 <!-- plan:stage:D1-S3:end -->
 
 <!-- plan:stage:D1-S4:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S2","D1-S3"],"parallelWith":["D1-S5"],"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S4"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S2","D1-S3"],"parallelWith":["D1-S5"],"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S4","verifyActiveMinutes":10,"verifyCredits":2} -->
 #### Stage D1-S4 — Prepare on SDKReturn with exact unions
 
 Owner: agent; Profile: fast; Depends: D1-S2, D1-S3; Parallel with: D1-S5.
 Writes: `src/sdk/prepare/errors.ts`, `src/sdk/prepare/types.ts`, `src/sdk/prepare/types.test-d.ts`, `src/sdk/prepare/PrepareApi.ts`, `src/sdk/prepare/PrepareApi.test.ts`, `src/sdk/execute/types.ts`, `src/sdk/execute/ExecuteApi.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S4` (must be absent at handoff).
-Predict: 60 active min / 11 credits.
+Predict: 70 active min / 13 credits.
+Of which verification: 10 active min / 2 credits.
 
 ##### Tasks
 
@@ -407,13 +411,14 @@ Predict: 60 active min / 11 credits.
 <!-- plan:stage:D1-S4:end -->
 
 <!-- plan:stage:D1-S5:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S2","D1-S3"],"parallelWith":["D1-S4"],"writes":["src/preview/preview/previewOperation.ts","src/model/previews.ts","src/preview/preview/previewOperation.test-d.ts","src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts","src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S5"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S2","D1-S3"],"parallelWith":["D1-S4"],"writes":["src/preview/preview/previewOperation.ts","src/model/previews.ts","src/preview/preview/previewOperation.test-d.ts","src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts","src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S5","verifyActiveMinutes":8,"verifyCredits":2} -->
 #### Stage D1-S5 — Preview on SDKReturn, verdicts declassed
 
 Owner: agent; Profile: fast; Depends: D1-S2, D1-S3; Parallel with: D1-S4.
 Writes: `src/preview/preview/previewOperation.ts`, `src/model/previews.ts`, `src/preview/preview/previewOperation.test-d.ts`, `src/preview/preview/errors.ts`, `src/preview/parse/errors.ts`, `src/preview/simulate/errors.ts`, `src/preview/verdictErrors.test.ts`, `src/onchain/market/zapper/errors.ts`, `src/onchain/accounts/withdrawal-compressor/errors.ts`, `src/onchain/validation/index.ts`, `src/preview/index.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S5` (must be absent at handoff).
-Predict: 50 active min / 9 credits.
+Predict: 58 active min / 11 credits.
+Of which verification: 8 active min / 2 credits.
 
 ##### Tasks
 
@@ -441,13 +446,14 @@ Predict: 50 active min / 9 credits.
 <!-- plan:stage:D1-S5:end -->
 
 <!-- plan:stage:D1-S6:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S4"],"parallelWith":[],"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/throwSweep.test.ts","src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S6"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S4"],"parallelWith":[],"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/throwSweep.test.ts","src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S6","verifyActiveMinutes":6,"verifyCredits":1} -->
 #### Stage D1-S6 — Bare-throw sweep
 
 Owner: agent; Profile: fast; Depends: D1-S4; Parallel with: none.
 Writes: `src/sdk/prepare/PrepareApi.ts`, `src/sdk/prepare/throwSweep.test.ts`, `src/onchain/accounts/intents/index.ts`, `src/onchain/accounts/intents/tail.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S6` (must be absent at handoff).
-Predict: 40 active min / 7 credits.
+Predict: 46 active min / 8 credits.
+Of which verification: 6 active min / 1 credits.
 
 ##### Tasks
 
@@ -472,13 +478,14 @@ Predict: 40 active min / 7 credits.
 <!-- plan:stage:D1-S6:end -->
 
 <!-- plan:stage:D1-S7:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S4","D1-S5","D1-S6"],"parallelWith":[],"writes":["MIGRATION.md","docs/plans/precise-error-unions.impact.md","src/quality/migrationDocs.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S7"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S4","D1-S5","D1-S6"],"parallelWith":[],"writes":["MIGRATION.md","docs/plans/precise-error-unions.impact.md","src/quality/migrationDocs.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S7","verifyActiveMinutes":5,"verifyCredits":1} -->
 #### Stage D1-S7 — Migration guide and impact report
 
 Owner: agent; Profile: fast; Depends: D1-S4, D1-S5, D1-S6; Parallel with: none.
 Writes: `MIGRATION.md`, `docs/plans/precise-error-unions.impact.md`, `src/quality/migrationDocs.test.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S7` (must be absent at handoff).
-Predict: 30 active min / 5 credits.
+Predict: 35 active min / 6 credits.
+Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
@@ -500,13 +507,14 @@ Predict: 30 active min / 5 credits.
 <!-- plan:stage:D1-S7:end -->
 
 <!-- plan:stage:D1-S8:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S7"],"parallelWith":[],"writes":["docs/plans/precise-error-unions.evidence.md","src/quality/deliveryGate.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S8"} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S7"],"parallelWith":[],"writes":["docs/plans/precise-error-unions.evidence.md","src/quality/deliveryGate.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S8","verifyActiveMinutes":5,"verifyCredits":1} -->
 #### Stage D1-S8 — Delivery gate
 
 Owner: agent; Profile: fast; Depends: D1-S7; Parallel with: none.
 Writes: `docs/plans/precise-error-unions.evidence.md`, `src/quality/deliveryGate.test.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S8` (must be absent at handoff).
-Predict: 25 active min / 4 credits.
+Predict: 30 active min / 5 credits.
+Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
@@ -565,6 +573,22 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - put-stage D1-S7
 
 - put-stage D1-S8
+
+- replace-stage D1-S1
+
+- replace-stage D1-S2
+
+- replace-stage D1-S3
+
+- replace-stage D1-S4
+
+- replace-stage D1-S5
+
+- replace-stage D1-S6
+
+- replace-stage D1-S7
+
+- replace-stage D1-S8
 
 - replace-stage D1-S1
 
