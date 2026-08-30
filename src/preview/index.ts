@@ -2,14 +2,14 @@
  * The vocabulary the issues this module hands out are written in. Published
  * here so a caller switching on `reason` does not have to reach into
  * `@gearbox-protocol/sdk/onchain` for the names to do it with.
- * `IntentPreviewError` itself stays engine-internal: verdicts leave the SDK
+ * `IntentPreviewError` itself stays engine-internal: refusals leave the SDK
  * as plain returned objects, not thrown classes.
  */
 
-// The two verdicts of `previewOperation`'s union that are raised outside this
-// module's own barrels, re-exported so the preview surface names every
-// verdict it can answer with.
-export { InvalidDelayedIntentError } from "../onchain/accounts/withdrawal-compressor/errors.js";
+// The refusal error of `previewOperation`'s union that is raised outside
+// this module's own barrels, re-exported (a type alone — refusals are plain
+// literals) so the preview surface names every refusal it can answer with.
+export type { InvalidDelayedIntentError } from "../onchain/accounts/withdrawal-compressor/errors.js";
 export {
   type BorrowLimitBinding,
   type PreviewErrorDetails,
@@ -23,7 +23,8 @@ export * from "./parse/index.js";
 export * from "./prerequisites/index.js";
 export * from "./preview/index.js";
 export {
-  PreviewSimulationError,
+  asPreviewSimulationError,
+  type PreviewSimulationError,
   type SimulationError,
   type SimulationFlowFailure,
   type SimulationFlowSource,

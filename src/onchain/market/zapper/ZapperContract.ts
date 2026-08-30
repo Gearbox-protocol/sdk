@@ -1,10 +1,11 @@
 import type { Abi, Address, Hex } from "viem";
 import { iZapperAbi } from "../../../abi/iZapper.js";
+import { type SDKReturn, sdkErr, sdkOk } from "../../../model/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { RawTx } from "../../types/index.js";
 import type { ZapperData } from "../types.js";
-import { UnsupportedZapperFunctionError } from "./errors.js";
+import type { UnsupportedZapperFunctionError } from "./errors.js";
 import type { IZapperContract, ParsedZapperOperation } from "./types.js";
 
 /**
@@ -46,10 +47,14 @@ export class ZapperContract<A extends Abi = Abi>
   }
 
   /**
-   * Decodes zapper calldata into {@link ParsedZapperOperation}.
-   * Throws {@link UnsupportedZapperFunctionError} for unknown selectors.
+   * Decodes zapper calldata into {@link ParsedZapperOperation} behind `ok`,
+   * or refuses with {@link UnsupportedZapperFunctionError} for unknown
+   * selectors.
    */
-  public parseOperation(calldata: Hex, value?: bigint): ParsedZapperOperation {
+  public parseOperation(
+    calldata: Hex,
+    value?: bigint,
+  ): SDKReturn<ParsedZapperOperation, UnsupportedZapperFunctionError> {
     // Generic code that works for any zapper: deposit and redeem
     // variants are recognized by their function-name prefix, the moved token is
     // the zapper's `tokenIn`, deposit amounts come from the `tokenInAmount` argument
@@ -64,7 +69,7 @@ export class ZapperContract<A extends Abi = Abi>
     const receiver = rawArgs.receiver as Address;
 
     if (parsed.functionName.startsWith("deposit")) {
-      return {
+      return sdkOk({
         operation: "Deposit",
         pool,
         zapper,
@@ -72,21 +77,26 @@ export class ZapperContract<A extends Abi = Abi>
         assets: (rawArgs.tokenInAmount as bigint | undefined) ?? value ?? 0n,
         underlying,
         referralCode: rawArgs.referralCode as bigint | undefined,
-      };
+      });
     }
 
     if (parsed.functionName.startsWith("redeem")) {
-      return {
+      return sdkOk({
         operation: "Redeem",
         pool,
         zapper,
         receiver,
         shares: rawArgs.tokenOutAmount as bigint,
         underlying,
-      };
+      });
     }
 
-    throw new UnsupportedZapperFunctionError(zapper, parsed.functionName);
+    return sdkErr({
+      code: "unsupportedZapperFunction",
+      message: `unsupported zapper function "${parsed.functionName}" on ${zapper}`,
+      zapper,
+      functionName: parsed.functionName,
+    } satisfies UnsupportedZapperFunctionError);
   }
 
   /**

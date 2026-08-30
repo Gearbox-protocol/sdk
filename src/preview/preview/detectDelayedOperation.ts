@@ -1,11 +1,12 @@
 import { isAddressEqual } from "viem";
 import type { DelayedIntent } from "../../model/index.js";
+import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
   type DelayedWithdrawalRequest,
   decodeDelayedIntent,
-  InvalidDelayedIntentError,
+  type InvalidDelayedIntentError,
   type OnchainSDK,
   type PluginsMap,
 } from "../../onchain/index.js";
@@ -40,7 +41,7 @@ export interface DetectedDelayedOperation {
 export function detectDelayedOperation<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
-): DetectedDelayedOperation | undefined {
+): SDKReturn<DetectedDelayedOperation | undefined, InvalidDelayedIntentError> {
   // Deltas of the current storeExpectedBalances/compareBalances bracket
   let bracketDeltas: Asset[] = [];
   for (const op of multicall) {
@@ -81,10 +82,15 @@ export function detectDelayedOperation<P extends PluginsMap>(
       try {
         intent = decodeDelayedIntent(request.extraData);
       } catch (e) {
-        throw new InvalidDelayedIntentError(request.extraData, e);
+        return sdkErr({
+          code: "invalidDelayedIntent",
+          message: `cannot decode delayed intent from extraData ${request.extraData}`,
+          extraData: request.extraData,
+          cause: e instanceof Error ? e : new Error(String(e)),
+        } satisfies InvalidDelayedIntentError);
       }
     }
-    return { request, intent };
+    return sdkOk({ request, intent });
   }
-  return undefined;
+  return sdkOk(undefined);
 }

@@ -7,7 +7,7 @@ import type {
 import type { MultichainSDK } from "../../onchain/index.js";
 import type { ILogger } from "../../onchain/types/logger.js";
 import {
-  type PreviewVerdictError,
+  type PreviewOperationError,
   previewOperation,
 } from "../../preview/index.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
@@ -34,7 +34,7 @@ export class PreviewNamespace implements IPreview {
   public async previewOperation(
     input: PreviewOperationInput,
     options?: PreviewOperationOptions,
-  ): Promise<SDKReturn<OperationPreview, PreviewVerdictError>> {
+  ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
     await this.#ensureFresh?.([input.chainId]);
     const sdk = this.#onchain.chain(input.chainId);
     return previewOperation(

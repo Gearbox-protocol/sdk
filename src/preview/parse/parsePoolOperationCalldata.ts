@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
+import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
 import type { OnchainSDK, PoolV310Contract } from "../../onchain/index.js";
-import { UnsupportedPoolFunctionError } from "./errors.js";
+import type { UnsupportedPoolFunctionError } from "./errors.js";
 import type { PoolOperation } from "./types.js";
 
 /**
@@ -9,13 +10,13 @@ import type { PoolOperation } from "./types.js";
  * @param sdk - The SDK instance.
  * @param pool - The pool contract.
  * @param calldata - The calldata to parse.
- * @returns The parsed operation.
+ * @returns The parsed operation behind `ok`, or the refusal.
  */
 export function parsePoolOperationCalldata(
   sdk: OnchainSDK,
   pool: PoolV310Contract,
   calldata: Hex,
-): PoolOperation {
+): SDKReturn<PoolOperation, UnsupportedPoolFunctionError> {
   const parsed = sdk.parseFunctionDataV2(pool.address, calldata);
   const functionName = parsed.functionName.split("(")[0];
   const { rawArgs } = parsed;
@@ -25,7 +26,7 @@ export function parsePoolOperationCalldata(
   switch (functionName) {
     case "deposit":
     case "depositWithReferral":
-      return {
+      return sdkOk({
         operation: "Deposit",
         pool: pool.address,
         receiver: rawArgs.receiver as Address,
@@ -38,10 +39,10 @@ export function parsePoolOperationCalldata(
           functionName === "depositWithReferral"
             ? (rawArgs.referralCode as bigint)
             : undefined,
-      };
+      });
     case "mint":
     case "mintWithReferral":
-      return {
+      return sdkOk({
         operation: "Mint",
         pool: pool.address,
         receiver: rawArgs.receiver as Address,
@@ -54,9 +55,9 @@ export function parsePoolOperationCalldata(
           functionName === "mintWithReferral"
             ? (rawArgs.referralCode as bigint)
             : undefined,
-      };
+      });
     case "withdraw":
-      return {
+      return sdkOk({
         operation: "Withdraw",
         pool: pool.address,
         receiver: rawArgs.receiver as Address,
@@ -66,9 +67,9 @@ export function parsePoolOperationCalldata(
         tokenIn: pool.address,
         tokenOut: underlying,
         zapper: undefined,
-      };
+      });
     case "redeem":
-      return {
+      return sdkOk({
         operation: "Redeem",
         pool: pool.address,
         receiver: rawArgs.receiver as Address,
@@ -78,8 +79,13 @@ export function parsePoolOperationCalldata(
         tokenIn: pool.address,
         tokenOut: underlying,
         zapper: undefined,
-      };
+      });
     default:
-      throw new UnsupportedPoolFunctionError(pool.address, parsed.functionName);
+      return sdkErr({
+        code: "unsupportedPoolFunction",
+        message: `unsupported pool function "${parsed.functionName}" on ${pool.address}`,
+        pool: pool.address,
+        functionName: parsed.functionName,
+      } satisfies UnsupportedPoolFunctionError);
   }
 }

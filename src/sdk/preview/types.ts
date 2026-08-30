@@ -4,7 +4,7 @@ import type {
   PreviewOperationOptions,
   SDKReturn,
 } from "../../model/index.js";
-import type { PreviewVerdictError } from "../../preview/index.js";
+import type { PreviewOperationError } from "../../preview/index.js";
 
 /**
  * On-chain preview of a raw operation calldata.
@@ -12,14 +12,14 @@ import type { PreviewVerdictError } from "../../preview/index.js";
 export interface IPreview {
   /**
    * Decodes a raw operation and assembles an operation-specific,
-   * human-displayable preview. A verdict on the calldata — an unsupported
+   * human-displayable preview. A refusal of the calldata — an unsupported
    * target, function or operation, a foreign delayed intent, a failed
    * simulation — is the `ok: false` half; genuine failures still throw.
    **/
   previewOperation(
     input: PreviewOperationInput,
     options?: PreviewOperationOptions,
-  ): Promise<SDKReturn<OperationPreview, PreviewVerdictError>>;
+  ): Promise<SDKReturn<OperationPreview, PreviewOperationError>>;
 }
 
 /**

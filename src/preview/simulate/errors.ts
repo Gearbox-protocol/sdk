@@ -17,54 +17,28 @@ export interface SimulationFlowFailure {
 }
 
 /**
- * Verdict answered when the pool simulation fails. It wraps each flow's
+ * Refusal answered when the pool simulation fails. It wraps each flow's
  * decoded revert reason (see {@link failures}). A plain returned object per
  * the SDK's refusal vocabulary — not a thrown `Error`.
  */
 export interface PreviewSimulationError extends IGearboxError {
   code: "previewSimulationFailed";
-  /** Per-flow decoded failures behind this verdict. */
+  /** Per-flow decoded failures behind this refusal. */
   failures: SimulationFlowFailure[];
   /** First flow failure that was itself an `Error`, kept for debugging. */
   cause?: Error;
 }
 
-function previewSimulationFailed(
-  failures: SimulationFlowFailure[],
-): PreviewSimulationError {
-  const message =
-    failures.length <= 1
-      ? (failures[0]?.detail.reason ?? "simulation failed")
-      : "all simulation flows failed";
-  const cause = failures.find(f => f.detail.cause instanceof Error)?.detail
-    .cause as Error | undefined;
-  const verdict: PreviewSimulationError = {
-    code: "previewSimulationFailed",
-    message,
-    failures,
-  };
-  if (cause) {
-    verdict.cause = cause;
-  }
-  return verdict;
-}
-
-Object.defineProperty(previewSimulationFailed, Symbol.hasInstance, {
-  value: (value: unknown): boolean =>
+function isPreviewSimulationError(
+  value: unknown,
+): value is PreviewSimulationError {
+  return (
     typeof value === "object" &&
     value !== null &&
-    (value as PreviewSimulationError).code === "previewSimulationFailed",
-});
-
-/**
- * Builds the verdict. Callable with or without `new`, so pre-declassing raise
- * sites keep compiling; `instanceof` matches on the `code` discriminant, and
- * the answer is never an `Error`.
- */
-export const PreviewSimulationError = previewSimulationFailed as {
-  (failures: SimulationFlowFailure[]): PreviewSimulationError;
-  new (failures: SimulationFlowFailure[]): PreviewSimulationError;
-};
+    !(value instanceof Error) &&
+    (value as PreviewSimulationError).code === "previewSimulationFailed"
+  );
+}
 
 /**
  * Normalises an unknown rejection reason into a {@link PreviewSimulationError}.
@@ -74,13 +48,17 @@ export function asPreviewSimulationError(
   reason: unknown,
   source: SimulationFlowSource,
 ): PreviewSimulationError {
-  if (reason instanceof PreviewSimulationError) {
+  if (isPreviewSimulationError(reason)) {
     return reason;
   }
   const error = reason instanceof Error ? reason : new Error(String(reason));
-  return new PreviewSimulationError([
-    { source, detail: decodeSimulationError({ error }) },
-  ]);
+  const detail = decodeSimulationError({ error });
+  return {
+    code: "previewSimulationFailed",
+    message: detail.reason,
+    failures: [{ source, detail }],
+    cause: error,
+  };
 }
 
 /** Decoded revert of the simulated transaction. */

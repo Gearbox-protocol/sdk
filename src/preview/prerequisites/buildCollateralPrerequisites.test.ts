@@ -11,11 +11,11 @@ import {
   toHex,
 } from "viem";
 import { beforeAll, beforeEach, expect, it, vi } from "vitest";
-
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
+import { isSDKError } from "../../model/index.js";
 import { json_parse, NATIVE_ADDRESS, OnchainSDK } from "../../onchain/index.js";
 import { checkPrerequisites } from "./checkPrerequisites.js";
 
@@ -108,14 +108,18 @@ function multicallCalldata(collateral: CollateralInput[]): Hex {
   });
 }
 
-function check(collateral: CollateralInput[], value: bigint) {
-  return checkPrerequisites({
+async function check(collateral: CollateralInput[], value: bigint) {
+  const answer = await checkPrerequisites({
     sdk,
     to: FACADE,
     calldata: multicallCalldata(collateral),
     sender: OWNER,
     value,
   });
+  if (isSDKError(answer)) {
+    throw new Error("prerequisites must parse");
+  }
+  return answer.data;
 }
 
 it("requires full WETH allowance and balance without attached value", async () => {

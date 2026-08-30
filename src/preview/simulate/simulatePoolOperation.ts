@@ -1,9 +1,10 @@
 import type { ContractFunctionParameters } from "viem";
 import { iPoolV310Abi } from "../../abi/310/generated.js";
 import { iZapperAbi } from "../../abi/iZapper.js";
-
+import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
+import type { PreviewSimulationError } from "./errors.js";
 import { asPreviewSimulationError } from "./errors.js";
 import type {
   PoolOperationSimulationResult,
@@ -98,7 +99,7 @@ function amountsInOut(
 export async function simulatePoolOperation(
   input: SimulationInput<PoolOperation>,
   options: PreviewOperationOptions = {},
-): Promise<PoolOperationSimulationResult> {
+): Promise<SDKReturn<PoolOperationSimulationResult, PreviewSimulationError>> {
   const { sdk, operation } = input;
   const { blockNumber, logger } = options;
 
@@ -110,10 +111,10 @@ export async function simulatePoolOperation(
       ...previewContract(operation),
     })) as bigint;
 
-    return amountsInOut(operation, previewAmount);
+    return sdkOk(amountsInOut(operation, previewAmount));
   } catch (cause) {
     const error = asPreviewSimulationError(cause, "multicall");
     logger?.error(error, "pool operation simulation failed");
-    throw error;
+    return sdkErr(error);
   }
 }

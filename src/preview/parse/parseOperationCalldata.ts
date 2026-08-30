@@ -1,4 +1,10 @@
 import {
+  isSDKError,
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+} from "../../model/index.js";
+import {
   CreditFacadeV310Contract,
   isRWAFactory,
   type PluginsMap,
@@ -6,7 +12,11 @@ import {
   ZapperContract,
 } from "../../onchain/index.js";
 import type { PreviewOperationInput } from "../types.js";
-import { UnsupportedTargetError } from "./errors.js";
+import type {
+  UnsupportedPoolFunctionError,
+  UnsupportedTargetError,
+  UnsupportedZapperFunctionError,
+} from "./errors.js";
 import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";
 import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
 import { parseRWAFactoryOperationCalldata } from "./parseRWAFactoryOperationCalldata.js";
@@ -21,7 +31,12 @@ import type { PoolOperation } from "./types-pools.js";
  */
 export function parseOperationCalldata<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
-): Operation {
+): SDKReturn<
+  Operation,
+  | UnsupportedTargetError
+  | UnsupportedPoolFunctionError
+  | UnsupportedZapperFunctionError
+> {
   const { sdk, to, calldata, value, sender } = input;
   const contract = sdk.getContract(to);
 
@@ -30,7 +45,11 @@ export function parseOperationCalldata<P extends PluginsMap>(
   }
 
   if (contract instanceof ZapperContract) {
-    const parsed = contract.parseOperation(calldata, value);
+    const answer = contract.parseOperation(calldata, value);
+    if (isSDKError(answer)) {
+      return answer;
+    }
+    const parsed = answer.data;
     if (parsed.operation === "Deposit") {
       const op: PoolOperation = {
         operation: "Deposit",
@@ -43,7 +62,7 @@ export function parseOperationCalldata<P extends PluginsMap>(
         zapper: parsed.zapper,
         referralCode: parsed.referralCode,
       };
-      return op;
+      return sdkOk(op);
     }
     const op: PoolOperation = {
       operation: "Redeem",
@@ -58,16 +77,20 @@ export function parseOperationCalldata<P extends PluginsMap>(
       tokenOut: contract.tokenIn.addr,
       zapper: parsed.zapper,
     };
-    return op;
+    return sdkOk(op);
   }
 
   if (contract instanceof CreditFacadeV310Contract) {
-    return parseFacadeOperationCalldata(sdk, contract, calldata);
+    return sdkOk(parseFacadeOperationCalldata(sdk, contract, calldata));
   }
 
   if (contract && isRWAFactory(contract)) {
-    return parseRWAFactoryOperationCalldata(sdk, contract, calldata);
+    return sdkOk(parseRWAFactoryOperationCalldata(sdk, contract, calldata));
   }
 
-  throw new UnsupportedTargetError(to);
+  return sdkErr({
+    code: "unsupportedTarget",
+    message: `unsupported transaction target: ${to}`,
+    target: to,
+  } satisfies UnsupportedTargetError);
 }
