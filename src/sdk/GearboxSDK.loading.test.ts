@@ -376,7 +376,7 @@ describe("GearboxSDK loading", () => {
     const { sdk } = build();
 
     // the sync LP flows only do arithmetic on loaded state, so an SDK that
-    // has not attached yet is a lifecycle error rather than a refusal of the
+    // has not attached yet is a lifecycle error rather than a verdict on the
     // request — and lifecycle errors stay thrown there
     expect(() =>
       sdk.opportunities.prepare.deposit(

@@ -216,7 +216,7 @@ npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 | `validateQuota` (`maxQuotasLengthReached`) | `checkQuotaCount` | `/onchain` |
 | `validateQuota` (`quotaShouldBeUpdated`) | — dropped, no caller | — |
 | `validateOpenAccount` (debt band) | `checkDebtInBand` | `/onchain` |
-| `validateOpenAccount` (`loading`) | — dropped: a caller's own state, not a refusal | — |
+| `validateOpenAccount` (`loading`) | — dropped: a caller's own state, not a verdict | — |
 | `validateOpenAccountPoolStatus` | `checkOpenAccountCeilings` | `/common-utils` (`strategies`) |
 | `validateOpenAccountPoolQuotaStatus` | folded into `checkOpenAccountCeilings` | `/common-utils` |
 | the six-validator chain in `getCMYouCanEarn` | `checkCreditManagerUsable` | `/common-utils` |
@@ -419,9 +419,8 @@ and appear in no prepare union — the exactness type tests refuse them.
 `withdrawableCollaterals` stay as they were.
 
 `preview` speaks the same envelope: `previewOperation` returns
-`SDKReturn<OperationPreview, PreviewOperationError>` where the union is the
-six declassed refusal errors (unsupported target / pool function / operation
-/ zapper
+`SDKReturn<OperationPreview, PreviewVerdictError>` where the union is the six
+declassed verdicts (unsupported target / pool function / operation / zapper
 function, invalid delayed intent, failed simulation) — plain objects now, not
 thrown Error classes. `IntentPreviewError` left the public barrels; it is the
 engine's internal transport only.
@@ -434,7 +433,7 @@ list-driven `throwSweep.test.ts` fails on an unlisted site:
 | site | disposition |
 | --- | --- |
 | `intents/index.ts` — exhaustive-switch default ("not implemented") | kept: unreachable invariant behind the typed intent union |
-| `intents/index.ts` — "plan started no withdrawal" | kept: engine self-contradiction, a bug not a refusal |
+| `intents/index.ts` — "plan started no withdrawal" | kept: engine self-contradiction, a bug not a verdict |
 | `intents/index.ts` — "no request among the operations" | kept: engine self-contradiction |
 | `intents/index.ts` — "neither answered nor refused" | kept: allSettled invariant |
 | `tail.ts` — exhaustive-switch default | kept: decodeDelayedIntent refuses unknown types first |
@@ -442,7 +441,7 @@ list-driven `throwSweep.test.ts` fails on an unlisted site:
 
 Boundary codes (`noStrategyTargetCollateral`, `creditAccountNotFound`,
 `unexpectedFailure`) stand as introduced above; `unexpectedFailure` is the one
-non-refusal — the SDK could not find out — and carries the original `cause`.
+non-verdict — the SDK could not find out — and carries the original `cause`.
 
 ## Consumer impact
 

@@ -70,7 +70,7 @@ export function checkOperation(
 ): PreviewIssue | null {
   const { sdk, preview } = input;
 
-  // Every check below reads fields this refusal declares untrustworthy.
+  // Every check below reads fields this verdict declares untrustworthy.
   const malformed = checkPreviewError(
     "error" in preview ? preview.error : undefined,
   );

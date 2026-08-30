@@ -9,7 +9,7 @@
  *
  * A thrown exception still means what it always did: the SDK could not do its
  * job (a read failed, a contract reverted unexpectedly, an argument is wrong).
- * Those are bugs and outages, not refusals of the request.
+ * Those are bugs and outages, not verdicts on the request.
  **/
 
 /**

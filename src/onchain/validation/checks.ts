@@ -3,7 +3,7 @@ import type { Bps, Token, TokenAmount } from "../../model/index.js";
 import type { BorrowLimitBinding, PreviewIssue } from "./refusal.js";
 
 /**
- * Every refusal the protocol can pass on an operation, as values.
+ * Every verdict the protocol can pass on an operation, as values.
  *
  * Each check is handed the numbers it compares — never a suite, a market or an
  * SDK — so the engine, `checkOperation` and the strategy lists share one

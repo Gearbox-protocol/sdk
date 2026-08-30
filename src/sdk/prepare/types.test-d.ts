@@ -242,7 +242,7 @@ describe("the preview-only codes appear in no prepare union", () => {
   it("poolSunset, quotaCountExceeded and malformedTransaction stay preview's", () => {
     // @ts-expect-error poolSunset judges a deposit already sent, not a request
     const _sunset: AnyPrepareRefusal = {} as PoolSunsetError;
-    // @ts-expect-error quotaCountExceeded is the replay's refusal, not prepare's
+    // @ts-expect-error quotaCountExceeded is the replay's verdict, not prepare's
     const _count: AnyPrepareRefusal = {} as QuotaCountExceededError;
     // @ts-expect-error malformedTransaction can only be said of calldata handed in
     const _malformed: AnyPrepareRefusal = {} as MalformedTransactionError;

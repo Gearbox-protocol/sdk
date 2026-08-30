@@ -279,7 +279,7 @@ export interface CreditAccountNotFoundError extends IGearboxError {
  * connected to, a market or token address it knows nothing about, a contract
  * that reverted where nothing should, a bug of ours.
  *
- * The one code that is not a refusal of the request — everything above says
+ * The one code that is not a verdict on the request — everything above says
  * "this cannot be done", this one says "we do not know". It exists so that a
  * refusable `prepare` method always answers: the failure that used to escape
  * as an exception arrives here instead, whole, under `cause`.
