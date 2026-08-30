@@ -75,11 +75,15 @@ beforeAll(() => {
 
 // transactions are generated against the anvil Mainnet fork using frontend
 // UI, but never sent; the account pre-state is ~44 cbETH with 40 WETH debt
-function preview(calldata: Hex) {
-  return previewOperation(
+async function preview(calldata: Hex) {
+  const answer = await previewOperation(
     { sdk, to: FACADE, calldata, sender: OWNER, value: 0n },
     { creditAccount },
   );
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
+  return answer.data;
 }
 
 it("previews raising leverage to 6", async () => {

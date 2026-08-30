@@ -3,7 +3,7 @@
  *
  * A request that the protocol, the market or the request's own numbers rule out
  * is not an exception: it is an answer, and a screen shows it the way it shows
- * any other. So a method that can be refused returns a {@link WithError}
+ * any other. So a method that can be refused returns an {@link SDKReturn}
  * envelope rather than throwing, and what it puts in the failure half is one of
  * these — never a bare string, never a boolean the caller has to interpret.
  *
@@ -21,7 +21,7 @@
  *
  * The codes themselves are per namespace — there is no SDK-wide enumeration of
  * them, because the set a method can answer with is part of that method's
- * contract, see the `E` of {@link WithError}.
+ * contract, see the `E` of {@link SDKReturn}.
  **/
 export interface IGearboxError {
   /**
@@ -42,28 +42,3 @@ export interface IGearboxError {
    **/
   cause?: IGearboxError | Error;
 }
-
-/**
- * What a method that can be refused answers with: the data it was asked for, or
- * the reason there is none.
- *
- * `success` is the discriminant, and narrowing it settles which of the two
- * fields is there — a caller cannot read `data` without having ruled the
- * failure out first.
- *
- * ```ts
- * const { data: result } = await sdk.prepare.depositStrategy(position, params);
- * if (!result.success) {
- *   return showRefusal(result.error.code, result.error);
- * }
- * const tx = await sdk.execute.buildTx({ kind: "account", sim: result, ... });
- * ```
- *
- * @typeParam D - What the method answers when it can.
- * @typeParam E - The errors that method can refuse with, as a union of
- * {@link IGearboxError}s. Naming them per method is the point: the union is the
- * list of everything a caller has to handle, checked by the compiler.
- **/
-export type WithError<D, E extends IGearboxError> =
-  | { success: true; data: D }
-  | { success: false; error: E };

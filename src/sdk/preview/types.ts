@@ -2,7 +2,9 @@ import type {
   OperationPreview,
   PreviewOperationInput,
   PreviewOperationOptions,
+  SDKReturn,
 } from "../../model/index.js";
+import type { PreviewVerdictError } from "../../preview/index.js";
 
 /**
  * On-chain preview of a raw operation calldata.
@@ -10,13 +12,14 @@ import type {
 export interface IPreview {
   /**
    * Decodes a raw operation and assembles an operation-specific,
-   * human-displayable preview. Throws when the operation is unsupported or
-   * the targeted credit account cannot be resolved.
+   * human-displayable preview. A verdict on the calldata — an unsupported
+   * target, function or operation, a foreign delayed intent, a failed
+   * simulation — is the `ok: false` half; genuine failures still throw.
    **/
   previewOperation(
     input: PreviewOperationInput,
     options?: PreviewOperationOptions,
-  ): Promise<OperationPreview>;
+  ): Promise<SDKReturn<OperationPreview, PreviewVerdictError>>;
 }
 
 /**

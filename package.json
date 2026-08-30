@@ -90,7 +90,15 @@
     "prepare": "husky",
     "check": "biome check --write",
     "check:ci": "biome check --diagnostic-level=error",
-    "typecheck:ci": "tsc --noEmit"
+    "typecheck:ci": "tsc --noEmit",
+    "agent:test:backend": "vitest run --project unit",
+    "agent:install": "pnpm install --frozen-lockfile",
+    "agent:test:frontend": "echo 'N/A: sdk is a library, no frontend lane'",
+    "agent:test:e2e": "vitest run --project e2e",
+    "agent:typecheck": "tsc --noEmit",
+    "agent:verify:commit": "pnpm check:ci",
+    "agent:verify:pr": "pnpm check:ci && pnpm typecheck:ci && pnpm test:unit && pnpm build",
+    "agent:verify:docs": "echo 'N/A: docs verified via planctl verify'"
   },
   "dependencies": {
     "@redstone-finance/evm-connector": "^0.9.0",
@@ -115,6 +123,7 @@
     "tsdown": "^0.22.14",
     "tsx": "^4.23.2",
     "typescript": "^7.0.2",
+    "unrun": "^0.3.1",
     "viem-deal": "^2.0.4",
     "vite": "^8.2.2",
     "vitest": "^4.1.11",

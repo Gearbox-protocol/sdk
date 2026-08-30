@@ -66,6 +66,8 @@ export function planTail(args: {
     case "DEPOSIT_AND_INCREASE_LEVERAGE":
       return planFinishClaimOnly(claimable);
     default: {
+      // disposition(D1-S6): kept — unreachable invariant; decodeDelayedIntent
+      // already refuses unknown intent types before a ResumableIntent exists.
       const _exhaustive: never = intent;
       void _exhaustive;
       throw new Error(`${(intent as ResumableIntent).type} - not implemented`);
@@ -108,7 +110,14 @@ export async function projectTail(args: {
 
   const queued = request.outputs.find(o => o.isDelayed);
   if (!queued || !claim) {
-    throw new Error("projectTail: the request queued nothing to claim");
+    // disposition(D1-S6): converted — the claimable is caller input (a
+    // foreign or malformed claim can name a request that queued nothing),
+    // so it refuses as noRecordedIntent instead of crashing the boundary.
+    throw new IntentPreviewError(
+      "noRecordedIntent",
+      undefined,
+      "projectTail: the request queued nothing to claim",
+    );
   }
 
   const next = sliceAfter(creditAccount, delayed.afterRequest);

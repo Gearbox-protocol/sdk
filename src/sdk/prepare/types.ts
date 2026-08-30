@@ -1,14 +1,14 @@
 import type { Address } from "viem";
 import type {
   Bps,
-  DataResponse,
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  SDKReturn,
   StrategyOpportunityKey,
   StrategyPosition,
   StrategyPositionKey,
-  WithError,
+  Timestamp,
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
@@ -22,7 +22,21 @@ import type {
   ResumableIntent,
   RouteRefusals,
 } from "../../onchain/index.js";
-import type { PrepareError, RoutesPrepareError } from "./errors.js";
+import type {
+  AccountFlowError,
+  DebtOutOfRangeError,
+  InsufficientPoolLiquidityError,
+  LeverageOutOfRangeError,
+  MultipleDelayedWithdrawalsError,
+  NoDelayedRouteError,
+  NoRecordedIntentError,
+  NoStrategyTargetCollateralError,
+  OpenFlowError,
+  UnsupportedCollateralTokenError,
+  UnsupportedTokenPairError,
+  WithdrawalInProgressError,
+  WithRouteRefusals,
+} from "./errors.js";
 
 export type {
   LeverageBand,
@@ -42,12 +56,12 @@ export * from "../../onchain/validation/refusal.js";
 /**
  * What a pool deposit or withdrawal comes to.
  *
- * Shaped like {@link StrategyPlan} so both kinds of result are consumed the
+ * Shaped like {@link StrategyResult} so both kinds of result are consumed the
  * same way, with the pool's own numbers as the state: the ERC-4626
  * conversion applied to the amount, at the rate of the block the market was
  * loaded at.
  **/
-export interface LpPlan {
+export interface LpResult {
   /**
    * Always empty: a pool operation is a single transaction, so there is no
    * chain of steps to show. Present so callers can treat both kinds of
@@ -64,17 +78,16 @@ export interface LpPlan {
    * operation is a single call on the pool or on its zapper.
    **/
   calls: MultiCall[];
+  /** Block of the chain state this result was computed from. */
+  blockNumber: number;
+  /** Unix seconds of {@link blockNumber}. */
+  timestamp: Timestamp;
 }
-
-/**
- * {@link LpPlan}, or why the pool cannot serve the request.
- **/
-export type LpPrepare = WithError<LpPlan, PrepareError>;
 
 /**
  * What an operation on an existing credit account comes to.
  **/
-export interface StrategyPlan {
+export interface StrategyResult {
   /**
    * The logical steps, each carrying the amounts it was computed from.
    * Useful for showing the user what will happen, and for pinning behaviour
@@ -91,31 +104,24 @@ export interface StrategyPlan {
    * through `sdk.accounts`.
    **/
   calls: MultiCall[];
+  /** Block of the chain state this result was computed from. */
+  blockNumber: number;
+  /** Unix seconds of {@link blockNumber}. */
+  timestamp: Timestamp;
 }
-
-/**
- * {@link StrategyPlan}, or why the request cannot be served.
- *
- * A failure here means the request itself is not viable — not that a call
- * failed — so it is a value rather than an exception: too much leverage, too
- * little of the source token, a token the flow does not accept. What could not
- * be done is `error.code`, and the limit that was missed is on the error beside
- * it, see {@link PrepareError}.
- **/
-export type StrategyPrepare = WithError<StrategyPlan, PrepareError>;
 
 /**
  * What the leading half of a delayed operation comes to: the request
  * transaction, plus what it recorded for the tail and where that tail leads.
  *
- * Shaped like {@link StrategyPlan} with one field more, so the instant and
+ * Shaped like {@link StrategyResult} with one field more, so the instant and
  * the delayed route of the same request are compared side by side — and they
  * are meant to be compared on the same footing, so `state` is the end of the
  * operation in both, not the end of the transaction.
  **/
-export interface DelayedStrategyPlan {
+export interface DelayedStrategyResult {
   /**
-   * {@inheritDoc StrategyPlan.operations}
+   * {@inheritDoc StrategyResult.operations}
    **/
   operations: AccountCalculatorOperation[];
   /**
@@ -130,7 +136,7 @@ export interface DelayedStrategyPlan {
    **/
   state: OperationState;
   /**
-   * {@inheritDoc StrategyPlan.calls}
+   * {@inheritDoc StrategyResult.calls}
    **/
   calls: MultiCall[];
   /**
@@ -138,15 +144,11 @@ export interface DelayedStrategyPlan {
    * {@link DelayedStart}.
    **/
   delayed: DelayedStart;
+  /** Block of the chain state this result was computed from. */
+  blockNumber: number;
+  /** Unix seconds of {@link blockNumber}. */
+  timestamp: Timestamp;
 }
-
-/**
- * {@link DelayedStrategyPlan}, or why the redemption route cannot be taken.
- **/
-export type DelayedStrategyPrepare = WithError<
-  DelayedStrategyPlan,
-  PrepareError
->;
 
 /**
  * What one of the two flows that sell a position asset —
@@ -159,34 +161,30 @@ export type DelayedStrategyPrepare = WithError<
  * are quoted from one request. A route the account cannot take is `undefined`
  * with its refusal in `refused`, which is what lets a form offer exactly the
  * routes that exist; a failure means neither does, and the error still carries
- * `refused`, see {@link RoutesPrepareError}.
+ * `refused`, see {@link WithRouteRefusals}.
  **/
-export interface StrategyRoutes {
+export interface StrategyRoutesResult {
   /**
    * The router route: one transaction, settled on the spot. `undefined`
    * when the asset cannot be sold, see `refused.instant`.
    **/
-  instant: StrategyPlan | undefined;
+  instant: StrategyResult | undefined;
   /**
    * The request half of the redemption route, which
    * {@link IOpportunitiesPrepare.finalize} completes once it matures.
    * `undefined` when the route does not exist — no redemption venue for the
    * asset, or a request that settles at once anyway — see `refused.delayed`.
    **/
-  delayed: DelayedStrategyPlan | undefined;
+  delayed: DelayedStrategyResult | undefined;
   /**
    * Why a missing route was refused, see {@link RouteRefusals}.
    **/
   refused: RouteRefusals;
+  /** Block of the chain state this result was computed from. */
+  blockNumber: number;
+  /** Unix seconds of {@link blockNumber}. */
+  timestamp: Timestamp;
 }
-
-/**
- * {@link StrategyRoutes}, or the refusal of both routes at once.
- **/
-export type StrategyRoutesPrepare = WithError<
-  StrategyRoutes,
-  RoutesPrepareError
->;
 
 /**
  * What opening a new leveraged position comes to.
@@ -194,27 +192,17 @@ export type StrategyRoutesPrepare = WithError<
  * The only result that reports both an expected and a floor branch: opening
  * takes both from a single pathfinder call, and `openCA` consumes both.
  **/
-export interface OpenStrategyPlan {
+export interface OpenStrategyResult {
   /**
    * Everything the opening arrives at: the projection, both branches of the
    * post-open balances and quotas, and the router path `openCA` is handed.
    **/
   state: OpenStrategyState;
+  /** Block of the chain state this result was computed from. */
+  blockNumber: number;
+  /** Unix seconds of {@link blockNumber}. */
+  timestamp: Timestamp;
 }
-
-/**
- * {@link OpenStrategyPlan}, or why the position cannot be opened.
- **/
-export type OpenStrategyPrepare = WithError<OpenStrategyPlan, PrepareError>;
-
-/**
- * A ceiling one of the `max*` reads answers with, in the units that read names,
- * or why the account it was asked about could not be weighed.
- *
- * The same envelope as a prepared operation, for the same reason: a form that
- * cannot show a limit needs to say why as much as one that cannot prepare.
- **/
-export type AmountPrepare = WithError<bigint, PrepareError>;
 
 /**
  * Shared knobs. Both default to the SDK's own defaults when omitted.
@@ -418,14 +406,19 @@ export interface FinalizeParams extends PrepareOptions {
  * Not to be confused with `src/preview`, which goes the other way: it takes
  * calldata that already exists and reports what it would do.
  *
- * Every method that can fail answers in the error envelope and none of them
- * throws: a market that refuses, an account that is not there, a chain that
- * cannot be reached — all of it arrives as `{ success: false, error }` with a
- * code, see {@link PrepareError}. The two synchronous readers
- * ({@link leverageBand}, {@link withdrawableCollaterals}) stay outside the
- * envelope: they weigh state already loaded and say "nothing available" with
- * `undefined` or an empty list, so their only failure is being handed a chain
- * this SDK was never connected to — an argument error, which throws.
+ * Every refusable method answers `SDKReturn` and names, in its own signature,
+ * exactly the errors its flow can refuse with — the union is the list of
+ * everything a caller has to handle, checked by the compiler. An async flow
+ * never throws: a chain that cannot be reached or a crash on the way arrives
+ * as `unexpectedFailure` with the cause attached. The synchronous LP flows
+ * only do arithmetic on loaded state, so their one refusal is the unroutable
+ * pair — anything else there is a bug or a lifecycle error, and it throws.
+ *
+ * The bare readers stay outside the envelope: the `max*` ceilings answer their
+ * number and throw on an account or chain the SDK does not hold, and the two
+ * synchronous readers ({@link leverageBand}, {@link withdrawableCollaterals})
+ * weigh state already loaded and say "nothing available" with `undefined` or
+ * an empty list.
  **/
 export interface IOpportunitiesPrepare {
   /**
@@ -434,7 +427,10 @@ export interface IOpportunitiesPrepare {
    * Synchronous, unlike every strategy method below: the answer is the pool's
    * share rate applied to the amount, and that rate is already loaded.
    **/
-  deposit(pool: PoolInput, params: LpParams): LpPrepare;
+  deposit(
+    pool: PoolInput,
+    params: LpParams,
+  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
 
   /**
    * Taking underlying out of a pool: `amount` is the `tokenOut` the wallet
@@ -443,13 +439,19 @@ export interface IOpportunitiesPrepare {
    * The LP counterpart of {@link withdrawStrategy} / {@link withdrawCollateral},
    * which act on credit accounts.
    **/
-  withdraw(pool: PoolInput, params: LpParams): LpPrepare;
+  withdraw(
+    pool: PoolInput,
+    params: LpParams,
+  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
 
   /**
    * Redeeming pool shares: `amount` is the `tokenIn` the wallet parts with,
    * and the reported state is the underlying it converts to.
    **/
-  redeem(pool: PoolInput, params: LpRedeemParams): LpPrepare;
+  redeem(
+    pool: PoolInput,
+    params: LpRedeemParams,
+  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
 
   /**
    * Opening a leveraged position from wallet collateral.
@@ -460,7 +462,17 @@ export interface IOpportunitiesPrepare {
   openNewStrategy(
     strategy: StrategyInput,
     params: OpenStrategyParams,
-  ): Promise<DataResponse<OpenStrategyPrepare>>;
+  ): Promise<
+    SDKReturn<
+      OpenStrategyResult,
+      | OpenFlowError
+      | DebtOutOfRangeError
+      | LeverageOutOfRangeError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+      | NoStrategyTargetCollateralError
+    >
+  >;
 
   /**
    * Growing a position: collateral in, debt drawn on top, both converted into
@@ -471,7 +483,17 @@ export interface IOpportunitiesPrepare {
   depositStrategy(
     position: PositionInput,
     params: DepositStrategyParams,
-  ): Promise<DataResponse<StrategyPrepare>>;
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      | AccountFlowError
+      | DebtOutOfRangeError
+      | LeverageOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+    >
+  >;
 
   /**
    * Shrinking a position: part of its net value goes to the wallet and debt is
@@ -480,7 +502,7 @@ export interface IOpportunitiesPrepare {
    * Answers with both routes the withdrawal can take — sold through the router
    * now, or redeemed through the source's issuer and finished days later — since
    * the source token decides which of them exist, see
-   * {@link StrategyRoutesPrepare}.
+   * {@link StrategyRoutesResult}.
    *
    * `MAX_UINT256` — or any amount at or above the account's net value — is an
    * exit instead: the quotas are dropped, the position is sold whole in one
@@ -501,7 +523,20 @@ export interface IOpportunitiesPrepare {
   withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<DataResponse<StrategyRoutesPrepare>>;
+  ): Promise<
+    SDKReturn<
+      StrategyRoutesResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedTokenPairError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
+      ) &
+        WithRouteRefusals
+    >
+  >;
 
   /**
    * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
@@ -512,8 +547,11 @@ export interface IOpportunitiesPrepare {
    *
    * Taking everything out needs none of this arithmetic: send `MAX_UINT256` to
    * {@link withdrawStrategy} and the exit is what runs.
+   *
+   * A bare read: it answers its number, and throws on an account or a chain
+   * the SDK does not hold.
    **/
-  maxWithdraw(position: PositionInput): Promise<DataResponse<AmountPrepare>>;
+  maxWithdraw(position: PositionInput): Promise<bigint>;
 
   /**
    * Paying debt down with funds from the wallet: collateral stays where it is,
@@ -534,14 +572,22 @@ export interface IOpportunitiesPrepare {
   repayStrategy(
     position: PositionInput,
     params: RepayStrategyParams,
-  ): Promise<DataResponse<StrategyPrepare>>;
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      AccountFlowError | DebtOutOfRangeError | UnsupportedCollateralTokenError
+    >
+  >;
 
   /**
    * Debt {@link repayStrategy} would have to cover to clear the account, in
    * underlying units: principal, interest and fees as of this read. Interest
    * keeps accruing, so a wallet meaning to settle sends this with a buffer.
+   *
+   * A bare read: it answers its number, and throws on an account or a chain
+   * the SDK does not hold.
    **/
-  maxRepay(position: PositionInput): Promise<DataResponse<AmountPrepare>>;
+  maxRepay(position: PositionInput): Promise<bigint>;
 
   /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.
@@ -554,7 +600,22 @@ export interface IOpportunitiesPrepare {
   adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<DataResponse<StrategyRoutesPrepare>>;
+  ): Promise<
+    SDKReturn<
+      StrategyRoutesResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedTokenPairError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
+        | InsufficientPoolLiquidityError
+        | LeverageOutOfRangeError
+      ) &
+        WithRouteRefusals
+    >
+  >;
 
   /**
    * Putting the position token onto the account at fixed debt, which lowers
@@ -563,7 +624,7 @@ export interface IOpportunitiesPrepare {
   addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<DataResponse<StrategyPrepare>>;
+  ): Promise<SDKReturn<StrategyResult, AccountFlowError>>;
 
   /**
    * Moving one asset that already sits on the account out to the wallet, at
@@ -575,7 +636,7 @@ export interface IOpportunitiesPrepare {
   withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<DataResponse<StrategyPrepare>>;
+  ): Promise<SDKReturn<StrategyResult, AccountFlowError>>;
 
   /**
    * The leverages a deposit of a given size can reach in this market: the
@@ -632,12 +693,15 @@ export interface IOpportunitiesPrepare {
    *
    * `targetHF` names the health factor to leave the account at, in basis
    * points; omitted, the SDK holds it to the bar a form would.
+   *
+   * A bare read: it answers its number, and throws on an account or a chain
+   * the SDK does not hold.
    **/
   maxWithdrawCollateral(
     position: PositionInput,
     token: Address,
     targetHF?: bigint,
-  ): Promise<DataResponse<AmountPrepare>>;
+  ): Promise<bigint>;
 
   /**
    * The tail of a delayed route: claim the matured withdrawal, then whatever the
@@ -659,5 +723,14 @@ export interface IOpportunitiesPrepare {
   finalize(
     position: PositionInput,
     params: FinalizeParams,
-  ): Promise<DataResponse<StrategyPrepare>>;
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      | AccountFlowError
+      | NoRecordedIntentError
+      | NoDelayedRouteError
+      | WithdrawalInProgressError
+      | UnsupportedTokenPairError
+    >
+  >;
 }

@@ -1,8 +1,26 @@
 import type { Address, Hex } from "viem";
-import { describe, it } from "vitest";
-import { type ClientOptions, OnchainSDK } from "../../onchain/index.js";
+import { describe, expectTypeOf, it } from "vitest";
+import type { OperationPreview, SDKReturn } from "../../model/index.js";
+import {
+  type ClientOptions,
+  type InvalidDelayedIntentError,
+  OnchainSDK,
+} from "../../onchain/index.js";
+// @ts-expect-error IntentPreviewError left the public validation barrel: the
+// engine keeps it internally (refusal.js), the public surface answers plain
+// verdict objects instead.
+import { IntentPreviewError } from "../../onchain/validation/index.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
+import type {
+  UnsupportedPoolFunctionError,
+  UnsupportedTargetError,
+  UnsupportedZapperFunctionError,
+} from "../parse/errors.js";
+import type { PreviewSimulationError } from "../simulate/errors.js";
+import type { UnsupportedOperationError } from "./errors.js";
 import { previewOperation } from "./previewOperation.js";
+
+void IntentPreviewError;
 
 const to: Address = "0x0000000000000000000000000000000000000001";
 const sender: Address = "0x0000000000000000000000000000000000000002";
@@ -30,5 +48,42 @@ describe("previewOperation sdk typing", () => {
       calldata,
       sender,
     });
+  });
+});
+
+describe("previewOperation result envelope", () => {
+  it("answers SDKReturn over the exact union of preview verdicts", () => {
+    expectTypeOf(previewOperation).returns.resolves.toEqualTypeOf<
+      SDKReturn<
+        OperationPreview,
+        | UnsupportedTargetError
+        | UnsupportedPoolFunctionError
+        | UnsupportedZapperFunctionError
+        | UnsupportedOperationError
+        | InvalidDelayedIntentError
+        | PreviewSimulationError
+      >
+    >();
+  });
+
+  it("narrows to the preview or the verdict on the ok discriminant", async () => {
+    const answer = await previewOperation({
+      sdk: sdkWithoutPlugins,
+      to,
+      calldata,
+      sender,
+    });
+    if (answer.ok) {
+      expectTypeOf(answer.data).toEqualTypeOf<OperationPreview>();
+    } else {
+      expectTypeOf(answer.error.code).toEqualTypeOf<
+        | "unsupportedTarget"
+        | "unsupportedPoolFunction"
+        | "unsupportedZapperFunction"
+        | "unsupportedOperation"
+        | "invalidDelayedIntent"
+        | "previewSimulationFailed"
+      >();
+    }
   });
 });

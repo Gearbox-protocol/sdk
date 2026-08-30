@@ -1,14 +1,14 @@
 import type { Address } from "viem";
-import type { ChainId } from "../../model/index.js";
+import type { ChainId, SDKResult } from "../../model/index.js";
 import type {
   Asset,
   RawTx,
   SecuritizeRegisterMessage,
 } from "../../onchain/index.js";
 import type {
-  LpPrepare,
-  OpenStrategyPrepare,
-  StrategyPrepare,
+  LpResult,
+  OpenStrategyResult,
+  StrategyResult,
 } from "../prepare/index.js";
 
 /**
@@ -24,7 +24,7 @@ export interface PoolPrepareRequest {
   pool: Address;
   wallet: Address;
   op: "deposit" | "withdraw" | "redeem";
-  sim: Extract<LpPrepare, { success: true }>;
+  sim: SDKResult<LpResult>;
 }
 
 /**
@@ -38,7 +38,7 @@ export interface OpenPrepareRequest {
   chainId: ChainId;
   creditManager: Address;
   wallet: Address;
-  sim: Extract<OpenStrategyPrepare, { success: true }>;
+  sim: SDKResult<OpenStrategyResult>;
   /** What leaves the wallet, token by token. */
   collateral: Asset[];
   /** Native value to attach when paying a wrapped-native market in the coin. */
@@ -57,14 +57,14 @@ export interface OpenPrepareRequest {
 
 /**
  * Any of the five operations on an existing account, from a viable
- * {@link StrategyPrepare}: the facade multicall is the result's `calls`.
+ * {@link StrategyResult}: the facade multicall is the result's `calls`.
  **/
 export interface AccountPrepareRequest {
   kind: "account";
   chainId: ChainId;
   creditAccount: Address;
   wallet: Address;
-  sim: Extract<StrategyPrepare, { success: true }>;
+  sim: SDKResult<StrategyResult>;
 }
 
 /**

@@ -138,6 +138,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
           case "WITHDRAW":
             return planWithdraw(intent, view);
           default: {
+            // disposition(D1-S6): kept — unreachable invariant behind the
+            // typed StartIntent union; no caller input reaches it.
             const _exhaustive: never = intent;
             void _exhaustive;
             throw new Error(
@@ -281,6 +283,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
     }
     const { delayed } = result;
     if (!delayed) {
+      // disposition(D1-S6): kept — engine self-contradiction (a successful
+      // delayed plan without its withdrawal), a bug rather than a verdict.
       throw new Error("startDelayedIntent: plan started no withdrawal");
     }
 
@@ -295,6 +299,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
         op.type === "startDelayedWithdrawal",
     );
     if (!request) {
+      // disposition(D1-S6): kept — engine self-contradiction (a delayed plan
+      // whose operations carry no request), a bug rather than a verdict.
       throw new Error("startDelayedIntent: no request among the operations");
     }
 
@@ -380,6 +386,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
     }
     const chosen = instantRefusal ?? delayedRefusal;
     if (chosen === undefined) {
+      // disposition(D1-S6): kept — allSettled invariant; every route settles
+      // as an answer or a refusal, anything else is a bug.
       throw new Error("intentRoutes: a route neither answered nor refused");
     }
     return { ...chosen, refused };

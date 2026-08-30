@@ -60,14 +60,18 @@ beforeAll(() => {
 });
 
 // transactions are generated against Mainnet using frontend UI
-function preview(tx: Tx) {
-  return previewOperation({
+async function preview(tx: Tx) {
+  const answer = await previewOperation({
     sdk,
     to: tx.to,
     calldata: tx.data,
     sender: SENDER,
     value: tx.value,
   });
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
+  return answer.data;
 }
 
 it("previews plain account: USDC collateral, USDC debt, no swap", async () => {

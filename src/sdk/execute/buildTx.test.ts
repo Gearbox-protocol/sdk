@@ -2,14 +2,15 @@ import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import type {
   Curator,
+  SDKResult,
   TokenAmount,
   UnderlyingToken,
 } from "../../model/index.js";
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
-  LpPrepare,
-  OpenStrategyPrepare,
-  StrategyPrepare,
+  LpResult,
+  OpenStrategyResult,
+  StrategyResult,
 } from "../prepare/index.js";
 import { ExecuteApi } from "./ExecuteApi.js";
 
@@ -43,6 +44,9 @@ const UNDERLYING_TOKEN: UnderlyingToken = {
   decimals: 18,
   wrappedAddress: null,
 };
+
+/** The block stamp every prepared result carries; inert to `buildTx`. */
+const AT = { blockNumber: 1, timestamp: 0 } as const;
 
 const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
@@ -102,8 +106,8 @@ function mockChain(overrides?: {
 }
 
 describe("buildTx — pool", () => {
-  const sim: Extract<LpPrepare, { success: true }> = {
-    success: true,
+  const sim: SDKResult<LpResult> = {
+    ok: true,
     data: {
       operations: [],
       state: {
@@ -111,6 +115,7 @@ describe("buildTx — pool", () => {
         tokenOut: amount(DIESEL, 990n),
       },
       calls: [],
+      ...AT,
     },
   };
 
@@ -145,8 +150,8 @@ describe("buildTx — pool", () => {
 
   it("withdraw: the tx is PoolService.removeLiquidity's on the underlying the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const withdrawSim: Extract<LpPrepare, { success: true }> = {
-      success: true,
+    const withdrawSim: SDKResult<LpResult> = {
+      ok: true,
       data: {
         operations: [],
         state: {
@@ -154,6 +159,7 @@ describe("buildTx — pool", () => {
           tokenOut: amount(UNDERLYING, 505n),
         },
         calls: [],
+        ...AT,
       },
     };
 
@@ -184,8 +190,8 @@ describe("buildTx — pool", () => {
 
   it("redeem: the tx is PoolService.removeLiquidity's on the shares the sim priced", async () => {
     const { execute, sdk, txs } = mockChain();
-    const redeemSim: Extract<LpPrepare, { success: true }> = {
-      success: true,
+    const redeemSim: SDKResult<LpResult> = {
+      ok: true,
       data: {
         operations: [],
         state: {
@@ -193,6 +199,7 @@ describe("buildTx — pool", () => {
           tokenOut: amount(UNDERLYING, 505n),
         },
         calls: [],
+        ...AT,
       },
     };
 
@@ -276,9 +283,9 @@ describe("buildTx — open", () => {
     curator: CURATOR,
     liquidationDiscount: 0,
   };
-  const sim: Extract<OpenStrategyPrepare, { success: true }> = {
-    success: true,
-    data: { state },
+  const sim: SDKResult<OpenStrategyResult> = {
+    ok: true,
+    data: { state, ...AT },
   };
   const collateral = [{ token: UNDERLYING, balance: 1_000n }];
 
@@ -319,7 +326,7 @@ describe("buildTx — open", () => {
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
         wallet: WALLET,
-        sim: { success: false, error: { code: "debtOutOfRange" } } as never,
+        sim: { ok: false, error: { code: "debtOutOfRange" } } as never,
         collateral,
         ethAmount: 0n,
       }),
@@ -406,8 +413,8 @@ describe("buildTx — open", () => {
 });
 
 describe("buildTx — account", () => {
-  const sim: Extract<StrategyPrepare, { success: true }> = {
-    success: true,
+  const sim: SDKResult<StrategyResult> = {
+    ok: true,
     data: {
       operations: [],
       state: {
@@ -431,6 +438,7 @@ describe("buildTx — account", () => {
         liquidationPrice: null,
       },
       calls: [CALL, { target: POOL, callData: "0xbeef" }],
+      ...AT,
     },
   };
 
@@ -511,7 +519,7 @@ describe("buildTx — account", () => {
         chainId: CHAIN_ID,
         creditAccount: CREDIT_ACCOUNT,
         wallet: WALLET,
-        sim: { success: false, error: { code: "debtOutOfRange" } } as never,
+        sim: { ok: false, error: { code: "debtOutOfRange" } } as never,
       }),
     ).rejects.toThrow(/failed account preparation/);
     expect(sdk.accounts.executeCaUpdate).not.toHaveBeenCalled();

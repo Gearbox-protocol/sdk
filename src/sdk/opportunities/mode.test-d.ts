@@ -7,14 +7,16 @@ import type {
   Opportunity,
   PoolOpportunityChartMetric,
   PoolOpportunityRef,
+  SDKReturn,
   StrategyOpportunityRef,
 } from "../../model/index.js";
 import type { IOffchainOpportunities } from "../../offchain/index.js";
 import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
-  DelayedStrategyPrepare,
-  LpPrepare,
-  StrategyRoutesPrepare,
+  DelayedStrategyResult,
+  LpResult,
+  StrategyRoutesResult,
+  UnsupportedTokenPairError,
 } from "../prepare/index.js";
 import type { Mode } from "../types.js";
 import type { IOpportunities } from "./types.js";
@@ -59,16 +61,16 @@ describe("prepare quotes the delayed route with the instant one", () => {
   it("answers the LP flows outright, with no promise to await", () => {
     const pool = {} as PoolOpportunityRef;
     const params = { amount: 1_000n, wallet: WALLET };
-    expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<LpPrepare>();
+    expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<
+      SDKReturn<LpResult, UnsupportedTokenPairError>
+    >();
   });
 
   it("carries the request half in the flow that can be interrupted", () => {
     // one call quotes both routes, so the delayed request is a branch of the
     // answer rather than a method of its own
-    expectTypeOf<
-      Extract<StrategyRoutesPrepare, { success: true }>["data"]["delayed"]
-    >().toEqualTypeOf<
-      Extract<DelayedStrategyPrepare, { success: true }>["data"] | undefined
+    expectTypeOf<StrategyRoutesResult["delayed"]>().toEqualTypeOf<
+      DelayedStrategyResult | undefined
     >();
   });
 });
