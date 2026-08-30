@@ -287,10 +287,10 @@ Predict: 12 active min / 3 credits.
 
 ##### Tasks
 
-- [ ] D1-S1-T1 — the sdk workspace exposes the seven agent:* contract scripts and builds on a clean install
+- [ ] D1-S1-T1 — Add the seven agent:* scripts and the missing build dep so a clean checkout builds and tests.
       Writes: `package.json`, `pnpm-lock.yaml`, `src/quality/agentScripts.test.ts`.
       Predict: 12 active min / 3 credits.
-      How: add agent:install (pnpm install --frozen-lockfile), agent:test:backend (vitest run --project unit --), agent:test:e2e (vitest run --project e2e --), agent:test:frontend (N/A echo), agent:typecheck, agent:verify:commit (biome check staged via lint-staged if configured else check:ci), agent:verify:pr (check:ci + typecheck:ci + test:unit + build), agent:verify:docs (N/A); add unrun to devDependencies (tsdown config loader; clean-install build fails without it); RED test asserts the seven scripts exist and unrun is a devDependency Files written: package.json, pnpm-lock.yaml, src/quality/agentScripts.test.ts.
+      How: Thin aliases over the existing pnpm/vitest commands, plus `unrun` in devDependencies. Touches: package.json, pnpm-lock.yaml, src/quality/agentScripts.test.ts.
       RED: `bun run agent:test:backend -- src/quality/agentScripts.test.ts`
 
 ##### Acceptance criteria
@@ -317,10 +317,10 @@ Predict: 35 active min / 6 credits.
 
 ##### Tasks
 
-- [ ] D1-S2-T1 — the branch builds: barrel export restored, the half-landed *Verify rewire completed, removed-field assignments gone
+- [ ] D1-S2-T1 — Make the colleague's branch compile again.
       Writes: `src/onchain/market/credit/index.ts`, `src/onchain/market/credit/CreditSuite.ts`, `src/preview/preview/index.ts`, `src/preview/preview/previewOperation.ts`, `src/preview/preview/previewPoolPositionOperation.ts`, `src/preview/preview/previewExitOrRepayStrategyPosition.ts`, `src/preview/preview/previewOpenStrategyPosition.ts`, `src/preview/preview/previewAdjustStrategyPosition.ts`, `src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts`, `src/preview/preview/previewOpenStrategyVerify.ts`, `src/preview/preview/previewAdjustStrategyVerify.ts`, `src/preview/preview/buildDelayedStrategyVerify.ts`.
       Predict: 35 active min / 6 credits.
-      How: add creditOperationMarket to the credit barrel; drop underlyingToken from CreditSuite.creditOperationMarket; rewire preview/index.ts and previewOperation.ts to the new *Verify files and delete the three superseded old files; apply the 7-name rename map in the two files with no Verify counterpart; drop targetCollateral/estClaimableAt assignments; conservative deltas: keep accountStrategyName for preview name, drop the gratuitous async on synchronous replay calls; RED is the colleague's own test written against the new names, failing today Files written: src/onchain/market/credit/index.ts, src/onchain/market/credit/CreditSuite.ts, src/preview/preview/index.ts, src/preview/preview/previewOperation.ts, src/preview/preview/previewPoolPositionOperation.ts, src/preview/preview/previewExitOrRepayStrategyPosition.ts, src/preview/preview/previewOpenStrategyPosition.ts, src/preview/preview/previewAdjustStrategyPosition.ts, src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts, src/preview/preview/previewOpenStrategyVerify.ts, src/preview/preview/previewAdjustStrategyVerify.ts, src/preview/preview/buildDelayedStrategyVerify.ts.
+      How: Restore the one missing barrel export, finish his preview rewire to the new *Verify modules (three old files go away, seven types get their new names), and stop assigning the fields he removed. Touches: src/onchain/market/credit/index.ts, src/onchain/market/credit/CreditSuite.ts, src/preview/preview/index.ts, src/preview/preview/previewOperation.ts, src/preview/preview/previewPoolPositionOperation.ts, src/preview/preview/previewExitOrRepayStrategyPosition.ts, src/preview/preview/previewOpenStrategyPosition.ts, src/preview/preview/previewAdjustStrategyPosition.ts, src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts, src/preview/preview/previewOpenStrategyVerify.ts, src/preview/preview/previewAdjustStrategyVerify.ts, src/preview/preview/buildDelayedStrategyVerify.ts.
       RED: `bun run agent:test:backend -- src/preview/preview/previewRWADelayedOperation.test.ts`
 
 ##### Acceptance criteria
@@ -348,10 +348,10 @@ Predict: 20 active min / 4 credits.
 
 ##### Tasks
 
-- [ ] D1-S3-T1 — SDKResult/SDKError/SDKReturn with ok discriminant plus sdkOk/sdkErr/isSDKError exist as the single envelope, WithError is gone from model
+- [ ] D1-S3-T1 — Create the result catalog: SDKResult / SDKError / SDKReturn with the ok discriminant, plus sdkOk / sdkErr / isSDKError.
       Writes: `src/model/result.ts`, `src/model/result.test.ts`, `src/model/errors.ts`, `src/model/index.ts`.
       Predict: 20 active min / 4 credits.
-      How: create src/model/result.ts with the owner's exact shapes and the three helpers; IGearboxError keeps one home (errors.ts) re-exported beside the catalog; remove WithError from model/errors.ts; barrel exports; RED spec asserts narrowing both ways, helper behavior, and that model exports no WithError Files written: src/model/result.ts, src/model/result.test.ts, src/model/errors.ts, src/model/index.ts.
+      How: One new model module; WithError is deleted. Touches: src/model/result.ts, src/model/result.test.ts, src/model/errors.ts, src/model/index.ts.
       RED: `bun run agent:test:backend -- src/model/result.test.ts`
 
 ##### Acceptance criteria
@@ -378,10 +378,10 @@ Predict: 60 active min / 11 credits.
 
 ##### Tasks
 
-- [ ] D1-S4-T1 — every prepare method answers Promise<SDKReturn<XResult, ExactUnion>> with the union from the engine trace; blanket PrepareError and DataResponse are gone from prepare
+- [ ] D1-S4-T1 — Every prepare method returns SDKReturn<XResult, its own exact error union> — no blanket union, no DataResponse.
       Writes: `src/sdk/prepare/errors.ts`, `src/sdk/prepare/types.ts`, `src/sdk/prepare/PrepareApi.ts`, `src/sdk/prepare/types.test-d.ts`, `src/sdk/prepare/PrepareApi.test.ts`, `src/sdk/execute/types.ts`, `src/sdk/execute/ExecuteApi.ts`.
       Predict: 60 active min / 11 credits.
-      How: declare the eight named per-method unions (LpError 1 code ... AdjustLeverageError 13) per the SPEC table; rename *Plan payloads to *Result adding blockNumber/timestamp from the query context; retype toPrepareError per-set; PrepareApi constructs sdkOk/sdkErr and stops wrapping in DataResponse; narrow MarketPausedError to creditManager-only and binding to exclude poolDebtLimit for prepare; execute namespace consumes result.data via ok narrowing; RED type-test file proves per-method exactness incl. negative tests for the three preview-only codes Files written: src/sdk/prepare/errors.ts, src/sdk/prepare/types.ts, src/sdk/prepare/PrepareApi.ts, src/sdk/prepare/types.test-d.ts, src/sdk/prepare/PrepareApi.test.ts, src/sdk/execute/types.ts, src/sdk/execute/ExecuteApi.ts.
+      How: Eight named unions from the engine trace, *Plan types renamed to *Result with block provenance, execute updated to consume ok/data. Touches: src/sdk/prepare/errors.ts, src/sdk/prepare/types.ts, src/sdk/prepare/PrepareApi.ts, src/sdk/prepare/types.test-d.ts, src/sdk/prepare/PrepareApi.test.ts, src/sdk/execute/types.ts, src/sdk/execute/ExecuteApi.ts.
       RED: `bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts`
 
 ##### Acceptance criteria
@@ -409,10 +409,10 @@ Predict: 50 active min / 9 credits.
 
 ##### Tasks
 
-- [ ] D1-S5-T1 — previewOperation answers SDKReturn; the six verdict classes are returned plain objects with string codes; IntentPreviewError leaves the public barrel
+- [ ] D1-S5-T1 — Preview answers SDKReturn too, and the six verdict classes become returned error objects instead of throws.
       Writes: `src/model/previews.ts`, `src/preview/preview/previewOperation.ts`, `src/preview/preview/errors.ts`, `src/preview/parse/errors.ts`, `src/preview/simulate/errors.ts`, `src/preview/index.ts`, `src/preview/preview/previewOperation.test-d.ts`, `src/onchain/market/zapper/errors.ts`, `src/onchain/accounts/withdrawal-compressor/errors.ts`, `src/onchain/validation/index.ts`.
       Predict: 50 active min / 9 credits.
-      How: OperationPreviewError re-expressed with string codes (numeric kept as a field); declass UnsupportedTarget/PoolFunction/Operation/Zapper, InvalidDelayedIntent, PreviewSimulation into IGearboxError objects constructed at their sites and returned; unexport IntentPreviewError from onchain validation barrel; checkOperation/checkSimulation untouched; RED extends previewOperation.test-d.ts with the SDKReturn shape assertions Files written: src/model/previews.ts, src/preview/preview/previewOperation.ts, src/preview/preview/errors.ts, src/preview/parse/errors.ts, src/preview/simulate/errors.ts, src/preview/index.ts, src/preview/preview/previewOperation.test-d.ts, src/onchain/market/zapper/errors.ts, src/onchain/accounts/withdrawal-compressor/errors.ts, src/onchain/validation/index.ts.
+      How: Numeric preview codes get string codes from the common vocabulary; IntentPreviewError leaves the public barrel. Touches: src/model/previews.ts, src/preview/preview/previewOperation.ts, src/preview/preview/errors.ts, src/preview/parse/errors.ts, src/preview/simulate/errors.ts, src/preview/index.ts, src/preview/preview/previewOperation.test-d.ts, src/onchain/market/zapper/errors.ts, src/onchain/accounts/withdrawal-compressor/errors.ts, src/onchain/validation/index.ts.
       RED: `bun run agent:test:backend -- src/preview/preview/previewOperation.test-d.ts`
 
 ##### Acceptance criteria
@@ -440,10 +440,10 @@ Predict: 40 active min / 7 credits.
 
 ##### Tasks
 
-- [ ] D1-S6-T1 — every audited bare throw on a public operation path is either a union member produced as SDKError or a justified kept-throw; no unclassified sites
+- [ ] D1-S6-T1 — No unclassified bare throws on public paths: caller-reachable ones become error codes, invariant guards stay throws with a reason.
       Writes: `src/sdk/prepare/throwSweep.test.ts`, `src/sdk/prepare/PrepareApi.ts`, `src/onchain/accounts/intents/index.ts`, `src/onchain/accounts/intents/tail.ts`.
       Predict: 40 active min / 7 credits.
-      How: convert PrepareApi:255 to noStrategyTargetCollateral on OpenStrategyError; assess the four intents/index.ts and two tail.ts sites — claim/resume-input-reachable ones become FinalizeError/route codes, invariant guards keep throw with justification comments; PoolService throws are caught at the PrepareApi boundary extending the lpRoute pattern (engine file untouched); RED spec drives each converted site via fixtures and asserts the SDKError, and walks the disposition list failing on an undispositioned site Files written: src/sdk/prepare/throwSweep.test.ts, src/sdk/prepare/PrepareApi.ts, src/onchain/accounts/intents/index.ts, src/onchain/accounts/intents/tail.ts.
+      How: Known sites from the audit are converted or justified; a list-driven test keeps the table complete. Touches: src/sdk/prepare/throwSweep.test.ts, src/sdk/prepare/PrepareApi.ts, src/onchain/accounts/intents/index.ts, src/onchain/accounts/intents/tail.ts.
       RED: `bun run agent:test:backend -- src/sdk/prepare/throwSweep.test.ts`
 
 ##### Acceptance criteria
@@ -471,10 +471,10 @@ Predict: 30 active min / 5 credits.
 
 ##### Tasks
 
-- [ ] D1-S7-T1 — the migration doc carries the catalog, per-method table and throw dispositions; the impact report enumerates every consumer break from real typechecks
+- [ ] D1-S7-T1 — Write the migration guide and the consumer impact report.
       Writes: `MIGRATION.md`, `docs/plans/precise-error-unions.impact.md`, `src/quality/migrationDocs.test.ts`.
       Predict: 30 active min / 5 credits.
-      How: rewrite the WithError section to SDKReturn/ok; add the per-method union table, Tier-2 changes, throw disposition table and consumer rename map; build dist, deptrack link into gearbox-backend and client-v3, run their typechecks, parse into impact.md with file:line per break; seed client-v3 D2 plan stub from it; RED test asserts MIGRATION sections and impact file exist and are non-empty Files written: MIGRATION.md, docs/plans/precise-error-unions.impact.md, src/quality/migrationDocs.test.ts.
+      How: MIGRATION.md gets the per-method table and throw dispositions; deptrack links the built sdk into both consumer repos and their typecheck output becomes impact.md. Touches: MIGRATION.md, docs/plans/precise-error-unions.impact.md, src/quality/migrationDocs.test.ts.
       RED: `bun run agent:test:backend -- src/quality/migrationDocs.test.ts`
 
 ##### Acceptance criteria
@@ -501,10 +501,10 @@ Predict: 25 active min / 4 credits.
 
 ##### Tasks
 
-- [ ] D1-S8-T1 — the whole Delivery is proven green and the union-exactness poison checks are recorded
+- [ ] D1-S8-T1 — Prove the Delivery: full verify run plus both union-exactness poison checks, recorded as evidence.
       Writes: `docs/plans/precise-error-unions.evidence.md`, `src/quality/deliveryGate.test.ts`.
       Predict: 25 active min / 4 credits.
-      How: run bun run agent:verify:pr on a fresh install; poison A: add a fake code to one union alias without a raise site — typecheck must fail; poison B: remove a real member — the exactness type test must fail; restore byte-exact; record both in evidence; deliveryGate test asserts evidence exists, grep-zero WithError/success-discriminant, and pushes the branch Files written: docs/plans/precise-error-unions.evidence.md, src/quality/deliveryGate.test.ts.
+      How: A fake code without a raise site, and a removed real member, must each fail typecheck; restored byte-exact. Touches: docs/plans/precise-error-unions.evidence.md, src/quality/deliveryGate.test.ts.
       RED: `bun run agent:test:backend -- src/quality/deliveryGate.test.ts`
 
 ##### Acceptance criteria
@@ -557,4 +557,20 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - put-stage D1-S7
 
 - put-stage D1-S8
+
+- replace-stage D1-S1
+
+- replace-stage D1-S2
+
+- replace-stage D1-S3
+
+- replace-stage D1-S4
+
+- replace-stage D1-S5
+
+- replace-stage D1-S6
+
+- replace-stage D1-S7
+
+- replace-stage D1-S8
 <!-- plan:execution:end -->
