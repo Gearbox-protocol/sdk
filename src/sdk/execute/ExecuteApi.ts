@@ -27,7 +27,7 @@ export class ExecuteApi implements IOpportunitiesExecute {
    * {@inheritDoc IOpportunitiesExecute.buildTx}
    **/
   public async buildTx(request: PrepareRequest): Promise<RawTx> {
-    if (!request.sim.success) {
+    if (!request.sim.ok) {
       // the types rule this out; a caller that skipped them still gets no
       // transaction out of a `prepare` result that failed
       throw new Error(

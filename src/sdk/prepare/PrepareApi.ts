@@ -2,13 +2,15 @@ import type { Address } from "viem";
 import type {
   Bps,
   ChainId,
-  ChainMetadata,
-  DataResponse,
+  IGearboxError,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  SDKError,
+  SDKReturn,
   StrategyPosition,
-  WithError,
+  Timestamp,
 } from "../../model/index.js";
+import { sdkErr, sdkOk } from "../../model/index.js";
 import type {
   Asset,
   ClaimableWithdrawal,
@@ -20,11 +22,11 @@ import type {
   LeverageBand,
   OnchainSDK,
   OpenStrategyPreviewResult,
+  PreviewIssue,
   ResumableIntent,
   StartIntent,
 } from "../../onchain/index.js";
 import {
-  type ChainQueryOneProps,
   CreditAccountOperationsService,
   hexEq,
   MultichainConstruct,
@@ -33,32 +35,45 @@ import {
   toToken,
 } from "../../onchain/index.js";
 import type { EnsureFreshChains } from "../types.js";
+import type {
+  AccountFlowError,
+  DebtOutOfRangeError,
+  InsufficientPoolLiquidityError,
+  LeverageOutOfRangeError,
+  MultipleDelayedWithdrawalsError,
+  NoDelayedRouteError,
+  NoRecordedIntentError,
+  NoStrategyTargetCollateralError,
+  OpenFlowError,
+  UnsupportedCollateralTokenError,
+  UnsupportedTokenPairError,
+  WithdrawalInProgressError,
+  WithRouteRefusals,
+} from "./errors.js";
 import {
   creditAccountNotFound,
   noStrategyTargetCollateral,
-  type PrepareError,
-  toPrepareError,
+  toRefusalError,
   unexpectedFailure,
 } from "./errors.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
-  AmountPrepare,
   DepositStrategyParams,
   FinalizeParams,
   IOpportunitiesPrepare,
   LpParams,
-  LpPrepare,
   LpRedeemParams,
+  LpResult,
   OpenStrategyParams,
-  OpenStrategyPrepare,
+  OpenStrategyResult,
   PoolInput,
   PositionInput,
   PrepareOptions,
   RepayStrategyParams,
   StrategyInput,
-  StrategyPrepare,
-  StrategyRoutesPrepare,
+  StrategyResult,
+  StrategyRoutesResult,
   WithdrawCollateralParams,
   WithdrawStrategyParams,
 } from "./types.js";
@@ -74,6 +89,15 @@ import { withdrawableCollaterals } from "./withdrawable-collaterals.js";
 export type ChainOf = (chainId: ChainId) => OnchainSDK;
 
 /**
+ * The block half of every result: the chain state the answer was computed
+ * from, and therefore the state its numbers hold at.
+ **/
+interface PreparedAt {
+  blockNumber: number;
+  timestamp: Timestamp;
+}
+
+/**
  * {@inheritDoc IOpportunitiesPrepare}
  *
  * Holds no state of its own: it owns the mapping from the public,
@@ -81,15 +105,18 @@ export type ChainOf = (chainId: ChainId) => OnchainSDK;
  * protocol knowledge stays in `CreditAccountOperationsService` and
  * `PoolService`.
  *
- * A prepared operation names one chain, so it reads through
- * {@link MultichainConstruct.queryChain}: there is no second source to fall back
- * to, hence a chain the SDK does not cover, or one that fails the read, is a
- * failure of the whole request rather than a thinner answer.
+ * A prepared operation names one chain and reads it directly: there is no
+ * second source to fall back to, so a chain the SDK does not cover, or one
+ * that fails the read, is a failure of the whole request rather than a thinner
+ * answer.
  *
- * No method here throws. Every way a preparation can fail — the market's own
- * refusals, the two the namespace decides itself, and anything the chain or the
- * engine raises — comes back described in the envelope, see {@link PrepareError}.
- * A caller writes one branch, not a branch and a `try`.
+ * No refusable async method here throws. Every way such a preparation can
+ * fail — the market's own refusals, the ones the namespace decides itself, and
+ * anything the chain or the engine raises — comes back in the failure half of
+ * its `SDKReturn`, under the codes that method's signature names. A caller
+ * writes one branch, not a branch and a `try`. The synchronous LP methods and
+ * the bare `max*` reads throw on bugs and lifecycle errors instead, see
+ * {@link IOpportunitiesPrepare}.
  **/
 export class PrepareApi
   extends MultichainConstruct
@@ -102,35 +129,13 @@ export class PrepareApi
     this.#ensureFresh = ensureFresh;
   }
 
-  protected override async queryChain<T>(
-    props: ChainQueryOneProps<T>,
-  ): Promise<DataResponse<T>> {
-    await this.#ensureFresh?.([this.sdk.chain(props.network).chainId]);
-    return super.queryChain(props);
-  }
-
   /**
-   * Runs a one-chain request whose answer is an envelope, describing whatever
-   * the chain, the read or the engine throws on the way rather than letting it
-   * escape.
-   *
-   * So every method below answers instead of rejecting, and a caller has one
-   * thing to branch on. "This cannot be done" and "we could not find out" are
-   * still told apart, by `error.code`: only the second is
-   * `unexpectedFailure`, and only it marks the chain failed in `meta`.
+   * The chain an async method reads, revalidated first so the state it is
+   * about to weigh is no older than the SDK's freshness bar.
    **/
-  async #answer<T>(
-    chainId: ChainId,
-    run: (sdk: OnchainSDK) => Promise<WithError<T, PrepareError>>,
-  ): Promise<DataResponse<WithError<T, PrepareError>>> {
-    try {
-      return await this.queryChain({ network: chainId, run });
-    } catch (e) {
-      return {
-        data: { success: false, error: unexpectedFailure(e) },
-        meta: { chains: [failedChain(chainId, e)] },
-      };
-    }
+  async #chain(chainId: ChainId): Promise<OnchainSDK> {
+    await this.#ensureFresh?.([this.sdk.chain(chainId).chainId]);
+    return this.sdk.chain(chainId);
   }
 
   /**
@@ -139,24 +144,28 @@ export class PrepareApi
   public async finalize(
     position: PositionInput,
     params: FinalizeParams,
-  ): Promise<DataResponse<StrategyPrepare>> {
-    return this.#answer(position.chainId, async sdk => {
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      | AccountFlowError
+      | NoRecordedIntentError
+      | NoDelayedRouteError
+      | WithdrawalInProgressError
+      | UnsupportedTokenPairError
+    >
+  > {
+    try {
+      const sdk = await this.#chain(position.chainId);
+      const at = stateBlock(sdk);
       const intent = resumable(params.intent ?? params.claimable.intent);
       if (!intent) {
-        return {
-          success: false,
-          error: toPrepareError({
-            reason: "noRecordedIntent",
-            detail: undefined,
-          }),
-        };
+        return sdkErr(
+          toRefusalError({ reason: "noRecordedIntent", detail: undefined }),
+        );
       }
       const creditAccount = await slice(sdk, position.creditAccount);
       if (!creditAccount) {
-        return {
-          success: false,
-          error: creditAccountNotFound(position.creditAccount),
-        };
+        return sdkErr(creditAccountNotFound(position.creditAccount));
       }
       return planned(
         await service(sdk).finishIntent({
@@ -167,26 +176,23 @@ export class PrepareApi
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
         }),
+        at,
       );
-    });
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
   }
 
   /**
    * {@inheritDoc IOpportunitiesPrepare.deposit}
    **/
-  public deposit(pool: PoolInput, params: LpParams): LpPrepare {
-    try {
-      return this.#depositPlan(pool, params);
-    } catch (e) {
-      return { success: false, error: unexpectedFailure(e) };
-    }
-  }
-
-  /**
-   * The arithmetic behind {@link deposit}, which throws where the SDK holds
-   * nothing for the pool or the chain it was handed.
-   **/
-  #depositPlan(pool: PoolInput, params: LpParams): LpPrepare {
+  public deposit(
+    pool: PoolInput,
+    params: LpParams,
+  ): SDKReturn<LpResult, UnsupportedTokenPairError> {
+    // No try: everything here is arithmetic on loaded state, so a throw is a
+    // bug or a lifecycle error (a chain never connected, an SDK not attached),
+    // and those stay thrown, see {@link IOpportunitiesPrepare}.
     const chain = this.sdk.chain(pool.chainId);
     const { marketRegister, pools } = chain;
     const tokenIn =
@@ -219,27 +225,22 @@ export class PrepareApi
       return unroutable(chain, tokenIn, tokenOut);
     }
 
-    return {
-      success: true,
-      data: { operations: [], state, calls: call.calls },
-    };
+    return sdkOk<LpResult>({
+      operations: [],
+      state,
+      calls: call.calls,
+      ...stateBlock(chain),
+    });
   }
 
   /**
    * {@inheritDoc IOpportunitiesPrepare.withdraw}
    **/
-  public withdraw(pool: PoolInput, params: LpParams): LpPrepare {
-    try {
-      return this.#withdrawPlan(pool, params);
-    } catch (e) {
-      return { success: false, error: unexpectedFailure(e) };
-    }
-  }
-
-  /**
-   * {@inheritDoc PrepareApi.depositPlan}
-   **/
-  #withdrawPlan(pool: PoolInput, params: LpParams): LpPrepare {
+  public withdraw(
+    pool: PoolInput,
+    params: LpParams,
+  ): SDKReturn<LpResult, UnsupportedTokenPairError> {
+    // {@inheritDoc PrepareApi.deposit} — same footing: refusal or throw.
     const chain = this.sdk.chain(pool.chainId);
     const { pools } = chain;
     // Withdrawals are paid in shares, and the share token *is* the pool.
@@ -268,24 +269,22 @@ export class PrepareApi
       mode: "withdraw",
     });
 
-    return { success: true, data: { operations: [], state, calls } };
+    return sdkOk<LpResult>({
+      operations: [],
+      state,
+      calls,
+      ...stateBlock(chain),
+    });
   }
 
   /**
    * {@inheritDoc IOpportunitiesPrepare.redeem}
    **/
-  public redeem(pool: PoolInput, params: LpRedeemParams): LpPrepare {
-    try {
-      return this.#redeemPlan(pool, params);
-    } catch (e) {
-      return { success: false, error: unexpectedFailure(e) };
-    }
-  }
-
-  /**
-   * {@inheritDoc PrepareApi.depositPlan}
-   **/
-  #redeemPlan(pool: PoolInput, params: LpRedeemParams): LpPrepare {
+  public redeem(
+    pool: PoolInput,
+    params: LpRedeemParams,
+  ): SDKReturn<LpResult, UnsupportedTokenPairError> {
+    // {@inheritDoc PrepareApi.deposit} — same footing: refusal or throw.
     const chain = this.sdk.chain(pool.chainId);
     const { pools } = chain;
     const tokenIn = params.tokenIn ?? pool.pool;
@@ -311,7 +310,12 @@ export class PrepareApi
       mode: "redeem",
     });
 
-    return { success: true, data: { operations: [], state, calls } };
+    return sdkOk<LpResult>({
+      operations: [],
+      state,
+      calls,
+      ...stateBlock(chain),
+    });
   }
 
   /**
@@ -320,17 +324,26 @@ export class PrepareApi
   public async openNewStrategy(
     strategy: StrategyInput,
     params: OpenStrategyParams,
-  ): Promise<DataResponse<OpenStrategyPrepare>> {
-    return this.#answer(strategy.chainId, async sdk => {
+  ): Promise<
+    SDKReturn<
+      OpenStrategyResult,
+      | OpenFlowError
+      | DebtOutOfRangeError
+      | LeverageOutOfRangeError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+      | NoStrategyTargetCollateralError
+    >
+  > {
+    try {
+      const sdk = await this.#chain(strategy.chainId);
+      const at = stateBlock(sdk);
       const targetToken =
         params.targetToken ??
         sdk.marketRegister.findCreditManager(strategy.creditManager)
           .strategyTargetCollateral;
       if (!targetToken) {
-        return {
-          success: false,
-          error: noStrategyTargetCollateral(strategy.creditManager),
-        };
+        return sdkErr(noStrategyTargetCollateral(strategy.creditManager));
       }
       return opened(
         await service(sdk).openStrategyIntent({
@@ -343,8 +356,11 @@ export class PrepareApi
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
         }),
+        at,
       );
-    });
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
   }
 
   /**
@@ -353,8 +369,24 @@ export class PrepareApi
   public async depositStrategy(
     position: PositionInput,
     params: DepositStrategyParams,
-  ): Promise<DataResponse<StrategyPrepare>> {
-    return this.#startIntent(position, params, {
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      | AccountFlowError
+      | DebtOutOfRangeError
+      | LeverageOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+    >
+  > {
+    return this.#startIntent<
+      | DebtOutOfRangeError
+      | LeverageOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+    >(position, params, {
       type: "DEPOSIT",
       token: params.token,
       amount: params.amount,
@@ -370,7 +402,20 @@ export class PrepareApi
   public async withdrawStrategy(
     position: PositionInput,
     params: WithdrawStrategyParams,
-  ): Promise<DataResponse<StrategyRoutesPrepare>> {
+  ): Promise<
+    SDKReturn<
+      StrategyRoutesResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedTokenPairError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
+      ) &
+        WithRouteRefusals
+    >
+  > {
     return this.#startRoutes(position, params, {
       type: "WITHDRAW",
       amount: params.amount,
@@ -383,22 +428,10 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.maxWithdraw}
    **/
-  public async maxWithdraw(
-    position: PositionInput,
-  ): Promise<DataResponse<AmountPrepare>> {
-    return this.#answer(position.chainId, async sdk => {
-      const creditAccount = await slice(sdk, position.creditAccount);
-      if (!creditAccount) {
-        return {
-          success: false,
-          error: creditAccountNotFound(position.creditAccount),
-        };
-      }
-      return {
-        success: true,
-        data: await service(sdk).maxWithdraw({ creditAccount, sdk }),
-      };
-    });
+  public async maxWithdraw(position: PositionInput): Promise<bigint> {
+    const sdk = await this.#chain(position.chainId);
+    const creditAccount = await this.#account(sdk, position);
+    return service(sdk).maxWithdraw({ creditAccount, sdk });
   }
 
   /**
@@ -407,8 +440,15 @@ export class PrepareApi
   public async repayStrategy(
     position: PositionInput,
     params: RepayStrategyParams,
-  ): Promise<DataResponse<StrategyPrepare>> {
-    return this.#startIntent(position, params, {
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      AccountFlowError | DebtOutOfRangeError | UnsupportedCollateralTokenError
+    >
+  > {
+    return this.#startIntent<
+      DebtOutOfRangeError | UnsupportedCollateralTokenError
+    >(position, params, {
       type: "REPAY",
       token: params.token,
       amount: params.amount,
@@ -419,22 +459,10 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.maxRepay}
    **/
-  public async maxRepay(
-    position: PositionInput,
-  ): Promise<DataResponse<AmountPrepare>> {
-    return this.#answer(position.chainId, async sdk => {
-      const creditAccount = await slice(sdk, position.creditAccount);
-      if (!creditAccount) {
-        return {
-          success: false,
-          error: creditAccountNotFound(position.creditAccount),
-        };
-      }
-      return {
-        success: true,
-        data: await service(sdk).maxRepay({ creditAccount, sdk }),
-      };
-    });
+  public async maxRepay(position: PositionInput): Promise<bigint> {
+    const sdk = await this.#chain(position.chainId);
+    const creditAccount = await this.#account(sdk, position);
+    return service(sdk).maxRepay({ creditAccount, sdk });
   }
 
   /**
@@ -443,8 +471,25 @@ export class PrepareApi
   public async adjustLeverage(
     position: PositionInput,
     params: AdjustLeverageParams,
-  ): Promise<DataResponse<StrategyRoutesPrepare>> {
-    return this.#startRoutes(position, params, {
+  ): Promise<
+    SDKReturn<
+      StrategyRoutesResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedTokenPairError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
+        | InsufficientPoolLiquidityError
+        | LeverageOutOfRangeError
+      ) &
+        WithRouteRefusals
+    >
+  > {
+    return this.#startRoutes<
+      InsufficientPoolLiquidityError | LeverageOutOfRangeError
+    >(position, params, {
       type: "ADJUST_LEVERAGE",
       targetLeverage: params.targetLeverage,
       token: params.token,
@@ -457,7 +502,7 @@ export class PrepareApi
   public async addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<DataResponse<StrategyPrepare>> {
+  ): Promise<SDKReturn<StrategyResult, AccountFlowError>> {
     return this.#startIntent(position, params, {
       type: "ADD_COLLATERAL",
       token: params.token,
@@ -472,7 +517,7 @@ export class PrepareApi
   public async withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<DataResponse<StrategyPrepare>> {
+  ): Promise<SDKReturn<StrategyResult, AccountFlowError>> {
     return this.#startIntent(position, params, {
       type: "WITHDRAW_ASSET",
       token: params.token,
@@ -489,9 +534,9 @@ export class PrepareApi
     collateral: readonly Asset[],
     targetHF?: Bps,
   ): LeverageBand | undefined {
-    // No `queryChain`: there is nothing to read and nothing to await, and
-    // wrapping arithmetic in a response would cost the caller the very
-    // immediacy this answer exists to give.
+    // Bare: there is nothing to read and nothing to await, and wrapping
+    // arithmetic in an envelope would cost the caller the very immediacy this
+    // answer exists to give.
     const sdk = this.sdk.chain(strategy.chainId);
     return service(sdk).leverageBand({
       sdk,
@@ -507,9 +552,9 @@ export class PrepareApi
   public withdrawableCollaterals(
     position: StrategyPosition,
   ): PositionCollateral[] {
-    // No `queryChain`, as with `leverageBand`: everything needed is on the
-    // position and in loaded token metadata, and wrapping a filter in a
-    // response would cost the caller the immediacy this answer exists for.
+    // Bare, as with `leverageBand`: everything needed is on the position and
+    // in loaded token metadata, and wrapping a filter in an envelope would
+    // cost the caller the immediacy this answer exists for.
     return withdrawableCollaterals(this.sdk.chain(position.chainId), position);
   }
 
@@ -520,81 +565,103 @@ export class PrepareApi
     position: PositionInput,
     token: Address,
     targetHF?: bigint,
-  ): Promise<DataResponse<AmountPrepare>> {
-    return this.#answer(position.chainId, async sdk => {
-      const creditAccount = await slice(sdk, position.creditAccount);
-      if (!creditAccount) {
-        return {
-          success: false,
-          error: creditAccountNotFound(position.creditAccount),
-        };
-      }
-      return {
-        success: true,
-        data: await service(sdk).maxWithdrawCollateral({
-          creditAccount,
-          sdk,
-          token,
-          targetHF,
-        }),
-      };
+  ): Promise<bigint> {
+    const sdk = await this.#chain(position.chainId);
+    const creditAccount = await this.#account(sdk, position);
+    return service(sdk).maxWithdrawCollateral({
+      creditAccount,
+      sdk,
+      token,
+      targetHF,
     });
   }
 
   /**
-   * Shared path of the two flows that sell a position asset, and therefore have
-   * two routes to offer: one account read, one intent, both routes quoted.
+   * The account a bare `max*` read weighs. These reads answer a number, not
+   * an envelope, so an account the markets do not hold is thrown rather than
+   * described, see {@link IOpportunitiesPrepare.maxWithdraw}.
    **/
-  async #startRoutes(
+  async #account(
+    sdk: OnchainSDK,
+    position: PositionInput,
+  ): Promise<CreditAccountSlice> {
+    const creditAccount = await slice(sdk, position.creditAccount);
+    if (!creditAccount) {
+      throw new Error(creditAccountNotFound(position.creditAccount).message);
+    }
+    return creditAccount;
+  }
+
+  /**
+   * Shared path of the two flows that sell a position asset, and therefore
+   * have two routes to offer: one account read, one intent, both routes
+   * quoted. Every refusal, the crash wrap included, carries `refused` so a
+   * form can say which routes were ruled out and why.
+   *
+   * @typeParam X - The codes the calling flow can raise beyond the shared
+   * ones, per the engine trace its signature spells out.
+   **/
+  async #startRoutes<X extends IGearboxError = never>(
     position: PositionInput,
     options: PrepareOptions,
     intent: DelayableIntent,
-  ): Promise<DataResponse<StrategyRoutesPrepare>> {
-    // Not `#answer`: this flow's failure half names the two routes as well, so
-    // the error it describes is a wider one, see {@link RoutesPrepareError}.
+  ): Promise<
+    SDKReturn<
+      StrategyRoutesResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedTokenPairError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
+        | X
+      ) &
+        WithRouteRefusals
+    >
+  > {
     try {
-      return await this.queryChain({
-        network: position.chainId,
-        run: async sdk => {
-          const creditAccount = await slice(sdk, position.creditAccount);
-          if (!creditAccount) {
-            return neitherRoute(creditAccountNotFound(position.creditAccount));
-          }
-          return routed(
-            await service(sdk).intentRoutes({
-              intent,
-              creditAccount,
-              sdk,
-              slippage: options.slippage,
-              quotaReserve: options.quotaReserve,
-            }),
-          );
-        },
-      });
+      const sdk = await this.#chain(position.chainId);
+      const at = stateBlock(sdk);
+      const creditAccount = await slice(sdk, position.creditAccount);
+      if (!creditAccount) {
+        return neitherRoute(creditAccountNotFound(position.creditAccount));
+      }
+      return routed(
+        await service(sdk).intentRoutes({
+          intent,
+          creditAccount,
+          sdk,
+          slippage: options.slippage,
+          quotaReserve: options.quotaReserve,
+        }),
+        at,
+      );
     } catch (e) {
-      return {
-        data: neitherRoute(unexpectedFailure(e)),
-        meta: { chains: [failedChain(position.chainId, e)] },
-      };
+      return neitherRoute(unexpectedFailure(e));
     }
   }
 
   /**
    * Shared path of the five flows that act on an existing account: read the
-   * account, then run the intent through the engine.
+   * account, then run the intent through the engine. Whatever the chain or
+   * the engine throws on the way is described as `unexpectedFailure` instead
+   * of escaping, so the flow always answers.
+   *
+   * @typeParam X - The codes the calling flow can raise beyond the shared
+   * ones, per the engine trace its signature spells out.
    **/
-  async #startIntent(
+  async #startIntent<X extends IGearboxError = never>(
     position: PositionInput,
     options: PrepareOptions,
     intent: StartIntent,
-  ): Promise<DataResponse<StrategyPrepare>> {
-    return this.#answer(position.chainId, async sdk => {
+  ): Promise<SDKReturn<StrategyResult, AccountFlowError | X>> {
+    try {
+      const sdk = await this.#chain(position.chainId);
+      const at = stateBlock(sdk);
       const creditAccount = await slice(sdk, position.creditAccount);
       if (!creditAccount) {
-        return {
-          success: false,
-          error: creditAccountNotFound(position.creditAccount),
-        };
+        return sdkErr(creditAccountNotFound(position.creditAccount));
       }
       return planned(
         await service(sdk).startIntent({
@@ -604,13 +671,27 @@ export class PrepareApi
           slippage: options.slippage,
           quotaReserve: options.quotaReserve,
         }),
+        at,
       );
-    });
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
   }
 }
 
 function service(sdk: OnchainSDK): CreditAccountOperationsService {
   return new CreditAccountOperationsService(sdk);
+}
+
+/**
+ * Reads the block the SDK's loaded state stands at — the same state every
+ * preparation below is computed from, so it is the block the result reports.
+ **/
+function stateBlock(sdk: OnchainSDK): PreparedAt {
+  return {
+    blockNumber: Number(sdk.currentBlock),
+    timestamp: Number(sdk.timestamp),
+  };
 }
 
 /**
@@ -665,24 +746,97 @@ function toClaimableWithdrawal(
 }
 
 /**
+ * The engine's refusal as one flow's failure half.
+ *
+ * The engine answers with the open union of every reason it can raise
+ * anywhere; which of them a given flow actually reaches is the engine trace
+ * written into the public signatures. This cast is the one place the open
+ * union is narrowed onto them — a code added to or removed from a flow has to
+ * move its signature, which `types.test-d.ts` pins.
+ **/
+function refusal<E extends IGearboxError>(issue: PreviewIssue): SDKError<E> {
+  return sdkErr(toRefusalError(issue) as unknown as E);
+}
+
+/**
  * A flow with two routes, refused before either could be quoted: the error is
  * the same one any other flow would report, with nothing to say about the
  * routes because neither was reached.
  **/
-function neitherRoute(error: PrepareError): StrategyRoutesPrepare {
-  return {
-    success: false,
-    error: { ...error, refused: { instant: undefined, delayed: undefined } },
-  };
+function neitherRoute<E extends IGearboxError>(
+  error: E,
+): SDKError<E & WithRouteRefusals> {
+  return sdkErr({
+    ...error,
+    refused: { instant: undefined, delayed: undefined },
+  });
 }
 
 /**
- * The chain entry for a request that was answered with
- * {@link UnexpectedFailureError}: the read did not happen, so the metadata says
- * so rather than reporting a block it never got.
+ * The engine's answer, as the envelope the namespace speaks in: what the
+ * operation comes to under `data`, stamped with the block it was computed
+ * from, or the refusal as an error carrying its own numbers, see
+ * {@link refusal}.
+ *
+ * The engine keeps its `ok` union — it is the shape the planners, the guards
+ * and their tests are written against — and the boundary is the one place the
+ * two vocabularies meet.
  **/
-function failedChain(chainId: ChainId, error: unknown): ChainMetadata {
-  return { chainId, status: "error", source: "onchain", error };
+function planned<E extends IGearboxError>(
+  result: IntentPreviewResult,
+  at: PreparedAt,
+): SDKReturn<StrategyResult, E> {
+  if (!result.ok) {
+    return refusal<E>(result);
+  }
+  const { operations, state, calls } = result;
+  return sdkOk({ operations, state, calls, ...at });
+}
+
+/**
+ * {@inheritDoc planned}
+ **/
+function opened<E extends IGearboxError>(
+  result: OpenStrategyPreviewResult,
+  at: PreparedAt,
+): SDKReturn<OpenStrategyResult, E> {
+  return result.ok ? sdkOk({ state: result.state, ...at }) : refusal<E>(result);
+}
+
+/**
+ * {@inheritDoc planned}
+ *
+ * Both routes are payload, refusal and all: `refused` says why a missing one is
+ * missing, and it stays on the error when neither route answered, since that is
+ * the same question asked of a request that has no viable half at all.
+ **/
+function routed<E extends IGearboxError & WithRouteRefusals>(
+  result: IntentRoutesResult,
+  at: PreparedAt,
+): SDKReturn<StrategyRoutesResult, E> {
+  if (!result.ok) {
+    const { refused, ...issue } = result;
+    // {@inheritDoc refusal} — the same narrowing, with `refused` carried over
+    return sdkErr({ ...toRefusalError(issue), refused } as unknown as E);
+  }
+  const { instant, delayed, refused } = result;
+  return sdkOk({
+    instant: instant && {
+      operations: instant.operations,
+      state: instant.state,
+      calls: instant.calls,
+      ...at,
+    },
+    delayed: delayed && {
+      operations: delayed.operations,
+      state: delayed.state,
+      calls: delayed.calls,
+      delayed: delayed.delayed,
+      ...at,
+    },
+    refused,
+    ...at,
+  });
 }
 
 /**
@@ -696,81 +850,22 @@ function unroutable(
   sdk: OnchainSDK,
   from: Address,
   to: Address | undefined,
-): LpPrepare {
-  return {
-    success: false,
-    error: toPrepareError({
+): SDKError<UnsupportedTokenPairError> {
+  return sdkErr(
+    toRefusalError({
       reason: "unsupportedTokenPair",
       detail: {
         from: toToken(sdk, from),
         to: to === undefined ? undefined : toToken(sdk, to),
       },
     }),
-  };
-}
-
-/**
- * The engine's answer, as the envelope the namespace speaks in: what the
- * operation comes to under `data`, or the refusal as an error carrying its own
- * numbers, see {@link toPrepareError}.
- *
- * The engine keeps its `ok` union — it is the shape the planners, the guards
- * and their tests are written against — and the boundary is the one place the
- * two vocabularies meet.
- **/
-function planned(result: IntentPreviewResult): StrategyPrepare {
-  if (!result.ok) {
-    return { success: false, error: toPrepareError(result) };
-  }
-  const { operations, state, calls } = result;
-  return { success: true, data: { operations, state, calls } };
-}
-
-/**
- * {@inheritDoc planned}
- **/
-function opened(result: OpenStrategyPreviewResult): OpenStrategyPrepare {
-  return result.ok
-    ? { success: true, data: { state: result.state } }
-    : { success: false, error: toPrepareError(result) };
-}
-
-/**
- * {@inheritDoc planned}
- *
- * Both routes are payload, refusal and all: `refused` says why a missing one is
- * missing, and it stays on the error when neither route answered, since that is
- * the same question asked of a request that has no viable half at all.
- **/
-function routed(result: IntentRoutesResult): StrategyRoutesPrepare {
-  if (!result.ok) {
-    const { refused, ...issue } = result;
-    return { success: false, error: { ...toPrepareError(issue), refused } };
-  }
-  const { instant, delayed, refused } = result;
-  return {
-    success: true,
-    data: {
-      instant: instant && {
-        operations: instant.operations,
-        state: instant.state,
-        calls: instant.calls,
-      },
-      delayed: delayed && {
-        operations: delayed.operations,
-        state: delayed.state,
-        calls: delayed.calls,
-        delayed: delayed.delayed,
-      },
-      refused,
-    },
-  };
+  );
 }
 
 /**
  * Picks the route the operation takes out of `tokenIn`, as a value rather than
  * an exception: an unroutable or ambiguous pair is a request the caller can
- * fix, so it belongs in the `ok: false` half alongside the strategy refusals.
+ * fix, so it belongs in the failure half alongside the strategy refusals.
  *
  * A pool with no route out of the input reports it by throwing, hence the
  * catch; a requested output is checked against the list rather than trusted,

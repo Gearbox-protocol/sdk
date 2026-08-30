@@ -2,10 +2,12 @@ import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import type {
   DelayedIntent,
+  IGearboxError,
   PositionClaimableWithdrawal,
+  SDKReturn,
   TokenAmount,
-  WithError,
 } from "../../model/index.js";
+import { isSDKError } from "../../model/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -20,15 +22,14 @@ import {
 import { MAX_UINT256 } from "../../onchain/constants/math.js";
 import type { MultichainSDK } from "../../onchain/index.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
-import type { PrepareError } from "./errors.js";
 import { PrepareApi } from "./PrepareApi.js";
 
 /**
  * What a preparation came to, or the refusal named as the test's failure — the
  * envelope narrowing every assertion below would otherwise have to repeat.
  */
-function plan<D>(result: WithError<D, PrepareError>): D {
-  if (!result.success) {
+function plan<D, E extends IGearboxError>(result: SDKReturn<D, E>): D {
+  if (isSDKError(result)) {
     throw new Error(`prepare refused: ${result.error.code}`);
   }
   return result.data;
@@ -38,6 +39,10 @@ const CHAIN_ID = 1;
 const POOL = "0x1000000000000000000000000000000000000001" as Address;
 const UNDERLYING = "0x2000000000000000000000000000000000000002" as Address;
 const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
+
+/** The block state the LP fake below holds, and every result must report. */
+const LP_BLOCK = 5n;
+const LP_TIMESTAMP = 1_700_000_000n;
 
 /** A priced amount, which is what a `PoolSimulation` reports. */
 const amount = (address: Address, value: bigint): TokenAmount => ({
@@ -72,6 +77,8 @@ function buildApi() {
   };
   const api = new PrepareApi({
     chain: () => ({
+      currentBlock: LP_BLOCK,
+      timestamp: LP_TIMESTAMP,
       pools,
       marketRegister: {
         findByPool: () => ({ pool: { underlying: UNDERLYING } }),
@@ -90,7 +97,7 @@ describe("PrepareApi.withdraw", () => {
       { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
     );
 
-    expect(result).toMatchObject({ success: true });
+    expect(result).toMatchObject({ ok: true });
     expect(pools.simulateWithdraw).toHaveBeenCalledWith({
       pool: POOL,
       amount: 110n,
@@ -101,6 +108,20 @@ describe("PrepareApi.withdraw", () => {
       expect.objectContaining({ amount: 110n, mode: "withdraw" }),
     );
   });
+
+  it("stamps the result with the block the pool state was loaded at", () => {
+    const { api } = buildApi();
+
+    const prepared = plan(
+      api.withdraw(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    expect(prepared.blockNumber).toBe(Number(LP_BLOCK));
+    expect(prepared.timestamp).toBe(Number(LP_TIMESTAMP));
+  });
 });
 
 /**
@@ -109,8 +130,8 @@ describe("PrepareApi.withdraw", () => {
  *
  * What is under test here is only the mapping — that each public method reaches
  * the engine with the intent its name promises, and that the answer comes back
- * wrapped in the multichain envelope. The arithmetic behind it belongs to the
- * intent specs.
+ * in the `SDKReturn` envelope. The arithmetic behind it belongs to the intent
+ * specs.
  */
 const TVL = 100000000000n;
 const DEBT = 50000000000n;
@@ -147,13 +168,12 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("openNewStrategy leverages the wallet's margin into the target", async () => {
     const { api, strategy } = buildStrategyApi();
 
-    const { data, meta } = await api.openNewStrategy(strategy, {
+    const result = await api.openNewStrategy(strategy, {
       collateral: [{ token: UND, balance: 20000000000n }],
       leverage: 300n,
     });
 
-    expect(meta.chains[0]?.status).toBe("success");
-    const prepared = plan(data);
+    const prepared = plan(result);
     // the credit manager's strategyTargetCollateral stands in for an unnamed target token
     expect(prepared.state.totalDebt.value).toBe(40000000000n);
     expect(
@@ -167,26 +187,46 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("depositStrategy keeps leverage while the position grows", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data } = await api.depositStrategy(position, {
+    const result = await api.depositStrategy(position, {
       token: UND,
       amount: 10000000000n,
     });
 
-    const prepared = plan(data);
+    const prepared = plan(result);
     // 100 UND of margin at the account's 2x borrows another 100
     expect(prepared.state.totalDebt.value).toBe(DEBT + 10000000000n);
+  });
+
+  it("stamps every result with the block the market state was loaded at", async () => {
+    const { api, position } = buildStrategyApi();
+
+    // the fixture sdk reports block 1 at timestamp 0, see `buildMockSdk`
+    const prepared = plan(
+      await api.depositStrategy(position, {
+        token: UND,
+        amount: 10000000000n,
+      }),
+    );
+    expect(prepared.blockNumber).toBe(1);
+    expect(prepared.timestamp).toBe(0);
+
+    const routes = plan(
+      await api.withdrawStrategy(position, { amount: MIN_DEBT, to: WALLET }),
+    );
+    expect(routes.blockNumber).toBe(1);
+    expect(routes.instant?.blockNumber).toBe(1);
+    expect(routes.instant?.timestamp).toBe(0);
   });
 
   it("repayStrategy pays the debt down with wallet funds", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data, meta } = await api.repayStrategy(position, {
+    const result = await api.repayStrategy(position, {
       token: UND,
       amount: 20000000000n,
     });
 
-    expect(meta.chains[0]?.status).toBe("success");
-    const prepared = plan(data);
+    const prepared = plan(result);
     expect(prepared.state.totalDebt.value).toBe(DEBT - 20000000000n);
     expect(prepared.operations.map(op => op.type)).toEqual([
       "addCollateral",
@@ -194,41 +234,40 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ]);
   });
 
-  it("maxRepay answers with the debt as it stands", async () => {
+  it("maxRepay answers with the debt as it stands, bare", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data } = await api.maxRepay(position);
-    expect(data).toEqual({ success: true, data: DEBT });
+    await expect(api.maxRepay(position)).resolves.toBe(DEBT);
   });
 
   it("maxWithdrawCollateral answers in the token, and withdrawCollateral takes it", async () => {
     const { api, position } = buildStrategyApi();
 
-    const max = plan((await api.maxWithdrawCollateral(position, POS)).data);
+    const max = await api.maxWithdrawCollateral(position, POS);
     expect(max).toBeGreaterThan(0n);
     // the ceiling is the account's, not the whole balance it happens to hold
     expect(max).toBeLessThan(TVL);
 
-    const { data } = await api.withdrawCollateral(position, {
+    const result = await api.withdrawCollateral(position, {
       token: POS,
       amount: max,
       to: WALLET,
     });
     // the ceiling the read answered with is one the flow accepts
-    plan(data);
+    plan(result);
   });
 
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
     const { api, position } = buildStrategyApi();
 
-    const max = plan((await api.maxWithdraw(position)).data);
+    const max = await api.maxWithdraw(position);
     expect(max).toBeGreaterThan(0n);
 
-    const { data } = await api.withdrawStrategy(position, {
+    const result = await api.withdrawStrategy(position, {
       amount: max,
       to: WALLET,
     });
-    const prepared = plan(data);
+    const prepared = plan(result);
     // this market has no redemption venue, so only the instant route answers
     expect(prepared.instant).toBeDefined();
     expect(prepared.refused.delayed).toBe("noDelayedRoute");
@@ -237,11 +276,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("withdrawStrategy past the net value exits the account", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data } = await api.withdrawStrategy(position, {
+    const result = await api.withdrawStrategy(position, {
       amount: TVL,
       to: WALLET,
     });
-    const prepared = plan(data);
+    const prepared = plan(result);
     expect(prepared.instant?.state.totalDebt.value).toBe(0n);
     expect(prepared.instant?.state.assets).toEqual([]);
   });
@@ -249,11 +288,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("withdrawStrategy with MAX_UINT256 sells the position and empties the account", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data } = await api.withdrawStrategy(position, {
+    const result = await api.withdrawStrategy(position, {
       amount: MAX_UINT256,
       to: WALLET,
     });
-    const prepared = plan(data);
+    const prepared = plan(result);
     const exit = prepared.instant;
     if (!exit) throw new Error("expected the instant route");
 
@@ -280,11 +319,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("repayStrategy with MAX_UINT256 settles the debt and drops the quotas", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data } = await api.repayStrategy(position, {
+    const result = await api.repayStrategy(position, {
       token: UND,
       amount: MAX_UINT256,
     });
-    const prepared = plan(data);
+    const prepared = plan(result);
 
     expect(prepared.operations.map(op => op.type)).toEqual([
       "addCollateral",
@@ -301,11 +340,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("adjustLeverage retargets the debt and quotes both routes", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data } = await api.adjustLeverage(position, {
+    const result = await api.adjustLeverage(position, {
       targetLeverage: 300n,
       token: POS,
     });
-    const prepared = plan(data);
+    const prepared = plan(result);
     // collateral is the invariant: 500 of it at 3x is 1000 of debt
     expect(prepared.instant?.state.totalDebt.value).toBe(TVL);
   });
@@ -323,8 +362,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       to: WALLET,
     });
 
-    const grown = plan(added.data);
-    const shrunk = plan(taken.data);
+    const grown = plan(added);
+    const shrunk = plan(taken);
     expect(grown.state.totalDebt.value).toBe(DEBT);
     expect(shrunk.state.totalDebt.value).toBe(DEBT);
     expect(grown.state.totalValue.value).toBe(TVL + 10000000000n);
@@ -337,13 +376,13 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       strategyTargetCollateral: undefined,
     } as unknown as ReturnType<typeof sdk.marketRegister.findCreditManager>);
 
-    const { data } = await api.openNewStrategy(strategy, {
+    const result = await api.openNewStrategy(strategy, {
       collateral: [{ token: UND, balance: 20000000000n }],
       leverage: 300n,
     });
 
-    expect(data).toEqual({
-      success: false,
+    expect(result).toEqual({
+      ok: false,
       error: {
         code: "noStrategyTargetCollateral",
         message: expect.any(String),
@@ -357,13 +396,13 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       chain: () => buildMarketSdk({ creditAccounts: [] }),
     } as unknown as MultichainSDK);
 
-    const { data } = await api.repayStrategy(
+    const result = await api.repayStrategy(
       { chainId: CHAIN_ID, creditAccount: CREDIT_ACCOUNT },
       { token: UND, amount: 20000000000n },
     );
 
-    expect(data).toEqual({
-      success: false,
+    expect(result).toEqual({
+      ok: false,
       error: {
         code: "creditAccountNotFound",
         message: expect.any(String),
@@ -372,42 +411,78 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
   });
 
-  it("describes a read that failed, and marks the chain failed with it", async () => {
+  it("describes a read that failed instead of rejecting", async () => {
     const { api, sdk, position } = buildStrategyApi();
     const boom = new Error("rpc is down");
     vi.spyOn(sdk.accounts, "getCreditAccountData").mockRejectedValue(boom);
 
-    const { data, meta } = await api.maxRepay(position);
+    const result = await api.addCollateral(position, {
+      token: POS,
+      amount: 10000000000n,
+    });
 
     // the one code that is not a verdict on the request: the whole failure is
     // handed over rather than flattened into a sentence
-    expect(data).toEqual({
-      success: false,
+    expect(result).toEqual({
+      ok: false,
       error: {
         code: "unexpectedFailure",
         message: expect.stringContaining("rpc is down"),
         cause: boom,
       },
     });
-    expect(meta.chains[0]).toMatchObject({ status: "error", error: boom });
   });
 
-  it("describes a chain the SDK was never connected to, on the LP flows too", () => {
+  it("describes a chain the SDK was never connected to, on the async flows", async () => {
     const api = new PrepareApi({
       chain: () => {
         throw new Error("no chain 999");
       },
     } as unknown as MultichainSDK);
 
-    const result = api.withdraw(
-      { chainId: 999, pool: POOL },
-      { amount: 1n, wallet: WALLET },
+    const result = await api.repayStrategy(
+      { chainId: 999, creditAccount: CREDIT_ACCOUNT },
+      { token: UND, amount: 1n },
     );
 
-    expect(result).toMatchObject({
-      success: false,
-      error: { code: "unexpectedFailure" },
-    });
+    if (!isSDKError(result)) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("unexpectedFailure");
+    expect(
+      result.error.code === "unexpectedFailure" && result.error.cause.message,
+    ).toBe("no chain 999");
+  });
+
+  it("the sync LP flows throw the same lifecycle error instead", () => {
+    const api = new PrepareApi({
+      chain: () => {
+        throw new Error("no chain 999");
+      },
+    } as unknown as MultichainSDK);
+
+    expect(() =>
+      api.withdraw(
+        { chainId: 999, pool: POOL },
+        { amount: 1n, wallet: WALLET },
+      ),
+    ).toThrow("no chain 999");
+  });
+
+  it("the bare max* reads reject rather than describe", async () => {
+    const { api, sdk, position } = buildStrategyApi();
+    const boom = new Error("rpc is down");
+    vi.spyOn(sdk.accounts, "getCreditAccountData").mockRejectedValue(boom);
+
+    await expect(api.maxRepay(position)).rejects.toBe(boom);
+  });
+
+  it("the bare max* reads throw on an account the markets do not hold", async () => {
+    const api = new PrepareApi({
+      chain: () => buildMarketSdk({ creditAccounts: [] }),
+    } as unknown as MultichainSDK);
+
+    await expect(
+      api.maxRepay({ chainId: CHAIN_ID, creditAccount: CREDIT_ACCOUNT }),
+    ).rejects.toThrow(/not found/i);
   });
 
   it("reports the market's refusal rather than throwing it", async () => {
@@ -424,13 +499,13 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       chain: () => sdk,
     } as unknown as MultichainSDK);
 
-    const { data } = await api.repayStrategy(
+    const result = await api.repayStrategy(
       { chainId: CHAIN_ID, creditAccount: CREDIT_ACCOUNT },
       { token: UND, amount: 20000000000n },
     );
 
-    expect(data).toEqual({
-      success: false,
+    expect(result).toEqual({
+      ok: false,
       error: {
         code: "marketPaused",
         message: expect.any(String),
@@ -460,12 +535,12 @@ describe("PrepareApi — the two-transaction route", () => {
   it("withdrawStrategy requests the redemption and records the tail", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.withdrawStrategy(position, {
+    const result = await api.withdrawStrategy(position, {
       amount: 10000000000n,
       to: WALLET,
     });
 
-    const prepared = plan(data);
+    const prepared = plan(result);
     const start = prepared.delayed;
     if (!start)
       throw new Error(`no delayed route: ${prepared.refused.delayed}`);
@@ -489,11 +564,11 @@ describe("PrepareApi — the two-transaction route", () => {
   it("adjustLeverage takes the same route down", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.adjustLeverage(position, {
+    const result = await api.adjustLeverage(position, {
       targetLeverage: 150n,
     });
 
-    const prepared = plan(data);
+    const prepared = plan(result);
     expect(prepared.delayed?.delayed.record).toEqual({
       type: "DECREASE_LEVERAGE",
     });
@@ -502,14 +577,14 @@ describe("PrepareApi — the two-transaction route", () => {
   it("finalize refuses a claim that names nothing to resume", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.finalize(position, {
+    const result = await api.finalize(position, {
       // A withdrawal requested without an intent, or read through a compressor
       // too old to report one: nothing says what it was part of.
       claimable: claimableOf(undefined),
     });
 
-    expect(data).toEqual({
-      success: false,
+    expect(result).toEqual({
+      ok: false,
       error: { code: "noRecordedIntent", message: expect.any(String) },
     });
   });
@@ -517,11 +592,11 @@ describe("PrepareApi — the two-transaction route", () => {
   it("finalize completes an exit from the claim it recorded", async () => {
     const { api, position } = buildStrategyApi(venue);
 
-    const { data } = await api.finalize(position, {
+    const result = await api.finalize(position, {
       claimable: claimableOf({ type: "CLOSE_ACCOUNT", to: WALLET }),
     });
 
-    const prepared = plan(data);
+    const prepared = plan(result);
     // Everything left is sold, the loan is settled and the rest handed over.
     expect(prepared.state.totalDebt.value).toBe(0n);
     expect(prepared.state.totalValue.value).toBe(0n);
@@ -545,7 +620,7 @@ describe("PrepareApi.redeem", () => {
       { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
     );
 
-    expect(result).toMatchObject({ success: true });
+    expect(result).toMatchObject({ ok: true });
     expect(pools.simulateRedeem).toHaveBeenCalledWith({
       pool: POOL,
       amount: 100n,
