@@ -20,11 +20,15 @@ import type {
  * error instead of re-deriving it. Switch on `code` and the fields narrow with
  * it.
  *
- * The codes are the engine's `PreviewErrorReason` members, which is what keeps
+ * Most codes are the engine's `PreviewErrorReason` members, which is what keeps
  * `prepare` and `preview` refusing in one vocabulary; what differs is where the
  * numbers sit. The engine keeps them one level down, in `detail`, because it
  * distributes them over `reason`; here they are stated outright, so it is
- * `error.maxDebt` rather than `error.detail.maxDebt`.
+ * `error.maxDebt` rather than `error.detail.maxDebt`. The last three are the
+ * namespace's own, raised before or around the engine.
+ *
+ * Nothing else comes out of a `prepare` method: every failure on the way to an
+ * answer, the ones that used to be thrown included, is one of these.
  **/
 export type PrepareError =
   | DebtOutOfRangeError
@@ -44,7 +48,10 @@ export type PrepareError =
   | InsufficientCollateralError
   | PoolSunsetError
   | QuotaCountExceededError
-  | MalformedTransactionError;
+  | MalformedTransactionError
+  | NoStrategyTargetCollateralError
+  | CreditAccountNotFoundError
+  | UnexpectedFailureError;
 
 /** The debt the request implies falls outside the facade's band. */
 export interface DebtOutOfRangeError extends IGearboxError {
@@ -244,6 +251,44 @@ export interface MalformedTransactionError extends IGearboxError {
 }
 
 /**
+ * Opening asked for no target token and the market names none of its own, so
+ * there is nothing to put the position into.
+ *
+ * A market fact, not a bad argument: pass a `targetToken` to open against a
+ * manager that has no default one.
+ **/
+export interface NoStrategyTargetCollateralError extends IGearboxError {
+  code: "noStrategyTargetCollateral";
+  creditManager: Address;
+}
+
+/**
+ * No account at that address in the markets this SDK is connected to — closed
+ * since it was listed, or read on the wrong chain.
+ **/
+export interface CreditAccountNotFoundError extends IGearboxError {
+  code: "creditAccountNotFound";
+  creditAccount: Address;
+}
+
+/**
+ * The SDK could not answer at all: a read that failed, a chain it is not
+ * connected to, a market or token address it knows nothing about, a contract
+ * that reverted where nothing should, a bug of ours.
+ *
+ * The one code that is not a verdict on the request — everything above says
+ * "this cannot be done", this one says "we do not know". It exists so that a
+ * `prepare` method always answers: the failure that used to escape as an
+ * exception arrives here instead, whole, under `cause`. `meta.chains` marks the
+ * chain as failed alongside it.
+ **/
+export interface UnexpectedFailureError extends IGearboxError {
+  code: "unexpectedFailure";
+  /** What actually went wrong, for a log and a bug report. */
+  cause: Error;
+}
+
+/**
  * The refusal of a request that has two routes to offer, see
  * {@link StrategyRoutesPrepare}.
  *
@@ -314,4 +359,45 @@ export function toPrepareError(issue: PreviewIssue): PrepareError {
     message: MESSAGES[issue.reason],
     ...issue.detail,
   } as PrepareError;
+}
+
+/**
+ * {@inheritDoc NoStrategyTargetCollateralError}
+ **/
+export function noStrategyTargetCollateral(
+  creditManager: Address,
+): NoStrategyTargetCollateralError {
+  return {
+    code: "noStrategyTargetCollateral",
+    message: `Credit manager ${creditManager} has no strategy target collateral, and none was named.`,
+    creditManager,
+  };
+}
+
+/**
+ * {@inheritDoc CreditAccountNotFoundError}
+ **/
+export function creditAccountNotFound(
+  creditAccount: Address,
+): CreditAccountNotFoundError {
+  return {
+    code: "creditAccountNotFound",
+    message: `Credit account not found: ${creditAccount}.`,
+    creditAccount,
+  };
+}
+
+/**
+ * {@inheritDoc UnexpectedFailureError}
+ *
+ * Takes what was thrown, whatever that is: a `throw` is not obliged to raise an
+ * `Error`, and `cause` promises one.
+ **/
+export function unexpectedFailure(thrown: unknown): UnexpectedFailureError {
+  const cause = thrown instanceof Error ? thrown : new Error(String(thrown));
+  return {
+    code: "unexpectedFailure",
+    message: `The SDK could not prepare this operation: ${cause.message}`,
+    cause,
+  };
 }

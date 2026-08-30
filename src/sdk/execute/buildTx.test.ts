@@ -1,6 +1,10 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
-import type { Curator, TokenAmount } from "../../model/index.js";
+import type {
+  Curator,
+  TokenAmount,
+  UnderlyingToken,
+} from "../../model/index.js";
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
   LpPrepare,
@@ -30,6 +34,15 @@ const rawTx = (tag: string): RawTx => ({
   contractMethod: { name: tag, inputs: [], payable: false },
   contractInputsValues: {},
 });
+
+const UNDERLYING_TOKEN: UnderlyingToken = {
+  chainId: CHAIN_ID,
+  address: UNDERLYING,
+  symbol: "TKN",
+  name: "Token",
+  decimals: 18,
+  wrappedAddress: null,
+};
 
 const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
@@ -243,6 +256,7 @@ describe("buildTx — open", () => {
   const state = {
     creditManager: CREDIT_MANAGER,
     name: "Test CM",
+    underlyingToken: UNDERLYING_TOKEN,
     totalDebt: amount(UNDERLYING, 2_000n),
     netValue: amount(UNDERLYING, 1_000n),
     totalValue: amount(UNDERLYING, 3_000n),
@@ -399,6 +413,7 @@ describe("buildTx — account", () => {
       state: {
         creditManager: CREDIT_MANAGER,
         name: "Test CM",
+        underlyingToken: UNDERLYING_TOKEN,
         curator: CURATOR,
         liquidationDiscount: 0,
         currentPrice: null,

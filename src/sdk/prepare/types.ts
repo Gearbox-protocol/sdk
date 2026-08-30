@@ -208,6 +208,15 @@ export interface OpenStrategyPlan {
 export type OpenStrategyPrepare = WithError<OpenStrategyPlan, PrepareError>;
 
 /**
+ * A ceiling one of the `max*` reads answers with, in the units that read names,
+ * or why the account it was asked about could not be weighed.
+ *
+ * The same envelope as a prepared operation, for the same reason: a form that
+ * cannot show a limit needs to say why as much as one that cannot prepare.
+ **/
+export type AmountPrepare = WithError<bigint, PrepareError>;
+
+/**
  * Shared knobs. Both default to the SDK's own defaults when omitted.
  **/
 export interface PrepareOptions {
@@ -408,6 +417,15 @@ export interface FinalizeParams extends PrepareOptions {
  *
  * Not to be confused with `src/preview`, which goes the other way: it takes
  * calldata that already exists and reports what it would do.
+ *
+ * Every method that can fail answers in the error envelope and none of them
+ * throws: a market that refuses, an account that is not there, a chain that
+ * cannot be reached — all of it arrives as `{ success: false, error }` with a
+ * code, see {@link PrepareError}. The two synchronous readers
+ * ({@link leverageBand}, {@link withdrawableCollaterals}) stay outside the
+ * envelope: they weigh state already loaded and say "nothing available" with
+ * `undefined` or an empty list, so their only failure is being handed a chain
+ * this SDK was never connected to — an argument error, which throws.
  **/
 export interface IOpportunitiesPrepare {
   /**
@@ -495,7 +513,7 @@ export interface IOpportunitiesPrepare {
    * Taking everything out needs none of this arithmetic: send `MAX_UINT256` to
    * {@link withdrawStrategy} and the exit is what runs.
    **/
-  maxWithdraw(position: PositionInput): Promise<DataResponse<bigint>>;
+  maxWithdraw(position: PositionInput): Promise<DataResponse<AmountPrepare>>;
 
   /**
    * Paying debt down with funds from the wallet: collateral stays where it is,
@@ -523,7 +541,7 @@ export interface IOpportunitiesPrepare {
    * underlying units: principal, interest and fees as of this read. Interest
    * keeps accruing, so a wallet meaning to settle sends this with a buffer.
    **/
-  maxRepay(position: PositionInput): Promise<DataResponse<bigint>>;
+  maxRepay(position: PositionInput): Promise<DataResponse<AmountPrepare>>;
 
   /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.
@@ -619,7 +637,7 @@ export interface IOpportunitiesPrepare {
     position: PositionInput,
     token: Address,
     targetHF?: bigint,
-  ): Promise<DataResponse<bigint>>;
+  ): Promise<DataResponse<AmountPrepare>>;
 
   /**
    * The tail of a delayed route: claim the matured withdrawal, then whatever the

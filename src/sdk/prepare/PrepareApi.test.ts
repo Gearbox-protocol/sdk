@@ -134,6 +134,7 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
   } as unknown as MultichainSDK);
   return {
     api,
+    sdk,
     position: { chainId: CHAIN_ID, creditAccount: CREDIT_ACCOUNT },
     strategy: {
       chainId: CHAIN_ID,
@@ -196,13 +197,14 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("maxRepay answers with the debt as it stands", async () => {
     const { api, position } = buildStrategyApi();
 
-    await expect(api.maxRepay(position)).resolves.toMatchObject({ data: DEBT });
+    const { data } = await api.maxRepay(position);
+    expect(data).toEqual({ success: true, data: DEBT });
   });
 
   it("maxWithdrawCollateral answers in the token, and withdrawCollateral takes it", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data: max } = await api.maxWithdrawCollateral(position, POS);
+    const max = plan((await api.maxWithdrawCollateral(position, POS)).data);
     expect(max).toBeGreaterThan(0n);
     // the ceiling is the account's, not the whole balance it happens to hold
     expect(max).toBeLessThan(TVL);
@@ -219,7 +221,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
     const { api, position } = buildStrategyApi();
 
-    const { data: max } = await api.maxWithdraw(position);
+    const max = plan((await api.maxWithdraw(position)).data);
     expect(max).toBeGreaterThan(0n);
 
     const { data } = await api.withdrawStrategy(position, {
@@ -327,6 +329,85 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(shrunk.state.totalDebt.value).toBe(DEBT);
     expect(grown.state.totalValue.value).toBe(TVL + 10000000000n);
     expect(shrunk.state.totalValue.value).toBe(TVL - 10000000000n);
+  });
+
+  it("reports a market with no target collateral rather than throwing", async () => {
+    const { api, sdk, strategy } = buildStrategyApi();
+    vi.spyOn(sdk.marketRegister, "findCreditManager").mockReturnValue({
+      strategyTargetCollateral: undefined,
+    } as unknown as ReturnType<typeof sdk.marketRegister.findCreditManager>);
+
+    const { data } = await api.openNewStrategy(strategy, {
+      collateral: [{ token: UND, balance: 20000000000n }],
+      leverage: 300n,
+    });
+
+    expect(data).toEqual({
+      success: false,
+      error: {
+        code: "noStrategyTargetCollateral",
+        message: expect.any(String),
+        creditManager: CREDIT_MANAGER,
+      },
+    });
+  });
+
+  it("reports an account the markets do not hold rather than throwing", async () => {
+    const api = new PrepareApi({
+      chain: () => buildMarketSdk({ creditAccounts: [] }),
+    } as unknown as MultichainSDK);
+
+    const { data } = await api.repayStrategy(
+      { chainId: CHAIN_ID, creditAccount: CREDIT_ACCOUNT },
+      { token: UND, amount: 20000000000n },
+    );
+
+    expect(data).toEqual({
+      success: false,
+      error: {
+        code: "creditAccountNotFound",
+        message: expect.any(String),
+        creditAccount: CREDIT_ACCOUNT,
+      },
+    });
+  });
+
+  it("describes a read that failed, and marks the chain failed with it", async () => {
+    const { api, sdk, position } = buildStrategyApi();
+    const boom = new Error("rpc is down");
+    vi.spyOn(sdk.accounts, "getCreditAccountData").mockRejectedValue(boom);
+
+    const { data, meta } = await api.maxRepay(position);
+
+    // the one code that is not a verdict on the request: the whole failure is
+    // handed over rather than flattened into a sentence
+    expect(data).toEqual({
+      success: false,
+      error: {
+        code: "unexpectedFailure",
+        message: expect.stringContaining("rpc is down"),
+        cause: boom,
+      },
+    });
+    expect(meta.chains[0]).toMatchObject({ status: "error", error: boom });
+  });
+
+  it("describes a chain the SDK was never connected to, on the LP flows too", () => {
+    const api = new PrepareApi({
+      chain: () => {
+        throw new Error("no chain 999");
+      },
+    } as unknown as MultichainSDK);
+
+    const result = api.withdraw(
+      { chainId: 999, pool: POOL },
+      { amount: 1n, wallet: WALLET },
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      error: { code: "unexpectedFailure" },
+    });
   });
 
   it("reports the market's refusal rather than throwing it", async () => {

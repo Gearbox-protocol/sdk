@@ -245,7 +245,10 @@ const OVERLAY_CASES: MergePositionListCase[] = [
     offchain: [OFFCHAIN_NULL_COLLATERAL],
     expectedSource: "onchain",
     expected: [
-      expectedStrategyOverlay(ONCHAIN_NULL_COLLATERAL, OFFCHAIN_NULL_COLLATERAL),
+      expectedStrategyOverlay(
+        ONCHAIN_NULL_COLLATERAL,
+        OFFCHAIN_NULL_COLLATERAL,
+      ),
     ],
   },
   {
@@ -273,7 +276,9 @@ const OVERLAY_CASES: MergePositionListCase[] = [
     onchain: [ONCHAIN_MIXED_CASE],
     offchain: [OFFCHAIN_LOWER_CASE],
     expectedSource: "onchain",
-    expected: [expectedStrategyOverlay(ONCHAIN_MIXED_CASE, OFFCHAIN_LOWER_CASE)],
+    expected: [
+      expectedStrategyOverlay(ONCHAIN_MIXED_CASE, OFFCHAIN_LOWER_CASE),
+    ],
   },
   {
     name: "serves the backend strategy whole while it is still fresh",

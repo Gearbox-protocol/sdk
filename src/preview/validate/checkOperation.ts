@@ -3,11 +3,11 @@ import type {
   AccountHoldings,
   AccountMetrics,
   AccountProjection,
+  AdjustStrategyPositionPreview,
   Bps,
+  OpenStrategyPositionPreview,
   OperationPreview,
-  PreviewAdjustStrategyVerify,
-  PreviewLpVerify,
-  PreviewOpenStrategyVerify,
+  PoolPositionOperationPreview,
   Token,
 } from "../../model/index.js";
 import type {
@@ -105,7 +105,7 @@ export function checkOperation(
 
 function poolIssues(
   sdk: OnchainSDK,
-  preview: PreviewLpVerify,
+  preview: PoolPositionOperationPreview,
   options: CheckOperationOptions,
   isDeposit: boolean,
 ): PreviewIssue | null {
@@ -288,7 +288,9 @@ export function collateralIssue(
 }
 
 /** The two previews that carry a position for the bars to weigh. */
-type CreditPreview = PreviewOpenStrategyVerify | PreviewAdjustStrategyVerify;
+type CreditPreview =
+  | OpenStrategyPositionPreview
+  | AdjustStrategyPositionPreview;
 
 /** The wallet's side of the operation, against the balances it was given. */
 function fundingIssue(
