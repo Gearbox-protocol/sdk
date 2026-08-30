@@ -494,7 +494,7 @@ Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S8-T1 — agent:verify:pr plus both union-exactness poisons recorded in precise-error-unions.evidence.md; deliveryGate.test.ts asserts the evidence. (25 min)
+- [x] D1-S8-T1 — agent:verify:pr plus both union-exactness poisons recorded in precise-error-unions.evidence.md; deliveryGate.test.ts asserts the evidence. (25 min) — de395d1bf9d58c64d3217e69a7e847686a5811a9
 <!-- plan:task-meta:{"writes":["docs/plans/precise-error-unions.evidence.md","src/quality/deliveryGate.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"poisons restored byte-exact","red":"bun run agent:test:backend -- src/quality/deliveryGate.test.ts"} -->
 
 ##### Acceptance criteria
@@ -503,13 +503,14 @@ Of which verification: 5 active min / 1 credits.
 - [ ] poison A (fake code, no raise site) and poison B (removed real member) each quoted with their failing tsc diagnostic in evidence, then restored byte-exact
 - [ ] pack check: `npm pack` installed into a scratch project typechecks a sample that narrows one prepare union — the published d.ts shape works
 - [ ] `grep -rn "WithError<\|success: true" src` is empty
-- [ ] Commit
+- [x] Commit — de395d1bf9d58c64d3217e69a7e847686a5811a9
 
 ##### Results
 
 <!-- plan:results:D1-S8:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S8-T1 | de395d1bf9d58c64d3217e69a7e847686a5811a9 | 2026-08-30T10:30:18.166Z–2026-08-30T10:36:48.000Z | 7 / 7 min | unavailable: runner did not expose usage | Cold-start gate exit 0 (125 files / 1416 unit tests, build ok); poison A 5 diagnostics, poison B 3, both quoted and restored byte-exact; pack check against the published d.ts caught and fixed the I7 MarketPausedError gap, rerun prints PACK_CHECK_OK; grep-zero enforced by the gate spec. |
 <!-- plan:results:D1-S8:end -->
 <!-- plan:stage:D1-S8:end -->
 <!-- plan:delivery:D1:end -->
@@ -743,4 +744,12 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - close D1-S7 partial commit:6db4f029dba74616d7218fb82c2b73de699ee0d2
 
 - deviation D1-S4: post-closure fixup: MarketPausedError narrowed to required creditManager (I7) — the S4 lane shipped the optional pair; the S8 pack check caught it.
+
+- record-result D1-S8 commit:de395d1bf9d58c64d3217e69a7e847686a5811a9
+
+- deviation D1-S8: git-lfs e2e fixtures were pointer stubs on this machine — materialized via git lfs pull (env fix, no repo change)
+
+- deviation D1-S8: the pack check caught an S4 gap (optional creditManager/pool pair) — fixed as a recorded S4 post-closure fixup
+
+- close D1-S8 partial commit:de395d1bf9d58c64d3217e69a7e847686a5811a9
 <!-- plan:execution:end -->
