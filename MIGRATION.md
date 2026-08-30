@@ -407,14 +407,39 @@ nested `ok: true` results). The errors are **`PrepareError`**, one shape per
 reason, and **`RoutesPrepareError`**, which is a `PrepareError` with the
 per-route `refused` still on it.
 
-`PreviewErrorReason` keeps its name and its members: it is the set of codes, and
-`preview` and the intents engine still refuse in it. The engine's internal
-`{ ok: false, reason, detail }` is unchanged as well — `PrepareApi` is the one
-place the two shapes meet.
+`PreviewErrorReason` keeps its name and its members: it is where most of the
+codes come from, and `preview` and the intents engine still refuse in it. The
+engine's internal `{ ok: false, reason, detail }` is unchanged as well —
+`PrepareApi` is the one place the two shapes meet.
 
-Thrown exceptions keep their old meaning: a read that failed, a contract that
-reverted unexpectedly, an argument that makes no sense. Those are not verdicts on
-the request and do not enter the envelope.
+**No `prepare` method throws any more.** Three codes are the namespace's own and
+cover what used to escape as an exception:
+
+| Code | Was | Carries |
+| ---- | --- | ------- |
+| `noStrategyTargetCollateral` | `throw new Error("credit manager … has no strategy target collateral")` | `creditManager` |
+| `creditAccountNotFound` | `throw new Error("credit account not found: …")` | `creditAccount` |
+| `unexpectedFailure` | anything else thrown: a failed read, an unconnected chain, an unknown pool, a bug | `cause`, the original `Error` |
+
+Only `unexpectedFailure` is not a verdict on the request — it says the SDK could
+not find out — and it is the only one that marks the chain failed in
+`meta.chains`. The `cause` is handed over whole, so logging and bug reports lose
+nothing by the request having answered instead of rejected.
+
+The three ceiling reads answer in the envelope too, since they can hit the same
+failures: `maxWithdraw`, `maxRepay` and `maxWithdrawCollateral` now return
+`DataResponse<AmountPrepare>`, where `AmountPrepare` is `WithError<bigint, PrepareError>`.
+
+```diff
+- const { data: max } = await sdk.prepare.maxRepay(position);
+- form.setLimit(max);
++ const { data: max } = await sdk.prepare.maxRepay(position);
++ if (max.success) form.setLimit(max.data);
+```
+
+`leverageBand` and `withdrawableCollaterals` stay as they were: they weigh state
+already loaded, and "nothing available" is `undefined` or an empty list rather
+than a refusal.
 
 ### Two amounts per swap: `est` on what only the floor is known for
 

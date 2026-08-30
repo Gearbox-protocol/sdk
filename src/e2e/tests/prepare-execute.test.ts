@@ -603,9 +603,10 @@ describe("prepare → execute on a mainnet fork", () => {
       await sync();
       const max = await prepare().maxWithdraw(position(creditAccount));
       expect(max.meta.chains[0]?.status).toBe("success");
+      if (!max.data.success) throw new Error(max.data.error.code);
       const { sim, timestamp } = routedPreview(
         await prepare().withdrawStrategy(position(creditAccount), {
-          amount: max.data,
+          amount: max.data.data,
           to: borrower,
           sourceToken: TARGET_TOKEN,
           slippage: S,
@@ -757,10 +758,11 @@ describe("prepare → execute on a mainnet fork", () => {
       await sync();
       const max = await prepare().maxRepay(position(creditAccount));
       expect(max.meta.chains[0]?.status).toBe("success");
+      if (!max.data.success) throw new Error(max.data.error.code);
       const { sim, preview, timestamp } = adjustPreview(
         await prepare().repayStrategy(position(creditAccount), {
           token: underlying,
-          amount: max.data + BUFFER,
+          amount: max.data.data + BUFFER,
         }),
       );
       expect(preview.totalDebt.value).toBe(0n);

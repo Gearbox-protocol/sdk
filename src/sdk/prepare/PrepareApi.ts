@@ -2,10 +2,12 @@ import type { Address } from "viem";
 import type {
   Bps,
   ChainId,
+  ChainMetadata,
   DataResponse,
   PositionClaimableWithdrawal,
   PositionCollateral,
   StrategyPosition,
+  WithError,
 } from "../../model/index.js";
 import type {
   Asset,
@@ -24,17 +26,24 @@ import type {
 import {
   type ChainQueryOneProps,
   CreditAccountOperationsService,
-  fetchCreditAccountSlice,
   hexEq,
   MultichainConstruct,
   type MultichainSDK,
+  toCreditAccountSlice,
   toToken,
 } from "../../onchain/index.js";
 import type { EnsureFreshChains } from "../types.js";
-import { toPrepareError } from "./errors.js";
+import {
+  creditAccountNotFound,
+  noStrategyTargetCollateral,
+  type PrepareError,
+  toPrepareError,
+  unexpectedFailure,
+} from "./errors.js";
 import type {
   AddCollateralParams,
   AdjustLeverageParams,
+  AmountPrepare,
   DepositStrategyParams,
   FinalizeParams,
   IOpportunitiesPrepare,
@@ -74,8 +83,13 @@ export type ChainOf = (chainId: ChainId) => OnchainSDK;
  *
  * A prepared operation names one chain, so it reads through
  * {@link MultichainConstruct.queryChain}: there is no second source to fall back
- * to, hence a chain the SDK does not cover, or one that fails the read, throws
- * rather than answering with empty metadata.
+ * to, hence a chain the SDK does not cover, or one that fails the read, is a
+ * failure of the whole request rather than a thinner answer.
+ *
+ * No method here throws. Every way a preparation can fail — the market's own
+ * refusals, the two the namespace decides itself, and anything the chain or the
+ * engine raises — comes back described in the envelope, see {@link PrepareError}.
+ * A caller writes one branch, not a branch and a `try`.
  **/
 export class PrepareApi
   extends MultichainConstruct
@@ -96,36 +110,64 @@ export class PrepareApi
   }
 
   /**
+   * Runs a one-chain request whose answer is an envelope, describing whatever
+   * the chain, the read or the engine throws on the way rather than letting it
+   * escape.
+   *
+   * So every method below answers instead of rejecting, and a caller has one
+   * thing to branch on. "This cannot be done" and "we could not find out" are
+   * still told apart, by `error.code`: only the second is
+   * `unexpectedFailure`, and only it marks the chain failed in `meta`.
+   **/
+  async #answer<T>(
+    chainId: ChainId,
+    run: (sdk: OnchainSDK) => Promise<WithError<T, PrepareError>>,
+  ): Promise<DataResponse<WithError<T, PrepareError>>> {
+    try {
+      return await this.queryChain({ network: chainId, run });
+    } catch (e) {
+      return {
+        data: { success: false, error: unexpectedFailure(e) },
+        meta: { chains: [failedChain(chainId, e)] },
+      };
+    }
+  }
+
+  /**
    * {@inheritDoc IOpportunitiesPrepare.finalize}
    **/
   public async finalize(
     position: PositionInput,
     params: FinalizeParams,
   ): Promise<DataResponse<StrategyPrepare>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk => {
-        const intent = resumable(params.intent ?? params.claimable.intent);
-        if (!intent) {
-          return {
-            success: false,
-            error: toPrepareError({
-              reason: "noRecordedIntent",
-              detail: undefined,
-            }),
-          };
-        }
-        return planned(
-          await service(sdk).finishIntent({
-            intent,
-            claimable: toClaimableWithdrawal(params.claimable),
-            creditAccount: await slice(sdk, position.creditAccount),
-            sdk,
-            slippage: params.slippage,
-            quotaReserve: params.quotaReserve,
+    return this.#answer(position.chainId, async sdk => {
+      const intent = resumable(params.intent ?? params.claimable.intent);
+      if (!intent) {
+        return {
+          success: false,
+          error: toPrepareError({
+            reason: "noRecordedIntent",
+            detail: undefined,
           }),
-        );
-      },
+        };
+      }
+      const creditAccount = await slice(sdk, position.creditAccount);
+      if (!creditAccount) {
+        return {
+          success: false,
+          error: creditAccountNotFound(position.creditAccount),
+        };
+      }
+      return planned(
+        await service(sdk).finishIntent({
+          intent,
+          claimable: toClaimableWithdrawal(params.claimable),
+          creditAccount,
+          sdk,
+          slippage: params.slippage,
+          quotaReserve: params.quotaReserve,
+        }),
+      );
     });
   }
 
@@ -133,6 +175,18 @@ export class PrepareApi
    * {@inheritDoc IOpportunitiesPrepare.deposit}
    **/
   public deposit(pool: PoolInput, params: LpParams): LpPrepare {
+    try {
+      return this.#depositPlan(pool, params);
+    } catch (e) {
+      return { success: false, error: unexpectedFailure(e) };
+    }
+  }
+
+  /**
+   * The arithmetic behind {@link deposit}, which throws where the SDK holds
+   * nothing for the pool or the chain it was handed.
+   **/
+  #depositPlan(pool: PoolInput, params: LpParams): LpPrepare {
     const chain = this.sdk.chain(pool.chainId);
     const { marketRegister, pools } = chain;
     const tokenIn =
@@ -175,6 +229,17 @@ export class PrepareApi
    * {@inheritDoc IOpportunitiesPrepare.withdraw}
    **/
   public withdraw(pool: PoolInput, params: LpParams): LpPrepare {
+    try {
+      return this.#withdrawPlan(pool, params);
+    } catch (e) {
+      return { success: false, error: unexpectedFailure(e) };
+    }
+  }
+
+  /**
+   * {@inheritDoc PrepareApi.depositPlan}
+   **/
+  #withdrawPlan(pool: PoolInput, params: LpParams): LpPrepare {
     const chain = this.sdk.chain(pool.chainId);
     const { pools } = chain;
     // Withdrawals are paid in shares, and the share token *is* the pool.
@@ -210,6 +275,17 @@ export class PrepareApi
    * {@inheritDoc IOpportunitiesPrepare.redeem}
    **/
   public redeem(pool: PoolInput, params: LpRedeemParams): LpPrepare {
+    try {
+      return this.#redeemPlan(pool, params);
+    } catch (e) {
+      return { success: false, error: unexpectedFailure(e) };
+    }
+  }
+
+  /**
+   * {@inheritDoc PrepareApi.depositPlan}
+   **/
+  #redeemPlan(pool: PoolInput, params: LpRedeemParams): LpPrepare {
     const chain = this.sdk.chain(pool.chainId);
     const { pools } = chain;
     const tokenIn = params.tokenIn ?? pool.pool;
@@ -245,31 +321,29 @@ export class PrepareApi
     strategy: StrategyInput,
     params: OpenStrategyParams,
   ): Promise<DataResponse<OpenStrategyPrepare>> {
-    return this.queryChain({
-      network: strategy.chainId,
-      run: async sdk => {
-        const targetToken =
-          params.targetToken ??
-          sdk.marketRegister.findCreditManager(strategy.creditManager)
-            .strategyTargetCollateral;
-        if (!targetToken) {
-          throw new Error(
-            `credit manager ${strategy.creditManager} has no strategy target collateral`,
-          );
-        }
-        return opened(
-          await service(sdk).openStrategyIntent({
-            sdk,
-            creditManager: strategy.creditManager,
-            collateral: params.collateral,
-            targetToken,
-            leverage: params.leverage,
-            leftoverBalances: params.leftoverBalances,
-            slippage: params.slippage,
-            quotaReserve: params.quotaReserve,
-          }),
-        );
-      },
+    return this.#answer(strategy.chainId, async sdk => {
+      const targetToken =
+        params.targetToken ??
+        sdk.marketRegister.findCreditManager(strategy.creditManager)
+          .strategyTargetCollateral;
+      if (!targetToken) {
+        return {
+          success: false,
+          error: noStrategyTargetCollateral(strategy.creditManager),
+        };
+      }
+      return opened(
+        await service(sdk).openStrategyIntent({
+          sdk,
+          creditManager: strategy.creditManager,
+          collateral: params.collateral,
+          targetToken,
+          leverage: params.leverage,
+          leftoverBalances: params.leftoverBalances,
+          slippage: params.slippage,
+          quotaReserve: params.quotaReserve,
+        }),
+      );
     });
   }
 
@@ -311,14 +385,19 @@ export class PrepareApi
    **/
   public async maxWithdraw(
     position: PositionInput,
-  ): Promise<DataResponse<bigint>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk =>
-        service(sdk).maxWithdraw({
-          creditAccount: await slice(sdk, position.creditAccount),
-          sdk,
-        }),
+  ): Promise<DataResponse<AmountPrepare>> {
+    return this.#answer(position.chainId, async sdk => {
+      const creditAccount = await slice(sdk, position.creditAccount);
+      if (!creditAccount) {
+        return {
+          success: false,
+          error: creditAccountNotFound(position.creditAccount),
+        };
+      }
+      return {
+        success: true,
+        data: await service(sdk).maxWithdraw({ creditAccount, sdk }),
+      };
     });
   }
 
@@ -342,14 +421,19 @@ export class PrepareApi
    **/
   public async maxRepay(
     position: PositionInput,
-  ): Promise<DataResponse<bigint>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk =>
-        service(sdk).maxRepay({
-          creditAccount: await slice(sdk, position.creditAccount),
-          sdk,
-        }),
+  ): Promise<DataResponse<AmountPrepare>> {
+    return this.#answer(position.chainId, async sdk => {
+      const creditAccount = await slice(sdk, position.creditAccount);
+      if (!creditAccount) {
+        return {
+          success: false,
+          error: creditAccountNotFound(position.creditAccount),
+        };
+      }
+      return {
+        success: true,
+        data: await service(sdk).maxRepay({ creditAccount, sdk }),
+      };
     });
   }
 
@@ -436,16 +520,24 @@ export class PrepareApi
     position: PositionInput,
     token: Address,
     targetHF?: bigint,
-  ): Promise<DataResponse<bigint>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk =>
-        service(sdk).maxWithdrawCollateral({
-          creditAccount: await slice(sdk, position.creditAccount),
+  ): Promise<DataResponse<AmountPrepare>> {
+    return this.#answer(position.chainId, async sdk => {
+      const creditAccount = await slice(sdk, position.creditAccount);
+      if (!creditAccount) {
+        return {
+          success: false,
+          error: creditAccountNotFound(position.creditAccount),
+        };
+      }
+      return {
+        success: true,
+        data: await service(sdk).maxWithdrawCollateral({
+          creditAccount,
           sdk,
           token,
           targetHF,
         }),
+      };
     });
   }
 
@@ -458,19 +550,33 @@ export class PrepareApi
     options: PrepareOptions,
     intent: DelayableIntent,
   ): Promise<DataResponse<StrategyRoutesPrepare>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk =>
-        routed(
-          await service(sdk).intentRoutes({
-            intent,
-            creditAccount: await slice(sdk, position.creditAccount),
-            sdk,
-            slippage: options.slippage,
-            quotaReserve: options.quotaReserve,
-          }),
-        ),
-    });
+    // Not `#answer`: this flow's failure half names the two routes as well, so
+    // the error it describes is a wider one, see {@link RoutesPrepareError}.
+    try {
+      return await this.queryChain({
+        network: position.chainId,
+        run: async sdk => {
+          const creditAccount = await slice(sdk, position.creditAccount);
+          if (!creditAccount) {
+            return neitherRoute(creditAccountNotFound(position.creditAccount));
+          }
+          return routed(
+            await service(sdk).intentRoutes({
+              intent,
+              creditAccount,
+              sdk,
+              slippage: options.slippage,
+              quotaReserve: options.quotaReserve,
+            }),
+          );
+        },
+      });
+    } catch (e) {
+      return {
+        data: neitherRoute(unexpectedFailure(e)),
+        meta: { chains: [failedChain(position.chainId, e)] },
+      };
+    }
   }
 
   /**
@@ -482,21 +588,23 @@ export class PrepareApi
     options: PrepareOptions,
     intent: StartIntent,
   ): Promise<DataResponse<StrategyPrepare>> {
-    return this.queryChain({
-      network: position.chainId,
-      run: async sdk => {
-        const creditAccount = await slice(sdk, position.creditAccount);
-
-        return planned(
-          await service(sdk).startIntent({
-            intent,
-            creditAccount,
-            sdk,
-            slippage: options.slippage,
-            quotaReserve: options.quotaReserve,
-          }),
-        );
-      },
+    return this.#answer(position.chainId, async sdk => {
+      const creditAccount = await slice(sdk, position.creditAccount);
+      if (!creditAccount) {
+        return {
+          success: false,
+          error: creditAccountNotFound(position.creditAccount),
+        };
+      }
+      return planned(
+        await service(sdk).startIntent({
+          intent,
+          creditAccount,
+          sdk,
+          slippage: options.slippage,
+          quotaReserve: options.quotaReserve,
+        }),
+      );
     });
   }
 }
@@ -505,11 +613,17 @@ function service(sdk: OnchainSDK): CreditAccountOperationsService {
   return new CreditAccountOperationsService(sdk);
 }
 
-function slice(
+/**
+ * The account the request names, or nothing where the markets this SDK is
+ * connected to hold no such account — closed since it was listed, or named on
+ * the wrong chain. Read rather than thrown, so the caller gets a code for it.
+ **/
+async function slice(
   sdk: OnchainSDK,
   creditAccount: Address,
-): Promise<CreditAccountSlice> {
-  return fetchCreditAccountSlice(sdk, creditAccount);
+): Promise<CreditAccountSlice | undefined> {
+  const data = await sdk.accounts.getCreditAccountData(creditAccount);
+  return data && toCreditAccountSlice(data);
 }
 
 /**
@@ -548,6 +662,27 @@ function toClaimableWithdrawal(
     ],
     redeemer: claimable.redeemer,
   };
+}
+
+/**
+ * A flow with two routes, refused before either could be quoted: the error is
+ * the same one any other flow would report, with nothing to say about the
+ * routes because neither was reached.
+ **/
+function neitherRoute(error: PrepareError): StrategyRoutesPrepare {
+  return {
+    success: false,
+    error: { ...error, refused: { instant: undefined, delayed: undefined } },
+  };
+}
+
+/**
+ * The chain entry for a request that was answered with
+ * {@link UnexpectedFailureError}: the read did not happen, so the metadata says
+ * so rather than reporting a block it never got.
+ **/
+function failedChain(chainId: ChainId, error: unknown): ChainMetadata {
+  return { chainId, status: "error", source: "onchain", error };
 }
 
 /**
