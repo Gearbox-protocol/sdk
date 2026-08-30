@@ -386,15 +386,15 @@ Of which verification: 8 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S5-T1 — previewOperation.ts answers SDKReturn over the six declassed verdicts; PreviewNamespace.ts follows; previewOperation.test-d.ts proves the exact union. (20 min)
+- [x] D1-S5-T1 — previewOperation.ts answers SDKReturn over the six declassed verdicts; PreviewNamespace.ts follows; previewOperation.test-d.ts proves the exact union. (20 min) — e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewOperation.ts","src/preview/preview/previewOperation.test-d.ts","src/sdk/preview/PreviewNamespace.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"numeric codes stay for backend compatibility","red":"bun run agent:test:backend -- src/preview/preview/previewOperation.test-d.ts"} -->
-- [ ] D1-S5-T2 — Declass the verdict errors of src/preview/preview/errors.ts, parse/errors.ts and simulate/errors.ts; verdictErrors.test.ts drives each construction path. (15 min)
+- [x] D1-S5-T2 — Declass the verdict errors of src/preview/preview/errors.ts, parse/errors.ts and simulate/errors.ts; verdictErrors.test.ts drives each construction path. (15 min) — e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 <!-- plan:task-meta:{"writes":["src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts"],"predictedActiveMinutes":15,"predictedCredits":3,"how":"same fields, no Error inheritance","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts"} -->
-- [ ] D1-S5-T3 — Declass zapper/errors.ts and withdrawal-compressor/errors.ts; IntentPreviewError leaves src/onchain/validation/index.ts and src/preview/index.ts. (15 min)
+- [x] D1-S5-T3 — Declass zapper/errors.ts and withdrawal-compressor/errors.ts; IntentPreviewError leaves src/onchain/validation/index.ts and src/preview/index.ts. (15 min) — e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 <!-- plan:task-meta:{"writes":["src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts"],"predictedActiveMinutes":15,"predictedCredits":2,"how":"two declassings, two barrel removals","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts -t onchain"} -->
-- [ ] D1-S5-T4 — Unwrap the SDKReturn once in previewMatchesPrepare.test.ts, previewRWADelayedOperation.test.ts, previewAdjustStrategyPosition.test.ts and previewCloseOrRepay.test.ts. (6 min)
+- [x] D1-S5-T4 — Unwrap the SDKReturn once in previewMatchesPrepare.test.ts, previewRWADelayedOperation.test.ts, previewAdjustStrategyPosition.test.ts and previewCloseOrRepay.test.ts. (6 min) — e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewMatchesPrepare.test.ts","src/preview/preview/previewRWADelayedOperation.test.ts","src/preview/preview/previewAdjustStrategyPosition.test.ts","src/preview/preview/previewCloseOrRepay.test.ts"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"mechanical: if (!res.ok) throw; use res.data \u2014 no assertion changes","red":"bun run agent:test:backend -- src/preview/preview/previewMatchesPrepare.test.ts"} -->
-- [ ] D1-S5-T5 — Unwrap the SDKReturn once in previewExitOrRepayStrategyPosition.test.ts and previewRWAOperation.test.ts. (4 min)
+- [x] D1-S5-T5 — Unwrap the SDKReturn once in previewExitOrRepayStrategyPosition.test.ts and previewRWAOperation.test.ts. (4 min) — e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewExitOrRepayStrategyPosition.test.ts","src/preview/preview/previewRWAOperation.test.ts"],"predictedActiveMinutes":4,"predictedCredits":1,"how":"mechanical: if (!res.ok) throw; use res.data \u2014 no assertion changes","red":"bun run agent:test:backend -- src/preview/preview/previewRWAOperation.test.ts"} -->
 
 ##### Acceptance criteria
@@ -403,13 +403,18 @@ Of which verification: 8 active min / 2 credits.
 - [ ] `grep -n "extends Error"` in the six former verdict files is empty
 - [ ] a negative type test proves IntentPreviewError is no longer importable from the /onchain barrel
 - [ ] `bun run agent:test:backend -- src/preview` exits 0
-- [ ] Commit
+- [x] Commit — e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 
 ##### Results
 
 <!-- plan:results:D1-S5:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S5-T1 | e69a9a6f4ce2f42cee7a512f50e39817b5fab99c | 2026-08-30T09:38:05.970Z–2026-08-30T10:16:00.000Z | 30 / 38 min | unavailable: runner did not expose usage | previewOperation answers SDKReturn over the six declassed verdicts (exact union type-asserted); factories are new-able plain objects with Symbol.hasInstance keeping foreign toThrow green; IntentPreviewError off the public barrels with a compile-negative; six consumer tests unwrapped mechanically with zero assertion changes; 265 preview/model tests green. |
+| D1-S5-T2 | e69a9a6f4ce2f42cee7a512f50e39817b5fab99c | 2026-08-30T09:38:05.970Z–2026-08-30T10:16:00.000Z | 30 / 38 min | unavailable: runner did not expose usage | previewOperation answers SDKReturn over the six declassed verdicts (exact union type-asserted); factories are new-able plain objects with Symbol.hasInstance keeping foreign toThrow green; IntentPreviewError off the public barrels with a compile-negative; six consumer tests unwrapped mechanically with zero assertion changes; 265 preview/model tests green. |
+| D1-S5-T3 | e69a9a6f4ce2f42cee7a512f50e39817b5fab99c | 2026-08-30T09:38:05.970Z–2026-08-30T10:16:00.000Z | 30 / 38 min | unavailable: runner did not expose usage | previewOperation answers SDKReturn over the six declassed verdicts (exact union type-asserted); factories are new-able plain objects with Symbol.hasInstance keeping foreign toThrow green; IntentPreviewError off the public barrels with a compile-negative; six consumer tests unwrapped mechanically with zero assertion changes; 265 preview/model tests green. |
+| D1-S5-T4 | e69a9a6f4ce2f42cee7a512f50e39817b5fab99c | 2026-08-30T09:38:05.970Z–2026-08-30T10:16:00.000Z | 30 / 38 min | unavailable: runner did not expose usage | previewOperation answers SDKReturn over the six declassed verdicts (exact union type-asserted); factories are new-able plain objects with Symbol.hasInstance keeping foreign toThrow green; IntentPreviewError off the public barrels with a compile-negative; six consumer tests unwrapped mechanically with zero assertion changes; 265 preview/model tests green. |
+| D1-S5-T5 | e69a9a6f4ce2f42cee7a512f50e39817b5fab99c | 2026-08-30T09:38:05.970Z–2026-08-30T10:16:00.000Z | 30 / 38 min | unavailable: runner did not expose usage | previewOperation answers SDKReturn over the six declassed verdicts (exact union type-asserted); factories are new-able plain objects with Symbol.hasInstance keeping foreign toThrow green; IntentPreviewError off the public barrels with a compile-negative; six consumer tests unwrapped mechanically with zero assertion changes; 265 preview/model tests green. |
 <!-- plan:results:D1-S5:end -->
 <!-- plan:stage:D1-S5:end -->
 
@@ -705,4 +710,14 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner) — six consumer test files need the one-line unwrap the new return shape implies sha256:9ac1bb35d12beca7f794050034a80ca745baf2d2bc4eb0b76cbe63ac88556694
 
 - amend implementation owner:фиксируем так (owner) — six consumer test files need the one-line unwrap sha256:d23980fc0f55153d109187096a7d2ace6728f95cb3765b14ed9960507ba24f43
+
+- record-result D1-S5 commit:e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
+
+- deviation D1-S5: two blocker rounds: OperationPreviewError proven payload-only (left the stage by owner amend); six consumer tests granted by owner amend
+
+- deviation D1-S5: InvalidDelayedIntentError.cause normalizes non-Error reasons like decodeSimulationError does
+
+- deviation D1-S5: src/sdk/preview/types.ts alignment left to the integrator (owned by no stage at the time)
+
+- close D1-S5 partial commit:e69a9a6f4ce2f42cee7a512f50e39817b5fab99c
 <!-- plan:execution:end -->
