@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:0f33fdd1a09c5246eb78c802bd632d329944b455a2198aed9024b878ce11a70c owner:фиксируем так (owner) — SPEC derivation rule: previews.ts leaves S5, orphaned PreviewNamespace return joins
+Implementation lock: sha256:325972ac2962c2b1b4ab25156005e099faa5cbb9c70454d0b646032d3eaf156e owner:фиксируем так (owner) — SPEC derivation rule
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -372,7 +372,7 @@ Of which verification: 10 active min / 2 credits.
 <!-- plan:stage:D1-S4:end -->
 
 <!-- plan:stage:D1-S5:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S4"],"writes":["src/preview/preview/previewOperation.ts","src/model/previews.ts","src/preview/preview/previewOperation.test-d.ts","src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts","src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts","src/sdk/preview/PreviewNamespace.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S5","verifyActiveMinutes":8,"verifyCredits":2} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S4"],"writes":["src/preview/preview/previewOperation.ts","src/preview/preview/previewOperation.test-d.ts","src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts","src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts","src/sdk/preview/PreviewNamespace.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S5","verifyActiveMinutes":8,"verifyCredits":2} -->
 #### Stage D1-S5 — Preview on SDKReturn, verdicts declassed
 
 Owner: agent; Profile: fast; Depends: D1-S3; Parallel with: D1-S4.
@@ -383,8 +383,8 @@ Of which verification: 8 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S5-T1 — previewOperation.ts answers SDKReturn with string codes; src/model/previews.ts keeps the numeric code as a field; previewOperation.test-d.ts asserts the shape. (20 min)
-<!-- plan:task-meta:{"writes":["src/preview/preview/previewOperation.ts","src/model/previews.ts","src/preview/preview/previewOperation.test-d.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"numeric codes stay for backend compatibility","red":"bun run agent:test:backend -- src/preview/preview/previewOperation.test-d.ts"} -->
+- [ ] D1-S5-T1 — previewOperation.ts answers SDKReturn over the six declassed verdicts; PreviewNamespace.ts follows; previewOperation.test-d.ts proves the exact union. (20 min)
+<!-- plan:task-meta:{"writes":["src/preview/preview/previewOperation.ts","src/preview/preview/previewOperation.test-d.ts","src/sdk/preview/PreviewNamespace.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"numeric codes stay for backend compatibility","red":"bun run agent:test:backend -- src/preview/preview/previewOperation.test-d.ts"} -->
 - [ ] D1-S5-T2 — Declass the verdict errors of src/preview/preview/errors.ts, parse/errors.ts and simulate/errors.ts; verdictErrors.test.ts drives each construction path. (15 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts"],"predictedActiveMinutes":15,"predictedCredits":3,"how":"same fields, no Error inheritance","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts"} -->
 - [ ] D1-S5-T3 — Declass zapper/errors.ts and withdrawal-compressor/errors.ts; IntentPreviewError leaves src/onchain/validation/index.ts and src/preview/index.ts. (15 min)
@@ -662,4 +662,12 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape sha256:4b70857cfa169dcb2c3d332fa97f2958220bfec6d9d9bb19ebf8f1ecdeb9a9cb
 
 - amend implementation owner:фиксируем так (owner) — SPEC derivation rule: previews.ts leaves S5, orphaned PreviewNamespace return joins sha256:0f33fdd1a09c5246eb78c802bd632d329944b455a2198aed9024b878ce11a70c
+
+- amend implementation owner:фиксируем так (owner) — SPEC derivation rule sha256:3a481618504eeea378db5c758585fe1137b332d1eadbfc1b4326c736525b1d73
+
+- amend implementation owner:фиксируем так (owner) — SPEC derivation rule sha256:cd6bfe09818ddc2006d0c79c4a277769596a3145c21c9ee2ad99bc53278e3b0b
+
+- amend implementation owner:фиксируем так (owner) — SPEC derivation rule sha256:88978db8eb1428c6a9d06580a03a7ab1147145dfc297eb40df58df825e306c1c
+
+- amend implementation owner:фиксируем так (owner) — SPEC derivation rule sha256:325972ac2962c2b1b4ab25156005e099faa5cbb9c70454d0b646032d3eaf156e
 <!-- plan:execution:end -->
