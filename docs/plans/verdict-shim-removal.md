@@ -182,11 +182,11 @@ Of which verification: 4 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] VSR_201 — errorSurface.test.ts opens the per-file wording sweep; model/errors.ts, onchain/validation/index.ts and checks.ts reword to refusal vocabulary (5 min)
+- [x] VSR_201 — errorSurface.test.ts opens the per-file wording sweep; model/errors.ts, onchain/validation/index.ts and checks.ts reword to refusal vocabulary (5 min) — d1f18f29f94d3707d22f0eba11f07065fc49bcd5
 <!-- plan:task-meta:{"writes":["src/quality/errorSurface.test.ts","src/model/errors.ts","src/onchain/validation/index.ts","src/onchain/validation/checks.ts"],"predictedActiveMinutes":5,"predictedCredits":1,"how":"the quality test builds the banned tokens from fragments (no self-exemption), greps src per file and MIGRATION.md for /verdict/i, plus repo-wide bans on Symbol.hasInstance and new-on-the-six-error-names; then clean model/errors.ts, onchain/validation/index.ts, checks.ts","red":"bun run agent:test:backend -- src/quality/errorSurface.test.ts -t 'model/errors.ts'"} -->
-- [ ] VSR_202 — wording sweep: intents/index.ts, checkOperation.ts, checkOperation.test.ts and GearboxSDK.loading.test.ts drop the retired term for refusal vocabulary (4 min)
+- [x] VSR_202 — wording sweep: intents/index.ts, checkOperation.ts, checkOperation.test.ts and GearboxSDK.loading.test.ts drop the retired term for refusal vocabulary (4 min) — d1f18f29f94d3707d22f0eba11f07065fc49bcd5
 <!-- plan:task-meta:{"writes":["src/onchain/accounts/intents/index.ts","src/preview/validate/checkOperation.ts","src/preview/validate/checkOperation.test.ts","src/sdk/GearboxSDK.loading.test.ts"],"predictedActiveMinutes":4,"predictedCredits":1,"how":"comment-only rewording; no behavior or type changes in these four files","red":"bun run agent:test:backend -- src/quality/errorSurface.test.ts -t 'intents/index.ts'"} -->
-- [ ] VSR_203 — wording sweep closes: prepare/errors.ts, types.test-d.ts, PrepareApi.test.ts; MIGRATION.md drops the term in every section and renames the union (6 min)
+- [x] VSR_203 — wording sweep closes: prepare/errors.ts, types.test-d.ts, PrepareApi.test.ts; MIGRATION.md drops the term in every section and renames the union (6 min) — d1f18f29f94d3707d22f0eba11f07065fc49bcd5
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.test.ts","MIGRATION.md"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"comment rewording plus MIGRATION.md whole-file: union and guard rename, the preview section and the stray mentions in the compat (219) and dispositions (436, 444) tables; keep every anchor migrationDocs.test.ts counts","red":"bun run agent:test:backend -- src/quality/errorSurface.test.ts -t 'prepare/errors.ts'"} -->
 
 ##### Acceptance criteria
@@ -201,6 +201,9 @@ Of which verification: 4 active min / 1 credits.
 <!-- plan:results:D1-S2:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| VSR_201 | d1f18f29f94d3707d22f0eba11f07065fc49bcd5 | 2026-08-30T12:52:17.936Z–2026-08-30T12:55:23.000Z | 3 / 3 min | unavailable: runner did not expose usage | Retired term swept from src and MIGRATION.md; per-file fragment-built grep gate green (924 checks); migration docs count-tests green. |
+| VSR_202 | d1f18f29f94d3707d22f0eba11f07065fc49bcd5 | 2026-08-30T12:52:17.936Z–2026-08-30T12:55:23.000Z | 3 / 3 min | unavailable: runner did not expose usage | Retired term swept from src and MIGRATION.md; per-file fragment-built grep gate green (924 checks); migration docs count-tests green. |
+| VSR_203 | d1f18f29f94d3707d22f0eba11f07065fc49bcd5 | 2026-08-30T12:52:17.936Z–2026-08-30T12:55:23.000Z | 3 / 3 min | unavailable: runner did not expose usage | Retired term swept from src and MIGRATION.md; per-file fragment-built grep gate green (924 checks); migration docs count-tests green. |
 <!-- plan:results:D1-S2:end -->
 <!-- plan:stage:D1-S2:end -->
 
@@ -291,4 +294,8 @@ Of which verification: 10 active min / 2 credits.
 - close D1-S1 partial commit:38e5299bbc63999443e04ed2943f421d40717cc7
 
 - deviation D1-S2: the wording gate also swept src/preview/previewOperationErrors.test.ts (an S1 write): its header referenced the plan slug, which carries the retired term; comment-only one-line reword rode in the S2 commit
+
+- record-result D1-S2 commit:d1f18f29f94d3707d22f0eba11f07065fc49bcd5
+
+- deviation D1-S2: previewOperationErrors.test.ts header reword (S1 write, comment-only) — recorded via add-deviation
 <!-- plan:execution:end -->
