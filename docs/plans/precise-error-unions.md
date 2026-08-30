@@ -348,11 +348,11 @@ Of which verification: 10 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; exactness in types.test-d.ts, mode.test-d.ts follows. (25 min)
+- [x] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; exactness in types.test-d.ts, mode.test-d.ts follows. (25 min) — 0b55f1beed33093a37a44e8bf147d1f217c2d8b7
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/opportunities/mode.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
-- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts, e2e prepare-execute.test.ts and GearboxSDK.loading.test.ts assert the new shape. (25 min)
+- [x] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts, e2e prepare-execute.test.ts and GearboxSDK.loading.test.ts assert the new shape. (25 min) — 0b55f1beed33093a37a44e8bf147d1f217c2d8b7
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/e2e/tests/prepare-execute.test.ts","src/sdk/GearboxSDK.loading.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
-- [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data; buildTx.test.ts, mode.test-d.ts and GearboxSDK.loading.test.ts follow the shape. (10 min)
+- [x] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data; buildTx.test.ts, mode.test-d.ts and GearboxSDK.loading.test.ts follow the shape. (10 min) — 0b55f1beed33093a37a44e8bf147d1f217c2d8b7
 <!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts","src/sdk/execute/buildTx.test.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
 
 ##### Acceptance criteria
@@ -361,13 +361,16 @@ Of which verification: 10 active min / 2 credits.
 - [ ] `grep -rn "DataResponse" src/sdk/prepare --include=*.ts | grep -v test` is empty
 - [ ] `bun run agent:typecheck` clean — the e2e refusal assertions compile against the new shape
 - [ ] previewMatchesPrepare.test.ts still green; `bun run agent:test:backend -- src/sdk` exits 0
-- [ ] Commit
+- [x] Commit — 406f317d796778a6fbd9a48715fc446d339e93a6
 
 ##### Results
 
 <!-- plan:results:D1-S4:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S4-T1 | 0b55f1beed33093a37a44e8bf147d1f217c2d8b7 | 2026-08-30T09:38:05.789Z–2026-08-30T10:06:08.000Z | 26 / 28 min | unavailable: runner did not expose usage | Inline unions over AccountFlowError/OpenFlowError on every prepare signature; blanket PrepareError and DataResponse gone from prepare; *Result renames with block provenance via stateBlock(); execute on ok/isSDKError; 262 sdk tests + 1376 full unit green; whole-repo tsc clean; 13 exactness type-tests incl. negative preview-only probes; parity harness untouched and green. |
+| D1-S4-T2 | 0b55f1beed33093a37a44e8bf147d1f217c2d8b7 | 2026-08-30T09:38:05.789Z–2026-08-30T10:06:08.000Z | 26 / 28 min | unavailable: runner did not expose usage | Inline unions over AccountFlowError/OpenFlowError on every prepare signature; blanket PrepareError and DataResponse gone from prepare; *Result renames with block provenance via stateBlock(); execute on ok/isSDKError; 262 sdk tests + 1376 full unit green; whole-repo tsc clean; 13 exactness type-tests incl. negative preview-only probes; parity harness untouched and green. |
+| D1-S4-T3 | 0b55f1beed33093a37a44e8bf147d1f217c2d8b7 | 2026-08-30T09:38:05.789Z–2026-08-30T10:06:08.000Z | 26 / 28 min | unavailable: runner did not expose usage | Inline unions over AccountFlowError/OpenFlowError on every prepare signature; blanket PrepareError and DataResponse gone from prepare; *Result renames with block provenance via stateBlock(); execute on ok/isSDKError; 262 sdk tests + 1376 full unit green; whole-repo tsc clean; 13 exactness type-tests incl. negative preview-only probes; parity harness untouched and green. |
 <!-- plan:results:D1-S4:end -->
 <!-- plan:stage:D1-S4:end -->
 
@@ -686,4 +689,12 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:5fc7e58cb87155631875a0528728bbbd95a9545e4abdf0c46611fc89bdd9e9ae
 
 - amend implementation owner:фиксируем так (owner) — orphaned test files distributed across the tasks that break them sha256:abe978db5d63dc0492b9bb22baa2ec1a3b58ed10cd0898a79568e1d3d71d464e
+
+- record-result D1-S4 commit:0b55f1beed33093a37a44e8bf147d1f217c2d8b7
+
+- deviation D1-S4: three orphaned test files consuming deleted shapes migrated and distributed across tasks by owner amend
+
+- deviation D1-S4: adapter renamed toRefusalError; max* readers throw on missing account; one documented correlated-union assertion inside refusal()/routed()
+
+- close D1-S4 partial commit:406f317d796778a6fbd9a48715fc446d339e93a6
 <!-- plan:execution:end -->
