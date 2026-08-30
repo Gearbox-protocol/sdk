@@ -346,8 +346,8 @@ Of which verification: 10 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S4-T1 — Write each prepare method's error union inline in src/sdk/prepare/types.ts (no aliases), keep per-code interfaces in errors.ts, prove exactness in types.test-d.ts. (25 min)
-<!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"the blanket PrepareError dies; unions transcribed from the SPEC table plus creditAccountNotFound on every PositionInput method and unexpectedFailure on every async one","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
+- [ ] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; prove exactness in types.test-d.ts. (25 min)
+<!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
 - [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts asserts the new shape. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
 - [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data instead of success/data. (10 min)
@@ -634,6 +634,8 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - replace-stage D1-S5
 
 - replace-stage D1-S6
+
+- replace-stage D1-S4
 
 - replace-stage D1-S4
 <!-- plan:execution:end -->
