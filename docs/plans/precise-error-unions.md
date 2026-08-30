@@ -288,7 +288,7 @@ Of which verification: 3 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S1-T1 — package.json gains the seven agent:* scripts and the unrun devDependency (pnpm-lock.yaml follows); agentScripts.test.ts proves both.
+- [ ] D1-S1-T1 — package.json gains the seven agent:* scripts and the unrun devDependency (pnpm-lock.yaml follows); agentScripts.test.ts proves both. (12 min)
 <!-- plan:task-meta:{"writes":["package.json","pnpm-lock.yaml","src/quality/agentScripts.test.ts"],"predictedActiveMinutes":12,"predictedCredits":3,"how":"thin aliases over pnpm/vitest","red":"bun run agent:test:backend -- src/quality/agentScripts.test.ts"} -->
 
 ##### Acceptance criteria
@@ -317,17 +317,17 @@ Of which verification: 8 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S2-T1 — Export creditOperationMarket from src/onchain/market/credit/index.ts.
+- [ ] D1-S2-T1 — Export creditOperationMarket from src/onchain/market/credit/index.ts. (4 min)
 <!-- plan:task-meta:{"writes":["src/onchain/market/credit/index.ts"],"predictedActiveMinutes":4,"predictedCredits":1,"how":"one export line","red":"bun run agent:test:backend -- src/onchain/accounts/liquidations"} -->
-- [ ] D1-S2-T2 — Remove the obsolete underlyingToken assignment from src/onchain/market/credit/CreditSuite.ts.
+- [ ] D1-S2-T2 — Remove the obsolete underlyingToken assignment from src/onchain/market/credit/CreditSuite.ts. (4 min)
 <!-- plan:task-meta:{"writes":["src/onchain/market/credit/CreditSuite.ts"],"predictedActiveMinutes":4,"predictedCredits":1,"how":"one field deletion","red":"bun run agent:test:backend -- src/onchain/accounts/liquidations -t withdrawals"} -->
-- [ ] D1-S2-T3 — Point src/preview/preview/index.ts and previewOperation.ts at the *Verify modules.
+- [ ] D1-S2-T3 — Point src/preview/preview/index.ts and previewOperation.ts at the *Verify modules. (8 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/index.ts","src/preview/preview/previewOperation.ts"],"predictedActiveMinutes":8,"predictedCredits":1,"how":"swap imports and barrel exports","red":"bun run agent:test:backend -- src/preview/preview/previewRWADelayedOperation.test.ts"} -->
-- [ ] D1-S2-T4 — Delete the superseded previewOpenStrategyPosition.ts, previewAdjustStrategyPosition.ts and buildDelayedStrategyPositionOperationPreview.ts.
+- [ ] D1-S2-T4 — Delete the superseded previewOpenStrategyPosition.ts, previewAdjustStrategyPosition.ts and buildDelayedStrategyPositionOperationPreview.ts. (6 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewOpenStrategyPosition.ts","src/preview/preview/previewAdjustStrategyPosition.ts","src/preview/preview/buildDelayedStrategyPositionOperationPreview.ts"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"three deletions once nothing imports them","red":"bun run agent:test:backend -- src/preview/preview/previewRWADelayedOperation.test.ts -t delayed"} -->
-- [ ] D1-S2-T5 — Rename the seven preview types (table: precise-error-unions.renames.md) in previewPoolPositionOperation.ts and previewExitOrRepayStrategyPosition.ts.
+- [ ] D1-S2-T5 — Rename the seven preview types (table: precise-error-unions.renames.md) in previewPoolPositionOperation.ts and previewExitOrRepayStrategyPosition.ts. (6 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewPoolPositionOperation.ts","src/preview/preview/previewExitOrRepayStrategyPosition.ts"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"mechanical rename per the committed table","red":"bun run agent:test:backend -- src/preview/validate/checkOperation.test.ts"} -->
-- [ ] D1-S2-T6 — Keep accountStrategyName and drop the stray async in previewOpenStrategyVerify.ts, previewAdjustStrategyVerify.ts and buildDelayedStrategyVerify.ts.
+- [ ] D1-S2-T6 — Keep accountStrategyName and drop the stray async in previewOpenStrategyVerify.ts, previewAdjustStrategyVerify.ts and buildDelayedStrategyVerify.ts. (7 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewOpenStrategyVerify.ts","src/preview/preview/previewAdjustStrategyVerify.ts","src/preview/preview/buildDelayedStrategyVerify.ts"],"predictedActiveMinutes":7,"predictedCredits":1,"how":"two behaviour fixes in three files","red":"bun run agent:test:backend -- src/preview/validate/checkOperation.test.ts -t name"} -->
 
 ##### Acceptance criteria
@@ -358,7 +358,7 @@ Of which verification: 4 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S3-T1 — src/model/result.ts defines SDKResult/SDKError/SDKReturn plus sdkOk/sdkErr/isSDKError; WithError leaves errors.ts and index.ts; result.test.ts proves narrowing.
+- [ ] D1-S3-T1 — src/model/result.ts defines SDKResult/SDKError/SDKReturn plus sdkOk/sdkErr/isSDKError; WithError leaves errors.ts and index.ts; result.test.ts proves narrowing. (20 min)
 <!-- plan:task-meta:{"writes":["src/model/result.ts","src/model/result.test.ts","src/model/errors.ts","src/model/index.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"one new module, barrel update","red":"bun run agent:test:backend -- src/model/result.test.ts"} -->
 
 ##### Acceptance criteria
@@ -387,11 +387,11 @@ Of which verification: 10 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S4-T1 — Declare the eight per-method unions in src/sdk/prepare/errors.ts, retype every signature in types.ts, prove exactness in types.test-d.ts.
+- [ ] D1-S4-T1 — Declare the eight per-method unions in src/sdk/prepare/errors.ts, retype every signature in types.ts, prove exactness in types.test-d.ts. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"the union table comes from the SPEC","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
-- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts asserts the new shape.
+- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts asserts the new shape. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
-- [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data instead of success/data.
+- [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data instead of success/data. (10 min)
 <!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
 
 ##### Acceptance criteria
@@ -422,11 +422,11 @@ Of which verification: 8 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] D1-S5-T1 — previewOperation.ts answers SDKReturn with string codes; src/model/previews.ts keeps the numeric code as a field; previewOperation.test-d.ts asserts the shape.
+- [ ] D1-S5-T1 — previewOperation.ts answers SDKReturn with string codes; src/model/previews.ts keeps the numeric code as a field; previewOperation.test-d.ts asserts the shape. (20 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/previewOperation.ts","src/model/previews.ts","src/preview/preview/previewOperation.test-d.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"numeric codes stay for backend compatibility","red":"bun run agent:test:backend -- src/preview/preview/previewOperation.test-d.ts"} -->
-- [ ] D1-S5-T2 — Declass the verdict errors of src/preview/preview/errors.ts, parse/errors.ts and simulate/errors.ts; verdictErrors.test.ts drives each construction path.
+- [ ] D1-S5-T2 — Declass the verdict errors of src/preview/preview/errors.ts, parse/errors.ts and simulate/errors.ts; verdictErrors.test.ts drives each construction path. (15 min)
 <!-- plan:task-meta:{"writes":["src/preview/preview/errors.ts","src/preview/parse/errors.ts","src/preview/simulate/errors.ts","src/preview/verdictErrors.test.ts"],"predictedActiveMinutes":15,"predictedCredits":3,"how":"same fields, no Error inheritance","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts"} -->
-- [ ] D1-S5-T3 — Declass zapper/errors.ts and withdrawal-compressor/errors.ts; IntentPreviewError leaves src/onchain/validation/index.ts and src/preview/index.ts.
+- [ ] D1-S5-T3 — Declass zapper/errors.ts and withdrawal-compressor/errors.ts; IntentPreviewError leaves src/onchain/validation/index.ts and src/preview/index.ts. (15 min)
 <!-- plan:task-meta:{"writes":["src/onchain/market/zapper/errors.ts","src/onchain/accounts/withdrawal-compressor/errors.ts","src/onchain/validation/index.ts","src/preview/index.ts"],"predictedActiveMinutes":15,"predictedCredits":2,"how":"two declassings, two barrel removals","red":"bun run agent:test:backend -- src/preview/verdictErrors.test.ts -t onchain"} -->
 
 ##### Acceptance criteria
@@ -457,9 +457,9 @@ Of which verification: 6 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S6-T1 — PrepareApi.ts returns noStrategyTargetCollateral and boundary-caught pool-route verdicts; throwSweep.test.ts walks the disposition list.
+- [ ] D1-S6-T1 — PrepareApi.ts returns noStrategyTargetCollateral and boundary-caught pool-route verdicts; throwSweep.test.ts walks the disposition list. (20 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/throwSweep.test.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"extends the lpRoute pattern; engine untouched","red":"bun run agent:test:backend -- src/sdk/prepare/throwSweep.test.ts -t prepare"} -->
-- [ ] D1-S6-T2 — Disposition the six throw sites of src/onchain/accounts/intents/index.ts and tail.ts: claim-input ones become codes, invariant guards keep a justified throw.
+- [ ] D1-S6-T2 — Disposition the six throw sites of src/onchain/accounts/intents/index.ts and tail.ts: claim-input ones become codes, invariant guards keep a justified throw. (20 min)
 <!-- plan:task-meta:{"writes":["src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts"],"predictedActiveMinutes":20,"predictedCredits":3,"how":"only the audited sites move","red":"bun run agent:test:backend -- src/sdk/prepare/throwSweep.test.ts -t engine"} -->
 
 ##### Acceptance criteria
@@ -489,7 +489,7 @@ Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S7-T1 — MIGRATION.md gains the per-method and disposition tables; deptrack consumer typechecks become precise-error-unions.impact.md; migrationDocs.test.ts asserts both.
+- [ ] D1-S7-T1 — MIGRATION.md gains the per-method and disposition tables; deptrack consumer typechecks become precise-error-unions.impact.md; migrationDocs.test.ts asserts both. (30 min)
 <!-- plan:task-meta:{"writes":["MIGRATION.md","docs/plans/precise-error-unions.impact.md","src/quality/migrationDocs.test.ts"],"predictedActiveMinutes":30,"predictedCredits":5,"how":"impact built from real linked typechecks of both consumers","red":"bun run agent:test:backend -- src/quality/migrationDocs.test.ts"} -->
 
 ##### Acceptance criteria
@@ -518,7 +518,7 @@ Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S8-T1 — agent:verify:pr plus both union-exactness poisons recorded in precise-error-unions.evidence.md; deliveryGate.test.ts asserts the evidence.
+- [ ] D1-S8-T1 — agent:verify:pr plus both union-exactness poisons recorded in precise-error-unions.evidence.md; deliveryGate.test.ts asserts the evidence. (25 min)
 <!-- plan:task-meta:{"writes":["docs/plans/precise-error-unions.evidence.md","src/quality/deliveryGate.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"poisons restored byte-exact","red":"bun run agent:test:backend -- src/quality/deliveryGate.test.ts"} -->
 
 ##### Acceptance criteria
@@ -573,6 +573,22 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - put-stage D1-S7
 
 - put-stage D1-S8
+
+- replace-stage D1-S1
+
+- replace-stage D1-S2
+
+- replace-stage D1-S3
+
+- replace-stage D1-S4
+
+- replace-stage D1-S5
+
+- replace-stage D1-S6
+
+- replace-stage D1-S7
+
+- replace-stage D1-S8
 
 - replace-stage D1-S1
 
