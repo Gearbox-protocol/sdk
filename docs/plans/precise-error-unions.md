@@ -249,6 +249,20 @@ without it).
 - No changes to multichain read envelopes or their consumers.
 - No `code` retrofit on thrown outage classes (root/offchain/core) — later.
 - No consumer-repo edits; no npm publish/version bump in this Delivery.
+
+# Deliveries
+
+- **D1 — sdk PR #497** (this repo, feat/precise-error-unions → next): the
+  catalog, per-method unions, throw sweep, colleague-branch completion,
+  MIGRATION.md and the deptrack impact report. Owner merges.
+- **D2 — client-v3 PR** (depends on D1): migrates the 7 files / 31 mentions
+  plus the invokers/catalog/issueCopy adapters; developed against the
+  deptrack-linked dist, marked ready when the sdk version is published and
+  the pin flipped. Encoded as its own planctl plan in the client-v3 repo
+  (planctl receipts are repo-local), seeded from D1's impact report; this
+  plan's D1 gate requires that seed to exist.
+- **D3 — gearbox-backend** (conditional): opened only if the impact report
+  shows non-zero breaks; the graph predicts none.
 <!-- plan:spec:end -->
 
 <!-- plan:implementation:start -->
