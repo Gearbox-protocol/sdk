@@ -362,84 +362,94 @@ and the function producing it, `previewOpenStrategy`, is **`buildOpenStrategySta
 
 ### `prepare` answers in the SDK's error envelope
 
-A refusal is an answer, not an exception — that has not changed. What has is the
-shape it comes in: instead of an `ok` union with a `reason` and a `detail`, every
-`prepare` result is a **`WithError<D, E>`** (exported from
-`@gearbox-protocol/sdk/model`), the envelope the rest of the SDK will speak in:
+A refusal is an answer, not an exception — that has not changed. The envelope
+did: every refusable method returns an **`SDKReturn<T, E>`** (from
+`@gearbox-protocol/sdk/model`), discriminated on `ok` — deliberately the
+discriminant consumers already narrow on:
 
 ```ts
-type WithError<D, E extends IGearboxError> =
-  | { success: true; data: D }
-  | { success: false; error: E };
+interface SDKResult<T> { ok: true; data: T }
+interface SDKError<E extends IGearboxError = IGearboxError> { ok: false; error: E }
+type SDKReturn<T, E extends IGearboxError> = SDKResult<T> | SDKError<E>;
+// plus sdkOk / sdkErr / isSDKError helpers
 ```
 
-`success` is the discriminant, the plan moves under `data`, and the failure half
-is an object with a `code` — the same reason as before — carrying that reason's
-own numbers directly rather than one level down in `detail`:
-
 ```diff
-  const { data: result } = await sdk.prepare.depositStrategy(position, params);
+  const result = await sdk.prepare.depositStrategy(position, params);
 - if (!result.ok) {
 -   return showRefusal(result.reason, result.detail.maxDebt);
 - }
-- const tx = await sdk.execute.buildTx({ kind: "account", sim: result, ... });
-+ if (!result.success) {
++ if (isSDKError(result)) {
 +   return showRefusal(result.error.code, result.error.maxDebt);
 + }
-+ const tx = await sdk.execute.buildTx({ kind: "account", sim: result, ... });
+  const tx = await sdk.execute.buildTx({ kind: "account", sim: result, ... });
 ```
 
-`buildTx` still takes the whole result, so passing a prepared operation through
-is unchanged; reading the plan out of one by hand is `result.data.calls`.
+There is **no `DataResponse` on prepare any more**: a prepared operation names
+one chain and one source, so the multichain envelope carried nothing. Its one
+useful field moved onto the results — every `*Result` carries `blockNumber`
+and `timestamp`, the block its numbers reflect. Result payloads are
+**`LpResult`**, **`StrategyResult`**, **`OpenStrategyResult`**,
+**`DelayedStrategyResult`** and **`StrategyRoutesResult`**.
 
-Each code is an interface of its own — `DebtOutOfRangeError`,
-`InsufficientPoolLiquidityError`, and so on — and `PrepareError` is their union.
-One field had to be renamed on the way up: `malformedTransaction` used to carry
-a `detail.code` (the SDK's `ERROR_*` number) and a `detail.message`, which are
-not the envelope's `code` and `message`, so they are now `previewCode` and
-`detail`.
+The blanket `PrepareError` union is gone. Every method's signature names its
+own exact error union inline, over two documented bases (`AccountFlowError`
+for operations on an existing account, `OpenFlowError` for the account-less
+open) — the union in the signature IS the list a caller has to handle,
+checked by the compiler.
 
-The payload of each result is now a type of its own, which is what a component
-holding a prepared operation should be typed against: **`LpPlan`**,
-**`StrategyPlan`**, **`DelayedStrategyPlan`**, **`OpenStrategyPlan`** and
-**`StrategyRoutes`** (whose `instant` and `delayed` are plain plans now, not
-nested `ok: true` results). The errors are **`PrepareError`**, one shape per
-reason, and **`RoutesPrepareError`**, which is a `PrepareError` with the
-per-route `refused` still on it.
+## Per-method error unions
 
-`PreviewErrorReason` keeps its name and its members: it is where most of the
-codes come from, and `preview` and the intents engine still refuse in it. The
-engine's internal `{ ok: false, reason, detail }` is unchanged as well —
-`PrepareApi` is the one place the two shapes meet.
+| method | error union |
+| --- | --- |
+| `deposit` / `withdraw` / `redeem` | `UnsupportedTokenPairError` (sync — bugs still throw) |
+| `openNewStrategy` | `OpenFlowError` + debtOutOfRange, leverageOutOfRange, unsupportedTokenPair, insufficientPoolLiquidity, noStrategyTargetCollateral |
+| `depositStrategy` | `AccountFlowError` + debtOutOfRange, leverageOutOfRange, unsupportedCollateralToken, unsupportedTokenPair, insufficientPoolLiquidity |
+| `repayStrategy` | `AccountFlowError` + debtOutOfRange, unsupportedCollateralToken |
+| `addCollateral` | `AccountFlowError` alone |
+| `withdrawCollateral` | `AccountFlowError` alone |
+| `withdrawStrategy` | `AccountFlowError` + debtOutOfRange, unsupportedTokenPair, noDelayedRoute, multipleDelayedWithdrawals, withdrawalInProgress — `& WithRouteRefusals` |
+| `adjustLeverage` | `withdrawStrategy`'s + insufficientPoolLiquidity, leverageOutOfRange — the widest |
+| `finalize` | `AccountFlowError` + noRecordedIntent, noDelayedRoute, withdrawalInProgress, unsupportedTokenPair |
 
-**No `prepare` method throws any more.** Three codes are the namespace's own and
-cover what used to escape as an exception:
+`poolSunset`, `quotaCountExceeded` and `malformedTransaction` are preview-only
+and appear in no prepare union — the exactness type tests refuse them.
+`maxWithdraw`, `maxRepay` and `maxWithdrawCollateral` return bare
+`Promise<bigint>` and throw on a missing account; `leverageBand` and
+`withdrawableCollaterals` stay as they were.
 
-| Code | Was | Carries |
-| ---- | --- | ------- |
-| `noStrategyTargetCollateral` | `throw new Error("credit manager … has no strategy target collateral")` | `creditManager` |
-| `creditAccountNotFound` | `throw new Error("credit account not found: …")` | `creditAccount` |
-| `unexpectedFailure` | anything else thrown: a failed read, an unconnected chain, an unknown pool, a bug | `cause`, the original `Error` |
+`preview` speaks the same envelope: `previewOperation` returns
+`SDKReturn<OperationPreview, PreviewVerdictError>` where the union is the six
+declassed verdicts (unsupported target / pool function / operation / zapper
+function, invalid delayed intent, failed simulation) — plain objects now, not
+thrown Error classes. `IntentPreviewError` left the public barrels; it is the
+engine's internal transport only.
 
-Only `unexpectedFailure` is not a verdict on the request — it says the SDK could
-not find out — and it is the only one that marks the chain failed in
-`meta.chains`. The `cause` is handed over whole, so logging and bug reports lose
-nothing by the request having answered instead of rejected.
+## Throw dispositions
 
-The three ceiling reads answer in the envelope too, since they can hit the same
-failures: `maxWithdraw`, `maxRepay` and `maxWithdrawCollateral` now return
-`DataResponse<AmountPrepare>`, where `AmountPrepare` is `WithError<bigint, PrepareError>`.
+Every audited bare `throw` on a public operation path is classified; the
+list-driven `throwSweep.test.ts` fails on an unlisted site:
 
-```diff
-- const { data: max } = await sdk.prepare.maxRepay(position);
-- form.setLimit(max);
-+ const { data: max } = await sdk.prepare.maxRepay(position);
-+ if (max.success) form.setLimit(max.data);
-```
+| site | disposition |
+| --- | --- |
+| `intents/index.ts` — exhaustive-switch default ("not implemented") | kept: unreachable invariant behind the typed intent union |
+| `intents/index.ts` — "plan started no withdrawal" | kept: engine self-contradiction, a bug not a verdict |
+| `intents/index.ts` — "no request among the operations" | kept: engine self-contradiction |
+| `intents/index.ts` — "neither answered nor refused" | kept: allSettled invariant |
+| `tail.ts` — exhaustive-switch default | kept: decodeDelayedIntent refuses unknown types first |
+| `tail.ts` — "queued nothing to claim" | **converted** → `noRecordedIntent` (a foreign or malformed claim is caller input) |
 
-`leverageBand` and `withdrawableCollaterals` stay as they were: they weigh state
-already loaded, and "nothing available" is `undefined` or an empty list rather
-than a refusal.
+Boundary codes (`noStrategyTargetCollateral`, `creditAccountNotFound`,
+`unexpectedFailure`) stand as introduced above; `unexpectedFailure` is the one
+non-verdict — the SDK could not find out — and carries the original `cause`.
+
+## Consumer impact
+
+Measured with the built dist linked over each consumer (full report with the
+raw tsc output: `docs/plans/precise-error-unions.impact.md`):
+**gearbox-backend — zero new errors** (it does not consume the facade);
+**client-v3 — 34 errors in 7 files**, led by `useSimulate.ts` (14) and
+`useClaimDelayedWithdrawal.ts` (7) — the seed of its own migration plan.
 
 ### Two amounts per swap: `est` on what only the floor is known for
 
