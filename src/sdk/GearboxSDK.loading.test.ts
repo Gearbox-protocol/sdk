@@ -232,15 +232,15 @@ describe("GearboxSDK loading", () => {
       });
     }
 
-    const { data } = await sdk.opportunities.prepare.addCollateral(
+    const result = await sdk.opportunities.prepare.addCollateral(
       { chainId: 1, creditAccount: POOL },
       { token: POOL, amount: 1n },
     );
 
     // the account is not there, which `prepare` answers rather than throws —
     // what is under test here is that asking for it attached and revalidated
-    expect(data).toMatchObject({
-      success: false,
+    expect(result).toMatchObject({
+      ok: false,
       error: { code: "creditAccountNotFound" },
     });
     expect(attach).toHaveBeenCalledTimes(1);
@@ -372,21 +372,17 @@ describe("GearboxSDK loading", () => {
     });
   });
 
-  it("the sync LP prepare call before attach describes the SdkNotAttachedError instead of throwing it", () => {
+  it("the sync LP prepare call before attach throws the SdkNotAttachedError", () => {
     const { sdk } = build();
 
-    const result = sdk.opportunities.prepare.deposit(
-      { chainId: 1, pool: POOL },
-      { amount: 1n, wallet: POOL },
-    );
-
-    // no `prepare` method throws: an SDK that has not attached yet cannot say
-    // what the deposit would do, and that is `unexpectedFailure` with the
-    // lifecycle error itself under `cause`
-    if (result.success) throw new Error("expected a refusal");
-    expect(result.error.code).toBe("unexpectedFailure");
-    expect(
-      result.error.code === "unexpectedFailure" && result.error.cause,
-    ).toBeInstanceOf(SdkNotAttachedError);
+    // the sync LP flows only do arithmetic on loaded state, so an SDK that
+    // has not attached yet is a lifecycle error rather than a verdict on the
+    // request — and lifecycle errors stay thrown there
+    expect(() =>
+      sdk.opportunities.prepare.deposit(
+        { chainId: 1, pool: POOL },
+        { amount: 1n, wallet: POOL },
+      ),
+    ).toThrow(SdkNotAttachedError);
   });
 });

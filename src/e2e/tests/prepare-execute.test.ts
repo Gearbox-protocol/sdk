@@ -167,24 +167,22 @@ describe("prepare → execute on a mainnet fork", () => {
     creditAccount: Address;
     before: CreditAccountDataPayload;
     preview: Extract<
-      Awaited<
-        ReturnType<ReturnType<typeof prepare>["openNewStrategy"]>
-      >["data"],
-      { success: true }
+      Awaited<ReturnType<ReturnType<typeof prepare>["openNewStrategy"]>>,
+      { ok: true }
     >["data"]["state"];
   }> {
     await fund();
     await sync();
     const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
-    if (!sim.data.success) {
-      throw new Error(`open sim failed: ${sim.data.error.code}`);
+    if (!sim.ok) {
+      throw new Error(`open sim failed: ${sim.error.code}`);
     }
     const tx = await execute().buildTx({
       kind: "open",
       chainId: CHAIN_ID,
       creditManager: CREDIT_MANAGER,
       wallet: borrower,
-      sim: sim.data,
+      sim,
       collateral: OPEN_PARAMS.collateral,
       ethAmount: 0n,
     });
@@ -200,7 +198,7 @@ describe("prepare → execute on a mainnet fork", () => {
     return {
       creditAccount,
       before: await account(creditAccount),
-      preview: sim.data.data.state,
+      preview: sim.data.state,
     };
   }
 
@@ -248,14 +246,11 @@ describe("prepare → execute on a mainnet fork", () => {
   function adjustPreview(
     sim: Awaited<ReturnType<ReturnType<typeof prepare>["depositStrategy"]>>,
   ) {
-    if (!sim.data.success)
-      throw new Error(`sim failed: ${sim.data.error.code}`);
-    const [meta] = sim.meta.chains;
-    if (meta?.status !== "success") throw new Error("sim did not succeed");
+    if (!sim.ok) throw new Error(`sim failed: ${sim.error.code}`);
     return {
-      sim: sim.data,
-      preview: sim.data.data.state,
-      timestamp: meta.timestamp,
+      sim,
+      preview: sim.data.state,
+      timestamp: sim.data.timestamp,
     };
   }
 
@@ -266,19 +261,16 @@ describe("prepare → execute on a mainnet fork", () => {
   function routedPreview(
     sim: Awaited<ReturnType<ReturnType<typeof prepare>["adjustLeverage"]>>,
   ) {
-    if (!sim.data.success)
-      throw new Error(`sim failed: ${sim.data.error.code}`);
-    const [meta] = sim.meta.chains;
-    if (meta?.status !== "success") throw new Error("sim did not succeed");
-    const { instant } = sim.data.data;
+    if (!sim.ok) throw new Error(`sim failed: ${sim.error.code}`);
+    const { instant } = sim.data;
     if (!instant) {
-      throw new Error(`no instant route: ${sim.data.data.refused.instant}`);
+      throw new Error(`no instant route: ${sim.data.refused.instant}`);
     }
     return {
       // the route, back in the envelope `buildTx` takes
-      sim: { success: true as const, data: instant },
+      sim: { ok: true as const, data: instant },
       preview: instant.state,
-      timestamp: meta.timestamp,
+      timestamp: sim.data.timestamp,
     };
   }
 
@@ -308,13 +300,13 @@ describe("prepare → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await sync();
       const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
-      if (!sim.data.success) throw new Error(sim.data.error.code);
+      if (!sim.ok) throw new Error(sim.error.code);
       const tx = await execute().buildTx({
         kind: "open",
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
         wallet: borrower,
-        sim: sim.data,
+        sim,
         collateral: OPEN_PARAMS.collateral,
         ethAmount: 0n,
       });
@@ -602,11 +594,9 @@ describe("prepare → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const max = await prepare().maxWithdraw(position(creditAccount));
-      expect(max.meta.chains[0]?.status).toBe("success");
-      if (!max.data.success) throw new Error(max.data.error.code);
       const { sim, timestamp } = routedPreview(
         await prepare().withdrawStrategy(position(creditAccount), {
-          amount: max.data.data,
+          amount: max,
           to: borrower,
           sourceToken: TARGET_TOKEN,
           slippage: S,
@@ -757,12 +747,10 @@ describe("prepare → execute on a mainnet fork", () => {
       const { creditAccount } = await openPosition();
       await sync();
       const max = await prepare().maxRepay(position(creditAccount));
-      expect(max.meta.chains[0]?.status).toBe("success");
-      if (!max.data.success) throw new Error(max.data.error.code);
       const { sim, preview, timestamp } = adjustPreview(
         await prepare().repayStrategy(position(creditAccount), {
           token: underlying,
-          amount: max.data.data + BUFFER,
+          amount: max + BUFFER,
         }),
       );
       expect(preview.totalDebt.value).toBe(0n);
@@ -976,15 +964,15 @@ describe("prepare → execute on a mainnet fork", () => {
         { chainId: CHAIN_ID, creditManager: WETH_CM },
         { collateral, leverage: X2, slippage: S, targetToken: WSTETH },
       );
-      if (!sim.data.success) {
-        throw new Error(`open sim failed: ${sim.data.error.code}`);
+      if (!sim.ok) {
+        throw new Error(`open sim failed: ${sim.error.code}`);
       }
       const tx = await execute().buildTx({
         kind: "open",
         chainId: CHAIN_ID,
         creditManager: WETH_CM,
         wallet: borrower,
-        sim: sim.data,
+        sim,
         collateral,
         ethAmount: NATIVE_COLLATERAL,
       });
@@ -999,7 +987,7 @@ describe("prepare → execute on a mainnet fork", () => {
       });
       return {
         creditAccount: log.args.creditAccount,
-        debt: sim.data.data.state.totalDebt.value,
+        debt: sim.data.state.totalDebt.value,
       };
     }
 
@@ -1066,13 +1054,10 @@ describe("prepare → execute on a mainnet fork", () => {
         slippage: S,
       });
 
-      if (
-        sim.data.success ||
-        sim.data.error.code !== "unsupportedCollateralToken"
-      ) {
+      if (sim.ok || sim.error.code !== "unsupportedCollateralToken") {
         throw new Error("expected unsupportedCollateralToken");
       }
-      expect(sim.data.error.token.address).toBe(TARGET_TOKEN);
+      expect(sim.error.token.address).toBe(TARGET_TOKEN);
     });
 
     it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {
@@ -1089,13 +1074,13 @@ describe("prepare → execute on a mainnet fork", () => {
         slippage: S,
       });
 
-      if (sim.data.success || sim.data.error.code !== "debtOutOfRange") {
+      if (sim.ok || sim.error.code !== "debtOutOfRange") {
         throw new Error("expected debtOutOfRange");
       }
       // The ceiling comes back with the refusal, so a form can clamp to it
       // instead of asking again to find out where it is.
-      expect(sim.data.error.maxDebt.value).toBe(ceiling);
-      expect(sim.data.error.requested.value).toBeGreaterThan(ceiling);
+      expect(sim.error.maxDebt.value).toBe(ceiling);
+      expect(sim.error.requested.value).toBeGreaterThan(ceiling);
     });
 
     it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
@@ -1109,17 +1094,14 @@ describe("prepare → execute on a mainnet fork", () => {
 
       // 50x on this market's thresholds ends the transaction under water, which
       // the facade refuses; the redemption route does not exist here at all
-      if (
-        sim.data.success ||
-        sim.data.error.code !== "insufficientCollateral"
-      ) {
+      if (sim.ok || sim.error.code !== "insufficientCollateral") {
         throw new Error("expected insufficientCollateral");
       }
-      expect(sim.data.error.refused).toEqual({
+      expect(sim.error.refused).toEqual({
         instant: "insufficientCollateral",
         delayed: "noDelayedRoute",
       });
-      expect(sim.data.error.healthFactor).toBeLessThan(sim.data.error.required);
+      expect(sim.error.healthFactor).toBeLessThan(sim.error.required);
     });
 
     it("refuses to move out collateral the account does not hold", async () => {
@@ -1131,22 +1113,19 @@ describe("prepare → execute on a mainnet fork", () => {
         to: borrower,
       });
 
-      if (
-        sim.data.success ||
-        sim.data.error.code !== "insufficientSourceBalance"
-      ) {
+      if (sim.ok || sim.error.code !== "insufficientSourceBalance") {
         throw new Error("expected insufficientSourceBalance");
       }
       // The amounts are optional on this code because most of its sites refuse
       // before there is a balance to compare. This one is the ledger walk, so
       // it names both sides; `held` is whatever dust the open left behind.
-      expect(sim.data.error.required).toEqual({
+      expect(sim.error.required).toEqual({
         token: expect.objectContaining({ address: USDC }),
         value: parseUnits("100", 6),
         valueUsd: null,
       });
-      expect(sim.data.error.held?.token.address).toBe(USDC);
-      expect(sim.data.error.held?.value).toBeLessThan(parseUnits("100", 6));
+      expect(sim.error.held?.token.address).toBe(USDC);
+      expect(sim.error.held?.value).toBeLessThan(parseUnits("100", 6));
     });
   });
 
@@ -1190,7 +1169,7 @@ describe("prepare → execute on a mainnet fork", () => {
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL, wallet: borrower },
       );
-      if (!sim.success) {
+      if (!sim.ok) {
         throw new Error(`deposit sim failed: ${sim.error.code}`);
       }
       const before = await balance(shares);
@@ -1219,7 +1198,7 @@ describe("prepare → execute on a mainnet fork", () => {
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL, wallet: borrower },
       );
-      if (!deposit.success) {
+      if (!deposit.ok) {
         throw new Error(`deposit sim failed: ${deposit.error.code}`);
       }
       await send({
@@ -1235,7 +1214,7 @@ describe("prepare → execute on a mainnet fork", () => {
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL / 2n, wallet: borrower },
       );
-      if (!sim.success) {
+      if (!sim.ok) {
         throw new Error(`withdraw sim failed: ${sim.error.code}`);
       }
       const before = await balance(USDC);
@@ -1261,7 +1240,7 @@ describe("prepare → execute on a mainnet fork", () => {
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL, wallet: borrower },
       );
-      if (!deposit.success) {
+      if (!deposit.ok) {
         throw new Error(`deposit sim failed: ${deposit.error.code}`);
       }
       await send({
@@ -1279,7 +1258,7 @@ describe("prepare → execute on a mainnet fork", () => {
         { chainId: CHAIN_ID, pool },
         { amount: burned, wallet: borrower },
       );
-      if (!sim.success) {
+      if (!sim.ok) {
         throw new Error(`redeem sim failed: ${sim.error.code}`);
       }
       const before = await balance(USDC);

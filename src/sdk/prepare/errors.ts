@@ -24,33 +24,36 @@ import type {
  * `prepare` and `preview` refusing in one vocabulary; what differs is where the
  * numbers sit. The engine keeps them one level down, in `detail`, because it
  * distributes them over `reason`; here they are stated outright, so it is
- * `error.maxDebt` rather than `error.detail.maxDebt`. The last three are the
- * namespace's own, raised before or around the engine.
+ * `error.maxDebt` rather than `error.detail.maxDebt`.
  *
- * Nothing else comes out of a `prepare` method: every failure on the way to an
- * answer, the ones that used to be thrown included, is one of these.
+ * There is deliberately no union of all of them: each `prepare` method names
+ * exactly the codes its own flow can raise, see the signatures in
+ * {@link IOpportunitiesPrepare}. What is shared is the plumbing every flow
+ * goes through, and that is the two base unions below.
  **/
-export type PrepareError =
-  | DebtOutOfRangeError
-  | LeverageOutOfRangeError
-  | InsufficientSourceBalanceError
-  | UnsupportedCollateralTokenError
-  | UnsupportedTokenPairError
-  | NoDelayedRouteError
-  | MultipleDelayedWithdrawalsError
-  | WithdrawalInProgressError
-  | NoRecordedIntentError
+
+/**
+ * What ANY operation on an existing account can refuse with: the engine's
+ * shared guards, the missing account, and a wrapped crash.
+ **/
+export type AccountFlowError =
   | MarketPausedError
   | MarketExpiredError
-  | InsufficientPoolLiquidityError
-  | QuotaLimitReachedError
   | ForbiddenTokenError
+  | QuotaLimitReachedError
   | InsufficientCollateralError
-  | PoolSunsetError
-  | QuotaCountExceededError
-  | MalformedTransactionError
-  | NoStrategyTargetCollateralError
+  | InsufficientSourceBalanceError
   | CreditAccountNotFoundError
+  | UnexpectedFailureError;
+
+/** Same guards for the account-less open flow. */
+export type OpenFlowError =
+  | MarketPausedError
+  | MarketExpiredError
+  | ForbiddenTokenError
+  | QuotaLimitReachedError
+  | InsufficientCollateralError
+  | InsufficientSourceBalanceError
   | UnexpectedFailureError;
 
 /** The debt the request implies falls outside the facade's band. */
@@ -278,9 +281,8 @@ export interface CreditAccountNotFoundError extends IGearboxError {
  *
  * The one code that is not a verdict on the request — everything above says
  * "this cannot be done", this one says "we do not know". It exists so that a
- * `prepare` method always answers: the failure that used to escape as an
- * exception arrives here instead, whole, under `cause`. `meta.chains` marks the
- * chain as failed alongside it.
+ * refusable `prepare` method always answers: the failure that used to escape
+ * as an exception arrives here instead, whole, under `cause`.
  **/
 export interface UnexpectedFailureError extends IGearboxError {
   code: "unexpectedFailure";
@@ -289,15 +291,17 @@ export interface UnexpectedFailureError extends IGearboxError {
 }
 
 /**
- * The refusal of a request that has two routes to offer, see
- * {@link StrategyRoutesPrepare}.
+ * What every refusal of a two-route request carries on top of its own code,
+ * see {@link StrategyRoutesResult}.
  *
  * `refused` says why each route is missing, which is the answer a form needs
  * even when neither exists: the error itself is the instant route's refusal —
  * the one a caller can usually act on — or the delayed route's when the instant
  * one did not get far enough to have a reason of its own.
  **/
-export type RoutesPrepareError = PrepareError & { refused: RouteRefusals };
+export interface WithRouteRefusals {
+  refused: RouteRefusals;
+}
 
 /**
  * One sentence per refusal, naming what was ruled out rather than restating the
@@ -334,6 +338,35 @@ const MESSAGES: Record<PreviewErrorReason, string> = {
 };
 
 /**
+ * The error each engine reason maps to — the range of {@link toRefusalError},
+ * spelled reason by reason so a narrow issue arrives as a narrow error.
+ *
+ * A lookup table, not a vocabulary: nothing answers with `RefusalErrors[R]`
+ * as a union. The unions callers see are the ones each method's signature
+ * spells out.
+ **/
+export interface RefusalErrors {
+  debtOutOfRange: DebtOutOfRangeError;
+  leverageOutOfRange: LeverageOutOfRangeError;
+  insufficientSourceBalance: InsufficientSourceBalanceError;
+  unsupportedCollateralToken: UnsupportedCollateralTokenError;
+  unsupportedTokenPair: UnsupportedTokenPairError;
+  noDelayedRoute: NoDelayedRouteError;
+  multipleDelayedWithdrawals: MultipleDelayedWithdrawalsError;
+  withdrawalInProgress: WithdrawalInProgressError;
+  noRecordedIntent: NoRecordedIntentError;
+  marketPaused: MarketPausedError;
+  marketExpired: MarketExpiredError;
+  insufficientPoolLiquidity: InsufficientPoolLiquidityError;
+  quotaLimitReached: QuotaLimitReachedError;
+  forbiddenToken: ForbiddenTokenError;
+  insufficientCollateral: InsufficientCollateralError;
+  poolSunset: PoolSunsetError;
+  quotaCountExceeded: QuotaCountExceededError;
+  malformedTransaction: MalformedTransactionError;
+}
+
+/**
  * The engine's refusal, as the error the namespace answers with.
  *
  * One place does the lifting, so the two shapes cannot drift: `reason` becomes
@@ -341,24 +374,29 @@ const MESSAGES: Record<PreviewErrorReason, string> = {
  * {@link MESSAGES}. A malformed transaction is spelled out rather than spread,
  * because its detail names a `code` and a `message` of its own and they are not
  * the envelope's.
+ *
+ * Generic over the issue it is handed, so a call site that already knows the
+ * reason gets that reason's error back rather than a union to narrow again.
  **/
-export function toPrepareError(issue: PreviewIssue): PrepareError {
+export function toRefusalError<I extends PreviewIssue>(
+  issue: I,
+): RefusalErrors[I["reason"]] {
   if (issue.reason === "malformedTransaction") {
     return {
       code: "malformedTransaction",
       message: MESSAGES.malformedTransaction,
       previewCode: issue.detail.code,
       detail: issue.detail.message,
-    };
+    } as RefusalErrors[I["reason"]];
   }
   // Sound for every concrete reason above: each detail is exactly the fields
   // that reason's error declares. The compiler cannot correlate the two while
-  // the issue is still the open union.
+  // the reason is still open.
   return {
     code: issue.reason,
     message: MESSAGES[issue.reason],
     ...issue.detail,
-  } as PrepareError;
+  } as RefusalErrors[I["reason"]];
 }
 
 /**
