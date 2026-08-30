@@ -141,15 +141,15 @@ export interface NoRecordedIntentError extends IGearboxError {
   code: "noRecordedIntent";
 }
 
-/** The facade or the pool behind it is paused: nothing can be done at all. */
+/** The facade is paused: nothing can be done at all. */
 export interface MarketPausedError extends IGearboxError {
   code: "marketPaused";
   /**
-   * Which contract is paused: a credit account operation names the manager, an
-   * LP operation the pool. Exactly one of the two is present.
+   * The paused credit manager. Always present from `prepare`: the engine's
+   * shared guards check the manager, and the pool-paused variant is raised
+   * only by the preview-side `checkOperation` — it never reaches this union.
    **/
-  creditManager?: Address;
-  pool?: Address;
+  creditManager: Address;
 }
 
 /** The facade is past its expiration date and takes no more multicalls. */

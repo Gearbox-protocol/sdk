@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 import type {
   IGearboxError,
@@ -305,5 +306,16 @@ describe("the reads outside the envelope stay bare", () => {
     expectTypeOf<ReturnType<P["withdrawableCollaterals"]>>().toEqualTypeOf<
       PositionCollateral[]
     >();
+  });
+});
+
+describe("I7: prepare error shapes are narrowed to what the trace proves", () => {
+  it("marketPaused from prepare always names the credit manager, never a pool", () => {
+    expectTypeOf<MarketPausedError["creditManager"]>().toEqualTypeOf<Address>();
+    if (Math.abs(0) !== 0) {
+      const paused = {} as MarketPausedError;
+      // @ts-expect-error the pool-paused variant is preview-only
+      void paused.pool;
+    }
   });
 });
