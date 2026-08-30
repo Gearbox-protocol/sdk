@@ -194,7 +194,7 @@ Of which verification: 4 active min / 1 credits.
 - [ ] bun run agent:test:backend -- src/quality/errorSurface.test.ts exits 0 — every listed file is clean of the retired term
 - [ ] git grep -in verdict -- src MIGRATION.md returns nothing
 - [ ] bun run agent:test:backend -- src/quality/migrationDocs.test.ts exits 0 — the docs count-checks survive the rename
-- [ ] Commit
+- [x] Commit — da14336e5509be7581165250c989e4dedca6ec52
 
 ##### Results
 
@@ -298,4 +298,6 @@ Of which verification: 10 active min / 2 credits.
 - record-result D1-S2 commit:d1f18f29f94d3707d22f0eba11f07065fc49bcd5
 
 - deviation D1-S2: previewOperationErrors.test.ts header reword (S1 write, comment-only) — recorded via add-deviation
+
+- close D1-S2 partial commit:da14336e5509be7581165250c989e4dedca6ec52
 <!-- plan:execution:end -->
