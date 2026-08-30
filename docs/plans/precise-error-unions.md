@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:6dc84464d9b4b875be1d2a24ab3645402de84a70a6da192d08e1fb09075c35be owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape; adding the file the encoding missed
+Implementation lock: sha256:4b70857cfa169dcb2c3d332fa97f2958220bfec6d9d9bb19ebf8f1ecdeb9a9cb owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -351,7 +351,7 @@ Of which verification: 10 active min / 2 credits.
 - [ ] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; prove exactness in types.test-d.ts. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
 - [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts and e2e prepare-execute.test.ts assert the new shape. (25 min)
-<!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
+<!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/e2e/tests/prepare-execute.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
 - [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data instead of success/data. (10 min)
 <!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
 
@@ -658,4 +658,6 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape; adding the file the encoding missed sha256:bedc63636039aae6752c8b947a89b444243ffb60e7c13be1be9184f658494774
 
 - amend implementation owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape; adding the file the encoding missed sha256:6dc84464d9b4b875be1d2a24ab3645402de84a70a6da192d08e1fb09075c35be
+
+- amend implementation owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape sha256:4b70857cfa169dcb2c3d332fa97f2958220bfec6d9d9bb19ebf8f1ecdeb9a9cb
 <!-- plan:execution:end -->
