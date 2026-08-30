@@ -1,8 +1,8 @@
 # Per-method error unions in sdk
 
-Status: SPEC_LOCKED
+Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: unlocked
+Implementation lock: sha256:cc369304924dcab046d054b2219edc34dc81fac048a6d987262a63fecbb658ba owner:фиксируем так (owner, 2026-08-30): базовые AccountFlowError/OpenFlowError + inline flow-коды, unexpectedFailure в базе
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -306,10 +306,10 @@ Of which verification: 3 active min / 1 credits.
 <!-- plan:stage:D1-S1:end -->
 
 <!-- plan:stage:D1-S3:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S1"],"parallelWith":["D1-S2"],"writes":["src/model/result.ts","src/model/result.test.ts","src/model/errors.ts","src/model/index.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S3","verifyActiveMinutes":4,"verifyCredits":1} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S1"],"parallelWith":[],"writes":["src/model/result.ts","src/model/result.test.ts","src/model/errors.ts","src/model/index.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S3","verifyActiveMinutes":4,"verifyCredits":1} -->
 #### Stage D1-S3 — The SDKReturn catalog
 
-Owner: agent; Profile: fast; Depends: D1-S1; Parallel with: D1-S2.
+Owner: agent; Profile: fast; Depends: D1-S1; Parallel with: none.
 Writes: `src/model/result.ts`, `src/model/result.test.ts`, `src/model/errors.ts`, `src/model/index.ts`.
 Temp root: `.tmp/code-production/precise-error-unions/D1-S3` (must be absent at handoff).
 Predict: 24 active min / 5 credits.
@@ -638,4 +638,8 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - replace-stage D1-S4
 
 - replace-stage D1-S4
+
+- replace-stage D1-S3
+
+- approve sha256:cc369304924dcab046d054b2219edc34dc81fac048a6d987262a63fecbb658ba owner:фиксируем так (owner, 2026-08-30): базовые AccountFlowError/OpenFlowError + inline flow-коды, unexpectedFailure в базе
 <!-- plan:execution:end -->
