@@ -292,7 +292,8 @@ Predict: 12 active min / 3 credits.
 
 ##### Acceptance criteria
 
-- [ ] `bun run agent:typecheck` runs tsc
+- [ ] fresh check: `rm -rf node_modules && bun run agent:install` then the RED test passes — proves unrun really fixes the clean install
+- [ ] each of the seven scripts runs (N/A lanes exit 0 with their reason printed)
 - [ ] Commit
 
 ##### Results
@@ -329,8 +330,10 @@ Predict: 35 active min / 6 credits.
 
 ##### Acceptance criteria
 
-- [ ] tsdown build exits 0
-- [ ] `bun run agent:test:backend -- src/preview` exits 0
+- [ ] `bun run agent:typecheck` clean — catches every removed-field leftover, not just what tsdown bundles
+- [ ] tsdown build exits 0 and `grep -r` finds zero of the seven old type names and zero imports of the three deleted files in src/
+- [ ] behaviour parity: `previewMatchesPrepare.test.ts` green — the Verify swap changed no preview output
+- [ ] `bun run agent:test:backend -- src/preview` and `-- src/onchain/accounts/liquidations` exit 0
 - [ ] Commit
 
 ##### Results
@@ -357,7 +360,8 @@ Predict: 20 active min / 4 credits.
 
 ##### Acceptance criteria
 
-- [ ] `bun run agent:test:backend -- src/model` exits 0
+- [ ] result.test.ts asserts narrowing in BOTH directions (ok true→data, ok false→error) at type and runtime level
+- [ ] `grep -r "WithError<" src/model` is empty; `bun run agent:test:backend -- src/model` exits 0
 - [ ] Commit
 
 ##### Results
@@ -388,8 +392,10 @@ Predict: 60 active min / 11 credits.
 
 ##### Acceptance criteria
 
-- [ ] `bun run agent:test:backend -- src/sdk` exits 0
-- [ ] no DataResponse import in src/sdk/prepare
+- [ ] types.test-d.ts carries one toEqualTypeOf exactness assertion per refusable method (nine) plus negative assertions for the three preview-only codes
+- [ ] `grep -rn "DataResponse" src/sdk/prepare --include=*.ts | grep -v test` is empty
+- [ ] `bun run agent:typecheck` clean — the e2e refusal assertions compile against the new shape
+- [ ] previewMatchesPrepare.test.ts still green; `bun run agent:test:backend -- src/sdk` exits 0
 - [ ] Commit
 
 ##### Results
@@ -420,6 +426,9 @@ Predict: 50 active min / 9 credits.
 
 ##### Acceptance criteria
 
+- [ ] verdictErrors.test.ts drives all six construction paths and asserts each returns (never throws) an object with its code
+- [ ] `grep -n "extends Error"` in the six former verdict files is empty
+- [ ] a negative type test proves IntentPreviewError is no longer importable from the /onchain barrel
 - [ ] `bun run agent:test:backend -- src/preview` exits 0
 - [ ] Commit
 
@@ -449,7 +458,8 @@ Predict: 40 active min / 7 credits.
 
 ##### Acceptance criteria
 
-- [ ] disposition list complete
+- [ ] throwSweep.test.ts is list-driven over every audited site (PrepareApi:255, intents/index x4, tail x2, PoolService x8) and fails on an unlisted disposition
+- [ ] each converted site has a fixture producing its SDKError at runtime; each kept throw has a justification comment the test locates
 - [ ] `bun run agent:test:backend -- src/sdk/prepare` exits 0
 - [ ] Commit
 
@@ -477,7 +487,8 @@ Predict: 30 active min / 5 credits.
 
 ##### Acceptance criteria
 
-- [ ] impact.md lists both consumers with real typecheck output
+- [ ] MIGRATION.md tables are count-checked by migrationDocs.test.ts against the code: per-method table rows == refusable methods, disposition rows == audited sites
+- [ ] impact.md carries both consumers' real tsc output from deptrack-linked dist; client-v3 section covers at least the 7 known files or proves zero
 - [ ] Commit
 
 ##### Results
@@ -504,7 +515,10 @@ Predict: 25 active min / 4 credits.
 
 ##### Acceptance criteria
 
-- [ ] agent:verify:pr exits 0
+- [ ] `rm -rf node_modules && bun run agent:install && bun run agent:verify:pr` exits 0 — the gate runs from a cold start
+- [ ] poison A (fake code, no raise site) and poison B (removed real member) each quoted with their failing tsc diagnostic in evidence, then restored byte-exact
+- [ ] pack check: `npm pack` installed into a scratch project typechecks a sample that narrows one prepare union — the published d.ts shape works
+- [ ] `grep -rn "WithError<\|success: true" src` is empty
 - [ ] Commit
 
 ##### Results
@@ -551,6 +565,22 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - put-stage D1-S7
 
 - put-stage D1-S8
+
+- replace-stage D1-S1
+
+- replace-stage D1-S2
+
+- replace-stage D1-S3
+
+- replace-stage D1-S4
+
+- replace-stage D1-S5
+
+- replace-stage D1-S6
+
+- replace-stage D1-S7
+
+- replace-stage D1-S8
 
 - replace-stage D1-S1
 
