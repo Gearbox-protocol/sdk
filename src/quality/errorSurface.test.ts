@@ -1,7 +1,7 @@
 // D1-S2 (preview errors cleanup): the dead-shim and retired-wording gate.
 // The banned tokens are assembled from fragments below, so no file — this
 // one included — is exempt from the sweep.
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -38,7 +38,24 @@ function walk(dir: string, acc: string[] = []): string[] {
 const FILES = walk(SRC);
 const SWEPT = [...FILES, join(ROOT, "MIGRATION.md")];
 
+/** The Delivery's evidence file (its slug carries the retired term, so the path is assembled). */
+const EVIDENCE = join(
+  ROOT,
+  "docs",
+  "plans",
+  `${RETIRED_WORD}-shim-removal.evidence.md`,
+);
+
 describe("error surface", () => {
+  it("the code-map poison evidence is recorded with both diagnostics", () => {
+    expect(existsSync(EVIDENCE), "evidence file must exist").toBe(true);
+    const text = readFileSync(EVIDENCE, "utf8");
+    expect(text).toContain("Poison A");
+    expect(text).toContain("Poison B");
+    expect(text).toContain("error TS");
+    expect(text).toContain("restored");
+  });
+
   it("no shim hook survives anywhere in src", () => {
     const offenders = FILES.filter(file =>
       readFileSync(file, "utf8").includes(SHIM_HOOK),
