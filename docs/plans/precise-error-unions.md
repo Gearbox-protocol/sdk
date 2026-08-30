@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:cc369304924dcab046d054b2219edc34dc81fac048a6d987262a63fecbb658ba owner:фиксируем так (owner, 2026-08-30): базовые AccountFlowError/OpenFlowError + inline flow-коды, unexpectedFailure в базе
+Implementation lock: sha256:6dc84464d9b4b875be1d2a24ab3645402de84a70a6da192d08e1fb09075c35be owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape; adding the file the encoding missed
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -318,25 +318,26 @@ Of which verification: 4 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S3-T1 — src/model/result.ts defines SDKResult/SDKError/SDKReturn plus sdkOk/sdkErr/isSDKError; WithError leaves errors.ts and index.ts; result.test.ts proves narrowing. (20 min)
+- [x] D1-S3-T1 — src/model/result.ts defines SDKResult/SDKError/SDKReturn plus sdkOk/sdkErr/isSDKError; WithError leaves errors.ts and index.ts; result.test.ts proves narrowing. (20 min) — 33c87ef4ce423f2b712a16e9f12badb549d4669c
 <!-- plan:task-meta:{"writes":["src/model/result.ts","src/model/result.test.ts","src/model/errors.ts","src/model/index.ts"],"predictedActiveMinutes":20,"predictedCredits":4,"how":"one new module, barrel update","red":"bun run agent:test:backend -- src/model/result.test.ts"} -->
 
 ##### Acceptance criteria
 
 - [ ] result.test.ts asserts narrowing in BOTH directions (ok true→data, ok false→error) at type and runtime level
 - [ ] `grep -r "WithError<" src/model` is empty; `bun run agent:test:backend -- src/model` exits 0
-- [ ] Commit
+- [x] Commit — 33c87ef4ce423f2b712a16e9f12badb549d4669c
 
 ##### Results
 
 <!-- plan:results:D1-S3:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S3-T1 | 33c87ef4ce423f2b712a16e9f12badb549d4669c | 2026-08-30T09:35:34.249Z–2026-08-30T09:37:55.000Z | 3 / 3 min | unavailable: runner did not expose usage | SDKReturn/SDKResult/SDKError with ok discriminant plus helpers; narrowing proven both directions at type and runtime; WithError removed from model; 41 model tests green. |
 <!-- plan:results:D1-S3:end -->
 <!-- plan:stage:D1-S3:end -->
 
 <!-- plan:stage:D1-S4:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S5"],"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S4","verifyActiveMinutes":10,"verifyCredits":2} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S5"],"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts","src/e2e/tests/prepare-execute.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S4","verifyActiveMinutes":10,"verifyCredits":2} -->
 #### Stage D1-S4 — Prepare on SDKReturn with exact unions
 
 Owner: agent; Profile: fast; Depends: D1-S3; Parallel with: D1-S5.
@@ -349,7 +350,7 @@ Of which verification: 10 active min / 2 credits.
 
 - [ ] D1-S4-T1 — Give src/sdk/prepare/types.ts inline per-method unions over two documented bases (AccountFlowError / OpenFlowError) declared in errors.ts; prove exactness in types.test-d.ts. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
-- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts asserts the new shape. (25 min)
+- [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts and e2e prepare-execute.test.ts assert the new shape. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
 - [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data instead of success/data. (10 min)
 <!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
@@ -647,4 +648,14 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - record-result D1-S1 commit:634c8791f5c1dd668618ebcff28a20fdba5b11a5
 
 - close D1-S1 partial commit:634c8791f5c1dd668618ebcff28a20fdba5b11a5
+
+- record-result D1-S3 commit:33c87ef4ce423f2b712a16e9f12badb549d4669c
+
+- deviation D1-S3: prepare/execute compile red until D1-S4 lands, by design — their fix is that stage's scope
+
+- close D1-S3 partial commit:33c87ef4ce423f2b712a16e9f12badb549d4669c
+
+- amend implementation owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape; adding the file the encoding missed sha256:bedc63636039aae6752c8b947a89b444243ffb60e7c13be1be9184f658494774
+
+- amend implementation owner:фиксируем так (owner, 2026-08-30) — SPEC I8: e2e prepare-execute assertions follow the new shape; adding the file the encoding missed sha256:6dc84464d9b4b875be1d2a24ab3645402de84a70a6da192d08e1fb09075c35be
 <!-- plan:execution:end -->
