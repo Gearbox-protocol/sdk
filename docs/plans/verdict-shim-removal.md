@@ -289,4 +289,6 @@ Of which verification: 10 active min / 2 credits.
 - record-result D1-S1 commit:3b570b421f2790cd50f4ae4e971a207af4e2f10a
 
 - close D1-S1 partial commit:38e5299bbc63999443e04ed2943f421d40717cc7
+
+- deviation D1-S2: the wording gate also swept src/preview/previewOperationErrors.test.ts (an S1 write): its header referenced the plan slug, which carries the retired term; comment-only one-line reword rode in the S2 commit
 <!-- plan:execution:end -->
