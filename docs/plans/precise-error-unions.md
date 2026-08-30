@@ -430,23 +430,25 @@ Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S6-T1 — Claim-input throws in src/onchain/accounts/intents/index.ts and tail.ts become their own codes instead of the unexpectedFailure catch-all; throwSweep.test.ts walks the disposition list. (22 min)
+- [x] D1-S6-T1 — Claim-input throws in src/onchain/accounts/intents/index.ts and tail.ts become their own codes instead of the unexpectedFailure catch-all; throwSweep.test.ts walks the disposition list. (22 min) — 7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
 <!-- plan:task-meta:{"writes":["src/onchain/accounts/intents/index.ts","src/onchain/accounts/intents/tail.ts","src/sdk/prepare/throwSweep.test.ts"],"predictedActiveMinutes":22,"predictedCredits":4,"how":"only the audited sites move; invariant guards keep a justified throw wrapped as unexpectedFailure","red":"bun run agent:test:backend -- src/sdk/prepare/throwSweep.test.ts"} -->
-- [ ] D1-S6-T2 — Align the IPreview declaration in src/sdk/preview/types.ts and the PreviewNamespace.test.ts mocks with the SDKReturn preview signature. (6 min)
+- [x] D1-S6-T2 — Align the IPreview declaration in src/sdk/preview/types.ts and the PreviewNamespace.test.ts mocks with the SDKReturn preview signature. (6 min) — 7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
 <!-- plan:task-meta:{"writes":["src/sdk/preview/types.ts","src/sdk/preview/PreviewNamespace.test.ts"],"predictedActiveMinutes":6,"predictedCredits":1,"how":"one return-type change plus mock typings; no behavior","red":"bun run agent:test:backend -- src/sdk/preview"} -->
 
 ##### Acceptance criteria
 
 - [ ] throwSweep.test.ts is list-driven over every audited engine site (intents/index x4, tail x2) and fails on an unlisted disposition
 - [ ] each converted site has a fixture producing its precise SDKError; kept sites assert the unexpectedFailure wrap and carry a justification comment the test locates
-- [ ] `bun run agent:test:backend -- src/sdk/prepare` exits 0
-- [ ] Commit
+- [x] `bun run agent:test:backend -- src/sdk/prepare` exits 0 — 7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
+- [x] Commit — 7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
 
 ##### Results
 
 <!-- plan:results:D1-S6:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S6-T1 | 7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3 | 2026-08-30T10:19:35.868Z–2026-08-30T10:24:46.000Z | 5 / 5 min | unavailable: runner did not expose usage | Six engine sites dispositioned (one converted to noRecordedIntent, five kept invariants with written reasons a list-driven test enforces); conversion proven non-vacuous by mutation; IPreview aligned; 321 prepare+intents tests green, whole-repo tsc clean. |
+| D1-S6-T2 | 7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3 | 2026-08-30T10:19:35.868Z–2026-08-30T10:24:46.000Z | 5 / 5 min | unavailable: runner did not expose usage | Six engine sites dispositioned (one converted to noRecordedIntent, five kept invariants with written reasons a list-driven test enforces); conversion proven non-vacuous by mutation; IPreview aligned; 321 prepare+intents tests green, whole-repo tsc clean. |
 <!-- plan:results:D1-S6:end -->
 <!-- plan:stage:D1-S6:end -->
 
@@ -726,4 +728,10 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner) — the orphaned IPreview alignment joins the integration stage sha256:1efe5d005c5212cf33ad6d6ffab9f3aa8d037e920a89c70befa4029407ebe466
 
 - amend implementation owner:фиксируем так (owner) — the orphaned IPreview alignment joins the integration stage sha256:5e0c40fa61ad28098a74e2474b760b3e3b369af95498074de3074be1e370b9ec
+
+- record-result D1-S6 commit:7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
+
+- deviation D1-S6: disposition markers were written with the fix; the behavioral conversion check proven RED via stash-mutation instead
+
+- close D1-S6 partial commit:7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
 <!-- plan:execution:end -->
