@@ -47,11 +47,15 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
 
   // transactions are generated against the anvil Mainnet fork using frontend
   // UI, but never sent
-  function preview(calldata: Hex) {
-    return previewOperation(
+  async function preview(calldata: Hex) {
+    const answer = await previewOperation(
       { sdk, to: FACADE, calldata, sender: OWNER, value: 0n },
       { creditAccount },
     );
+    if (!answer.ok) {
+      throw new Error(`preview refused: ${answer.error.code}`);
+    }
+    return answer.data;
   }
 
   it("previews closing the account", async () => {
@@ -216,7 +220,7 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
     });
 
     it("previews the full repay as RepayCreditAccount", async () => {
-      const preview = await previewOperation(
+      const answer = await previewOperation(
         {
           sdk,
           to: repay.to,
@@ -226,6 +230,10 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
         },
         { creditAccount: afterOpen },
       );
+      if (!answer.ok) {
+        throw new Error(`preview refused: ${answer.error.code}`);
+      }
+      const preview = answer.data;
 
       expect(preview).toMatchObject({
         operation: "RepayCreditAccount",

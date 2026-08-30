@@ -1,11 +1,17 @@
 import type { OperationPreview } from "../../model/index.js";
+import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
 import type { ConvertFn, PluginsMap } from "../../onchain/index.js";
+import { InvalidDelayedIntentError } from "../../onchain/index.js";
 import {
   isPoolOperation,
   type MulticallOperation,
   parseOperationCalldata,
   type RWAMulticallOperation,
+  UnsupportedPoolFunctionError,
+  UnsupportedTargetError,
+  UnsupportedZapperFunctionError,
 } from "../parse/index.js";
+import { PreviewSimulationError } from "../simulate/errors.js";
 import type {
   PreviewOperationInput,
   PreviewOperationOptions,
@@ -26,53 +32,105 @@ import {
 } from "./replayMulticall.js";
 
 /**
+ * Everything {@link previewOperation} can refuse with: the verdicts its
+ * pipeline raises, discriminated by `code`. Each is a plain object — never a
+ * thrown `Error` — per the SDK's refusal vocabulary.
+ */
+export type PreviewVerdictError =
+  | UnsupportedTargetError
+  | UnsupportedPoolFunctionError
+  | UnsupportedZapperFunctionError
+  | UnsupportedOperationError
+  | InvalidDelayedIntentError
+  | PreviewSimulationError;
+
+/**
+ * Narrows a raised value to the verdict vocabulary: a plain non-`Error`
+ * object whose `code` is one of the preview verdicts. Genuine exceptions —
+ * bugs, outages, calldata the parser cannot read at all — fail the check and
+ * keep propagating as throws.
+ */
+function isPreviewVerdict(raised: unknown): raised is PreviewVerdictError {
+  if (
+    typeof raised !== "object" ||
+    raised === null ||
+    raised instanceof Error
+  ) {
+    return false;
+  }
+  return (
+    raised instanceof UnsupportedTargetError ||
+    raised instanceof UnsupportedPoolFunctionError ||
+    raised instanceof UnsupportedZapperFunctionError ||
+    raised instanceof UnsupportedOperationError ||
+    raised instanceof InvalidDelayedIntentError ||
+    raised instanceof PreviewSimulationError
+  );
+}
+
+/**
  * Previews a raw operation calldata: decodes it into a typed operation and
  * assembles an operation-specific, human-displayable preview.
+ *
+ * Answers an {@link SDKReturn} envelope: the preview behind `ok: true`, or —
+ * when the transaction is one the previewer refuses to read — a
+ * {@link PreviewVerdictError} behind `ok: false`. A thrown exception still
+ * means the SDK could not do its job (a read failed, the targeted credit
+ * account could not be resolved), not a verdict on the transaction.
  */
 export async function previewOperation<P extends PluginsMap = PluginsMap>(
   input: PreviewOperationInput<P>,
   options?: PreviewOperationOptions,
-): Promise<OperationPreview> {
-  const operation = parseOperationCalldata(input);
+): Promise<SDKReturn<OperationPreview, PreviewVerdictError>> {
+  try {
+    const operation = parseOperationCalldata(input);
 
-  if (isPoolOperation(operation)) {
-    return previewPoolPositionOperation(input, operation, options);
+    if (isPoolOperation(operation)) {
+      return sdkOk(
+        await previewPoolPositionOperation(input, operation, options),
+      );
+    }
+
+    if (
+      operation.operation === "OpenCreditAccount" ||
+      operation.operation === "RWAOpenCreditAccount"
+    ) {
+      return sdkOk(await previewOpenStrategyPosition(input, operation));
+    }
+
+    if (operation.operation === "CloseCreditAccount") {
+      const resolved = await resolveCreditAccount(input, operation, options);
+      const preview = previewExitOrRepayStrategyPosition(
+        input,
+        operation,
+        true,
+        resolved,
+      );
+      preview.intent = await resolveDelayedClaimIntent(
+        input.sdk,
+        operation.multicall,
+        options?.blockNumber,
+      );
+
+      return sdkOk(preview);
+    }
+
+    if (
+      operation.operation === "MultiCall" ||
+      operation.operation === "BotMulticall" ||
+      operation.operation === "RWAMulticall"
+    ) {
+      const resolved = await resolveCreditAccount(input, operation, options);
+      return sdkOk(await previewMulticallOperation(input, operation, resolved));
+    }
+
+    return sdkErr(UnsupportedOperationError(operation.operation));
+  } catch (raised) {
+    if (isPreviewVerdict(raised)) {
+      return sdkErr(raised);
+    }
+    throw raised;
   }
-
-  if (
-    operation.operation === "OpenCreditAccount" ||
-    operation.operation === "RWAOpenCreditAccount"
-  ) {
-    return previewOpenStrategyPosition(input, operation);
-  }
-
-  if (operation.operation === "CloseCreditAccount") {
-    const resolved = await resolveCreditAccount(input, operation, options);
-    const preview = previewExitOrRepayStrategyPosition(
-      input,
-      operation,
-      true,
-      resolved,
-    );
-    preview.intent = await resolveDelayedClaimIntent(
-      input.sdk,
-      operation.multicall,
-      options?.blockNumber,
-    );
-
-    return preview;
-  }
-
-  if (
-    operation.operation === "MultiCall" ||
-    operation.operation === "BotMulticall" ||
-    operation.operation === "RWAMulticall"
-  ) {
-    const resolved = await resolveCreditAccount(input, operation, options);
-    return previewMulticallOperation(input, operation, resolved);
-  }
-
-  throw new UnsupportedOperationError(operation.operation);
 }
 
 /**

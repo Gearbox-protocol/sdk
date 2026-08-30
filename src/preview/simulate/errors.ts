@@ -5,6 +5,7 @@ import {
   type Hex,
 } from "viem";
 import { errorAbis } from "../../abi/errors.js";
+import type { IGearboxError } from "../../model/index.js";
 
 /** Which simulation flow produced a failure. */
 export type SimulationFlowSource = "multicall" | "unknown";
@@ -16,29 +17,54 @@ export interface SimulationFlowFailure {
 }
 
 /**
- * Error returned by the pool simulation when it fails. It wraps the flow's
- * decoded revert reason (see {@link failures}).
+ * Verdict answered when the pool simulation fails. It wraps each flow's
+ * decoded revert reason (see {@link failures}). A plain returned object per
+ * the SDK's refusal vocabulary — not a thrown `Error`.
  */
-export class PreviewSimulationError extends BaseError {
-  override name = "PreviewSimulationError";
-
-  /** Per-flow decoded failures behind this error. */
-  readonly failures: SimulationFlowFailure[];
-
-  constructor(failures: SimulationFlowFailure[]) {
-    const shortMessage =
-      failures.length <= 1
-        ? (failures[0]?.detail.reason ?? "simulation failed")
-        : "all simulation flows failed";
-    const cause = failures.find(f => f.detail.cause instanceof Error)?.detail
-      .cause as Error | undefined;
-    super(shortMessage, {
-      metaMessages: failures.map(f => `[${f.source}] ${f.detail.reason}`),
-      cause,
-    });
-    this.failures = failures;
-  }
+export interface PreviewSimulationError extends IGearboxError {
+  code: "previewSimulationFailed";
+  /** Per-flow decoded failures behind this verdict. */
+  failures: SimulationFlowFailure[];
+  /** First flow failure that was itself an `Error`, kept for debugging. */
+  cause?: Error;
 }
+
+function previewSimulationFailed(
+  failures: SimulationFlowFailure[],
+): PreviewSimulationError {
+  const message =
+    failures.length <= 1
+      ? (failures[0]?.detail.reason ?? "simulation failed")
+      : "all simulation flows failed";
+  const cause = failures.find(f => f.detail.cause instanceof Error)?.detail
+    .cause as Error | undefined;
+  const verdict: PreviewSimulationError = {
+    code: "previewSimulationFailed",
+    message,
+    failures,
+  };
+  if (cause) {
+    verdict.cause = cause;
+  }
+  return verdict;
+}
+
+Object.defineProperty(previewSimulationFailed, Symbol.hasInstance, {
+  value: (value: unknown): boolean =>
+    typeof value === "object" &&
+    value !== null &&
+    (value as PreviewSimulationError).code === "previewSimulationFailed",
+});
+
+/**
+ * Builds the verdict. Callable with or without `new`, so pre-declassing raise
+ * sites keep compiling; `instanceof` matches on the `code` discriminant, and
+ * the answer is never an `Error`.
+ */
+export const PreviewSimulationError = previewSimulationFailed as {
+  (failures: SimulationFlowFailure[]): PreviewSimulationError;
+  new (failures: SimulationFlowFailure[]): PreviewSimulationError;
+};
 
 /**
  * Normalises an unknown rejection reason into a {@link PreviewSimulationError}.
