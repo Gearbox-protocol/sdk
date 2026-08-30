@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { type Address, custom, encodeFunctionData, getAddress } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iPoolV310Abi } from "../../abi/310/generated.js";
+import { sdkOk } from "../../model/index.js";
 import {
   json_parse,
   OnchainSDK,
@@ -58,17 +59,19 @@ describe("parsePoolOperationCalldata", () => {
       args: [assets, RECEIVER, referralCode],
     });
 
-    expect(parsePoolOperationCalldata(sdk, pool, calldata)).toEqual({
-      operation: "Deposit",
-      pool: KPK_WETH_POOL,
-      receiver: RECEIVER,
-      assets,
-      underlying: WETH,
-      tokenIn: WETH,
-      tokenOut: KPK_WETH_POOL,
-      zapper: undefined,
-      referralCode,
-    });
+    expect(parsePoolOperationCalldata(sdk, pool, calldata)).toEqual(
+      sdkOk({
+        operation: "Deposit",
+        pool: KPK_WETH_POOL,
+        receiver: RECEIVER,
+        assets,
+        underlying: WETH,
+        tokenIn: WETH,
+        tokenOut: KPK_WETH_POOL,
+        zapper: undefined,
+        referralCode,
+      }),
+    );
   });
 
   it("decodes redeem into a Redeem operation", () => {
@@ -79,16 +82,18 @@ describe("parsePoolOperationCalldata", () => {
       args: [shares, RECEIVER, OWNER],
     });
 
-    expect(parsePoolOperationCalldata(sdk, pool, calldata)).toEqual({
-      operation: "Redeem",
-      pool: KPK_WETH_POOL,
-      receiver: RECEIVER,
-      owner: OWNER,
-      shares,
-      underlying: WETH,
-      tokenIn: KPK_WETH_POOL,
-      tokenOut: WETH,
-      zapper: undefined,
-    });
+    expect(parsePoolOperationCalldata(sdk, pool, calldata)).toEqual(
+      sdkOk({
+        operation: "Redeem",
+        pool: KPK_WETH_POOL,
+        receiver: RECEIVER,
+        owner: OWNER,
+        shares,
+        underlying: WETH,
+        tokenIn: KPK_WETH_POOL,
+        tokenOut: WETH,
+        zapper: undefined,
+      }),
+    );
   });
 });

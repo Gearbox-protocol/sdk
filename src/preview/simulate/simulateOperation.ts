@@ -1,5 +1,7 @@
+import { type SDKReturn, sdkOk } from "../../model/index.js";
 import { isPoolOperation, isRWAOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
+import type { PreviewSimulationError } from "./errors.js";
 
 import { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
@@ -15,7 +17,7 @@ import type {
 export async function simulateOperation(
   input: SimulationInput,
   options?: PreviewOperationOptions,
-): Promise<PoolOperationSimulationResult> {
+): Promise<SDKReturn<PoolOperationSimulationResult, PreviewSimulationError>> {
   const { operation } = input;
 
   if (isPoolOperation(operation)) {
@@ -23,8 +25,8 @@ export async function simulateOperation(
   }
 
   if (isRWAOperation(operation)) {
-    return simulateRWAOperation({ ...input, operation }, options);
+    return sdkOk(await simulateRWAOperation({ ...input, operation }, options));
   }
 
-  return simulateFacadeOperation({ ...input, operation }, options);
+  return sdkOk(await simulateFacadeOperation({ ...input, operation }, options));
 }

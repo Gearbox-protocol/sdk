@@ -128,9 +128,9 @@ export interface OnchainByMode {
  * The banners the backend attaches to a pool opportunity or a strategy
  * position, see {@link Notice}.
  **/
-export interface INotices {
-  (subject: NoticeSubject): Promise<DataResponse<Notice[]>>;
-}
+export type INotices = (
+  subject: NoticeSubject,
+) => Promise<DataResponse<Notice[]>>;
 
 /**
  * `sdk.notices` per mode: a backend read, absent when the SDK reads no backend.

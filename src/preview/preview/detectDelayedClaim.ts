@@ -1,5 +1,7 @@
 import type { Address } from "viem";
 import type { DelayedIntent } from "../../model/index.js";
+import { type SDKReturn, sdkOk } from "../../model/index.js";
+import type { InvalidDelayedIntentError } from "../../onchain/index.js";
 import {
   AbstractAdapterContract,
   type OnchainSDK,
@@ -61,20 +63,20 @@ export function detectDelayedClaim<P extends PluginsMap>(
  * @param sdk - Attached SDK.
  * @param multicall - Parsed inner operations of the multicall.
  * @param blockNumber - Optional block number to read the log at.
- * @returns The decoded intent, or `undefined` when the multicall claims
- * nothing, the redemption logger is not deployed, or the log carries no
- * intent.
- * @throws InvalidDelayedIntentError when the logged `extraData` is non-empty
- * but cannot be decoded as a `DelayedIntent`.
+ * @returns The decoded intent behind `ok` (`undefined` when the multicall
+ * claims nothing, the redemption logger is not deployed, or the log carries
+ * no intent), or the `invalidDelayedIntent` refusal when the logged
+ * `extraData` is non-empty but cannot be decoded as a `DelayedIntent`.
  */
 export async function resolveDelayedClaimIntent<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   multicall: InnerOperation[],
   blockNumber?: bigint,
-): Promise<DelayedIntent | undefined> {
+): Promise<SDKReturn<DelayedIntent | undefined, InvalidDelayedIntentError>> {
   const claim = detectDelayedClaim(sdk, multicall);
-  if (!claim) {
-    return undefined;
+  const logger = sdk.redemptionLogger;
+  if (!claim || !logger) {
+    return sdkOk(undefined);
   }
-  return sdk.redemptionLogger?.getDelayedIntent(claim.redeemer, blockNumber);
+  return logger.getDelayedIntent(claim.redeemer, blockNumber);
 }

@@ -1,5 +1,12 @@
+import { isSDKError, type SDKReturn, sdkOk } from "../../model/index.js";
 import type { PluginsMap } from "../../onchain/index.js";
-import { type Operation, parseOperationCalldata } from "../parse/index.js";
+import {
+  type Operation,
+  parseOperationCalldata,
+  type UnsupportedPoolFunctionError,
+  type UnsupportedTargetError,
+  type UnsupportedZapperFunctionError,
+} from "../parse/index.js";
 import type {
   PreviewOperationInput,
   PreviewOperationOptions,
@@ -30,17 +37,27 @@ import type { PrerequisiteContext, PrerequisiteResult } from "./types.js";
 export async function checkPrerequisites<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   options?: PreviewOperationOptions,
-): Promise<PrerequisiteResult[]> {
+): Promise<
+  SDKReturn<
+    PrerequisiteResult[],
+    | UnsupportedTargetError
+    | UnsupportedPoolFunctionError
+    | UnsupportedZapperFunctionError
+  >
+> {
   const { sdk, sender: wallet } = input;
   const tx = parseOperationCalldata(input);
+  if (isSDKError(tx)) {
+    return tx;
+  }
   const ctx: PrerequisiteContext = {
     sdk,
     wallet,
     blockNumber: options?.blockNumber,
     value: input.value ?? 0n,
   };
-  const prereqs = await buildPrerequisites(tx, ctx);
-  return Promise.all(prereqs.map(p => p.verify(ctx)));
+  const prereqs = await buildPrerequisites(tx.data, ctx);
+  return sdkOk(await Promise.all(prereqs.map(p => p.verify(ctx))));
 }
 
 /**

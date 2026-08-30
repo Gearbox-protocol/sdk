@@ -1,7 +1,7 @@
 # Preview errors cleanup: shims out, PreviewOperationError in
 
 Status: APPROVED
-Spec lock: sha256:f7c107cf7194a1d9b3d8696dfe9159048238f88634555701306d15db08b8e6dd owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30)
+Spec lock: sha256:688ff154367cd9ecc6e28e8e2ba47d1439cf4ddd48f70f8daa64695637755132 owner:а почему ты оставил throw - задача была заменить throw на return и справить места, где был try-catch (owner, 2026-08-30)
 Implementation lock: sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
 Active Delivery: D1
 Unattended decisions: allowed
@@ -56,13 +56,13 @@ codes and fields behind the same `SDKReturn` envelope.
    `defineProperty(Symbol.hasInstance)` blocks and the
    `export const XError = factory as {...}` aliases are all deleted. The one
    builder with real logic folds into `asPreviewSimulationError`.
-2. **previewOperation.ts**: `PreviewVerdictError` → `PreviewOperationError`;
-   the private `isPreviewVerdict` becomes exported
-   `isPreviewOperationError`, narrowing by a compile-total code map
-   (`Record<PreviewOperationError["code"], true>`) instead of `instanceof`:
-   membership via `Object.hasOwn` after object/`code` narrowing, so
-   prototype keys like `toString` never pass — union drift breaks the
-   build inside the map.
+2. **previewOperation.ts**: `PreviewVerdictError` → `PreviewOperationError`,
+   and the pipeline is return-based end to end: `parseOperationCalldata`,
+   `checkPrerequisites`, `ZapperContract.parseOperation`,
+   `RedemptionLogger.getDelayedIntent`, `detectDelayedOperation` and the
+   simulate helpers answer `SDKReturn`; `previewOperation` composes them
+   with `isSDKError` early returns — no try/catch, no guard, nothing
+   throws a refusal.
 3. **Raise sites** build the literal: `throw { code: "unsupportedTarget",
    message, target } satisfies UnsupportedTargetError` etc.;
    `asPreviewSimulationError` passes through on the `code` check and builds
@@ -74,8 +74,8 @@ codes and fields behind the same `SDKReturn` envelope.
    genuine `Error`s, primitives, `null`, unknown codes and prototype keys,
    the barrel exports no error constructor of any kind. The two `toThrow(Class)` assertions become code
    assertions (the house `toSatisfy` pattern from throwSweep).
-5. **Barrels**: preview/index.ts and simulate/index.ts export only the
-   guard and `asPreviewSimulationError`; the six names stay `type`-only;
+5. **Barrels**: preview/index.ts and simulate/index.ts export only
+   `asPreviewSimulationError`; the six names stay `type`-only;
    sdk/preview/types.ts and PreviewNamespace.ts follow the union rename.
 6. **Docs**: MIGRATION.md renames the union and drops the verdict wording
    in every section — the preview section plus the stray mentions in the
@@ -88,16 +88,17 @@ codes and fields behind the same `SDKReturn` envelope.
   from fragments so nothing is exempt: no `Symbol.hasInstance` in src, no
   `new` on the six error names, no `verdict` (case-insensitive) in src or
   MIGRATION.md.
-- I2. The guard's code map is compile-total: a member added to or removed
-  from `PreviewOperationError` breaks the build inside the map — poison
-  evidence both ways, quoted diagnostics, restored byte-exact.
+- I2. Union totality is compile-checked: a member added to or removed
+  from `PreviewOperationError` breaks the test-d exactness probes (and,
+  removed, the pipeline's own envelope composition) — poison evidence both
+  ways, quoted diagnostics, restored byte-exact.
 - I3. Behavior unchanged: `previewOperation` still answers `sdkErr` with
   the same codes and fields — the raise-site literals are pinned exactly
   (`toEqual`), and the envelope test still passes.
 - I4. The six names survive as types only: `import type { XError }`
   compiles, a value import of `XError` fails — test-d probe; the barrel
-  exports `isPreviewOperationError` and `asPreviewSimulationError`, and no
-  error constructor of any kind.
+  exports `asPreviewSimulationError` alone — no error constructor and no
+  guard.
 - I5. Full gate `bun run agent:verify:pr` green; the MIGRATION docs
   count-tests still pass.
 
@@ -339,4 +340,22 @@ Of which verification: 10 active min / 2 credits.
 - approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
 
 - deviation D1-S1: owner review of the draft PR: the factories go too — interfaces alone, raise sites build satisfies-literals, the one real builder folds into asPreviewSimulationError; reworked in follow-up commits on the same PR
+
+- amend spec owner:а почему ты оставил throw - задача была заменить throw на return и справить места, где был try-catch (owner, 2026-08-30) sha256:3357acfb5a3967aebc650c9460a2cbc45d342ac6069c018c6fe64dff9ccb509c
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:а почему ты оставил throw - задача была заменить throw на return и справить места, где был try-catch (owner, 2026-08-30) sha256:53b8a4ff66781225871941b0880b72b1097b3b6ef63879075363c1be7ac052c0
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:а почему ты оставил throw - задача была заменить throw на return и справить места, где был try-catch (owner, 2026-08-30) sha256:bf93afee63343dd3e858ee2f88c4ac1b346dfec4fd21efe26739d13c6dbce3dd
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:а почему ты оставил throw - задача была заменить throw на return и справить места, где был try-catch (owner, 2026-08-30) sha256:688ff154367cd9ecc6e28e8e2ba47d1439cf4ddd48f70f8daa64695637755132
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- deviation D1-S1: owner review round two: refusals RETURN end to end — parse, prerequisites, zapper parse, redemption logger, detect and simulate helpers answer SDKReturn; previewOperation composes with isSDKError early returns; try/catch and the guard are gone; evidence re-recorded on the test-d anchors
 <!-- plan:execution:end -->

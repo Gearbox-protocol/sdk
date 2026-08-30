@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
+import { sdkOk } from "../../model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
@@ -72,7 +73,7 @@ describe("detectDelayedOperation", () => {
     const result = detectDelayedOperation(stubSdk(), [
       { operation: "AddCollateral", token: USDC, amount: 100n },
     ]);
-    expect(result).toBeUndefined();
+    expect(result).toEqual(sdkOk(undefined));
   });
 
   it("returns undefined when no adapter reports a withdrawal request", () => {
@@ -80,12 +81,12 @@ describe("detectDelayedOperation", () => {
       stubSdk({ [ADAPTER]: stubAdapter(undefined) }),
       bracket([execute()]),
     );
-    expect(result).toBeUndefined();
+    expect(result).toEqual(sdkOk(undefined));
   });
 
   it("skips Execute ops whose target is not a known adapter", () => {
     const result = detectDelayedOperation(stubSdk(), bracket([execute()]));
-    expect(result).toBeUndefined();
+    expect(result).toEqual(sdkOk(undefined));
   });
 
   it("detects a request without extraData as intent: undefined (Mellow, legacy txs)", () => {
@@ -97,7 +98,7 @@ describe("detectDelayedOperation", () => {
       stubSdk({ [ADAPTER]: stubAdapter(request) }),
       bracket([execute()]),
     );
-    expect(result).toEqual({ request, intent: undefined });
+    expect(result).toEqual(sdkOk({ request, intent: undefined }));
   });
 
   it("detects a request with empty '0x' extraData as intent: undefined", () => {
@@ -110,7 +111,7 @@ describe("detectDelayedOperation", () => {
       stubSdk({ [ADAPTER]: stubAdapter(request) }),
       bracket([execute()]),
     );
-    expect(result).toEqual({ request, intent: undefined });
+    expect(result).toEqual(sdkOk({ request, intent: undefined }));
   });
 
   it("decodes a valid intent from extraData", () => {
@@ -123,29 +124,28 @@ describe("detectDelayedOperation", () => {
       stubSdk({ [ADAPTER]: stubAdapter(request) }),
       bracket([execute()]),
     );
-    expect(result).toEqual({
-      request,
-      intent: { type: "CLOSE_ACCOUNT", to: OWNER },
-    });
+    expect(result).toEqual(
+      sdkOk({
+        request,
+        intent: { type: "CLOSE_ACCOUNT", to: OWNER },
+      }),
+    );
   });
 
-  it("throws the invalidDelayedIntent refusal on non-empty undecodable extraData", () => {
+  it("answers the invalidDelayedIntent refusal on non-empty undecodable extraData", () => {
     const request: DelayedWithdrawalRequest = {
       phantomToken: PHANTOM,
       claimToken: USDC,
       extraData: "0xdeadbeef",
     };
-    let raised: unknown;
-    try {
-      detectDelayedOperation(
-        stubSdk({ [ADAPTER]: stubAdapter(request) }),
-        bracket([execute()]),
-      );
-    } catch (e) {
-      raised = e;
-    }
-    expect(raised).toMatchObject({ code: "invalidDelayedIntent" });
-    expect(raised instanceof Error).toBe(false);
+    const result = detectDelayedOperation(
+      stubSdk({ [ADAPTER]: stubAdapter(request) }),
+      bracket([execute()]),
+    );
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "invalidDelayedIntent" },
+    });
   });
 
   it("returns undefined when the bracket has no positive phantom delta (fully instant withdrawal)", () => {
@@ -158,7 +158,7 @@ describe("detectDelayedOperation", () => {
       stubSdk({ [ADAPTER]: stubAdapter(request) }),
       bracket([execute()], [{ token: USDC, balance: 1000n }]),
     );
-    expect(result).toBeUndefined();
+    expect(result).toEqual(sdkOk(undefined));
   });
 
   it("returns undefined when the request is outside any bracket", () => {
@@ -170,7 +170,7 @@ describe("detectDelayedOperation", () => {
       stubSdk({ [ADAPTER]: stubAdapter(request) }),
       [execute()],
     );
-    expect(result).toBeUndefined();
+    expect(result).toEqual(sdkOk(undefined));
   });
 
   it("returns undefined when the phantom delta is in a different, already closed bracket", () => {
@@ -185,7 +185,7 @@ describe("detectDelayedOperation", () => {
         ...bracket([execute()], [{ token: USDC, balance: 1000n }]),
       ],
     );
-    expect(result).toBeUndefined();
+    expect(result).toEqual(sdkOk(undefined));
   });
 
   it("returns the first matching request among several Execute ops", () => {
@@ -200,6 +200,6 @@ describe("detectDelayedOperation", () => {
       }),
       bracket([execute(ADAPTER), execute(OTHER_ADAPTER)]),
     );
-    expect(result).toEqual({ request, intent: undefined });
+    expect(result).toEqual(sdkOk({ request, intent: undefined }));
   });
 });

@@ -1,5 +1,6 @@
 import { type Address, getAddress, padHex } from "viem";
 import { describe, expect, it } from "vitest";
+import { sdkOk } from "../../model/index.js";
 import type { OnchainSDK } from "../../onchain/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import { simulatePoolOperation } from "./simulatePoolOperation.js";
@@ -64,10 +65,12 @@ describe("simulatePoolOperation", () => {
     };
     const { result, calls } = simulate(op, 90n);
 
-    await expect(result).resolves.toEqual({
-      amountIn: 100n,
-      amountOut: 90n,
-    });
+    await expect(result).resolves.toEqual(
+      sdkOk({
+        amountIn: 100n,
+        amountOut: 90n,
+      }),
+    );
     expect(calls).toMatchObject([
       { address: POOL, functionName: "previewDeposit", args: [100n] },
     ]);
@@ -86,10 +89,12 @@ describe("simulatePoolOperation", () => {
     };
     const { result, calls } = simulate(op, 55n);
 
-    await expect(result).resolves.toEqual({
-      amountIn: 55n,
-      amountOut: 50n,
-    });
+    await expect(result).resolves.toEqual(
+      sdkOk({
+        amountIn: 55n,
+        amountOut: 50n,
+      }),
+    );
     expect(calls).toMatchObject([
       { address: POOL, functionName: "previewMint", args: [50n] },
     ]);
@@ -109,10 +114,12 @@ describe("simulatePoolOperation", () => {
     };
     const { result, calls } = simulate(op, 180n);
 
-    await expect(result).resolves.toEqual({
-      amountIn: 180n,
-      amountOut: 200n,
-    });
+    await expect(result).resolves.toEqual(
+      sdkOk({
+        amountIn: 180n,
+        amountOut: 200n,
+      }),
+    );
     expect(calls).toMatchObject([
       { address: POOL, functionName: "previewWithdraw", args: [200n] },
     ]);
@@ -132,10 +139,12 @@ describe("simulatePoolOperation", () => {
     };
     const { result, calls } = simulate(op, 130n);
 
-    await expect(result).resolves.toEqual({
-      amountIn: 120n,
-      amountOut: 130n,
-    });
+    await expect(result).resolves.toEqual(
+      sdkOk({
+        amountIn: 120n,
+        amountOut: 130n,
+      }),
+    );
     expect(calls).toMatchObject([
       { address: POOL, functionName: "previewRedeem", args: [120n] },
     ]);
@@ -156,16 +165,18 @@ describe("simulatePoolOperation", () => {
     };
     const { result, calls } = simulate(op, 950n);
 
-    await expect(result).resolves.toEqual({
-      amountIn: 1_000n,
-      amountOut: 950n,
-    });
+    await expect(result).resolves.toEqual(
+      sdkOk({
+        amountIn: 1_000n,
+        amountOut: 950n,
+      }),
+    );
     expect(calls).toMatchObject([
       { address: ZAPPER, functionName: "previewDeposit", args: [1_000n] },
     ]);
   });
 
-  it("throws a decoded failure when the preview read reverts", async () => {
+  it("answers a decoded failure when the preview read reverts", async () => {
     const op: PoolOperation = {
       operation: "Deposit",
       pool: POOL,
@@ -184,13 +195,16 @@ describe("simulatePoolOperation", () => {
       },
     } as unknown as OnchainSDK;
 
-    await expect(() =>
+    await expect(
       simulatePoolOperation({
         sdk,
         operation: op,
         to: POOL,
         calldata: "0x",
       }),
-    ).rejects.toMatchObject({ code: "previewSimulationFailed" });
+    ).resolves.toMatchObject({
+      ok: false,
+      error: { code: "previewSimulationFailed" },
+    });
   });
 });

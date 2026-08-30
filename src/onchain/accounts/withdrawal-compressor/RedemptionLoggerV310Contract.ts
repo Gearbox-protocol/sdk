@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import { iRedemptionLoggerV310Abi } from "../../../abi/iRedemptionLoggerV310.js";
 import type { DelayedIntent } from "../../../model/index.js";
+import { type SDKReturn, sdkErr, sdkOk } from "../../../model/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { InvalidDelayedIntentError } from "./errors.js";
@@ -47,30 +48,30 @@ export class RedemptionLoggerV310Contract
    *
    * @param redeemer - Redeemer contract the withdrawal is claimed from.
    * @param blockNumber - Optional block number to read the log at.
-   * @returns The decoded intent, or `undefined` when the log carries none
-   * (including when nothing was logged for the redeemer).
-   * @throws InvalidDelayedIntentError when the logged `extraData` is
+   * @returns The decoded intent behind `ok` (`undefined` when the log
+   * carries none, including when nothing was logged for the redeemer), or
+   * the `invalidDelayedIntent` refusal when the logged `extraData` is
    * non-empty but cannot be decoded as a `DelayedIntent`.
    **/
   public async getDelayedIntent(
     redeemer: Address,
     blockNumber?: bigint,
-  ): Promise<DelayedIntent | undefined> {
+  ): Promise<SDKReturn<DelayedIntent | undefined, InvalidDelayedIntentError>> {
     const log = await this.getRedemptionLog(redeemer, blockNumber);
     if (!log.extraData || log.extraData === "0x") {
-      return undefined;
+      return sdkOk(undefined);
     }
     try {
-      return decodeDelayedIntent(log.extraData);
+      return sdkOk(decodeDelayedIntent(log.extraData));
     } catch (e) {
-      throw {
+      return sdkErr({
         code: "invalidDelayedIntent",
         message: `cannot decode delayed intent from extraData ${log.extraData}`,
         extraData: log.extraData,
         // The same normalisation decodeSimulationError applies: a non-Error
         // reason is kept, stringified, rather than dropped.
         cause: e instanceof Error ? e : new Error(String(e)),
-      } satisfies InvalidDelayedIntentError;
+      } satisfies InvalidDelayedIntentError);
     }
   }
 }

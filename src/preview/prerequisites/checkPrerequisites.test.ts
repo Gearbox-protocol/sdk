@@ -8,8 +8,8 @@ import {
   type Hex,
 } from "viem";
 import { beforeAll, expect, it, vi } from "vitest";
-
 import { iSecuritizeRWAFactoryAbi } from "../../abi/rwa/iSecuritizeRWAFactory.js";
+import { isSDKError } from "../../model/index.js";
 import {
   json_parse,
   OnchainSDK,
@@ -122,13 +122,15 @@ function calldataWith(
 async function resolveRWAResult(
   calldata: Hex,
 ): Promise<RWAOpenRequirementsResult> {
-  const results = await checkPrerequisites({
+  const answer = await checkPrerequisites({
     sdk,
     to: FACTORY,
     calldata,
     sender: SENDER,
   });
-  const rwa = results.find(
+  expect(isSDKError(answer)).toBe(false);
+  if (isSDKError(answer)) throw new Error("unreachable");
+  const rwa = answer.data.find(
     (r): r is RWAOpenRequirementsResult => r.kind === "rwaOpenRequirements",
   );
   expect(rwa).toBeDefined();

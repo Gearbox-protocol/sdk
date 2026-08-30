@@ -1,7 +1,9 @@
 import type { Address, Hex } from "viem";
+import type { SDKReturn } from "../../../model/index.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { RawTx } from "../../types/index.js";
 import type { ZapperData } from "../types.js";
+import type { UnsupportedZapperFunctionError } from "./errors.js";
 
 /**
  * Deposit decoded from a zapper call
@@ -55,7 +57,10 @@ export interface IZapperContract extends IBaseContract, ZapperData {
    * @param calldata - Raw ABI-encoded calldata sent to the zapper.
    * @param value - Transaction `msg.value`, used for native-token deposits.
    */
-  parseOperation(calldata: Hex, value?: bigint): ParsedZapperOperation;
+  parseOperation(
+    calldata: Hex,
+    value?: bigint,
+  ): SDKReturn<ParsedZapperOperation, UnsupportedZapperFunctionError>;
 
   /**
    * Redeems pool shares (diesel tokens) for the underlying asset via this zapper.

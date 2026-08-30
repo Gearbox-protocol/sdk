@@ -7,10 +7,7 @@ import { describe, expect, it } from "vitest";
 import { isSDKError } from "../model/index.js";
 import type { OnchainSDK } from "../onchain/index.js";
 import * as previewBarrel from "./index.js";
-import {
-  isPreviewOperationError,
-  previewOperation,
-} from "./preview/previewOperation.js";
+import { previewOperation } from "./preview/previewOperation.js";
 import { asPreviewSimulationError } from "./simulate/errors.js";
 
 const TARGET: Address = "0x00000000000000000000000000000000000000aa";
@@ -46,52 +43,8 @@ describe("asPreviewSimulationError", () => {
   });
 });
 
-describe("isPreviewOperationError", () => {
-  it("isPreviewOperationError accepts all six refusal codes", () => {
-    const answers = [
-      { code: "unsupportedTarget", message: "m", target: TARGET },
-      {
-        code: "unsupportedPoolFunction",
-        message: "m",
-        pool: TARGET,
-        functionName: "mint",
-      },
-      {
-        code: "unsupportedZapperFunction",
-        message: "m",
-        zapper: TARGET,
-        functionName: "zapOut",
-      },
-      {
-        code: "unsupportedOperation",
-        message: "m",
-        operation: "LiquidateCreditAccount",
-      },
-      { code: "invalidDelayedIntent", message: "m", extraData: CALLDATA },
-      asPreviewSimulationError(new Error("reverted"), "multicall"),
-    ];
-    for (const answer of answers) {
-      expect(isPreviewOperationError(answer), answer.code).toBe(true);
-    }
-  });
-
-  it("isPreviewOperationError rejects everything outside the refusal vocabulary", () => {
-    expect(isPreviewOperationError(new Error("boom"))).toBe(false);
-    expect(isPreviewOperationError("unsupportedTarget")).toBe(false);
-    expect(isPreviewOperationError(42)).toBe(false);
-    expect(isPreviewOperationError(null)).toBe(false);
-    expect(isPreviewOperationError(undefined)).toBe(false);
-    expect(isPreviewOperationError({})).toBe(false);
-    expect(isPreviewOperationError({ code: "somethingElse" })).toBe(false);
-    // prototype keys must not slip through an `in`-style membership check
-    expect(isPreviewOperationError({ code: "toString" })).toBe(false);
-    expect(isPreviewOperationError({ code: "constructor" })).toBe(false);
-  });
-});
-
 describe("preview barrel surface", () => {
-  it("barrel exports the guard and the normaliser, and no error constructors", () => {
-    expect(typeof previewBarrel.isPreviewOperationError).toBe("function");
+  it("barrel exports the one normaliser and no error constructors or guards", () => {
     expect(typeof previewBarrel.asPreviewSimulationError).toBe("function");
     for (const name of [
       // the class-era aliases stay types only
@@ -102,6 +55,7 @@ describe("preview barrel surface", () => {
       "InvalidDelayedIntentError",
       "PreviewSimulationError",
       "IntentPreviewError",
+      "isPreviewOperationError",
       // and no factory took their place — raise sites build literals
       "unsupportedTarget",
       "unsupportedPoolFunction",

@@ -1,5 +1,10 @@
 import type { OperationPreview } from "../../model/index.js";
-import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
+import {
+  isSDKError,
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+} from "../../model/index.js";
 import type {
   ConvertFn,
   InvalidDelayedIntentError,
@@ -48,45 +53,6 @@ export type PreviewOperationError =
   | PreviewSimulationError;
 
 /**
- * Compile-total map of the refusal codes: a member added to or removed from
- * {@link PreviewOperationError} breaks the build here.
- */
-const PREVIEW_OPERATION_ERROR_CODES: Record<
-  PreviewOperationError["code"],
-  true
-> = {
-  unsupportedTarget: true,
-  unsupportedPoolFunction: true,
-  unsupportedZapperFunction: true,
-  unsupportedOperation: true,
-  invalidDelayedIntent: true,
-  previewSimulationFailed: true,
-};
-
-/**
- * Narrows a raised value to the refusal vocabulary: a plain non-`Error`
- * object whose `code` is one of the preview refusal codes. Genuine
- * exceptions — bugs, outages, calldata the parser cannot read at all — fail
- * the check and keep propagating as throws.
- */
-export function isPreviewOperationError(
-  raised: unknown,
-): raised is PreviewOperationError {
-  if (
-    typeof raised !== "object" ||
-    raised === null ||
-    raised instanceof Error
-  ) {
-    return false;
-  }
-  const code = (raised as { code?: unknown }).code;
-  return (
-    typeof code === "string" &&
-    Object.hasOwn(PREVIEW_OPERATION_ERROR_CODES, code)
-  );
-}
-
-/**
  * Previews a raw operation calldata: decodes it into a typed operation and
  * assembles an operation-specific, human-displayable preview.
  *
@@ -100,59 +66,58 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
   input: PreviewOperationInput<P>,
   options?: PreviewOperationOptions,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
-  try {
-    const operation = parseOperationCalldata(input);
-
-    if (isPoolOperation(operation)) {
-      return sdkOk(
-        await previewPoolPositionOperation(input, operation, options),
-      );
-    }
-
-    if (
-      operation.operation === "OpenCreditAccount" ||
-      operation.operation === "RWAOpenCreditAccount"
-    ) {
-      return sdkOk(await previewOpenStrategyPosition(input, operation));
-    }
-
-    if (operation.operation === "CloseCreditAccount") {
-      const resolved = await resolveCreditAccount(input, operation, options);
-      const preview = previewExitOrRepayStrategyPosition(
-        input,
-        operation,
-        true,
-        resolved,
-      );
-      preview.intent = await resolveDelayedClaimIntent(
-        input.sdk,
-        operation.multicall,
-        options?.blockNumber,
-      );
-
-      return sdkOk(preview);
-    }
-
-    if (
-      operation.operation === "MultiCall" ||
-      operation.operation === "BotMulticall" ||
-      operation.operation === "RWAMulticall"
-    ) {
-      const resolved = await resolveCreditAccount(input, operation, options);
-      return sdkOk(await previewMulticallOperation(input, operation, resolved));
-    }
-
-    return sdkErr({
-      code: "unsupportedOperation",
-      message: `operation "${operation.operation}" is not supported by previewOperation`,
-      operation: operation.operation,
-    } satisfies UnsupportedOperationError);
-  } catch (raised) {
-    if (isPreviewOperationError(raised)) {
-      return sdkErr(raised);
-    }
-    throw raised;
+  const parsed = parseOperationCalldata(input);
+  if (isSDKError(parsed)) {
+    return parsed;
   }
+  const operation = parsed.data;
+
+  if (isPoolOperation(operation)) {
+    return previewPoolPositionOperation(input, operation, options);
+  }
+
+  if (
+    operation.operation === "OpenCreditAccount" ||
+    operation.operation === "RWAOpenCreditAccount"
+  ) {
+    return sdkOk(await previewOpenStrategyPosition(input, operation));
+  }
+
+  if (operation.operation === "CloseCreditAccount") {
+    const resolved = await resolveCreditAccount(input, operation, options);
+    const preview = previewExitOrRepayStrategyPosition(
+      input,
+      operation,
+      true,
+      resolved,
+    );
+    const intent = await resolveDelayedClaimIntent(
+      input.sdk,
+      operation.multicall,
+      options?.blockNumber,
+    );
+    if (isSDKError(intent)) {
+      return intent;
+    }
+    preview.intent = intent.data;
+
+    return sdkOk(preview);
+  }
+
+  if (
+    operation.operation === "MultiCall" ||
+    operation.operation === "BotMulticall" ||
+    operation.operation === "RWAMulticall"
+  ) {
+    const resolved = await resolveCreditAccount(input, operation, options);
+    return previewMulticallOperation(input, operation, resolved);
+  }
+
+  return sdkErr({
+    code: "unsupportedOperation",
+    message: `operation "${operation.operation}" is not supported by previewOperation`,
+    operation: operation.operation,
+  } satisfies UnsupportedOperationError);
 }
 
 /**
@@ -189,7 +154,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: MulticallOperation | RWAMulticallOperation,
   options: PreviewOperationOptions<true>,
-): Promise<OperationPreview> {
+): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
   const { sdk } = input;
 
   // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
@@ -198,17 +163,25 @@ async function previewMulticallOperation<P extends PluginsMap>(
     ? previewExitOrRepayStrategyPosition(input, operation, false, options)
     : previewAdjustStrategyPosition(input, operation, options);
 
-  const delayed = detectDelayedOperation(sdk, operation.multicall);
+  const detected = detectDelayedOperation(sdk, operation.multicall);
+  if (isSDKError(detected)) {
+    return detected;
+  }
+  const delayed = detected.data;
   if (!delayed) {
     // Not a delayed-withdrawal request; it may still be the claim ("tail")
     // part of a previously requested delayed withdrawal, in which case the
     // recorded intent is surfaced on the instant preview
-    instantPreview.intent = await resolveDelayedClaimIntent(
+    const intent = await resolveDelayedClaimIntent(
       sdk,
       operation.multicall,
       options?.blockNumber,
     );
-    return instantPreview;
+    if (isSDKError(intent)) {
+      return intent;
+    }
+    instantPreview.intent = intent.data;
+    return sdkOk(instantPreview);
   }
 
   const { before, after } = replayMulticall(sdk, operation, options);
@@ -229,7 +202,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
 
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
-  return {
+  return sdkOk({
     operation: "DelayedCreditAccountOperation",
     creditAccount: operation.creditAccount,
     ...suite.creditOperationMarket(),
@@ -246,5 +219,5 @@ async function previewMulticallOperation<P extends PluginsMap>(
       receivedToken,
       sdk,
     ),
-  };
+  });
 }

@@ -1,8 +1,9 @@
 import type { Address, Hex } from "viem";
-import type { DelayedIntent } from "../../../model/index.js";
+import type { DelayedIntent, SDKReturn } from "../../../model/index.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall } from "../../types/index.js";
 import type { MulticallBatch } from "../../utils/viem/index.js";
+import type { InvalidDelayedIntentError } from "./errors.js";
 
 /**
  * Delayed intent decoded from `extraData`, enriched with data known at read time.
@@ -442,12 +443,12 @@ export interface IRedemptionLoggerContract extends IBaseContract {
    * @param redeemer - Redeemer contract the withdrawal is claimed from.
    * @param blockNumber - Optional block number to read the log at.
    * @returns The decoded intent, or `undefined` when the log carries none
-   * (including when nothing was logged for the redeemer).
-   * @throws InvalidDelayedIntentError when the logged `extraData` is
-   * non-empty but cannot be decoded as a `DelayedIntent`.
+   * (including when nothing was logged for the redeemer), behind `ok`; the
+   * `invalidDelayedIntent` refusal when the logged `extraData` is non-empty
+   * but cannot be decoded as a `DelayedIntent`.
    **/
   getDelayedIntent(
     redeemer: Address,
     blockNumber?: bigint,
-  ): Promise<DelayedIntent | undefined>;
+  ): Promise<SDKReturn<DelayedIntent | undefined, InvalidDelayedIntentError>>;
 }

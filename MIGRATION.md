@@ -423,7 +423,11 @@ and appear in no prepare union — the exactness type tests refuse them.
 six declassed refusal errors (unsupported target / pool function / operation
 / zapper
 function, invalid delayed intent, failed simulation) — plain objects now, not
-thrown Error classes. `IntentPreviewError` left the public barrels; it is the
+thrown Error classes, and RETURNED end to end: `parseOperationCalldata`,
+`checkPrerequisites`, `ZapperContract.parseOperation`,
+`RedemptionLogger.getDelayedIntent`, `detectDelayedOperation` and the
+simulate helpers all answer `SDKReturn`; nothing throws a refusal and
+nothing catches one. `IntentPreviewError` left the public barrels; it is the
 engine's internal transport only.
 
 ## Throw dispositions
