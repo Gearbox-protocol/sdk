@@ -107,6 +107,33 @@ narrowed reason sets.
 - `checkOperation`/`checkSimulation` keep `PreviewIssue | null` (they are
   predicates, not operations) — unchanged.
 
+## Tier 2.5 — the bare-throw sweep on public operation paths
+
+The rule, encoded and tested: on any public refusable path, a `throw`
+reachable through caller input or on-chain/market state is a verdict and
+must become an `SDKError` member of that method's union. A `throw` may
+remain only for (a) programmer misuse of the API (invariant violations),
+(b) transport/RPC failure, (c) sdk lifecycle (attach/state). Every audited
+site is dispositioned one way or the other — no unclassified throws left:
+
+- `PrepareApi.ts:255` — "credit manager has no strategy target collateral":
+  market-state verdict → new code `noStrategyTargetCollateral` on
+  `OpenStrategyError`.
+- `PoolService` route/metadata throws (10 sites; 2 already converted by
+  `lpRoute`): each assessed — reachable via LP prepare with a wrong-but-
+  well-typed token/pool is a verdict (`unsupportedTokenPair` or a new
+  `unsupportedPool` code); reachable only via corrupted internal state
+  stays thrown with a justification comment.
+- `intents/index.ts:143,284,298,383` and `tail.ts:71,111` — dispositioned
+  individually the same way; those that guard engine invariants stay
+  thrown, those triggered by resumable/claim input become codes on
+  `FinalizeError`/route errors.
+- `queryChain` unknown-chain (`ChainNotConfiguredError`) — programmer
+  misuse, stays thrown, documented in the method docs.
+
+The disposition table (site → verdict-code | kept-throw + why) is part of
+MIGRATION.md.
+
 ## Tier 3 — engine boundary
 
 Engine internals stay (`PreviewIssue`, `refuse()`, and the internal-only
@@ -187,6 +214,12 @@ without it).
   a spec drives each construction path and asserts no throw crosses the
   public API; every error `code` (prepare + preview) is a member of
   `SDKErrorCode` (type test).
+- I4b. Bare-throw sweep: every audited throw site on a public operation
+  path is either a union member with a fixture-driven test producing it as
+  an `SDKError`, or carries a kept-throw justification and appears in the
+  MIGRATION.md disposition table; a repo test walks the table and fails on
+  an undispositioned site (list-driven, so a new throw on these paths
+  must be classified to land).
 - I5. No `DataResponse` in any prepare/preview operation signature; every
   `*Result` carries `blockNumber`/`timestamp`; multichain read signatures
   byte-identical (type test pinning them).
