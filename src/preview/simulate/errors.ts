@@ -29,27 +29,6 @@ export interface PreviewSimulationError extends IGearboxError {
   cause?: Error;
 }
 
-/** Builds the refusal — a plain returned object, never a thrown `Error`. */
-export function previewSimulationFailed(
-  failures: SimulationFlowFailure[],
-): PreviewSimulationError {
-  const message =
-    failures.length <= 1
-      ? (failures[0]?.detail.reason ?? "simulation failed")
-      : "all simulation flows failed";
-  const cause = failures.find(f => f.detail.cause instanceof Error)?.detail
-    .cause as Error | undefined;
-  const refusal: PreviewSimulationError = {
-    code: "previewSimulationFailed",
-    message,
-    failures,
-  };
-  if (cause) {
-    refusal.cause = cause;
-  }
-  return refusal;
-}
-
 function isPreviewSimulationError(
   value: unknown,
 ): value is PreviewSimulationError {
@@ -73,9 +52,13 @@ export function asPreviewSimulationError(
     return reason;
   }
   const error = reason instanceof Error ? reason : new Error(String(reason));
-  return previewSimulationFailed([
-    { source, detail: decodeSimulationError({ error }) },
-  ]);
+  const detail = decodeSimulationError({ error });
+  return {
+    code: "previewSimulationFailed",
+    message: detail.reason,
+    failures: [{ source, detail }],
+    cause: error,
+  };
 }
 
 /** Decoded revert of the simulated transaction. */

@@ -13,16 +13,3 @@ export interface UnsupportedZapperFunctionError extends IGearboxError {
   /** Decoded function name the SDK cannot preview. */
   functionName: string;
 }
-
-/** Builds the refusal — a plain returned object, never a thrown `Error`. */
-export function unsupportedZapperFunction(
-  zapper: Address,
-  functionName: string,
-): UnsupportedZapperFunctionError {
-  return {
-    code: "unsupportedZapperFunction",
-    message: `unsupported zapper function "${functionName}" on ${zapper}`,
-    zapper,
-    functionName,
-  };
-}

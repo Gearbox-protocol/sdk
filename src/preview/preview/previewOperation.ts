@@ -23,10 +23,7 @@ import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStra
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
-import {
-  type UnsupportedOperationError,
-  unsupportedOperation,
-} from "./errors.js";
+import type { UnsupportedOperationError } from "./errors.js";
 import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
 import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
@@ -145,7 +142,11 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
       return sdkOk(await previewMulticallOperation(input, operation, resolved));
     }
 
-    return sdkErr(unsupportedOperation(operation.operation));
+    return sdkErr({
+      code: "unsupportedOperation",
+      message: `operation "${operation.operation}" is not supported by previewOperation`,
+      operation: operation.operation,
+    } satisfies UnsupportedOperationError);
   } catch (raised) {
     if (isPreviewOperationError(raised)) {
       return sdkErr(raised);

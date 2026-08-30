@@ -15,21 +15,3 @@ export interface InvalidDelayedIntentError extends IGearboxError {
   /** The decoding failure this refusal stands in front of. */
   cause?: Error;
 }
-
-/** Builds the refusal — a plain returned object, never a thrown `Error`. */
-export function invalidDelayedIntent(
-  extraData: Hex,
-  cause?: unknown,
-): InvalidDelayedIntentError {
-  const refusal: InvalidDelayedIntentError = {
-    code: "invalidDelayedIntent",
-    message: `cannot decode delayed intent from extraData ${extraData}`,
-    extraData,
-  };
-  if (cause !== undefined) {
-    // Same normalisation `decodeSimulationError` applies: a non-Error reason
-    // is kept, stringified, rather than dropped.
-    refusal.cause = cause instanceof Error ? cause : new Error(String(cause));
-  }
-  return refusal;
-}

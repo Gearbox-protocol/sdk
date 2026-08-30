@@ -1,10 +1,9 @@
 import type { Address } from "viem";
 import type { IGearboxError } from "../../model/index.js";
 
-export type { UnsupportedZapperFunctionError } from "../../onchain/market/zapper/errors.js";
 // Re-exported from the SDK zapper module, where it is raised, to keep the
 // preview public API stable.
-export { unsupportedZapperFunction } from "../../onchain/market/zapper/errors.js";
+export type { UnsupportedZapperFunctionError } from "../../onchain/market/zapper/errors.js";
 
 /**
  * Refusal answered when the target of a transaction is neither a known
@@ -15,15 +14,6 @@ export interface UnsupportedTargetError extends IGearboxError {
   code: "unsupportedTarget";
   /** Target address no known Gearbox contract answers for. */
   target: Address;
-}
-
-/** Builds the refusal — a plain returned object, never a thrown `Error`. */
-export function unsupportedTarget(target: Address): UnsupportedTargetError {
-  return {
-    code: "unsupportedTarget",
-    message: `unsupported transaction target: ${target}`,
-    target,
-  };
 }
 
 /**
@@ -37,17 +27,4 @@ export interface UnsupportedPoolFunctionError extends IGearboxError {
   pool: Address;
   /** Decoded function name the SDK cannot preview. */
   functionName: string;
-}
-
-/** Builds the refusal — a plain returned object, never a thrown `Error`. */
-export function unsupportedPoolFunction(
-  pool: Address,
-  functionName: string,
-): UnsupportedPoolFunctionError {
-  return {
-    code: "unsupportedPoolFunction",
-    message: `unsupported pool function "${functionName}" on ${pool}`,
-    pool,
-    functionName,
-  };
 }

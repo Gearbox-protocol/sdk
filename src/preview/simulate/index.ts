@@ -4,7 +4,7 @@ export type {
   SimulationFlowFailure,
   SimulationFlowSource,
 } from "./errors.js";
-export { asPreviewSimulationError, previewSimulationFailed } from "./errors.js";
+export { asPreviewSimulationError } from "./errors.js";
 export { simulateFacadeOperation } from "./simulateFacadeOperation.js";
 export { simulateOperation } from "./simulateOperation.js";
 export { simulatePoolOperation } from "./simulatePoolOperation.js";

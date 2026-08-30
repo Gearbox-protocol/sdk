@@ -6,11 +6,10 @@
  * as plain returned objects, not thrown classes.
  */
 
+// The refusal error of `previewOperation`'s union that is raised outside
+// this module's own barrels, re-exported (a type alone — refusals are plain
+// literals) so the preview surface names every refusal it can answer with.
 export type { InvalidDelayedIntentError } from "../onchain/accounts/withdrawal-compressor/errors.js";
-// The two refusal errors of `previewOperation`'s union that are raised
-// outside this module's own barrels, re-exported so the preview surface
-// names every refusal it can answer with.
-export { invalidDelayedIntent } from "../onchain/accounts/withdrawal-compressor/errors.js";
 export {
   type BorrowLimitBinding,
   type PreviewErrorDetails,
@@ -26,7 +25,6 @@ export * from "./preview/index.js";
 export {
   asPreviewSimulationError,
   type PreviewSimulationError,
-  previewSimulationFailed,
   type SimulationError,
   type SimulationFlowFailure,
   type SimulationFlowSource,

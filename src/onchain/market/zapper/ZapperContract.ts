@@ -4,7 +4,7 @@ import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { RawTx } from "../../types/index.js";
 import type { ZapperData } from "../types.js";
-import { unsupportedZapperFunction } from "./errors.js";
+import type { UnsupportedZapperFunctionError } from "./errors.js";
 import type { IZapperContract, ParsedZapperOperation } from "./types.js";
 
 /**
@@ -86,7 +86,12 @@ export class ZapperContract<A extends Abi = Abi>
       };
     }
 
-    throw unsupportedZapperFunction(zapper, parsed.functionName);
+    throw {
+      code: "unsupportedZapperFunction",
+      message: `unsupported zapper function "${parsed.functionName}" on ${zapper}`,
+      zapper,
+      functionName: parsed.functionName,
+    } satisfies UnsupportedZapperFunctionError;
   }
 
   /**

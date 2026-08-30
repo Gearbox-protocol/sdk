@@ -10,14 +10,3 @@ export interface UnsupportedOperationError extends IGearboxError {
   /** The parsed operation kind (the `operation` discriminant). */
   operation: string;
 }
-
-/** Builds the refusal — a plain returned object, never a thrown `Error`. */
-export function unsupportedOperation(
-  operation: string,
-): UnsupportedOperationError {
-  return {
-    code: "unsupportedOperation",
-    message: `operation "${operation}" is not supported by previewOperation`,
-    operation,
-  };
-}

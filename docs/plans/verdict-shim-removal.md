@@ -1,7 +1,7 @@
 # Preview errors cleanup: shims out, PreviewOperationError in
 
 Status: APPROVED
-Spec lock: sha256:a406b8f13e450953c794a91f35bd2873ccc197b085b1050a8608a1823b367d7f owner:let plan, review and start. I approve all stages (owner, 2026-08-30; applying codex round 2 findings)
+Spec lock: sha256:f7c107cf7194a1d9b3d8696dfe9159048238f88634555701306d15db08b8e6dd owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30)
 Implementation lock: sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
 Active Delivery: D1
 Unattended decisions: allowed
@@ -9,8 +9,9 @@ Unattended decisions: allowed
 <!-- plan:spec:start -->
 # The Goal
 
-The six preview refusal errors are defined cleanly — an interface plus an
-exported factory function, nothing else. The `Symbol.hasInstance` shims, the
+The six preview refusal errors are defined cleanly — an interface alone:
+raise sites build the literal (`satisfies`), nothing constructs errors for
+callers. The `Symbol.hasInstance` shims, the
 `as`-cast class aliases and every `new XError(...)` raise site go away; the
 "verdict" term (a coinage of the previous Delivery, not a domain word) is
 retired in favor of `PreviewOperationError` across code, tests and
@@ -51,9 +52,10 @@ codes and fields behind the same `SDKReturn` envelope.
 # What changes
 
 1. **Each errors.ts** keeps `export interface XError extends IGearboxError`
-   (the definition) and gains `export function <factory>(...): XError` (the
-   builder); the `defineProperty(Symbol.hasInstance)` block and the
-   `export const XError = factory as {...}` alias are deleted.
+   (the definition) and nothing else; the factories, the
+   `defineProperty(Symbol.hasInstance)` blocks and the
+   `export const XError = factory as {...}` aliases are all deleted. The one
+   builder with real logic folds into `asPreviewSimulationError`.
 2. **previewOperation.ts**: `PreviewVerdictError` → `PreviewOperationError`;
    the private `isPreviewVerdict` becomes exported
    `isPreviewOperationError`, narrowing by a compile-total code map
@@ -61,19 +63,20 @@ codes and fields behind the same `SDKReturn` envelope.
    membership via `Object.hasOwn` after object/`code` narrowing, so
    prototype keys like `toString` never pass — union drift breaks the
    build inside the map.
-3. **Raise sites** call the factories: `throw unsupportedTarget(to)` etc.;
+3. **Raise sites** build the literal: `throw { code: "unsupportedTarget",
+   message, target } satisfies UnsupportedTargetError` etc.;
    `asPreviewSimulationError` passes through on the `code` check and builds
-   via `previewSimulationFailed(...)`.
+   its literal from the decoded failure.
 4. **Tests**: `verdictErrors.test.ts` → `previewOperationErrors.test.ts`,
-   rewritten as the clean-surface spec — every factory's answer is pinned
-   exactly (`toEqual`: message, optional-field presence, cause, failures),
-   the guard accepts all six codes and rejects genuine `Error`s,
-   primitives, `null`, unknown codes and prototype keys, the barrel
-   exports factories and no callable class aliases. The two `toThrow(Class)` assertions become code
+   rewritten as the clean-surface spec — the raise-site literals are pinned
+   exactly (`toEqual` through the envelope, the flows and
+   `asPreviewSimulationError`), the guard accepts all six codes and rejects
+   genuine `Error`s, primitives, `null`, unknown codes and prototype keys,
+   the barrel exports no error constructor of any kind. The two `toThrow(Class)` assertions become code
    assertions (the house `toSatisfy` pattern from throwSweep).
-5. **Barrels**: preview/index.ts and simulate/index.ts export the factories
-   plus `type`-only interfaces; sdk/preview/types.ts and
-   PreviewNamespace.ts follow the union rename.
+5. **Barrels**: preview/index.ts and simulate/index.ts export only the
+   guard and `asPreviewSimulationError`; the six names stay `type`-only;
+   sdk/preview/types.ts and PreviewNamespace.ts follow the union rename.
 6. **Docs**: MIGRATION.md renames the union and drops the verdict wording
    in every section — the preview section plus the stray mentions in the
    compat and dispositions tables; comments across the touched files
@@ -89,11 +92,12 @@ codes and fields behind the same `SDKReturn` envelope.
   from `PreviewOperationError` breaks the build inside the map — poison
   evidence both ways, quoted diagnostics, restored byte-exact.
 - I3. Behavior unchanged: `previewOperation` still answers `sdkErr` with
-  the same codes and fields — the per-factory assertions pin the exact
-  shipped objects (`toEqual`), and the envelope test still passes.
+  the same codes and fields — the raise-site literals are pinned exactly
+  (`toEqual`), and the envelope test still passes.
 - I4. The six names survive as types only: `import type { XError }`
   compiles, a value import of `XError` fails — test-d probe; the barrel
-  exports `isPreviewOperationError` and the six factories.
+  exports `isPreviewOperationError` and `asPreviewSimulationError`, and no
+  error constructor of any kind.
 - I5. Full gate `bun run agent:verify:pr` green; the MIGRATION docs
   count-tests still pass.
 
@@ -305,4 +309,34 @@ Of which verification: 10 active min / 2 credits.
 - record-result D1-S3 commit:5182511cf3ce9703dd7d7379e0e71e046c7603dc
 
 - close D1-S3 partial commit:a765209ec4f5070213224506c10cc6680eb382c2
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:cbc80a623bb7e77b5d5c835e0ebbc98f018bcf5fb3ce14ad4d8d5acb5566c4d5
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:2cb563eb36f4425ed08b9d2fb9d867f08568428f68d58c9de9623ce77dd1d6fe
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:f1f89b40d1867edd42ac480ca43cf1013652668b63af56e4ed8a7e25aa69e127
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:8683a39eddf9d07d75fe1d38bdf582c94324a85522c8acd77bb7a0729254c324
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:f05dd7bb46a3cd26c6f203112c96b650b090c17378049704379ce6e28d4deb87
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:588802c861918cc3a5ec9d2f6599e2712de9cefbe78e9934c016eaa2afabe108
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- amend spec owner:А зачем эт и уродские функции - если можн просто описать типы ошибок и заполнять их в фукнциях (owner, 2026-08-30) sha256:f7c107cf7194a1d9b3d8696dfe9159048238f88634555701306d15db08b8e6dd
+
+- approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
+
+- deviation D1-S1: owner review of the draft PR: the factories go too — interfaces alone, raise sites build satisfies-literals, the one real builder folds into asPreviewSimulationError; reworked in follow-up commits on the same PR
 <!-- plan:execution:end -->
