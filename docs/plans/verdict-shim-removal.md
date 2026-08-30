@@ -152,7 +152,7 @@ Of which verification: 8 active min / 2 credits.
 - [ ] bun run agent:typecheck exits 0 — no callable alias remains, every raise site compiles on the factories
 - [ ] bun run agent:test:backend -- src/preview/previewOperationErrors.test.ts src/preview/preview/detectDelayedOperation.test.ts src/preview/simulate/simulatePoolOperation.test.ts exits 0 with exact toEqual payloads pinned from the shipped objects
 - [ ] grep -rn 'Symbol.hasInstance' src returns nothing
-- [ ] Commit
+- [x] Commit — 38e5299bbc63999443e04ed2943f421d40717cc7
 
 ##### Results
 
@@ -287,4 +287,6 @@ Of which verification: 10 active min / 2 credits.
 - approve sha256:c4269923919c42d605fc21c20d8ab69d7f19289e33a603970de938207ff5b266 owner:let plan, review and start. I approve all stages, wanna check the last commit - it should return the same dicctionary as it was 0 just shange some tests and types where needed (owner, 2026-08-30)
 
 - record-result D1-S1 commit:3b570b421f2790cd50f4ae4e971a207af4e2f10a
+
+- close D1-S1 partial commit:38e5299bbc63999443e04ed2943f421d40717cc7
 <!-- plan:execution:end -->
