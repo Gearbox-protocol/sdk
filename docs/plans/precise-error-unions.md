@@ -464,20 +464,21 @@ Of which verification: 5 active min / 1 credits.
 
 ##### Tasks
 
-- [ ] D1-S7-T1 — MIGRATION.md gains the per-method and disposition tables; deptrack consumer typechecks become precise-error-unions.impact.md; migrationDocs.test.ts asserts both. (30 min)
+- [x] D1-S7-T1 — MIGRATION.md gains the per-method and disposition tables; deptrack consumer typechecks become precise-error-unions.impact.md; migrationDocs.test.ts asserts both. (30 min) — 6db4f029dba74616d7218fb82c2b73de699ee0d2
 <!-- plan:task-meta:{"writes":["MIGRATION.md","docs/plans/precise-error-unions.impact.md","src/quality/migrationDocs.test.ts"],"predictedActiveMinutes":30,"predictedCredits":5,"how":"impact built from real linked typechecks of both consumers","red":"bun run agent:test:backend -- src/quality/migrationDocs.test.ts"} -->
 
 ##### Acceptance criteria
 
 - [ ] MIGRATION.md tables are count-checked by migrationDocs.test.ts against the code: per-method table rows == refusable methods, disposition rows == audited sites
 - [ ] impact.md carries both consumers' real tsc output from deptrack-linked dist; client-v3 section covers at least the 7 known files or proves zero
-- [ ] Commit
+- [x] Commit — 6db4f029dba74616d7218fb82c2b73de699ee0d2
 
 ##### Results
 
 <!-- plan:results:D1-S7:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| D1-S7-T1 | 6db4f029dba74616d7218fb82c2b73de699ee0d2 | 2026-08-30T10:25:06.604Z–2026-08-30T10:29:59.000Z | 5 / 5 min | unavailable: runner did not expose usage | MIGRATION rewritten to SDKReturn with count-checked per-method and disposition tables; impact.md from real linked typechecks: backend zero new errors (D3 does not open), client-v3 34 errors in 7 files; consumer dists restored after measurement. |
 <!-- plan:results:D1-S7:end -->
 <!-- plan:stage:D1-S7:end -->
 
@@ -734,4 +735,10 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - deviation D1-S6: disposition markers were written with the fix; the behavioral conversion check proven RED via stash-mutation instead
 
 - close D1-S6 partial commit:7d9fc0dcfd6f5a886e2bd23304b0cccd877f1bb3
+
+- record-result D1-S7 commit:6db4f029dba74616d7218fb82c2b73de699ee0d2
+
+- deviation D1-S7: the D2 seed lives as impact.md's client-v3 section until the client plan is initialized
+
+- close D1-S7 partial commit:6db4f029dba74616d7218fb82c2b73de699ee0d2
 <!-- plan:execution:end -->
