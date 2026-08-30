@@ -2,7 +2,7 @@
 
 Status: APPROVED
 Spec lock: sha256:f25130ec0722390315252d74d064f705b1e9e42fc8d2d759082cfa80521e71db owner:переходим к стадии PLAN по blueprint, используй planctl чтобы его подготовить (owner, 2026-08-30)
-Implementation lock: sha256:325972ac2962c2b1b4ab25156005e099faa5cbb9c70454d0b646032d3eaf156e owner:фиксируем так (owner) — SPEC derivation rule
+Implementation lock: sha256:8c33a22689d4901a7b5fe6756b5436134d9721ebb73f3928b357a538749cd5ab owner:фиксируем так (owner) — three orphaned test files consume the deleted shapes; no other stage owns them
 Active Delivery: D1
 Unattended decisions: allowed
 
@@ -337,7 +337,7 @@ Of which verification: 4 active min / 1 credits.
 <!-- plan:stage:D1-S3:end -->
 
 <!-- plan:stage:D1-S4:start -->
-<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S5"],"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts","src/e2e/tests/prepare-execute.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S4","verifyActiveMinutes":10,"verifyCredits":2} -->
+<!-- plan:stage-meta:{"deliveryId":"D1","depends":["D1-S3"],"parallelWith":["D1-S5"],"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts","src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts","src/e2e/tests/prepare-execute.test.ts","src/sdk/execute/buildTx.test.ts","src/sdk/opportunities/mode.test-d.ts","src/sdk/GearboxSDK.loading.test.ts"],"tempRoot":".tmp/code-production/precise-error-unions/D1-S4","verifyActiveMinutes":10,"verifyCredits":2} -->
 #### Stage D1-S4 — Prepare on SDKReturn with exact unions
 
 Owner: agent; Profile: fast; Depends: D1-S3; Parallel with: D1-S5.
@@ -352,7 +352,7 @@ Of which verification: 10 active min / 2 credits.
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/errors.ts","src/sdk/prepare/types.ts","src/sdk/prepare/types.test-d.ts"],"predictedActiveMinutes":25,"predictedCredits":5,"how":"bases carry the shared plumbing + creditAccountNotFound + unexpectedFailure; flow-specific codes stay inline; the blanket PrepareError dies; exactness tests compare the EXPANDED sets against the raise-site table","red":"bun run agent:test:backend -- src/sdk/prepare/types.test-d.ts"} -->
 - [ ] D1-S4-T2 — PrepareApi.ts builds sdkOk/sdkErr and drops the DataResponse wrapper; PrepareApi.test.ts and e2e prepare-execute.test.ts assert the new shape. (25 min)
 <!-- plan:task-meta:{"writes":["src/sdk/prepare/PrepareApi.ts","src/sdk/prepare/PrepareApi.test.ts","src/e2e/tests/prepare-execute.test.ts"],"predictedActiveMinutes":25,"predictedCredits":4,"how":"adapter retyped per-method","red":"bun run agent:test:backend -- src/sdk/prepare/PrepareApi.test.ts"} -->
-- [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data instead of success/data. (10 min)
+- [ ] D1-S4-T3 — src/sdk/execute/types.ts and ExecuteApi.ts consume ok/data; buildTx.test.ts, mode.test-d.ts and GearboxSDK.loading.test.ts follow the shape. (10 min)
 <!-- plan:task-meta:{"writes":["src/sdk/execute/types.ts","src/sdk/execute/ExecuteApi.ts"],"predictedActiveMinutes":10,"predictedCredits":2,"how":"narrowing updates only","red":"bun run agent:test:backend -- src/sdk"} -->
 
 ##### Acceptance criteria
@@ -670,4 +670,10 @@ Stage graph: `encoded in client-v3 docs/plans/sdk-return-migration.md`.
 - amend implementation owner:фиксируем так (owner) — SPEC derivation rule sha256:88978db8eb1428c6a9d06580a03a7ab1147145dfc297eb40df58df825e306c1c
 
 - amend implementation owner:фиксируем так (owner) — SPEC derivation rule sha256:325972ac2962c2b1b4ab25156005e099faa5cbb9c70454d0b646032d3eaf156e
+
+- amend implementation owner:фиксируем так (owner) — three orphaned test files consume the deleted shapes; no other stage owns them sha256:3506f5a5932d1951225cedf3384737a7c42384856cffaaa081a3a54e30d9015c
+
+- amend implementation owner:фиксируем так (owner) — three orphaned test files consume the deleted shapes; no other stage owns them sha256:8c33a22689d4901a7b5fe6756b5436134d9721ebb73f3928b357a538749cd5ab
+
+- deviation D1-S4: adapter renamed toRefusalError (grep-gate collision with the deleted blanket name); max* readers throw creditAccountNotFound message on a missing account (bare Promise<bigint> has no failure half); one documented as-unknown-as narrows the correlated union inside refusal()/routed().
 <!-- plan:execution:end -->
