@@ -156,12 +156,15 @@ async function roundTrip(
     args: [CREDIT_ACCOUNT, result.calls],
   });
 
-  const preview = await previewOperation(
+  const answer = await previewOperation(
     { sdk, to: FACADE, calldata, sender: OWNER, value },
     { creditAccount: account },
   );
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
 
-  return { projected: result.state, preview };
+  return { projected: result.state, preview: answer.data };
 }
 
 /**
@@ -234,15 +237,18 @@ async function openRoundTrip(margin: bigint, leverage: bigint) {
     averageQuota: projected.averageQuota,
   });
 
-  const preview = await previewOperation({
+  const answer = await previewOperation({
     sdk,
     to: tx.to,
     calldata: tx.callData,
     sender: OWNER,
     value: BigInt(tx.value),
   });
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
 
-  return { projected, preview };
+  return { projected, preview: answer.data };
 }
 
 /**

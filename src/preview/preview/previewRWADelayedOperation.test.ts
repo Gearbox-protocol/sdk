@@ -339,13 +339,17 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // Tx 1: open with 20k USDC collateral at 5x leverage; the router swaps
   // the collateral and the borrowed funds into the RWA collateral.
   it("previews the account opening with 20k USDC at 5x leverage", async () => {
-    const preview = (await previewOperation({
+    const answer = await previewOperation({
       sdk,
       to: txs.open.to,
       calldata: txs.open.calldata,
       sender: investor,
       value: 0n,
-    })) as OpenStrategyPositionPreview;
+    });
+    if (!answer.ok) {
+      throw new Error(`preview refused: ${answer.error.code}`);
+    }
+    const preview = answer.data as OpenStrategyPositionPreview;
 
     expect(preview).toMatchObject({
       operation: spec.openOperation,
@@ -393,7 +397,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // leverage-keeping debt repayment is sent to redemption (phantom token
   // minted), debt is untouched until the withdrawal is claimed.
   it("previews the delayed withdrawal request and its resume", async () => {
-    const preview = (await previewOperation(
+    const answer = await previewOperation(
       {
         sdk,
         to: txs.request.to,
@@ -402,7 +406,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterOpen },
-    )) as DelayedStrategyPositionOperationPreview;
+    );
+    if (!answer.ok) {
+      throw new Error(`preview refused: ${answer.error.code}`);
+    }
+    const preview = answer.data as DelayedStrategyPositionOperationPreview;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
@@ -489,7 +497,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // itself: a regular adjustment whose intent is read back from the
   // redemption logger.
   it("previews the claim tx with the WITHDRAW_COLLATERAL resume tail", async () => {
-    const preview = (await previewOperation(
+    const answer = await previewOperation(
       {
         sdk,
         to: txs.claim.to,
@@ -498,7 +506,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterRequest },
-    )) as AdjustStrategyPositionPreview;
+    );
+    if (!answer.ok) {
+      throw new Error(`preview refused: ${answer.error.code}`);
+    }
+    const preview = answer.data as AdjustStrategyPositionPreview;
 
     expect(preview).toMatchObject({
       operation: "AdjustCreditAccount",
@@ -549,7 +561,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // Tx 4: delayed close request: all remaining collateral goes to
   // redemption with a CLOSE_ACCOUNT intent, the collateral quota is zeroed.
   it("previews the delayed close request and its resume", async () => {
-    const preview = (await previewOperation(
+    const answer = await previewOperation(
       {
         sdk,
         to: txs.closeRequest.to,
@@ -558,7 +570,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterClaim },
-    )) as DelayedStrategyPositionOperationPreview;
+    );
+    if (!answer.ok) {
+      throw new Error(`preview refused: ${answer.error.code}`);
+    }
+    const preview = answer.data as DelayedStrategyPositionOperationPreview;
 
     expect(preview).toMatchObject({
       operation: "DelayedCreditAccountOperation",
@@ -623,7 +639,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // Tx 5: the final claim + close: claim USDC, sweep everything into the
   // underlying, repay the whole debt and withdraw the leftover.
   it("previews the final claim tx as a closure", async () => {
-    const preview = (await previewOperation(
+    const answer = await previewOperation(
       {
         sdk,
         to: txs.close.to,
@@ -632,7 +648,11 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         value: 0n,
       },
       { creditAccount: afterCloseRequest },
-    )) as ExitStrategyPositionPreview;
+    );
+    if (!answer.ok) {
+      throw new Error(`preview refused: ${answer.error.code}`);
+    }
+    const preview = answer.data as ExitStrategyPositionPreview;
 
     // decreaseDebt(MAX) + withdrawCollateral(MAX) and no new withdrawal
     // request: a zero-debt closure (the account stays open but empty)

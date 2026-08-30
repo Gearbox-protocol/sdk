@@ -1,3 +1,14 @@
 export * from "./checks.js";
-export * from "./refusal.js";
+// `IntentPreviewError` stays engine-internal (import it from `refusal.js`
+// directly): the public surface answers plain verdict objects, not thrown
+// classes.
+export {
+  type BorrowLimitBinding,
+  type PreviewErrorDetails,
+  type PreviewErrorReason,
+  type PreviewIssue,
+  type PreviewRefusal,
+  raise,
+  refuse,
+} from "./refusal.js";
 export * from "./token.js";

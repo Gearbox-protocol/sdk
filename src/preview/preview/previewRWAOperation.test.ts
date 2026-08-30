@@ -110,13 +110,17 @@ it("previews RWA account opening with an unwrap call", async () => {
     ],
   });
 
-  const preview = await previewOperation({
+  const answer = await previewOperation({
     sdk,
     to: FACTORY,
     calldata,
     sender: SENDER,
     value: 0n,
   });
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
+  const preview = answer.data;
 
   expect(preview).toMatchObject({
     operation: "RWAOpenCreditAccount",
@@ -185,10 +189,14 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
     ],
   } as unknown as CreditAccountData;
 
-  const preview = await previewOperation(
+  const answer = await previewOperation(
     { sdk, to: FACTORY, calldata, sender: SENDER, value: 0n },
     { creditAccount },
   );
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
+  const preview = answer.data;
 
   expect(preview).toMatchObject({
     operation: "AdjustCreditAccount",
