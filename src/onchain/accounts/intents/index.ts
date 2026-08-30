@@ -284,7 +284,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const { delayed } = result;
     if (!delayed) {
       // disposition(D1-S6): kept — engine self-contradiction (a successful
-      // delayed plan without its withdrawal), a bug rather than a verdict.
+      // delayed plan without its withdrawal), a bug rather than a refusal.
       throw new Error("startDelayedIntent: plan started no withdrawal");
     }
 
@@ -300,7 +300,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
     );
     if (!request) {
       // disposition(D1-S6): kept — engine self-contradiction (a delayed plan
-      // whose operations carry no request), a bug rather than a verdict.
+      // whose operations carry no request), a bug rather than a refusal.
       throw new Error("startDelayedIntent: no request among the operations");
     }
 
