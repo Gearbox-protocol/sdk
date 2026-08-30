@@ -1,4 +1,4 @@
-// D1 (verdict-shim-removal): the clean-surface spec of the six preview
+// D1 (preview errors cleanup): the clean-surface spec of the six preview
 // refusal errors. Each is an interface plus an exported factory — nothing
 // else. Payloads are pinned exactly (toEqual) so the answered dictionary
 // cannot drift while the shims come out.

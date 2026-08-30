@@ -124,7 +124,7 @@ describe("checkOperation", () => {
   });
 
   it("reports a malformed transaction alone, ahead of everything else", () => {
-    // The other checks read fields this verdict just called guesswork, so it
+    // The other checks read fields this refusal just called guesswork, so it
     // is the only thing worth telling the caller.
     const issues = check(
       adjust({

@@ -421,7 +421,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: 10000000000n,
     });
 
-    // the one code that is not a verdict on the request: the whole failure is
+    // the one code that is not a refusal of the request: the whole failure is
     // handed over rather than flattened into a sentence
     expect(result).toEqual({
       ok: false,
