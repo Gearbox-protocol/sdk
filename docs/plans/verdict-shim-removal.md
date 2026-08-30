@@ -219,7 +219,7 @@ Of which verification: 10 active min / 2 credits.
 
 ##### Tasks
 
-- [ ] VSR_301 — verdict-shim-removal.evidence.md records the code-map poison both ways with quoted diagnostics; errorSurface.test.ts pins the evidence file (10 min)
+- [x] VSR_301 — verdict-shim-removal.evidence.md records the code-map poison both ways with quoted diagnostics; errorSurface.test.ts pins the evidence file (10 min) — 5182511cf3ce9703dd7d7379e0e71e046c7603dc
 <!-- plan:task-meta:{"writes":["docs/plans/verdict-shim-removal.evidence.md","src/quality/errorSurface.test.ts"],"predictedActiveMinutes":10,"predictedCredits":3,"how":"poison A adds a fake member to the PreviewOperationError union, poison B removes a real one; quote both tsc failures at the code map, restore byte-exact, pin the file in the quality test","red":"bun run agent:test:backend -- src/quality/errorSurface.test.ts -t 'evidence'"} -->
 
 ##### Acceptance criteria
@@ -233,6 +233,7 @@ Of which verification: 10 active min / 2 credits.
 <!-- plan:results:D1-S3:start -->
 | Task | Commit | UTC start-end | Active / elapsed | Usage | Result / proof |
 |---|---|---|---:|---|---|
+| VSR_301 | 5182511cf3ce9703dd7d7379e0e71e046c7603dc | 2026-08-30T12:55:56.043Z–2026-08-30T12:57:59.000Z | 2 / 2 min | unavailable: runner did not expose usage | Poison A (TS2741 at the map) and poison B (TS2353 at the map) quoted in the evidence, restored byte-exact; cold gate exit 0 — 126 test files, 2346 tests, typecheck clean. |
 <!-- plan:results:D1-S3:end -->
 <!-- plan:stage:D1-S3:end -->
 <!-- plan:delivery:D1:end -->
@@ -300,4 +301,6 @@ Of which verification: 10 active min / 2 credits.
 - deviation D1-S2: previewOperationErrors.test.ts header reword (S1 write, comment-only) — recorded via add-deviation
 
 - close D1-S2 partial commit:da14336e5509be7581165250c989e4dedca6ec52
+
+- record-result D1-S3 commit:5182511cf3ce9703dd7d7379e0e71e046c7603dc
 <!-- plan:execution:end -->
