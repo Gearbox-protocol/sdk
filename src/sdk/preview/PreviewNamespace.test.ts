@@ -4,6 +4,7 @@ import type {
   OperationPreview,
   PreviewOperationInput,
 } from "../../model/index.js";
+import { sdkOk } from "../../model/index.js";
 import type { MultichainSDK, OnchainSDK } from "../../onchain/index.js";
 import { previewOperation } from "../../preview/preview/previewOperation.js";
 import { PreviewNamespace } from "./PreviewNamespace.js";
@@ -27,7 +28,7 @@ const input: PreviewOperationInput = {
   value: 10n,
 };
 
-const preview: OperationPreview = {
+const previewData: OperationPreview = {
   operation: "Deposit",
   pool: TO,
   name: "Test Pool",
@@ -71,7 +72,7 @@ const onchain = { chain } as unknown as MultichainSDK;
 beforeEach(() => {
   vi.resetAllMocks();
   chain.mockReturnValue(chainSdk);
-  previewOperationMock.mockResolvedValue(preview);
+  previewOperationMock.mockResolvedValue(sdkOk<OperationPreview>(previewData));
 });
 
 describe("PreviewNamespace.previewOperation", () => {
@@ -82,7 +83,7 @@ describe("PreviewNamespace.previewOperation", () => {
     });
     previewOperationMock.mockImplementation(async () => {
       order.push("preview");
-      return preview;
+      return sdkOk<OperationPreview>(previewData);
     });
 
     const ns = new PreviewNamespace(onchain, {
@@ -91,7 +92,7 @@ describe("PreviewNamespace.previewOperation", () => {
     });
     const result = await ns.previewOperation(input, { blockNumber: 99n });
 
-    expect(result).toBe(preview);
+    expect(result.ok && result.data).toBe(previewData);
     expect(ensureFresh).toHaveBeenCalledWith([CHAIN_ID]);
     expect(chain).toHaveBeenCalledWith(CHAIN_ID);
     expect(previewOperationMock).toHaveBeenCalledWith(
