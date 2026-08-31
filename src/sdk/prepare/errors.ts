@@ -2,6 +2,7 @@ import type { Address } from "viem";
 import type {
   Bps,
   IGearboxError,
+  MalformedPreviewError,
   Token,
   TokenAmount,
 } from "../../model/index.js";
@@ -245,10 +246,11 @@ export interface QuotaCountExceededError extends IGearboxError {
 export interface MalformedTransactionError extends IGearboxError {
   code: "malformedTransaction";
   /**
-   * The SDK's own preview error code (the `ERROR_*` 1xxx constants). Named
-   * apart from `code`, which every error in the envelope spells the same way.
+   * The SDK's own preview warning code (the `MalformedPreviewError`
+   * discriminant). Named apart from `code`, which every error in the
+   * envelope spells the same way.
    **/
-  previewCode: number;
+  previewCode: MalformedPreviewError["code"];
   /** What the replay reported, which is narrower than {@link message}. */
   detail: string;
 }

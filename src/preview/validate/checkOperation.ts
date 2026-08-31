@@ -72,7 +72,7 @@ export function checkOperation(
 
   // Every check below reads fields this refusal declares untrustworthy.
   const malformed = checkPreviewError(
-    "error" in preview ? preview.error : undefined,
+    "warning" in preview ? preview.warning : undefined,
   );
   if (malformed) {
     return malformed;

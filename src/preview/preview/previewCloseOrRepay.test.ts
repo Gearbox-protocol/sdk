@@ -259,7 +259,7 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
       expect(preview).toMatchObject({
         operation: "RepayCreditAccount",
         permanent: false,
-        error: undefined,
+        warning: undefined,
         creditManager: afterOpen.creditManager,
         creditAccount: afterOpen.creditAccount,
         name: expect.any(String),

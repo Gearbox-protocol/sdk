@@ -7,6 +7,7 @@ import {
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
+  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   MulticallOperation,
@@ -16,7 +17,6 @@ import type {
   PreviewOperationInput,
   PreviewOperationOptions,
 } from "../types.js";
-import { unpriceableTokenError } from "./errors.js";
 import { replayMulticall } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -42,18 +42,18 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
   const {
     before,
     after,
-    error: replayError,
+    warning: replayWarning,
   } = replayMulticall(sdk, operation, options);
   const account = after.account;
-  let error = replayError;
+  let warning = replayWarning;
 
-  const { assets: collateralAdded, error: unwrapError } =
+  const { assets: collateralAdded, warning: unwrapWarning } =
     unwrapNativeCollateral(
       after.collateralAdded.toAssets(),
       value,
       sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
     );
-  error ??= unwrapError;
+  warning ??= unwrapWarning;
 
   // The replayed state is seeded with all initial tokens and entries are
   // never deleted, so its keys are the union of tokens present before or
@@ -64,14 +64,14 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
 
   // estimated post-operation account value: minimal guaranteed assets
   // converted to underlying and summed. Best-effort: tokens the oracle
-  // cannot price contribute nothing. Malformed-transaction (1xxx) errors
-  // recorded above take precedence over this preview limitation (2xxx).
+  // cannot price contribute nothing. Malformed-transaction warnings
+  // recorded above take precedence over an unpriceable-token caveat.
   //
   // On a malformed multicall the replayed balances the sum is taken over are
   // best-effort and may be unreliable.
   const priced = market.valueInUnderlying(account.balances.toAssets());
   if (priced.unpriceable) {
-    error ??= unpriceableTokenError(priced.unpriceable);
+    warning ??= unpriceableTokenError(priced.unpriceable);
   }
   const snap = account.toSnapshot(priced.value);
 
@@ -83,7 +83,7 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
     // a swap decides, because what the calls guarantee is a floor and what the
     // engine planned against was the amount the route expects to return.
     // Best-effort like the rest of the preview: tokens the oracle cannot price
-    // (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the metrics.
+    // (`unpriceableToken`) contribute nothing to the metrics.
     //
     // Debt taken on leaves the pool, debt repaid returns to it.
     ...asEstimated(
@@ -113,6 +113,6 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
     assetsChange: assetsChange.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
-    error,
+    warning,
   };
 }

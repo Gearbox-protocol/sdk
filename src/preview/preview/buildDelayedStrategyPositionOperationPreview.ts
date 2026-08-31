@@ -7,17 +7,17 @@ import {
   type InstantStrategyPositionOperationPreview,
   type OperationPreviewError,
 } from "../../model/index.js";
-import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
 import {
   AssetsMap,
   type ConvertFn,
+  type DelayedWithdrawalRequest,
   DUST_THRESHOLD,
   type OnchainSDK,
+  unpriceableTokenError,
 } from "../../onchain/index.js";
 import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
-import { unpriceableTokenError } from "./errors.js";
 
 /**
  * Builds the best-effort preview of the account state after the detected
@@ -27,7 +27,7 @@ import { unpriceableTokenError } from "./errors.js";
  * Pure function: the input states are never mutated and no network access is performed.
  * Swaps are estimated with the injected conversion; remaining holdings are
  * priced by `MarketSuite.valueInUnderlying`. Tokens that cannot be priced
- * contribute nothing and set a non-fatal `ERROR_UNPRICEABLE_TOKEN` error on the
+ * contribute nothing and set a non-fatal `unpriceableToken` warning on the
  * preview.
  *
  * The changes (e.g. `totalDebtChange`) are reported relative to the account
@@ -87,29 +87,29 @@ export function buildDelayedStrategyPositionOperationPreview(
 
 /**
  * Oracle conversion that never throws: tokens the oracle cannot price
- * convert to zero and set {@link SafeConverter.error} instead.
+ * convert to zero and set {@link SafeConverter.warning} instead.
  */
 interface SafeConverter {
   convert: ConvertFn;
   /**
    * Set after the first token the oracle could not price
    */
-  readonly error: OperationPreviewError | undefined;
+  readonly warning: OperationPreviewError | undefined;
 }
 
 function makeSafeConverter(convert: ConvertFn): SafeConverter {
-  let error: OperationPreviewError | undefined;
+  let warning: OperationPreviewError | undefined;
   return {
     convert: (token, to, amount) => {
       try {
         return convert(token, to, amount);
       } catch {
-        error ??= unpriceableTokenError(token);
+        warning ??= unpriceableTokenError(token);
         return 0n;
       }
     },
-    get error() {
-      return error;
+    get warning() {
+      return warning;
     },
   };
 }
@@ -276,8 +276,8 @@ function buildClosePreview(
       receivedToken,
       BigIntMath.max(priced.value - post.totalDebt, 0n),
     ),
-    error:
-      converter.error ??
+    warning:
+      converter.warning ??
       (priced.unpriceable
         ? unpriceableTokenError(priced.unpriceable)
         : undefined),
@@ -335,8 +335,8 @@ function buildAdjustPreview(
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD)
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    error:
-      converter.error ??
+    warning:
+      converter.warning ??
       (priced.unpriceable
         ? unpriceableTokenError(priced.unpriceable)
         : undefined),

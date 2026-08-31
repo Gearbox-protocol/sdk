@@ -353,7 +353,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
 
     expect(preview).toMatchObject({
       operation: spec.openOperation,
-      error: undefined,
+      warning: undefined,
       name: expect.any(String),
       underlyingToken: expect.objectContaining({
         address: expect.any(String),
@@ -437,7 +437,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // explicitly by the tx and must match exactly
       instantPreview: {
         operation: "AdjustCreditAccount",
-        error: undefined,
+        warning: undefined,
         // the request moves nothing to or from the wallet
         collateralAdded: [],
         collateralWithdrawn: [],
@@ -468,7 +468,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // the oracle-estimated repayment, phantom token gone
       delayedPreview: {
         operation: "AdjustCreditAccount",
-        error: undefined,
+        warning: undefined,
         // the resume adds nothing from the wallet
         collateralAdded: [],
         collateralWithdrawn: [amt(spec.withdrawToken, spec.withdrawAmount)],
@@ -592,7 +592,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // quota is set explicitly by the tx and must match exactly
       instantPreview: {
         operation: "AdjustCreditAccount",
-        error: undefined,
+        warning: undefined,
         // the request moves nothing to or from the wallet
         collateralAdded: [],
         collateralWithdrawn: [],
@@ -619,7 +619,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
       // the wallet actually received the predicted leftover, within slippage
       delayedPreview: {
         operation: "CloseCreditAccount",
-        error: undefined,
+        warning: undefined,
         // a zero-debt closure: the account stays open but is emptied
         permanent: false,
         receivedAmount: {
@@ -662,7 +662,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     // request: a zero-debt closure (the account stays open but empty)
     expect(preview).toMatchObject({
       operation: "CloseCreditAccount",
-      error: undefined,
+      warning: undefined,
       name: expect.any(String),
       underlyingToken: expect.objectContaining({
         address: expect.any(String),

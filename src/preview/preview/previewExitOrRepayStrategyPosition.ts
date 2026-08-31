@@ -8,6 +8,7 @@ import {
   MAX_UINT256,
   NO_VERSION,
   type PluginsMap,
+  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   CloseCreditAccountOperation,
@@ -19,7 +20,6 @@ import type {
   PreviewOperationOptions,
 } from "../types.js";
 import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
-import { unpriceableTokenError } from "./errors.js";
 import {
   type ReplayMulticallResult,
   replayMulticall,
@@ -78,12 +78,12 @@ function previewCloseCreditAccount<P extends PluginsMap>(
     operation.creditManager,
   );
 
-  const { before, after, error: replayError } = replay;
+  const { before, after, warning: replayWarning } = replay;
   const account = after.account;
-  let error = replayError;
+  let warning = replayWarning;
   const priced = market.valueInUnderlying(account.balances.toAssets());
   if (priced.unpriceable) {
-    error ??= unpriceableTokenError(priced.unpriceable);
+    warning ??= unpriceableTokenError(priced.unpriceable);
   }
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
@@ -114,7 +114,7 @@ function previewCloseCreditAccount<P extends PluginsMap>(
       receivedToken,
       after.collateralWithdrawn.getOrZero(receivedToken),
     ),
-    error,
+    warning,
   };
 }
 
@@ -134,19 +134,19 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     operation.creditManager,
   );
 
-  const { before, after, error: replayError } = replay;
+  const { before, after, warning: replayWarning } = replay;
   const account = after.account;
 
-  const { assets: collateralAdded, error: unwrapError } =
+  const { assets: collateralAdded, warning: unwrapWarning } =
     unwrapNativeCollateral(
       after.collateralAdded.toAssets(),
       value,
       sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
     );
-  let error = replayError ?? unwrapError;
+  let warning = replayWarning ?? unwrapWarning;
   const priced = market.valueInUnderlying(account.balances.toAssets());
   if (priced.unpriceable) {
-    error ??= unpriceableTokenError(priced.unpriceable);
+    warning ??= unpriceableTokenError(priced.unpriceable);
   }
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
@@ -170,6 +170,6 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     collateralWithdrawn: after.collateralWithdrawn
       .toAssets()
       .map(a => market.priceOracle.toTokenAmount(a.token, a.balance)),
-    error,
+    warning,
   };
 }

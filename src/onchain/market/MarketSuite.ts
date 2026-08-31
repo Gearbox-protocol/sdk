@@ -35,8 +35,8 @@ import type { IRWAFactory } from "./rwa/types.js";
  * Oracle estimate of a bag of holdings in this market's underlying.
  *
  * Tokens the oracle cannot price contribute `0` and are named on
- * {@link unpriceable} (the first miss). Callers that speak preview errors map
- * that address to `ERROR_UNPRICEABLE_TOKEN` themselves.
+ * {@link unpriceable} (the first miss). Callers that speak preview warnings
+ * map that address to an `UnpriceableTokenError` themselves.
  **/
 export interface ValueInUnderlying {
   /**

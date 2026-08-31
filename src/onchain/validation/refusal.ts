@@ -1,5 +1,10 @@
 import type { Address } from "viem";
-import type { Bps, Token, TokenAmount } from "../../model/index.js";
+import type {
+  Bps,
+  MalformedPreviewError,
+  Token,
+  TokenAmount,
+} from "../../model/index.js";
 
 /**
  * Why a preview could not be produced.
@@ -151,10 +156,10 @@ export interface PreviewErrorDetails {
   /** How many quoted tokens the account would end with, against the cap. */
   quotaCountExceeded: { count: number; max: number };
   /**
-   * The SDK's own preview error code (the `ERROR_*` 1xxx constants) and its
-   * human-readable detail.
+   * The malformed-preview warning the SDK recorded, and its human-readable
+   * detail.
    */
-  malformedTransaction: { code: number; message: string };
+  malformedTransaction: MalformedPreviewError;
 }
 
 /**

@@ -33,12 +33,12 @@ Each result is named after the `prepare` flow it is the far side of — the same
 
 The projection here is an [`EstimatedProjection`](../model/previews.ts) rather than an `AccountProjection`, and the difference is what the module can see. A routed swap is quoted twice — the amount the pathfinder expects to return, and the floor it guarantees after slippage — and calldata carries only the floor. So everything a route decides is a worst case and is named for it: `estTotalValue`, `estNetValue`, `estAssets`, `estHealthFactor`, `estSafeHealthFactor`, `estBorrowRate`, `estTimeToLiquidation`, `estLiquidationPrice`, `estLeverage`. `prepare` reports the expected branch under the plain names; prefixing here is what stops a screen from showing one as the other. `totalDebt` and `quotas` are the calls' own words, identical on either branch, so they keep their names — as do the market's own (`creditManager`, `name`, `underlyingToken`, `curator`, `liquidationDiscount`, the [`CreditOperationMarket`](../model/previews.ts) every result carries, projection or not) and the deltas, which `prepare` does not report at all. The borrow rate is prefixed for a subtler reason: its `base` and `totalOnDebt` are branch-independent, but `total` and the per-quota rates are normalized against `totalValue`, so on the floor the same cost is quoted against a smaller position and reads higher.
 
-When the operation decodes but cannot be fully previewed, the preview is still returned with an [`error`](../model/previews.ts) field set. `error.code` is a numeric http-style code, see the `ERROR_*` constants in [previews.ts](../model/previews.ts):
+When the operation decodes but cannot be fully previewed, the preview is still returned with a [`warning`](../model/previews.ts) field set. `warning` is an [`OperationPreviewError`](../model/previews.ts) — a union of `IGearboxError` interfaces discriminated by `code`:
 
-- **1xxx** — the transaction is malformed (broken `storeExpectedBalances`/`compareBalances` brackets, unexpected adapter calls, a `msg.value` that does not fit the declared WETH collateral) and would not execute correctly on-chain.
-- **2xxx** — the transaction may be fine, but the SDK could not fully evaluate the preview (e.g. a token could not be priced by the oracle).
+- **Malformed** (`malformedBracket`, `adapterCallOutsideBracket`, `nonAdapterCallInBracket`, `unpreviewableAdapterCall`, `unsupportedOutOfBracketCall`, `invalidTransactionValue`) — the transaction would not execute correctly on-chain (broken `storeExpectedBalances`/`compareBalances` brackets, unexpected adapter calls, a `msg.value` that does not fit the declared WETH collateral).
+- **`unpriceableToken`** — the transaction may be fine, but the SDK could not fully evaluate the preview because the oracle could not price a token.
 
-All fields are computed best-effort in either case: fields driven by explicit facade calls (`collateralAdded`, `totalDebt`, `quotas`) are exact, while fields derived from replayed balances (e.g. `estAssets`, `assetsChange`, `targetCollateral` balance) or oracle prices (`estNetValue`, `estTotalValue`) may be unreliable. When both categories apply, the more severe 1xxx code is reported.
+All fields are computed best-effort in either case: fields driven by explicit facade calls (`collateralAdded`, `totalDebt`, `quotas`) are exact, while fields derived from replayed balances (e.g. `estAssets`, `assetsChange`, `targetCollateral` balance) or oracle prices (`estNetValue`, `estTotalValue`) may be unreliable. When both categories apply, the malformed warning is reported (it takes precedence).
 
 ### `prerequisites`
 
@@ -60,7 +60,7 @@ What it reports: `marketPaused`, `marketExpired`, `debtOutOfRange`, `forbiddenTo
 
 Its options are `minHealthFactor`, `minSafeHealthFactor`, `currentHealthFactor` and `balances` (an `AddressMap`, given which the wallet's side is checked offline). The bars are options because there is no single right one: the facade enforces `1.0`, a form is wiser to ask for more, and whether to weigh the safe-price health factor at all is the caller's decision. An omitted bar switches its check off. `currentHealthFactor` is the escape hatch that keeps a rescue possible: an operation that raises the factor passes even from under the bar, because the top-ups that save a position are exactly the ones a flat bar refuses.
 
-A 1xxx preview error is reported as `malformedTransaction` and nothing else is: the remaining checks read fields it just declared guesswork. A 2xxx error is not reported at all — the transaction is fine and only the evaluation was incomplete.
+A malformed preview warning is reported as `malformedTransaction` and nothing else is: the remaining checks read fields it just declared guesswork. An `unpriceableToken` warning is not reported at all — the transaction is fine and only the evaluation was incomplete.
 
 ## Intended usage
 
