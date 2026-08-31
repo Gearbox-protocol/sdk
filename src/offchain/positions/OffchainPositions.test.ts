@@ -331,3 +331,121 @@ describe("a chart request names its subject, its metrics and its window", () => 
     ).rejects.toThrow(/read model/);
   });
 });
+
+describe("a transaction-history request names the credit account it belongs to", () => {
+  const strategy = {
+    chainId: MAINNET,
+    creditAccount: CREDIT_ACCOUNT,
+  } as const;
+
+  const usdc = {
+    chainId: MAINNET,
+    address: USDC,
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    assetType: "Stable",
+  };
+
+  it("puts the chain and the credit account in the path, and asks nothing else", async () => {
+    await positions().getTransactions(strategy);
+
+    expect(requested().pathname).toBe(
+      `/v2/positions/strategy/${MAINNET}/${CREDIT_ACCOUNT}/transactions`,
+    );
+    // the history is the whole open session: there is no paging to ask for
+    expect([...requested().searchParams.keys()]).toEqual([]);
+  });
+
+  it("reads a row back whole, with every amount a bigint and the source stamped", async () => {
+    respondWith({
+      data: [
+        {
+          txHash: `0x${"ab".repeat(32)}`,
+          timestamp: 1_735_000_000,
+          kind: "repay",
+          assets: [{ value: "2500000", valueUsd: 2.5, token: usdc }],
+          balanceChanges: [{ value: "-2500000", valueUsd: -2.5, token: usdc }],
+          debtChange: { value: "-2600000", valueUsd: -2.6, token: usdc },
+        },
+      ],
+      meta: {
+        chains: [
+          {
+            chainId: MAINNET,
+            status: "success",
+            blockNumber: 21_000_000,
+            timestamp: 1_735_000_000,
+          },
+        ],
+      },
+    });
+
+    const { data, meta } = await positions().getTransactions(strategy);
+
+    expect(data).toHaveLength(1);
+    const [tx] = data;
+    expect(tx?.txHash).toBe(`0x${"ab".repeat(32)}`);
+    expect(tx?.timestamp).toBe(1_735_000_000);
+    expect(tx?.kind).toBe("repay");
+    expect(tx?.assets[0]?.value).toBe(2_500_000n);
+    expect(tx?.assets[0]?.token).toMatchObject({ symbol: "USDC", decimals: 6 });
+    // what left the account is signed, and stays signed through the decode
+    expect(tx?.balanceChanges[0]?.value).toBe(-2_500_000n);
+    expect(tx?.debtChange.value).toBe(-2_600_000n);
+    expect(tx?.debtChange.valueUsd).toBe(-2.6);
+    // the backend does not have to send `source`, so the client stamps it
+    expect(meta.chains[0]).toMatchObject({
+      chainId: MAINNET,
+      status: "success",
+      source: "offchain",
+    });
+  });
+
+  it("keeps a residual row as `other`, without inferring a direction for it", async () => {
+    respondWith({
+      data: [
+        {
+          txHash: `0x${"cd".repeat(32)}`,
+          timestamp: 1_735_000_100,
+          kind: "other",
+          assets: [],
+          balanceChanges: [],
+          debtChange: { value: "0", valueUsd: 0, token: usdc },
+        },
+      ],
+      meta: { chains: [] },
+    });
+
+    const { data } = await positions().getTransactions(strategy);
+
+    expect(data[0]?.kind).toBe("other");
+    expect(data[0]?.balanceChanges).toEqual([]);
+  });
+
+  it("passes through the empty history of an account with no open session", async () => {
+    const response = await positions().getTransactions(strategy);
+
+    expect(response).toEqual({ data: [], meta: { chains: [] } });
+  });
+
+  it("rejects a kind the model retired", async () => {
+    respondWith({
+      data: [
+        {
+          txHash: `0x${"ef".repeat(32)}`,
+          timestamp: 1_735_000_200,
+          kind: "composite",
+          assets: [],
+          balanceChanges: [],
+          debtChange: { value: "0", valueUsd: 0, token: usdc },
+        },
+      ],
+      meta: { chains: [] },
+    });
+
+    await expect(positions().getTransactions(strategy)).rejects.toThrow(
+      /read model/,
+    );
+  });
+});

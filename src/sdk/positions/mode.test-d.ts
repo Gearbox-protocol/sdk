@@ -6,6 +6,7 @@ import type {
   PoolPositionChartMetric,
   PoolPositionRef,
   Position,
+  PositionTransaction,
   StrategyPositionRef,
 } from "../../model/index.js";
 import type { IOffchainPositions } from "../../offchain/index.js";
@@ -18,6 +19,7 @@ describe("mode gates method existence", () => {
     // methods; they must not silently gain them
     expectTypeOf<IPositions<Mode>>().toHaveProperty("list");
     expectTypeOf<IPositions<Mode>>().not.toHaveProperty("charts");
+    expectTypeOf<IPositions<Mode>>().not.toHaveProperty("transactions");
     expectTypeOf<IPositions<Mode>>().not.toHaveProperty(
       "getCurrentWithdrawals",
     );
@@ -35,6 +37,36 @@ describe("mode gates method existence", () => {
     expectTypeOf<IPositions<"offchain">>().not.toHaveProperty(
       "getCurrentWithdrawals",
     );
+  });
+
+  it("offchain-only reads exist with a backend and not without one", () => {
+    expectTypeOf<IPositions<"offchain">>().toHaveProperty("transactions");
+    expectTypeOf<IPositions<"both">>().toHaveProperty("transactions");
+    expectTypeOf<IPositions<"onchain">>().not.toHaveProperty("transactions");
+  });
+});
+
+describe("a strategy position's history is read by its key alone", () => {
+  const positions = {} as IPositions<"both">;
+  const backend = {} as IOffchainPositions;
+  const pool = {} as PoolPositionRef;
+  const strategy = {} as StrategyPositionRef;
+
+  it("answers the whole open session, with no paging to ask for", () => {
+    expectTypeOf(positions.transactions(strategy)).toEqualTypeOf<
+      Promise<DataResponse<PositionTransaction[]>>
+    >();
+    // the low-level read takes the untagged key the tagged ref extends
+    expectTypeOf(backend.getTransactions(strategy)).toEqualTypeOf<
+      Promise<DataResponse<PositionTransaction[]>>
+    >();
+  });
+
+  it("rejects a key of the kind that has no credit account", () => {
+    // @ts-expect-error only a strategy position has a transaction history
+    positions.transactions(pool);
+    // @ts-expect-error the same constraint holds on the source escape hatch
+    backend.getTransactions(pool);
   });
 });
 

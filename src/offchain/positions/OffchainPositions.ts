@@ -6,12 +6,14 @@ import type {
   Position,
   PositionKey,
   PositionsTotals,
+  PositionTransaction,
   StrategyPositionKey,
 } from "../../model/positions.js";
 import {
   positionFilterQuerySchema,
   positionSchema,
   positionsTotalsSchema,
+  positionTransactionSchema,
 } from "../../model/positions.schema.js";
 import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../onchain/positions/types.js";
@@ -75,6 +77,18 @@ export class OffchainPositions
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>> {
     return this.readCharts(`${this.#chartRoot(key)}/charts`, metrics, range);
+  }
+
+  /**
+   * {@inheritDoc IOffchainPositions.getTransactions}
+   **/
+  public async getTransactions(
+    key: StrategyPositionKey,
+  ): Promise<DataResponse<PositionTransaction[]>> {
+    return this.get({
+      path: `${this.#strategyPath(key)}/transactions`,
+      schema: z.array(positionTransactionSchema),
+    });
   }
 
   #poolPath(key: PoolPositionKey): string {
