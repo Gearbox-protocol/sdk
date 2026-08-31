@@ -10,6 +10,7 @@ import type {
   PositionFilter,
   PositionKey,
   PositionsTotals,
+  PositionTransaction,
   PositionWithdrawals,
   StrategyPositionChartMetric,
   StrategyPositionRef,
@@ -116,6 +117,15 @@ export class PositionsNamespace
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>> {
     return this.offchain.getCharts(key, metrics, range);
+  }
+
+  /**
+   * {@inheritDoc IPositionsOffchainOnly.transactions}
+   **/
+  public async transactions(
+    key: StrategyPositionRef,
+  ): Promise<DataResponse<PositionTransaction[]>> {
+    return this.offchain.getTransactions(key);
   }
 
   /**

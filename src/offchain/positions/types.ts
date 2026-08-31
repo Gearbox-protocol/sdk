@@ -9,6 +9,8 @@ import type {
   Position,
   PositionKey,
   PositionsTotals,
+  PositionTransaction,
+  StrategyPositionKey,
 } from "../../model/positions.js";
 import type { DataResponse } from "../../model/response.js";
 import type { ListPositionsPropsBase } from "../../onchain/positions/types.js";
@@ -42,4 +44,12 @@ export interface IOffchainPositions {
     metrics: Metrics,
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  /**
+   * Every transaction that touched the credit account while its current
+   * session was open, newest first. There is no paging, and an account with
+   * no open session answers with an empty list.
+   **/
+  getTransactions(
+    key: StrategyPositionKey,
+  ): Promise<DataResponse<PositionTransaction[]>>;
 }

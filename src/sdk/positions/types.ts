@@ -8,6 +8,7 @@ import type {
   Position,
   PositionFilter,
   PositionsTotals,
+  PositionTransaction,
   PositionWithdrawals,
   StrategyPositionChartMetric,
   StrategyPositionRef,
@@ -80,6 +81,17 @@ export interface IPositionsOffchainOnly {
     metrics: Metrics,
     range: ChartRange,
   ): Promise<DataResponse<ChartBundle<Metrics>>>;
+  /**
+   * History of one strategy position: every transaction that touched the
+   * credit account while its current session was open, newest first. There is
+   * no paging, and an account with no open session answers with an empty list.
+   *
+   * Absent in `onchain` mode: the history is indexed by the backend rather
+   * than reconstructed from the chain.
+   **/
+  transactions(
+    key: StrategyPositionRef,
+  ): Promise<DataResponse<PositionTransaction[]>>;
 }
 
 /**

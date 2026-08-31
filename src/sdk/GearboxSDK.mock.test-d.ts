@@ -69,6 +69,7 @@ const mockSDK = {
     },
     totals: notImplemented,
     charts: notImplemented,
+    transactions: notImplemented,
     getCurrentWithdrawals: notImplemented,
     onchain: {
       list: notImplemented,
@@ -78,6 +79,7 @@ const mockSDK = {
       list: notImplemented,
       getTotals: notImplemented,
       getCharts: notImplemented,
+      getTransactions: notImplemented,
     },
   },
   liquidations: {

@@ -20,6 +20,7 @@ function backend() {
         series: {},
       }),
     ),
+    getTransactions: vi.fn(async () => envelope([])),
   };
   const notices = { list: vi.fn(async () => envelope([{ kind: "expired" }])) };
   // a real GearboxAPI's prototype, so the SDK's `instanceof` injection seam holds
@@ -72,6 +73,30 @@ describe("positions.charts", () => {
     });
 
     await expect(namespace.charts(KEY, ["healthFactor"], "1m")).rejects.toThrow(
+      SourceUnavailableError,
+    );
+  });
+});
+
+/** The history read delegates to the backend, and only exists with one. */
+describe("positions.transactions", () => {
+  it("delegates to the backend namespace, passing the key through", async () => {
+    const { api, positions } = backend();
+    const namespace = new PositionsNamespace(undefined, api, {
+      maxOffchainLagSeconds: 120,
+    });
+
+    await expect(namespace.transactions(KEY)).resolves.toEqual(envelope([]));
+    expect(positions.getTransactions).toHaveBeenCalledWith(KEY);
+  });
+
+  it("without a backend it throws SourceUnavailableError, like every offchain read", async () => {
+    const onchain = { positions: {} } as unknown as MultichainSDK;
+    const namespace = new PositionsNamespace(onchain, undefined, {
+      maxOffchainLagSeconds: 120,
+    });
+
+    await expect(namespace.transactions(KEY)).rejects.toThrow(
       SourceUnavailableError,
     );
   });
