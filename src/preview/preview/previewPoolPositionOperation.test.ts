@@ -5,6 +5,7 @@ import { type OnchainSDK, RAY } from "../../onchain/index.js";
 import type {
   PoolDepositOperation,
   PoolOperation,
+  PoolRedeemOperation,
   PoolWithdrawOperation,
 } from "../parse/index.js";
 import { previewPoolPositionOperation } from "./previewPoolPositionOperation.js";
@@ -64,7 +65,7 @@ function fakeMarket(args: FakeMarketArgs = {}) {
   const unwrappedUnderlying = args.unwrappedUnderlying ?? underlying;
   const dieselRate = args.dieselRate ?? RAY;
   const underlyingToken = underlyingTokenOf(unwrappedUnderlying, underlying);
-  const convertToAssets = (shares: bigint) =>
+  const sharesToUnderlying = (shares: bigint) =>
     dieselRate === 0n ? shares : (shares * dieselRate) / RAY;
 
   return {
@@ -75,7 +76,7 @@ function fakeMarket(args: FakeMarketArgs = {}) {
     isUnderlyingLike: (token: Address) =>
       isAddressEqual(token, underlying) ||
       isAddressEqual(token, unwrappedUnderlying),
-    pool: { pool: { dieselRate, convertToAssets } },
+    pool: { pool: { dieselRate, sharesToUnderlying } },
     priceOracle: {
       toTokenAmount: (token: Address, value: bigint) => ({
         token: {
@@ -179,6 +180,23 @@ function withdraw(
   };
 }
 
+function redeem(
+  over: Partial<PoolRedeemOperation> = {},
+): PoolRedeemOperation {
+  return {
+    operation: "Redeem",
+    pool: POOL,
+    receiver: RECEIVER,
+    owner: OWNER,
+    shares: 10n,
+    underlying: UNDERLYING,
+    tokenIn: POOL,
+    tokenOut: UNDERLYING,
+    zapper: undefined,
+    ...over,
+  };
+}
+
 describe("previewPoolPositionOperation", () => {
   it("deposit: current 1 + 10 = 11, in unwrapped underlying", async () => {
     const { answer, calls } = await preview(deposit(), {
@@ -267,7 +285,7 @@ describe("previewPoolPositionOperation", () => {
     ).toBe(DC_USDC);
   });
 
-  it("first deposit (balanceOf = 0) leaves netValue equal to the deposit", async () => {
+  it("first deposit (balanceOf = 0) leaves netValue equal to remaining-share worth", async () => {
     const { answer } = await preview(deposit({ assets: 10n }), {
       previewAmount: 10n,
       shares: 0n,
@@ -276,6 +294,20 @@ describe("previewPoolPositionOperation", () => {
     expect(answer).toMatchObject({
       ok: true,
       data: { netValue: { value: 10n } },
+    });
+  });
+
+  it("deposit remaining netValue is remaining-share worth, not the asset delta", async () => {
+    const dieselRate = (11n * RAY) / 10n;
+    const { answer } = await preview(deposit({ assets: 100n }), {
+      previewAmount: 90n,
+      shares: 0n,
+      market: fakeMarket({ dieselRate }),
+    });
+
+    expect(answer).toMatchObject({
+      ok: true,
+      data: { netValue: { value: 99n } },
     });
   });
 
@@ -294,6 +326,23 @@ describe("previewPoolPositionOperation", () => {
       ok: true,
       // current 1 + minted 10 (not the 1000 WETH zapper input)
       data: { netValue: { value: 11n } },
+    });
+  });
+
+  it("redeem remaining netValue ignores withdrawFee; tokenOut carries it", async () => {
+    const { answer } = await preview(redeem({ shares: 10n }), {
+      // previewRedeem after a 1% fee: 10 shares would be worth 10, pays 9
+      previewAmount: 9n,
+      shares: 100n,
+    });
+
+    expect(answer).toMatchObject({
+      ok: true,
+      data: {
+        netValue: { value: 90n },
+        tokenIn: { value: 10n },
+        tokenOut: { value: 9n },
+      },
     });
   });
 

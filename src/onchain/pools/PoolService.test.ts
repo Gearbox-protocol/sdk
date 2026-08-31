@@ -102,8 +102,16 @@ function buildService(args: MockPool = {}) {
             totalAssets,
             dieselRate,
             withdrawFee: args.withdrawFee ?? 0n,
-            convertToAssets: (shares: bigint) =>
+            sharesToUnderlying: (shares: bigint) =>
               dieselRate === 0n ? shares : (shares * dieselRate) / RAY,
+            underlyingToShares: (underlying: bigint, roundUp = false) => {
+              if (dieselRate === 0n) {
+                return underlying;
+              }
+              return roundUp
+                ? (underlying * RAY + dieselRate - 1n) / dieselRate
+                : (underlying * RAY) / dieselRate;
+            },
           },
         },
       }),
@@ -192,6 +200,16 @@ describe("PoolService.simulateWithdraw", () => {
       availableLiquidity: { value: LIQUIDITY, valueUsd: null },
     });
   });
+
+  it("inflates the share burn for the pool's withdrawal fee", () => {
+    const service = buildService({ withdrawFee: 100n });
+
+    expect(
+      service.simulateWithdraw({ pool: POOL, amount: 9900n }),
+    ).toMatchObject({
+      tokenIn: amt(POOL, 9091n),
+    });
+  });
 });
 
 describe("PoolService.simulateRedeem", () => {
@@ -229,29 +247,5 @@ describe("PoolService.simulateRedeem", () => {
       zapper: ZAPPER,
       availableLiquidity: { value: LIQUIDITY, valueUsd: null },
     });
-  });
-});
-
-describe("PoolService.sharesToUnderlying", () => {
-  it("values shares at the pool's rate, as a position is valued", () => {
-    // 120 shares at 1.1 underlying each, the same rate the simulations use
-    expect(buildService().sharesToUnderlying(POOL, 120n)).toEqual(
-      amt(UNDERLYING, 132n),
-    );
-  });
-
-  it("leaves the withdrawal fee alone: this is worth, not payout", () => {
-    // simulateRedeem takes the 1% off; holding the shares does not
-    expect(
-      buildService({ withdrawFee: 100n }).sharesToUnderlying(POOL, 120n),
-    ).toEqual(amt(UNDERLYING, 132n));
-  });
-
-  it("values nothing at nothing, on a pool that has no rate yet", () => {
-    const empty = buildService({ totalSupply: 0n, totalAssets: 0n });
-
-    expect(empty.sharesToUnderlying(POOL, 0n)).toEqual(amt(UNDERLYING, 0n));
-    // an empty pool mints one for one, and prices the shares back the same way
-    expect(empty.sharesToUnderlying(POOL, 100n)).toEqual(amt(UNDERLYING, 100n));
   });
 });

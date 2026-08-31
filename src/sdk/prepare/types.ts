@@ -73,12 +73,14 @@ export interface LpState extends PoolSimulation {
   curator: Curator;
   /**
    * The wallet's position in this pool once the operation has run, in the
-   * market's underlying: what it holds now, moved by what this operation mints
-   * or burns. A first deposit lands at the size of the deposit itself.
+   * market's underlying.
    *
    * Denominated like {@link PoolPosition.netValue}, so a screen showing both
    * reads one token: on an RWA market that is the unwrapped asset — USDC
    * rather than the dcUSDC the pool actually holds.
+   *
+   * Does not account for withdrawal fee: this is what the remaining shares
+   * are worth, not what leaving with them would pay.
    **/
   netValue: TokenAmount;
 }

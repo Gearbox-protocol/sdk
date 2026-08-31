@@ -140,23 +140,24 @@ export interface PoolPositionOperationPreview {
    */
   underlyingToken: UnderlyingToken;
   /**
-   * Token that goes from user to pool
-   * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit
-   * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out
+   * Token that goes from user to pool.
+   * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit.
+   * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out.
    *
-   * For mint/withdraw the amount of tokenIn cannot be determined from
-   * transaction calldata alone and requires an additional async call
-   * (previewMint/previewWithdraw).
+   * On withdraw, this is the amount of shares burend that covers both the requested payout
+   * and the fee.
+   *
+   * On redeem this is the shares from calldata, fee-free.
    */
   tokenIn: TokenAmount;
   /**
-   * Token that goes from pool to user
-   * In case of deposit, pool shares (diesel token) for direct deposit or zapper token out
-   * In case of withdraw, underlying for direct withdraw or zapper token in
+   * Token that goes from pool to user.
+   * In case of deposit, pool shares (diesel token) for direct deposit or zapper token out.
+   * In case of withdraw, underlying for direct withdraw or zapper token in.
    *
-   * For deposit/redeem the amount of tokenOut cannot be determined from
-   * transaction calldata alone and requires an additional async call
-   * (previewDeposit/previewRedeem).
+   * On withdraw this is the requested underlying.
+   * On redeem this is the underlying after `withdrawFee`, so less than
+   * the burned shares are worth.
    */
   tokenOut: TokenAmount;
   /**
@@ -173,6 +174,10 @@ export interface PoolPositionOperationPreview {
    * {@link PoolPosition.netValue} reports for a live position, denominated in
    * the market's unwrapped underlying. For RWA markets this is USDC rather than
    * dcUSDC (the pool's on-chain underlying) or diesel shares.
+   *
+   * Does not account for withdraw fee: this is what the remaining shares are worth, not
+   * what leaving with them would pay. The fee shows up on {@link tokenIn} /
+   * {@link tokenOut} instead.
    */
   netValue: TokenAmount;
   /**

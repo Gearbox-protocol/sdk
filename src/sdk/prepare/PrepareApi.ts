@@ -904,12 +904,16 @@ async function lpState(
   simulation: PoolSimulation,
   moved: { mints: bigint; burns?: never } | { burns: bigint; mints?: never },
 ): Promise<LpState> {
-  const held = await sdk.pools.getShareBalance({ pool, wallet });
+  const market = sdk.marketRegister.findByPool(pool);
+  const poolContract = market.pool.pool;
+  const held = await poolContract.getShareBalance(wallet);
   const after = held + (moved.mints ?? -moved.burns);
   return {
     ...simulation,
-    curator: sdk.marketRegister.findByPool(pool).curator,
-    netValue: sdk.pools.sharesToUnderlying(pool, after > 0n ? after : 0n),
+    curator: market.curator,
+    netValue: market.toUnderlyingAmount(
+      poolContract.sharesToUnderlying(after > 0n ? after : 0n),
+    ),
   };
 }
 

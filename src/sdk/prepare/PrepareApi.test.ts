@@ -66,6 +66,7 @@ const amount = (address: Address, value: bigint): TokenAmount => ({
 });
 
 function buildApi() {
+  const getShareBalance = vi.fn(async () => HELD_SHARES);
   const pools = {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
     getWithdrawalMetadata: vi.fn(() => ({})),
@@ -82,11 +83,6 @@ function buildApi() {
       }),
     ),
     removeLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
-    // 200 shares held before the operation, worth one underlying each
-    getShareBalance: vi.fn(async () => HELD_SHARES),
-    sharesToUnderlying: vi.fn((_pool: Address, shares: bigint) =>
-      amount(UNDERLYING, shares),
-    ),
   };
   const api = new PrepareApi({
     chain: () => ({
@@ -95,13 +91,20 @@ function buildApi() {
       pools,
       marketRegister: {
         findByPool: () => ({
-          pool: { underlying: UNDERLYING },
+          pool: {
+            underlying: UNDERLYING,
+            pool: {
+              getShareBalance,
+              sharesToUnderlying: (shares: bigint) => shares,
+            },
+          },
           curator: CURATOR,
+          toUnderlyingAmount: (value: bigint) => amount(UNDERLYING, value),
         }),
       },
     }),
   } as unknown as MultichainSDK);
-  return { api, pools };
+  return { api, pools, getShareBalance };
 }
 
 describe("PrepareApi.withdraw", () => {
@@ -172,8 +175,8 @@ describe("PrepareApi.withdraw", () => {
   });
 
   it("answers the failed read in the envelope rather than throwing it", async () => {
-    const { api, pools } = buildApi();
-    pools.getShareBalance.mockRejectedValueOnce(new Error("rpc is down"));
+    const { api, getShareBalance } = buildApi();
+    getShareBalance.mockRejectedValueOnce(new Error("rpc is down"));
 
     const result = await api.withdraw(
       { chainId: CHAIN_ID, pool: POOL },

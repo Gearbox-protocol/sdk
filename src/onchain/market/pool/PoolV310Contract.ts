@@ -92,10 +92,38 @@ export class PoolV310Contract
   }
 
   /**
-   * {@inheritDoc IPoolContract.convertToAssets}
+   * {@inheritDoc IPoolContract.getShareBalance}
    */
-  public convertToAssets(shares: bigint): bigint {
+  public async getShareBalance(
+    wallet: Address,
+    blockNumber?: bigint,
+  ): Promise<bigint> {
+    return this.client.readContract({
+      address: this.address,
+      abi: this.abi,
+      functionName: "balanceOf",
+      args: [wallet],
+      blockNumber,
+    });
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.sharesToUnderlying}
+   */
+  public sharesToUnderlying(shares: bigint): bigint {
     return this.dieselRate === 0n ? shares : (shares * this.dieselRate) / RAY;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.underlyingToShares}
+   */
+  public underlyingToShares(underlying: bigint, roundUp = false): bigint {
+    if (this.dieselRate === 0n) {
+      return underlying;
+    }
+    return roundUp
+      ? (underlying * RAY + this.dieselRate - 1n) / this.dieselRate
+      : (underlying * RAY) / this.dieselRate;
   }
 
   /**

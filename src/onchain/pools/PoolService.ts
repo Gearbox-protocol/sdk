@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import type { Amount, PoolPosition, TokenAmount } from "../../model/index.js";
+import type { Amount, PoolPosition } from "../../model/index.js";
 import {
   BaseContract,
   RWA_UNDERLYING_DEFAULT,
@@ -8,11 +8,10 @@ import {
   SDKConstruct,
   type TokenMetaData,
 } from "../base/index.js";
-import { NATIVE_ADDRESS, PERCENTAGE_FACTOR, RAY } from "../constants/index.js";
+import { NATIVE_ADDRESS, PERCENTAGE_FACTOR } from "../constants/index.js";
 import {
   IERC20ZapperContract,
   IETHZapperContract,
-  type IPoolContract,
   type IZapperContract,
   type MarketSuite,
 } from "../market/index.js";
@@ -24,7 +23,6 @@ import type {
   IPoolsService,
   ListPoolPositionsProps,
   PoolServiceCallResult,
-  PoolShareBalanceProps,
   PoolSimulation,
   RemoveLiquidityProps,
   SimulatePoolOperationProps,
@@ -52,28 +50,6 @@ function payoutCeiling(market: MarketSuite): Amount {
 }
 
 export class PoolService extends SDKConstruct implements IPoolsService {
-  /**
-   * {@inheritDoc IPoolsService.getShareBalance}
-   */
-  public async getShareBalance(props: PoolShareBalanceProps): Promise<bigint> {
-    return this.client.readContract({
-      // the pool contract is its own share (diesel) token
-      address: this.sdk.marketRegister.findByPool(props.pool).pool.pool.address,
-      abi: ierc20Abi,
-      functionName: "balanceOf",
-      args: [props.wallet],
-      blockNumber: props.blockNumber,
-    });
-  }
-
-  /**
-   * {@inheritDoc IPoolsService.sharesToUnderlying}
-   */
-  public sharesToUnderlying(pool: Address, shares: bigint): TokenAmount {
-    const market = this.sdk.marketRegister.findByPool(pool);
-    return market.toUnderlyingAmount(market.pool.pool.convertToAssets(shares));
-  }
-
   /**
    * {@inheritDoc IPoolsService.getDepositTokensIn}
    */
@@ -258,7 +234,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     return {
       tokenIn: toTokenAmount(tokenIn, amount),
-      tokenOut: toTokenAmount(tokenOut, toShares(pool.pool, amount)),
+      tokenOut: toTokenAmount(tokenOut, pool.pool.underlyingToShares(amount)),
       zapper: zapper?.baseParams.addr,
     };
   }
@@ -283,7 +259,14 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     const { zapper } = this.getWithdrawalMetadata(poolAddr, tokenIn, tokenOut);
 
     return {
-      tokenIn: toTokenAmount(tokenIn, toSharesUp(pool.pool, amount)),
+      tokenIn: toTokenAmount(
+        tokenIn,
+        pool.pool.underlyingToShares(
+          (amount * PERCENTAGE_FACTOR) /
+            (PERCENTAGE_FACTOR - pool.pool.withdrawFee),
+          true,
+        ),
+      ),
       tokenOut: toTokenAmount(tokenOut, amount),
       zapper: zapper?.baseParams.addr,
       availableLiquidity: payoutCeiling(market),
@@ -309,7 +292,12 @@ export class PoolService extends SDKConstruct implements IPoolsService {
 
     return {
       tokenIn: toTokenAmount(tokenIn, amount),
-      tokenOut: toTokenAmount(tokenOut, toAssets(pool.pool, amount)),
+      tokenOut: toTokenAmount(
+        tokenOut,
+        (pool.pool.sharesToUnderlying(amount) *
+          (PERCENTAGE_FACTOR - pool.pool.withdrawFee)) /
+          PERCENTAGE_FACTOR,
+      ),
       zapper: zapper?.baseParams.addr,
       availableLiquidity: payoutCeiling(market),
     };
@@ -349,7 +337,13 @@ export class PoolService extends SDKConstruct implements IPoolsService {
     ) {
       // A zapper only redeems shares; a withdraw-sized request converts first.
       const shares =
-        mode === "withdraw" ? toSharesUp(poolContract, amount) : amount;
+        mode === "withdraw"
+          ? poolContract.underlyingToShares(
+              (amount * PERCENTAGE_FACTOR) /
+                (PERCENTAGE_FACTOR - poolContract.withdrawFee),
+              true,
+            )
+          : amount;
       const tx = permit
         ? meta.zapper.redeemWithPermit(
             shares,
@@ -737,46 +731,8 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       chainId: this.chainId,
       pool: pool.address,
       underlyingToken: market.underlyingToken,
-      netValue: this.sharesToUnderlying(pool.address, shares),
+      netValue: market.toUnderlyingAmount(pool.sharesToUnderlying(shares)),
       apy: { organicApy: rayToBps(pool.supplyRate) },
     };
   }
-}
-
-/**
- * Shares minted for `assets`, as `previewDeposit` would report them.
- *
- * Both directions convert through the diesel rate — underlying per RAY of
- * shares — because that is the rate the pool itself divides by, and the only
- * exact one the SDK holds: `totalAssets` is this rate multiplied out, so
- * converting back through it costs a wei on large amounts. Rounds down, as
- * minting does.
- */
-export function toShares(pool: IPoolContract, assets: bigint): bigint {
-  const { dieselRate } = pool;
-
-  return dieselRate === 0n ? assets : (assets * RAY) / dieselRate;
-}
-
-/**
- * Shares a withdrawal of `assets` burns, as `previewWithdraw` would report
- * them: {@link toShares} rounded the other way, since the burn has to cover
- * the payout the caller asked for.
- */
-export function toSharesUp(pool: IPoolContract, assets: bigint): bigint {
-  const { dieselRate } = pool;
-
-  return dieselRate === 0n
-    ? assets
-    : (assets * RAY + dieselRate - 1n) / dieselRate;
-}
-
-/**
- * Underlying paid out for `shares`, as `previewRedeem` would report it:
- * {@link toShares} run backwards, less the pool's withdrawal fee.
- */
-function toAssets(pool: IPoolContract, shares: bigint): bigint {
-  const assets = pool.convertToAssets(shares);
-
-  return (assets * (PERCENTAGE_FACTOR - pool.withdrawFee)) / PERCENTAGE_FACTOR;
 }

@@ -146,11 +146,25 @@ export interface IPoolContract extends IBaseContract {
   readonly totalAssets: bigint;
 
   /**
+   * Diesel shares `wallet` holds. The pool contract is its own ERC-20.
+   **/
+  getShareBalance(wallet: Address, blockNumber?: bigint): Promise<bigint>;
+
+  /**
    * Underlying `shares` of diesel are worth at the current share rate, with
    * no withdrawal fee. An empty pool (diesel rate still zero) converts
-   * one-for-one.
+   * one-for-one. This is what the shares are worth, not what leaving with
+   * them would pay.
    */
-  convertToAssets(shares: bigint): bigint;
+  sharesToUnderlying(shares: bigint): bigint;
+
+  /**
+   * Shares minted (or burned) for this much underlying at the current share
+   * rate, with no withdrawal fee. Rounds down as `previewDeposit`; pass
+   * `true` to round up as `previewWithdraw`'s conversion (fee inflation is
+   * the caller's). An empty pool converts one-for-one.
+   */
+  underlyingToShares(underlying: bigint, roundUp?: boolean): bigint;
 
   /**
    * The token the pool's underlying wraps, or the underlying itself when it
