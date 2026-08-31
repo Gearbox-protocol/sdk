@@ -20,15 +20,22 @@ raise   = Wᵤ + dD of U from S            when T == U
         = dD of U, then Wᵤ worth of T    when T ≠ U
 ```
 
-`maxWithdraw` is the ceiling of the partial flow: the largest `W` whose
-proportional repayment still leaves `D0 − dD >= minDebt`, capped at `C0 − 1`.
+`maxWithdraw` reports both ends of the scale, because the scale has a hole in
+it: `partial` is the largest `W` whose proportional repayment still leaves
+`D0 − dD >= minDebt`, capped at `C0 − 1`, and `exit` is `C0` itself.
 
 ```mermaid
 flowchart LR
-  z["W = 0"] --> a["0 < W <= maxWithdraw<br/>partial, leverage held"]
-  a --> b["maxWithdraw < W < C0<br/>refused: debtOutOfRange<br/>the leftover loan would sit below minDebt"]
-  b --> c["W >= C0, or MAX_UINT256<br/>exit: account emptied"]
+  z["W = 0"] --> a["0 < W <= partial<br/>partial, leverage held"]
+  a --> b["partial < W < exit<br/>refused: debtOutOfRange<br/>the leftover loan would sit below minDebt"]
+  b --> c["W >= exit (= C0), or MAX_UINT256<br/>exit: account emptied"]
 ```
+
+How wide the middle band is belongs to the account, not to the market: it is
+`C0 · minDebt / D0` across. An account borrowing at the floor has `partial`
+worth only the interest it has accrued above `minDebt` while its `exit` is the
+whole net value — a form reading `partial` alone would tell such a wallet it
+can free a few wei, when in fact it can free everything by leaving.
 
 ## Case selection
 
@@ -182,8 +189,11 @@ sentinel and the check is trivially satisfied.
 
 - The partial flow never touches quotas explicitly; the closing update sizes
   them to the balances left behind, with `quotaReserve` on top.
-- Between `maxWithdraw` and the net value the flow refuses rather than clamping:
-  the caller gets a reason it can show, not a number it did not ask for.
+- Between the two ceilings `maxWithdraw` reports the flow refuses rather than
+  clamping: the caller gets a reason it can show, not a number it did not ask
+  for. A Max button belongs on `MAX_UINT256`, not on `exit` — the exit is then
+  named rather than priced, and no rounding in `price(T → U, W)` can drop the
+  request back into the refused band.
 - Tests: [`withdraw.onchain.test.ts`](../../src/onchain/accounts/intents/tests/withdraw.onchain.test.ts),
   [`withdraw-all.onchain.test.ts`](../../src/onchain/accounts/intents/tests/withdraw-all.onchain.test.ts),
   [`plan.test.ts`](../../src/onchain/accounts/intents/plan.test.ts).

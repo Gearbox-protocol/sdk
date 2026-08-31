@@ -431,6 +431,41 @@ export interface WithdrawStrategyIntent {
   sourceToken?: Address;
 }
 
+/**
+ * Where a withdraw form's scale ends, in underlying units — and it ends twice.
+ *
+ * A withdrawal is not one continuous range. Holding leverage flat costs a
+ * proportional repayment, and the loan left behind has to clear the facade's
+ * `minDebt`, so the partial flow stops at {@link partial}. Leaving entirely
+ * settles the loan instead of shrinking it, so the floor does not apply and
+ * the whole net value can go. Between the two the flow refuses with
+ * `debtOutOfRange` rather than quietly rounding the request to one end.
+ *
+ * An account borrowing at the floor therefore reports a `partial` of almost
+ * nothing — only the interest accrued above `minDebt` can be repaid — beside
+ * an `exit` of its entire net value. That gap is the market's rule showing
+ * through, not a miscount: such a position frees real money only by leaving.
+ */
+export interface WithdrawCeilings {
+  /**
+   * Largest partial withdrawal {@link WithdrawStrategyIntent} accepts: the one
+   * whose proportional repayment leaves the debt at `minDebt`. `0n` when the
+   * debt already sits below the floor, and always at least one unit under
+   * `exit` — the last unit closes the account rather than shrinking it.
+   */
+  partial: bigint;
+  /**
+   * What leaving hands over: the account's net value, which is also the amount
+   * at which a withdrawal turns into an exit. `0n` on an account whose debt
+   * has caught up with its collateral.
+   *
+   * A Max button is better served by sending `MAX_UINT256` than this figure —
+   * the exit is then named outright, and no rounding in the payout token's
+   * price can drop the request back into the refused gap.
+   */
+  exit: bigint;
+}
+
 export type StartIntent =
   | AddCollateralIntent
   | WithdrawAssetIntent

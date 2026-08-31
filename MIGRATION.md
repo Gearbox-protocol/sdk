@@ -415,9 +415,9 @@ checked by the compiler.
 
 `poolSunset`, `quotaCountExceeded` and `malformedTransaction` are preview-only
 and appear in no prepare union — the exactness type tests refuse them.
-`maxWithdraw`, `maxRepay` and `maxWithdrawCollateral` return bare
-`Promise<bigint>` and throw on a missing account; `leverageBand` and
-`withdrawableCollaterals` stay as they were.
+`maxRepay` and `maxWithdrawCollateral` return bare `Promise<bigint>` and throw
+on a missing account, and so does `maxWithdraw` — but it answers two numbers,
+see below; `leverageBand` and `withdrawableCollaterals` stay as they were.
 
 `preview` speaks the same envelope: `previewOperation` returns
 `SDKReturn<OperationPreview, PreviewOperationError>` where the union is the
@@ -495,6 +495,38 @@ The read itself is public, for callers that want it without preparing anything:
 `sdk.chain(id).pools.getShareBalance({ pool, wallet })` gives the shares, and
 `sharesToUnderlying(pool, shares)` prices any share count the way a position
 row is priced.
+
+### `maxWithdraw` reports both ends of a scale that has a hole in it
+
+`prepare.maxWithdraw` answered one `bigint`: the largest **partial** withdrawal,
+the one whose proportional repayment leaves the debt at the manager's
+`minDebt`. That is the top of the slider, and forms read it as the top of the
+scale — which it is not. Leaving entirely settles the loan instead of shrinking
+it, so the floor does not apply and the whole net value can go; between the two
+the flow refuses with `debtOutOfRange`.
+
+The distance between them is the account's own, `≈ C0 · minDebt / D0`, and on an
+account borrowing at the floor it is nearly everything: only the interest
+accrued above `minDebt` can be repaid, so the partial ceiling collapses to dust
+beside a net value that can be withdrawn in full by leaving. A Max button wired
+to the old answer told such a wallet it could free a few wei, or a third of its
+money, and the close it then ran handed over all of it.
+
+So the read answers both, as a **`WithdrawCeilings`**:
+
+```diff
+- const max = await sdk.opportunities.prepare.maxWithdraw(position);
+- showMax(max);
++ const { partial, exit } = await sdk.opportunities.prepare.maxWithdraw(position);
++ setSliderRange(0n, partial); // what a withdrawal may ask for
++ showMax(exit);               // what leaving hands over
+```
+
+Send `MAX_UINT256` for the Max button rather than `exit` itself: the exit is
+then named rather than derived, and no rounding in the payout token's price can
+drop the request back into the refused band. Nothing else changed — it is still
+a bare read that throws on an account the SDK does not hold, and `maxRepay` and
+`maxWithdrawCollateral` still answer a plain `bigint`.
 
 ### A claim can settle only part of a delayed withdrawal
 

@@ -37,6 +37,7 @@ import type {
   OpenStrategyResult,
   StrategyResult,
   StrategyRoutesResult,
+  WithdrawCeilings,
 } from "./types.js";
 
 type P = IOpportunitiesPrepare;
@@ -290,9 +291,14 @@ describe("narrowing the envelope settles which half is there", () => {
 });
 
 describe("the reads outside the envelope stay bare", () => {
-  it("the max* ceilings answer a bigint or throw", () => {
+  it("the withdraw ceiling names both ends of the scale", () => {
+    expectTypeOf<WithdrawCeilings["partial"]>().toEqualTypeOf<bigint>();
+    expectTypeOf<WithdrawCeilings["exit"]>().toEqualTypeOf<bigint>();
+  });
+
+  it("the max* ceilings answer bare numbers or throw", () => {
     expectTypeOf<ReturnType<P["maxWithdraw"]>>().toEqualTypeOf<
-      Promise<bigint>
+      Promise<WithdrawCeilings>
     >();
     expectTypeOf<ReturnType<P["maxRepay"]>>().toEqualTypeOf<Promise<bigint>>();
     expectTypeOf<ReturnType<P["maxWithdrawCollateral"]>>().toEqualTypeOf<

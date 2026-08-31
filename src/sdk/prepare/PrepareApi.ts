@@ -27,6 +27,7 @@ import type {
   PreviewIssue,
   ResumableIntent,
   StartIntent,
+  WithdrawCeilings,
 } from "../../onchain/index.js";
 import {
   CreditAccountOperationsService,
@@ -457,7 +458,7 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.maxWithdraw}
    **/
-  public async maxWithdraw(position: PositionInput): Promise<bigint> {
+  public async maxWithdraw(position: PositionInput): Promise<WithdrawCeilings> {
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
     return service(sdk).maxWithdraw({ creditAccount, sdk });

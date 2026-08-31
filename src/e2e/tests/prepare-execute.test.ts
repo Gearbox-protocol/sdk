@@ -598,10 +598,10 @@ describe("prepare → execute on a mainnet fork", () => {
     it("maxWithdraw leaves the account at the debt floor, still open", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const max = await prepare().maxWithdraw(position(creditAccount));
+      const { partial } = await prepare().maxWithdraw(position(creditAccount));
       const { sim, timestamp } = routedPreview(
         await prepare().withdrawStrategy(position(creditAccount), {
-          amount: max,
+          amount: partial,
           to: borrower,
           sourceToken: TARGET_TOKEN,
           slippage: S,

@@ -24,6 +24,7 @@ import type {
   PoolSimulation,
   ResumableIntent,
   RouteRefusals,
+  WithdrawCeilings,
 } from "../../onchain/index.js";
 import type {
   AccountFlowError,
@@ -46,6 +47,7 @@ export type {
   LeverageBand,
   OperationState,
   PathLossRate,
+  WithdrawCeilings,
 } from "../../onchain/index.js";
 /**
  * The vocabulary the failure half of everything below is written in.
@@ -595,19 +597,26 @@ export interface IOpportunitiesPrepare {
   >;
 
   /**
-   * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
-   * units: the amount whose proportional repayment leaves the debt at the
-   * credit manager's `minDebt`. Between this and the account's net value the
-   * flow refuses — the leftover loan would sit below `minDebt` — and at the net
-   * value it turns into an exit.
+   * How much {@link withdrawStrategy} can take out, both ends of it, in
+   * underlying units: `partial` is the largest withdrawal that keeps leverage
+   * and leaves the debt at the credit manager's `minDebt`, `exit` is the net
+   * value leaving entirely hands over.
    *
-   * Taking everything out needs none of this arithmetic: send `MAX_UINT256` to
-   * {@link withdrawStrategy} and the exit is what runs.
+   * Two numbers rather than one because the range has a hole in it: between
+   * them the flow refuses with `debtOutOfRange`, since the leftover loan would
+   * sit below the floor. A form driving a slider off `partial` and a Max
+   * button off `exit` describes what the account can actually do; a form using
+   * either alone will misstate one of them — see {@link WithdrawCeilings},
+   * which spells out how far apart they can be.
    *
-   * A bare read: it answers its number, and throws on an account or a chain
+   * Taking everything out needs neither figure: send `MAX_UINT256` to
+   * {@link withdrawStrategy} and the exit is what runs, named rather than
+   * priced.
+   *
+   * A bare read: it answers its numbers, and throws on an account or a chain
    * the SDK does not hold.
    **/
-  maxWithdraw(position: PositionInput): Promise<bigint>;
+  maxWithdraw(position: PositionInput): Promise<WithdrawCeilings>;
 
   /**
    * Paying debt down with funds from the wallet: collateral stays where it is,

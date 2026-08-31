@@ -323,17 +323,40 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
     const { api, position } = buildStrategyApi();
 
-    const max = await api.maxWithdraw(position);
-    expect(max).toBeGreaterThan(0n);
+    const { partial } = await api.maxWithdraw(position);
+    expect(partial).toBeGreaterThan(0n);
 
     const result = await api.withdrawStrategy(position, {
-      amount: max,
+      amount: partial,
       to: WALLET,
     });
     const prepared = plan(result);
     // this market has no redemption venue, so only the instant route answers
     expect(prepared.instant).toBeDefined();
     expect(prepared.refused.delayed).toBe("noDelayedRoute");
+  });
+
+  it("maxWithdraw's exit is the net value, and it is the far side of a gap", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const { partial, exit } = await api.maxWithdraw(position);
+    expect(exit).toBe(TVL - DEBT);
+    // the partial flow stops short of it: anything in between is refused
+    expect(partial).toBeLessThan(exit);
+
+    const between = (partial + exit) / 2n;
+    const refused = await api.withdrawStrategy(position, {
+      amount: between,
+      to: WALLET,
+    });
+    expect(isSDKError(refused) && refused.error.code).toBe("debtOutOfRange");
+
+    // at the exit itself the flow accepts, and empties the account
+    const result = await api.withdrawStrategy(position, {
+      amount: exit,
+      to: WALLET,
+    });
+    expect(plan(result).instant?.state.totalDebt.value).toBe(0n);
   });
 
   it("withdrawStrategy past the net value exits the account", async () => {
