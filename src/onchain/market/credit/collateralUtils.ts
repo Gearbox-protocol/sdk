@@ -159,7 +159,7 @@ export function dominantCollateral(
   account: CreditAccountData,
   market: MarketSuite,
 ): Address | undefined {
-  let bestValue = 0;
+  let bestValue = 0n;
   let dominant: Address | undefined;
   for (const t of account.tokens) {
     if (
@@ -170,7 +170,7 @@ export function dominantCollateral(
       continue;
     }
     // a token the oracle cannot price does not win the comparison
-    const value = market.priceOracle.safeUsdValue(t.token, t.balance) ?? 0;
+    const value = market.priceOracle.safeConvertToUSD(t.token, t.balance).value;
     if (value > bestValue) {
       bestValue = value;
       dominant = t.token;

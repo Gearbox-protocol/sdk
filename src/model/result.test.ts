@@ -4,8 +4,8 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import type { IGearboxError } from "./errors.js";
-import type { SDKError, SDKResult, SDKReturn } from "./result.js";
-import { isSDKError, sdkErr, sdkOk } from "./result.js";
+import type { SafeValue, SDKError, SDKResult, SDKReturn } from "./result.js";
+import { isSDKError, safeValue, sdkErr, sdkOk } from "./result.js";
 
 interface FixtureError extends IGearboxError {
   code: "fixtureRefused";
@@ -51,5 +51,18 @@ describe("SDKReturn", () => {
       expect(failed.error.code).toBe("fixtureRefused");
     }
     expect(isSDKError(sdkOk(1))).toBe(false);
+  });
+});
+
+describe("SafeValue", () => {
+  it("omits error when the value was not degraded", () => {
+    expect(safeValue(42)).toEqual({ value: 42 });
+    expect("error" in safeValue(42)).toBe(false);
+  });
+
+  it("carries the value and the error together", () => {
+    const degraded: SafeValue<number, FixtureError> = safeValue(0, refusal);
+    expect(degraded).toEqual({ value: 0, error: refusal });
+    expectTypeOf(degraded.error).toEqualTypeOf<FixtureError | undefined>();
   });
 });

@@ -65,7 +65,7 @@ export function rankAccountTokens(args: {
     creditAccount.creditManager,
   ).priceOracle;
   const convert: ConvertFn = (from, to, amount) =>
-    oracle.safeConvert(from, to, amount) ?? 0n;
+    oracle.safeConvert(from, to, amount).value;
 
   const candidates: CandidateToken[] = [];
   for (const t of creditAccount.tokens) {

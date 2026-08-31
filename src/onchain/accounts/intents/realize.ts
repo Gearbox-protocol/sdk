@@ -90,7 +90,7 @@ export async function realize(
     creditAccount.creditManager,
   );
   const price: ConvertFn = (from, to, amount) =>
-    market.priceOracle.safeConvert(from, to, amount) ?? 0n;
+    market.priceOracle.safeConvert(from, to, amount).value;
   const suite = sdk.marketRegister.findCreditManager(
     creditAccount.creditManager,
   );

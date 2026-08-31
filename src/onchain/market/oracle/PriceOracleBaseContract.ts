@@ -7,14 +7,17 @@ import type {
 } from "viem";
 import { isAddressEqual, stringToHex } from "viem";
 import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
-import type {
-  Amount,
-  PriceFeedData,
-  PriceFeedSummary,
-  TokenAmount,
+import {
+  type Amount,
+  type PriceFeedData,
+  type PriceFeedSummary,
+  type SafeValue,
+  safeValue,
+  type TokenAmount,
 } from "../../../model/index.js";
 import type { BaseContractArgs } from "../../base/BaseContract.js";
 import type {
+  Asset,
   CreditAccountTokensSlice,
   PriceFeedMapEntry,
   PriceFeedTreeNode,
@@ -32,6 +35,7 @@ import {
 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { PriceOracleStateHuman } from "../../types/index.js";
+import { BigIntMath } from "../../utils/bigint-math.js";
 import { AddressMap, AddressSet, formatBN } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import { usdToNumber } from "../math.js";
@@ -42,6 +46,7 @@ import type {
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { getRawPriceUpdates, PriceFeedRef } from "../pricefeeds/index.js";
+import { type UnpriceableTokenError, unpriceableTokenError } from "./errors.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
   IPriceOracleContract,
@@ -266,35 +271,108 @@ export abstract class PriceOracleBaseContract<
     from: Address,
     to: Address,
     amount: bigint,
-  ): bigint | null {
+  ): SafeValue<bigint, UnpriceableTokenError> {
     try {
-      return this.convert(from, to, amount);
-    } catch (e) {
-      this.logger?.debug(
-        `cannot convert ${this.labelAddress(from)} to ${this.labelAddress(to)}: ${e}`,
-      );
-      return null;
+      return { value: this.convert(from, to, amount) };
+    } catch {
+      try {
+        return { value: this.convert(from, to, amount, true) };
+      } catch {
+        return safeValue(0n, unpriceableTokenError(from));
+      }
     }
   }
 
   /**
    * {@inheritDoc IPriceOracleContract.safeConvertToUSD}
    **/
-  public safeConvertToUSD(token: Address, amount: bigint): bigint | null {
+  public safeConvertToUSD(
+    token: Address,
+    amount: bigint,
+  ): SafeValue<bigint, UnpriceableTokenError> {
     try {
-      return this.convertToUSD(token, amount);
-    } catch (e) {
-      this.logger?.debug(`cannot price ${this.labelAddress(token)}: ${e}`);
-      return null;
+      return { value: this.convertToUSD(token, amount) };
+    } catch {
+      try {
+        return { value: this.convertToUSD(token, amount, true) };
+      } catch {
+        return safeValue(0n, unpriceableTokenError(token));
+      }
     }
   }
 
   /**
-   * {@inheritDoc IPriceOracleContract.safeUsdValue}
+   * {@inheritDoc IPriceOracleContract.safeConvertMinUSD}
    **/
-  public safeUsdValue(token: Address, amount: bigint): number | null {
-    const usd = this.safeConvertToUSD(token, amount);
-    return usd === null ? null : usdToNumber(usd);
+  public safeConvertMinUSD(
+    token: Address,
+    amount: bigint,
+  ): SafeValue<bigint, UnpriceableTokenError> {
+    let main: bigint;
+    try {
+      main = this.convertToUSD(token, amount);
+    } catch {
+      return safeValue(0n, unpriceableTokenError(token));
+    }
+    let feedToken = token;
+    if (isAddressEqual(token, NATIVE_ADDRESS)) {
+      try {
+        feedToken = this.sdk.addressProvider.getAddress(
+          AP_WETH_TOKEN,
+          NO_VERSION,
+        );
+      } catch {
+        // native has no feed of its own; WETH is not registered
+      }
+    }
+    if (!this.reservePriceFeeds.has(feedToken)) {
+      return { value: 0n };
+    }
+    try {
+      return {
+        value: BigIntMath.min(main, this.convertToUSD(token, amount, true)),
+      };
+    } catch {
+      return safeValue(0n, unpriceableTokenError(token));
+    }
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.safeConvertFromUSD}
+   **/
+  public safeConvertFromUSD(
+    token: Address,
+    amount: bigint,
+  ): SafeValue<bigint, UnpriceableTokenError> {
+    try {
+      return { value: this.convertFromUSD(token, amount) };
+    } catch {
+      try {
+        return { value: this.convertFromUSD(token, amount, true) };
+      } catch {
+        return safeValue(0n, unpriceableTokenError(token));
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc IPriceOracleContract.safeConvertAssets}
+   **/
+  public safeConvertAssets(
+    assets: Asset[],
+    to: Address,
+  ): SafeValue<bigint, UnpriceableTokenError> {
+    let value = 0n;
+    let error: UnpriceableTokenError | undefined;
+    for (const { token, balance } of assets) {
+      if (balance <= DUST_THRESHOLD) {
+        continue;
+      }
+      const converted = this.safeConvert(token, to, balance);
+      value += converted.value;
+      error ??= converted.error;
+    }
+    return safeValue(value, error);
   }
 
   // bound fields, not methods: the read-model mappers are meant to be handed
@@ -303,7 +381,11 @@ export abstract class PriceOracleBaseContract<
    * {@inheritDoc IPriceOracleContract.toAmount}
    **/
   public toAmount = (token: Address, value: bigint): Amount => {
-    return { value, valueUsd: this.safeUsdValue(token, value) };
+    const priced = this.safeConvertToUSD(token, value);
+    return {
+      value,
+      valueUsd: priced.error ? null : usdToNumber(priced.value),
+    };
   };
 
   /**

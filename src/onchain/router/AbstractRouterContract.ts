@@ -6,7 +6,6 @@ import {
   type BaseContractArgs,
 } from "../base/index.js";
 import { PERCENTAGE_FACTOR } from "../constants/math.js";
-import type { IPriceOracleContract } from "../market/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { AddressSet, AssetsMap, formatBN, isDust } from "../utils/index.js";
 import { limitLeftover } from "./helpers.js";
@@ -156,7 +155,7 @@ export abstract class AbstractRouterContract<
       if (isEnabled && !keepAssets.has(token)) {
         usdBalances.push({
           token,
-          balance: this.safeConvertToUSD(priceOracle, token, balance),
+          balance: priceOracle.safeConvertToUSD(token, balance).value,
         });
       }
     }
@@ -181,11 +180,10 @@ export abstract class AbstractRouterContract<
     if (highestToken.balance < requiredDebtUSD) {
       return undefined;
     }
-    const tokenAmount = this.safeConvertFromUSD(
-      priceOracle,
+    const tokenAmount = priceOracle.safeConvertFromUSD(
       highestToken.token,
       requiredDebtUSD,
-    );
+    ).value;
     if (tokenAmount === 0n) {
       return undefined;
     }
@@ -210,37 +208,5 @@ export abstract class AbstractRouterContract<
       leftoverBalances,
       tokensToClaim: new AssetsMap(),
     };
-  }
-
-  protected safeConvertToUSD(
-    priceOracle: IPriceOracleContract,
-    token: Address,
-    balance: bigint,
-  ): bigint {
-    try {
-      return priceOracle.convertToUSD(token, balance);
-    } catch {
-      try {
-        return priceOracle.convertToUSD(token, balance, true);
-      } catch {
-        return 0n;
-      }
-    }
-  }
-
-  protected safeConvertFromUSD(
-    priceOracle: IPriceOracleContract,
-    token: Address,
-    balance: bigint,
-  ): bigint {
-    try {
-      return priceOracle.convertFromUSD(token, balance);
-    } catch {
-      try {
-        return priceOracle.convertFromUSD(token, balance, true);
-      } catch {
-        return 0n;
-      }
-    }
   }
 }

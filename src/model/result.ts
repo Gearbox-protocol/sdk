@@ -38,6 +38,28 @@ export interface SDKError<E extends IGearboxError = IGearboxError> {
  **/
 export type SDKReturn<T, E extends IGearboxError> = SDKResult<T> | SDKError<E>;
 
+/**
+ * Best-effort result: `value` is always present (zero / empty when nothing
+ * worked), `error` is set when it was degraded.
+ *
+ * Opposite of {@link SDKReturn}, which is exclusive (ok XOR error: a refusal).
+ * Later safe-priced figures reuse this type.
+ **/
+export interface SafeValue<T, E extends IGearboxError = IGearboxError> {
+  value: T;
+  error?: E;
+}
+
+/**
+ * Builds a {@link SafeValue}. Omits `error` when the value was not degraded.
+ **/
+export function safeValue<T, E extends IGearboxError = IGearboxError>(
+  value: T,
+  error?: E,
+): SafeValue<T, E> {
+  return error === undefined ? { value } : { value, error };
+}
+
 /** The success half, built. */
 export function sdkOk<T>(data: T): SDKResult<T> {
   return { ok: true, data };

@@ -8,7 +8,6 @@ import {
   MAX_UINT256,
   NO_VERSION,
   type PluginsMap,
-  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   CloseCreditAccountOperation,
@@ -81,10 +80,11 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   const { before, after, warning: replayWarning } = replay;
   const account = after.account;
   let warning = replayWarning;
-  const priced = market.valueInUnderlying(account.balances.toAssets());
-  if (priced.unpriceable) {
-    warning ??= unpriceableTokenError(priced.unpriceable);
-  }
+  const priced = market.priceOracle.safeConvertAssets(
+    account.balances.toAssets(),
+    market.underlying,
+  );
+  warning ??= priced.error;
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   // in case of RWA markets, withdrawn token might be underlying (dcUSDC)
@@ -144,10 +144,11 @@ function previewRepayCreditAccount<P extends PluginsMap>(
       sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
     );
   let warning = replayWarning ?? unwrapWarning;
-  const priced = market.valueInUnderlying(account.balances.toAssets());
-  if (priced.unpriceable) {
-    warning ??= unpriceableTokenError(priced.unpriceable);
-  }
+  const priced = market.priceOracle.safeConvertAssets(
+    account.balances.toAssets(),
+    market.underlying,
+  );
+  warning ??= priced.error;
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   return {

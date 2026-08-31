@@ -1,11 +1,12 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
-import type {
-  Amount,
-  Bps,
-  Curator,
-  Token,
-  TokenAmount,
+import {
+  type Bps,
+  type Curator,
+  type SafeValue,
+  safeValue,
+  type Token,
+  type TokenAmount,
 } from "../../../../model/index.js";
 import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
@@ -15,8 +16,12 @@ import type {
   OnchainSDK,
 } from "../../../index.js";
 import { CreditSuite } from "../../../market/credit/CreditSuite.js";
-import { MarketSuite } from "../../../market/MarketSuite.js";
 import { calcMaxLeverage, usdToNumber } from "../../../market/math.js";
+import {
+  type UnpriceableTokenError,
+  unpriceableTokenError,
+} from "../../../market/oracle/errors.js";
+import { PriceOracleBaseContract } from "../../../market/oracle/PriceOracleBaseContract.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -251,14 +256,14 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
 
   const safeConvert = (
-    token: Address,
+    from: Address,
     to: Address,
     amount: bigint,
-  ): bigint | null => {
+  ): SafeValue<bigint, UnpriceableTokenError> => {
     try {
-      return convert(token, to, amount);
+      return safeValue(convert(from, to, amount));
     } catch {
-      return null;
+      return safeValue(0n, unpriceableTokenError(from));
     }
   };
 
@@ -305,13 +310,31 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     return (amount * price) / 10n ** BigInt(decimalsOf(token));
   };
 
-  const safeUsd = (token: Address, amount: bigint): bigint | null => {
-    const from = token.toLowerCase() as Address;
-    const price = args.prices[from] ?? args.prices[token];
-    if (price === undefined) {
-      return null;
+  const proto = PriceOracleBaseContract.prototype;
+
+  const safeConvertMinUSD = (
+    token: Address,
+    amount: bigint,
+  ): SafeValue<bigint, UnpriceableTokenError> => {
+    let main: bigint;
+    try {
+      main = _convertToUSD(token, amount);
+    } catch {
+      return safeValue(0n, unpriceableTokenError(token));
     }
-    return (amount * price) / 10n ** BigInt(decimalsOf(from));
+    const key = token.toLowerCase() as Address;
+    if (
+      args.reservePrices?.[key] === undefined &&
+      args.reservePrices?.[token] === undefined
+    ) {
+      return { value: 0n };
+    }
+    try {
+      const reserve = _convertToUSD(token, amount, true);
+      return safeValue(main < reserve ? main : reserve);
+    } catch {
+      return safeValue(0n, unpriceableTokenError(token));
+    }
   };
 
   const tokenOf = (token: Address): Token => ({
@@ -341,47 +364,43 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   };
 
   const poolPaused = args.poolPaused ?? false;
-  /** {@inheritDoc MarketSuite.toUnderlyingAmount} */
-  const toUnderlyingAmount = (value: bigint): TokenAmount => {
-    const usd = safeUsd(args.underlying, value);
-    return {
-      // an RWA market reports the asset the underlying wraps, as the read model
-      // and the suite both do
-      token: tokenOf(
-        args.rwaAssets?.[args.underlying.toLowerCase() as Address] ??
-          args.underlying,
-      ),
-      value,
-      valueUsd: usd === null ? null : usdToNumber(usd),
-    };
+  const priceOracle = {
+    convert,
+    convertToUSD: _convertToUSD,
+    mainPrice: mainPriceOf,
+    reservePrice: reservePriceOf,
+    safeConvert,
+    safeConvertToUSD: proto.safeConvertToUSD,
+    safeConvertAssets: proto.safeConvertAssets,
+    safeConvertMinUSD,
+    toAmount(token: Address, value: bigint) {
+      const priced = proto.safeConvertToUSD.call(this, token, value);
+      return {
+        value,
+        valueUsd: priced.error ? null : usdToNumber(priced.value),
+      };
+    },
+    toTokenAmount(token: Address, value: bigint): TokenAmount {
+      return { token: tokenOf(token), ...this.toAmount(token, value) };
+    },
   };
+  /** {@inheritDoc MarketSuite.toUnderlyingAmount} */
+  const toUnderlyingAmount = (value: bigint): TokenAmount => ({
+    // an RWA market reports the asset the underlying wraps, as the read model
+    // and the suite both do
+    token: tokenOf(
+      args.rwaAssets?.[args.underlying.toLowerCase() as Address] ??
+        args.underlying,
+    ),
+    ...priceOracle.toAmount(args.underlying, value),
+  });
   const market = {
     toUnderlyingAmount,
     /** {@inheritDoc MarketSuite.curator} */
     curator: MOCK_CURATOR,
     /** {@inheritDoc MarketSuite.underlying} */
     underlying: args.underlying,
-    priceOracle: {
-      convert,
-      safeConvert,
-      mainPrice: mainPriceOf,
-      reservePrice: reservePriceOf,
-      convertToUSD: _convertToUSD,
-      // the read-model mappers the calculator hands its holdings to
-      toAmount: (token: Address, value: bigint): Amount => {
-        const usd = safeUsd(token, value);
-        return { value, valueUsd: usd === null ? null : usdToNumber(usd) };
-      },
-      toTokenAmount: (token: Address, value: bigint): TokenAmount => {
-        const usd = safeUsd(token, value);
-        return {
-          token: tokenOf(token),
-          value,
-          valueUsd: usd === null ? null : usdToNumber(usd),
-        };
-      },
-      safeConvertToUSD: safeUsd,
-    },
+    priceOracle,
     pool: {
       pqk: {
         quotas,
@@ -403,10 +422,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       underlying: args.underlying,
     },
   };
-
-  Object.assign(market, {
-    valueInUnderlying: MarketSuite.prototype.valueInUnderlying,
-  });
 
   // Bit `i` of the forbidden mask is `collateralTokens[i]`, so the mock needs a
   // token order to put the flags on.

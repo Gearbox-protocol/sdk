@@ -2,13 +2,10 @@ import type { Address } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Curator } from "../../model/index.js";
-import {
-  AssetsMap,
-  type ConvertFn,
-  type OnchainSDK,
-} from "../../onchain/index.js";
+import { AssetsMap, type OnchainSDK } from "../../onchain/index.js";
 import { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
-import { MarketSuite } from "../../onchain/market/MarketSuite.js";
+import { unpriceableTokenError } from "../../onchain/market/oracle/errors.js";
+import { PriceOracleBaseContract } from "../../onchain/market/oracle/PriceOracleBaseContract.js";
 import { PositionsService } from "../../onchain/positions/PositionsService.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
@@ -98,6 +95,21 @@ const metricsSdk = (() => {
     value,
     valueUsd: safeUsdValue(token, value),
   });
+  const convertRates: Partial<Record<Address, bigint>> = {
+    [UNDERLYING]: 1n,
+    [USDC]: 1n,
+    [PHANTOM]: 1n,
+    [WETH]: 2000n,
+  };
+  const safeConvert = (from: Address, to: Address, amount: bigint) => {
+    const src = convertRates[getAddress(from)];
+    const dst = convertRates[getAddress(to)];
+    if (src === undefined || dst === undefined) {
+      return { value: 0n, error: unpriceableTokenError(from) };
+    }
+    return { value: (amount * src) / dst };
+  };
+  const proto = PriceOracleBaseContract.prototype;
   const sdk = {
     chainId: 1,
     chain: { nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 } },
@@ -152,33 +164,17 @@ const metricsSdk = (() => {
               }
               return price;
             },
-            // Same rates as the injected `convert` below: WETH is 2000
-            // underlying per unit, everything else 1:1. Null when unknown,
-            // so `valueInUnderlying` can name the miss.
-            safeConvert: (from: Address, to: Address, amount: bigint) => {
-              const rates: Partial<Record<Address, bigint>> = {
-                [UNDERLYING]: 1n,
-                [USDC]: 1n,
-                [PHANTOM]: 1n,
-                [WETH]: 2000n,
-              };
-              const src = rates[getAddress(from)];
-              const dst = rates[getAddress(to)];
-              if (src === undefined || dst === undefined) {
-                return null;
-              }
-              return (amount * src) / dst;
-            },
+            safeConvert,
+            safeConvertAssets: proto.safeConvertAssets,
             safeConvertToUSD: (token: Address, amount: bigint) => {
               const addr = getAddress(token);
               const price = prices[addr];
               if (price === undefined) {
-                return null;
+                return { value: 0n, error: unpriceableTokenError(token) };
               }
               const d = decimals[addr] ?? 18;
-              return (amount * price) / 10n ** BigInt(d);
+              return { value: (amount * price) / 10n ** BigInt(d) };
             },
-            safeUsdValue,
             toAmount,
             toTokenAmount: (token: Address, value: bigint) => ({
               token: mustGetToken(token),
@@ -186,9 +182,7 @@ const metricsSdk = (() => {
             }),
           },
         };
-        return Object.assign(m, {
-          valueInUnderlying: MarketSuite.prototype.valueInUnderlying,
-        });
+        return m;
       },
       findCreditManager: () => ({
         name: "TOKEN / TOKEN",
@@ -223,25 +217,6 @@ const metricsSdk = (() => {
   Object.assign(sdk, { positions: new PositionsService(sdk) });
   return sdk;
 })();
-
-/**
- * Oracle stub: USDC and the underlying are 1:1 (dcUSDC is a USDC wrapper),
- * WETH is 2000 underlying per unit; anything else is unpriceable.
- */
-const convert: ConvertFn = (token, to, amount) => {
-  const rates: Record<Address, bigint> = {
-    [UNDERLYING]: 1n,
-    [USDC]: 1n,
-    [PHANTOM]: 1n,
-    [WETH]: 2000n,
-  };
-  const from = rates[getAddress(token)];
-  const target = rates[getAddress(to)];
-  if (from === undefined || target === undefined) {
-    throw new Error(`cannot price ${token}`);
-  }
-  return (amount * from) / target;
-};
 
 interface MakeAccountOptions {
   balances?: AssetsMap;
@@ -303,7 +278,6 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -337,7 +311,6 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       indebted,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -352,7 +325,6 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -376,7 +348,6 @@ describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () =>
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -418,7 +389,6 @@ describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () =>
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -452,7 +422,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 600n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -485,7 +454,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         // only 200 of the 700 remaining claim goes to debt
         debtRepaid: 200n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -518,7 +486,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 0n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -545,7 +512,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 0n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -578,7 +544,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 60_000n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -621,7 +586,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 600n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -663,7 +627,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 5000n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -721,7 +684,6 @@ describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
       account,
       before,
       detected({ type: "DEPOSIT" }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -733,7 +695,6 @@ describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
       account,
       before,
       detected(undefined),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -755,7 +716,6 @@ describe("buildDelayedStrategyPositionOperationPreview unpriceable tokens", () =
       account,
       makeAccount(),
       detected(undefined),
-      convert,
       USDC,
       metricsSdk,
     );

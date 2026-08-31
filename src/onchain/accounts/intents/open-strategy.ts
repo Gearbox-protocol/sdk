@@ -105,7 +105,7 @@ export async function buildOpenStrategyState(
   assertMarketOperable(suite);
   const underlying = market.pool.underlying.toLowerCase() as Address;
   const convert: ConvertFn = (from, to, amount) =>
-    market.priceOracle.safeConvert(from, to, amount) ?? 0n;
+    market.priceOracle.safeConvert(from, to, amount).value;
 
   const margin = collateral.reduce(
     (acc, a) => acc + convert(a.token, underlying, a.balance),

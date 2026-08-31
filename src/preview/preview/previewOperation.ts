@@ -6,7 +6,6 @@ import {
   sdkOk,
 } from "../../model/index.js";
 import type {
-  ConvertFn,
   InvalidDelayedIntentError,
   PluginsMap,
 } from "../../onchain/index.js";
@@ -189,9 +188,6 @@ async function previewMulticallOperation<P extends PluginsMap>(
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
-  const convert: ConvertFn = (token, to, amount) =>
-    market.priceOracle.convert(token, to, amount);
-
   // The CLOSE_ACCOUNT resume unwraps the RWA underlying before withdrawing
   // it, so the user receives the vault asset, not the underlying itself
   const meta = sdk.tokensMeta.get(market.underlying);
@@ -215,7 +211,6 @@ async function previewMulticallOperation<P extends PluginsMap>(
       after.account,
       before,
       delayed,
-      convert,
       receivedToken,
       sdk,
     ),

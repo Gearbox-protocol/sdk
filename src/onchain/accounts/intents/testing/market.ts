@@ -112,7 +112,11 @@ export interface MarketSdkExtras {
   rwaAssets?: Record<Address, Address>;
   /** Additional / overriding token prices (PRICE_DECIMALS_POW-scaled). */
   extraPrices?: Record<Address, bigint>;
-  /** Reserve feed prices; the fixture market has none by default. */
+  /**
+   * Reserve feed prices. Defaults to the same map as the main feeds, i.e.
+   * trusted tokens. Pass `{}` for a market with no reserve feeds, or a
+   * partial map for a mix of trusted and untrusted tokens.
+   **/
   reservePrices?: Record<Address, bigint>;
   /** Additional / overriding token decimals. */
   extraDecimals?: Record<Address, number>;
@@ -149,9 +153,10 @@ export interface MarketSdkExtras {
 
 /** Mock SDK on the shared fixture market. */
 export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
+  const prices = { ...PRICES, ...extras?.extraPrices };
   return buildMockSdk({
-    prices: { ...PRICES, ...extras?.extraPrices },
-    reservePrices: extras?.reservePrices,
+    prices,
+    reservePrices: extras?.reservePrices ?? prices,
     decimals: { ...DECIMALS, ...extras?.extraDecimals },
     quotas: extras?.quotas ?? QUOTAS,
     liquidationThresholds: LIQUIDATION_THRESHOLDS,

@@ -479,13 +479,13 @@ export class PositionsService extends SDKConstruct {
         withdrawals: withdrawals.get(t.token) ?? [],
       });
       if (recomputeTotals) {
-        const usd = priceOracle.safeConvertToUSD(t.token, t.balance) || 0n;
-        totalValueUSD += usd;
+        totalValueUSD += priceOracle.safeConvertToUSD(t.token, t.balance).value;
       }
     }
     if (recomputeTotals) {
-      totalValue = market.valueInUnderlying(
+      totalValue = priceOracle.safeConvertAssets(
         ca.tokens.map(t => ({ token: t.token, balance: t.balance })),
+        market.underlying,
       ).value;
     }
 
@@ -498,9 +498,13 @@ export class PositionsService extends SDKConstruct {
     const borrowRate = this.borrowRate(snapshot);
     const timeToLiquidation = this.timeToLiquidation(snapshot);
     const liquidationPrice = this.liquidationPrice(snapshot);
-    const totalDebtUSD = priceFailed
-      ? (priceOracle.safeConvertToUSD(market.underlying, totalDebtValue) ?? 0n)
-      : ca.totalDebtUSD;
+    let totalDebtUSD = ca.totalDebtUSD;
+    if (priceFailed) {
+      totalDebtUSD = priceOracle.safeConvertToUSD(
+        market.underlying,
+        totalDebtValue,
+      ).value;
+    }
 
     return {
       kind: "strategy",

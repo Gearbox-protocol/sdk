@@ -29,12 +29,16 @@ export interface CalcHealthFactorProps {
   prices: Record<Address, bigint>;
   /**
    * Oracle reserve-feed prices, when available. Used with {@link safePrices}
-   * to value collateral at the lower of the two feeds.
+   * to value collateral at the protocol safe price. A token present in
+   * {@link prices} but missing here is untrusted and contributes 0, matching
+   * on-chain `_getSafePrice`.
    **/
   reservePrices?: Record<Address, bigint>;
   /**
-   * Value collateral at safe prices — the lower of each token's main and
-   * reserve feeds. Debt and quota balances always use the main feed.
+   * Value collateral at safe prices — `min(main, reserve)`, or 0 when the
+   * token has no reserve feed. The underlying is exempt and always uses the
+   * main feed, matching `CreditManagerV3._safeConvertToUSD`. Debt and quota
+   * balances always use the main feed.
    **/
   safePrices?: boolean;
   /**
@@ -83,14 +87,17 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     forCollateral: boolean,
   ): bigint | undefined => {
     const main = pricesByToken.get(token);
-    if (!safePrices || !forCollateral) {
+    if (!safePrices || !forCollateral || isAddressEqual(token, underlying)) {
       return main;
     }
-    const reserve = reservePricesByToken.get(token);
-    if (main !== undefined && reserve !== undefined) {
-      return BigIntMath.min(main, reserve);
+    if (main === undefined) {
+      return undefined;
     }
-    return main ?? reserve;
+    const reserve = reservePricesByToken.get(token);
+    if (reserve === undefined) {
+      return 0n;
+    }
+    return BigIntMath.min(main, reserve);
   };
 
   const convertToUSD = (

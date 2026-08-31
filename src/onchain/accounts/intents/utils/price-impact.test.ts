@@ -13,8 +13,10 @@ function oracle(usd: Record<Address, bigint>): IPriceOracleContract {
   return {
     safeConvertToUSD: (token: Address, amount: bigint) => {
       const price = usd[token];
-      if (price === undefined) return null;
-      return (amount * price * PRICE_DECIMALS) / WAD;
+      if (price === undefined) {
+        return { value: 0n };
+      }
+      return { value: (amount * price * PRICE_DECIMALS) / WAD };
     },
   } as unknown as IPriceOracleContract;
 }

@@ -237,7 +237,7 @@ export function createOraclePaths(args: {
     creditAccount.creditManager,
   ).priceOracle;
   const price: ConvertFn = (from, to, amount) =>
-    oracle.safeConvert(from, to, amount) ?? 0n;
+    oracle.safeConvert(from, to, amount).value;
   // Linear by construction, so probing it would compare a number against
   // itself. No probe says "not measured", which is the honest answer.
   const estimate = (amount: bigint): SwapLeg => ({
