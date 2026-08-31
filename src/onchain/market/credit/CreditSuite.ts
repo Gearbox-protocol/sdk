@@ -544,10 +544,8 @@ export class CreditSuite extends SDKConstruct {
    */
   #allowedDepositTokens(targetCollateral: Address): Token[] {
     const unwrappedUnderlying = this.market.unwrappedUnderlying;
-    const contractUnderlying = this.underlying;
     const skip = (token: Address) =>
-      isAddressEqual(token, unwrappedUnderlying) ||
-      isAddressEqual(token, contractUnderlying) ||
+      this.market.isUnderlyingLike(token) ||
       isAddressEqual(token, targetCollateral);
 
     const rest = this.creditManager.collateralTokens.filter(token => {

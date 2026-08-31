@@ -146,6 +146,13 @@ export interface IPoolContract extends IBaseContract {
   readonly totalAssets: bigint;
 
   /**
+   * Underlying `shares` of diesel are worth at the current share rate, with
+   * no withdrawal fee. An empty pool (diesel rate still zero) converts
+   * one-for-one.
+   */
+  convertToAssets(shares: bigint): bigint;
+
+  /**
    * The token the pool's underlying wraps, or the underlying itself when it
    * wraps nothing. An RWA market borrows a compliance wrapper that converts
    * one-for-one with an ordinary token, and only that token means anything to

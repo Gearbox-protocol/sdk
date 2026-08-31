@@ -161,6 +161,18 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
+   * Whether `token` is this market's pool underlying or the asset it wraps
+   * (dcUSDC or USDC on an RWA pool). Amounts in either unit are 1:1 with the
+   * figure {@link toUnderlyingAmount} reports.
+   */
+  public isUnderlyingLike(token: Address): boolean {
+    return (
+      isAddressEqual(token, this.underlying) ||
+      isAddressEqual(token, this.unwrappedUnderlying)
+    );
+  }
+
+  /**
    * Prices a figure already denominated in this market's underlying — a debt,
    * a TVL, a payout — as the read model reports one.
    *
@@ -204,10 +216,7 @@ export class MarketSuite extends SDKConstruct {
       this.pool.pool.address,
     )) {
       const tokenIn = zapper.tokenIn.addr;
-      if (
-        isAddressEqual(tokenIn, this.pool.underlying) ||
-        isAddressEqual(tokenIn, this.unwrappedUnderlying)
-      ) {
+      if (this.isUnderlyingLike(tokenIn)) {
         continue;
       }
       seen.upsert(tokenIn, this.tokensMeta.mustGetToken(tokenIn));

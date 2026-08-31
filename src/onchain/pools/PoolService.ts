@@ -71,9 +71,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
    */
   public sharesToUnderlying(pool: Address, shares: bigint): TokenAmount {
     const market = this.sdk.marketRegister.findByPool(pool);
-    return market.toUnderlyingAmount(
-      (shares * market.pool.pool.dieselRate) / RAY,
-    );
+    return market.toUnderlyingAmount(market.pool.pool.convertToAssets(shares));
   }
 
   /**
@@ -778,9 +776,7 @@ export function toSharesUp(pool: IPoolContract, assets: bigint): bigint {
  * {@link toShares} run backwards, less the pool's withdrawal fee.
  */
 function toAssets(pool: IPoolContract, shares: bigint): bigint {
-  const { dieselRate, withdrawFee } = pool;
+  const assets = pool.convertToAssets(shares);
 
-  const assets = dieselRate === 0n ? shares : (shares * dieselRate) / RAY;
-
-  return (assets * (PERCENTAGE_FACTOR - withdrawFee)) / PERCENTAGE_FACTOR;
+  return (assets * (PERCENTAGE_FACTOR - pool.withdrawFee)) / PERCENTAGE_FACTOR;
 }

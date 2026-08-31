@@ -102,6 +102,8 @@ function buildService(args: MockPool = {}) {
             totalAssets,
             dieselRate,
             withdrawFee: args.withdrawFee ?? 0n,
+            convertToAssets: (shares: bigint) =>
+              dieselRate === 0n ? shares : (shares * dieselRate) / RAY,
           },
         },
       }),

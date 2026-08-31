@@ -41,6 +41,18 @@ const previewData: OperationPreview = {
     wrappedAddress: null,
   },
   shareRate: 10n ** 27n,
+  curator: { address: TO, url: null },
+  netValue: {
+    token: {
+      chainId: 1,
+      address: TO,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+    },
+    value: 1n,
+    valueUsd: null,
+  },
   tokenIn: {
     token: {
       chainId: 1,

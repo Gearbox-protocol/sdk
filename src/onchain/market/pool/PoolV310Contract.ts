@@ -92,6 +92,13 @@ export class PoolV310Contract
   }
 
   /**
+   * {@inheritDoc IPoolContract.convertToAssets}
+   */
+  public convertToAssets(shares: bigint): bigint {
+    return this.dieselRate === 0n ? shares : (shares * this.dieselRate) / RAY;
+  }
+
+  /**
    * {@inheritDoc IPoolContract.unwrappedUnderlying}
    */
   public get unwrappedUnderlying(): Address {

@@ -165,6 +165,17 @@ export interface PoolPositionOperationPreview {
    */
   shareRate: bigint;
   /**
+   * Curator of the market this pool belongs to
+   */
+  curator: Curator;
+  /**
+   * Remaining LP after this transaction: the same quantity
+   * {@link PoolPosition.netValue} reports for a live position, denominated in
+   * the market's unwrapped underlying. For RWA markets this is USDC rather than
+   * dcUSDC (the pool's on-chain underlying) or diesel shares.
+   */
+  netValue: TokenAmount;
+  /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort
    */

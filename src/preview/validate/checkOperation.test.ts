@@ -472,6 +472,18 @@ describe("checkOperation — pool operations", () => {
         wrappedAddress: null,
       },
       shareRate: 10n ** 27n,
+      curator: { address: POOL, url: null },
+      netValue: {
+        token: {
+          chainId: 1,
+          address: WSTETH,
+          symbol: "wstETH",
+          name: "Wrapped liquid staked Ether 2.0",
+          decimals: 18,
+        },
+        value: 10n ** 18n,
+        valueUsd: null,
+      },
       tokenIn: {
         token: toToken(sdk, WSTETH),
         value: 10n ** 18n,

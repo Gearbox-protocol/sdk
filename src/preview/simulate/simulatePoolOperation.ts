@@ -41,7 +41,9 @@ function previewRead(operation: PoolOperation): {
  * `previewDeposit`/`previewRedeem`, which account for the zapper's own
  * conversion in addition to the pool's.
  */
-function previewContract(operation: PoolOperation): ContractFunctionParameters {
+export function previewContract(
+  operation: PoolOperation,
+): ContractFunctionParameters {
   const { functionName, amount } = previewRead(operation);
   if (operation.zapper) {
     return {
@@ -66,7 +68,7 @@ function previewContract(operation: PoolOperation): ContractFunctionParameters {
  * assets for mint/redeem, and the zapper's converted amount for zapper-routed
  * deposit/redeem).
  */
-function amountsInOut(
+export function amountsInOut(
   operation: PoolOperation,
   previewAmount: bigint,
 ): PoolOperationSimulationResult {
