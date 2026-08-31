@@ -542,12 +542,8 @@ export interface AdjustStrategyPositionPreview
  * What an exit transaction that already exists would do — the counterpart of
  * `prepare.withdrawStrategy` asked for everything, read off calldata rather
  * than planned into it.
- *
- * Carries no {@link AccountProjection}: the account it describes ends up empty,
- * so there is no position left to weigh — what a caller wants to know is the
- * payout. The market it happened in is still named, as everywhere else.
  **/
-export interface ExitStrategyPositionPreview extends CreditOperationMarket {
+export interface ExitStrategyPositionPreview extends EstimatedProjection {
   operation: "CloseCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -580,7 +576,8 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the
-   * balance-derived `receivedAmount` may be unreliable in that case.
+   * balance-derived `receivedAmount` and the projected holdings may be
+   * unreliable in that case.
    */
   error?: OperationPreviewError;
 }
@@ -589,11 +586,8 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
  * What a settling repayment that already exists would do — the counterpart of
  * `prepare.repayStrategy` asked for the whole debt, read off calldata rather
  * than planned into it.
- *
- * Carries no {@link AccountProjection} for the same reason the exit does not:
- * the loan ends here, so the risk metrics have nothing left to describe.
  **/
-export interface RepayStrategyPositionPreview extends CreditOperationMarket {
+export interface RepayStrategyPositionPreview extends EstimatedProjection {
   operation: "RepayCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -639,7 +633,8 @@ export interface RepayStrategyPositionPreview extends CreditOperationMarket {
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the
-   * balance-derived `collateralWithdrawn` may be unreliable in that case.
+   * balance-derived `collateralWithdrawn` and the projected holdings may be
+   * unreliable in that case.
    */
   error?: OperationPreviewError;
 }

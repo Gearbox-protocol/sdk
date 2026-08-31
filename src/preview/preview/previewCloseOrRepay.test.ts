@@ -79,6 +79,23 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
         token: expect.objectContaining({ address: WETH }),
         value: 9_944_275_431_253_841_336n, // ~49.9 WETH - 40 weETH
       },
+      totalDebt: {
+        token: expect.objectContaining({ address: WETH }),
+        value: 0n,
+      },
+      estAssets: [],
+      estTotalValue: {
+        token: expect.objectContaining({ address: WETH }),
+        value: 0n,
+      },
+      estNetValue: {
+        token: expect.objectContaining({ address: WETH }),
+        value: 0n,
+      },
+      estHealthFactor: 65535,
+      estLeverage: 0,
+      estTimeToLiquidation: null,
+      estLiquidationPrice: null,
     });
   });
 
@@ -118,6 +135,10 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
           value: 105_400_717_316_639n,
         },
       ],
+      totalDebt: amt(WETH, 0n),
+      estAssets: [],
+      estHealthFactor: 65535,
+      estLeverage: 0,
     });
   });
 });
@@ -262,6 +283,9 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
         // the loan is denominated in the market underlying — the asset the
         // wallet repays with, not the wrapper the pool holds
         debtRepaid: amt(spec.repayToken, expect.toBeWithinBps(afterOpen.debt)),
+        totalDebt: amt(spec.repayToken, 0n),
+        estHealthFactor: 65535,
+        estLeverage: 1,
       });
     });
   },

@@ -94,9 +94,9 @@ export function checkOperation(
       return creditIssues(sdk, preview, options);
     case "CloseCreditAccount":
     case "RepayCreditAccount":
-      // Neither carries a debt or a health factor: the account is being wound
-      // down, so there is no position left for the bars to weigh. Only the
-      // market's own state can refuse one.
+      // They carry a projection of the wound-down account, but the loan is
+      // gone (`totalDebt` is always 0), so the health-factor bars would no-op.
+      // Only the market's own state can refuse one.
       return marketIssues(
         sdk.marketRegister.findCreditManager(preview.creditManager),
       );

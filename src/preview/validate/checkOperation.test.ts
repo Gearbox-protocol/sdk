@@ -433,9 +433,10 @@ describe("checkOperation", () => {
     });
   });
 
-  it("leaves a close alone: there is no position left for the bars to weigh", () => {
-    // Close and repay carry neither a debt nor a health factor. Reading their
-    // absence as an unread factor would refuse every wind-down.
+  it("leaves a close alone: the bars do not weigh a wound-down account", () => {
+    // Close and repay now carry a projection, but the loan is gone, so the
+    // health-factor bars would no-op. Only the market's own state can refuse
+    // one, and this fixture's market is live.
     const issues = checkOperation(
       {
         sdk,
