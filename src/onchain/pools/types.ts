@@ -195,6 +195,24 @@ export interface ListPoolPositionsProps {
 }
 
 /**
+ * Props for {@link IPoolsService.getShareBalance}.
+ **/
+export interface PoolShareBalanceProps {
+  /**
+   * Address of the Gearbox lending pool, which is the share token itself.
+   **/
+  pool: Address;
+  /**
+   * Wallet holding the shares.
+   **/
+  wallet: Address;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
  * Service interface for pool liquidity operations.
  **/
 export interface IPoolsService {
@@ -204,6 +222,30 @@ export interface IPoolsService {
    * @param props - {@link ListPoolPositionsProps}
    **/
   listPositions(props: ListPoolPositionsProps): Promise<PoolPosition[]>;
+
+  /**
+   * Shares of one pool a wallet holds, which is the position it has in that
+   * pool: the pool contract is its own share token, so this is the same figure
+   * {@link listPositions} converts into {@link PoolPosition.netValue}.
+   *
+   * The one thing about a pool operation the SDK cannot work out from loaded
+   * state, hence a read of its own rather than a field on the market.
+   *
+   * @param props - {@link PoolShareBalanceProps}
+   **/
+  getShareBalance(props: PoolShareBalanceProps): Promise<bigint>;
+
+  /**
+   * What a number of pool shares is worth, in the market's underlying and at
+   * the rate the loaded state implies: the conversion behind
+   * {@link PoolPosition.netValue}, for a share count a caller holds itself.
+   *
+   * The token named is the unwrapped underlying — USDC rather than the dcUSDC
+   * an RWA pool holds — so an amount from here sits beside a position's own
+   * without two names for one asset. No withdrawal fee is taken off: this is
+   * what the shares are worth, not what leaving with them would pay.
+   **/
+  sharesToUnderlying(pool: Address, shares: bigint): TokenAmount;
 
   /**
    * Returns list of tokens that can be deposited to a pool

@@ -1170,7 +1170,7 @@ describe("prepare → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await approve(USDC, pool);
       await sync();
-      const sim = prepare().deposit(
+      const sim = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL, wallet: borrower },
       );
@@ -1199,7 +1199,7 @@ describe("prepare → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await approve(USDC, pool);
       await sync();
-      const deposit = prepare().deposit(
+      const deposit = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL, wallet: borrower },
       );
@@ -1215,7 +1215,7 @@ describe("prepare → execute on a mainnet fork", () => {
         sim: deposit,
       });
       await sync();
-      const sim = prepare().withdraw(
+      const sim = await prepare().withdraw(
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL / 2n, wallet: borrower },
       );
@@ -1241,7 +1241,7 @@ describe("prepare → execute on a mainnet fork", () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await approve(USDC, pool);
       await sync();
-      const deposit = prepare().deposit(
+      const deposit = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
         { amount: COLLATERAL, wallet: borrower },
       );
@@ -1259,7 +1259,7 @@ describe("prepare → execute on a mainnet fork", () => {
       await sync();
       const held = await balance(shares);
       const burned = held / 2n;
-      const sim = prepare().redeem(
+      const sim = await prepare().redeem(
         { chainId: CHAIN_ID, pool },
         { amount: burned, wallet: borrower },
       );

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import type { Amount, PoolPosition } from "../../model/index.js";
+import type { Amount, PoolPosition, TokenAmount } from "../../model/index.js";
 import {
   BaseContract,
   RWA_UNDERLYING_DEFAULT,
@@ -24,6 +24,7 @@ import type {
   IPoolsService,
   ListPoolPositionsProps,
   PoolServiceCallResult,
+  PoolShareBalanceProps,
   PoolSimulation,
   RemoveLiquidityProps,
   SimulatePoolOperationProps,
@@ -51,6 +52,30 @@ function payoutCeiling(market: MarketSuite): Amount {
 }
 
 export class PoolService extends SDKConstruct implements IPoolsService {
+  /**
+   * {@inheritDoc IPoolsService.getShareBalance}
+   */
+  public async getShareBalance(props: PoolShareBalanceProps): Promise<bigint> {
+    return this.client.readContract({
+      // the pool contract is its own share (diesel) token
+      address: this.sdk.marketRegister.findByPool(props.pool).pool.pool.address,
+      abi: ierc20Abi,
+      functionName: "balanceOf",
+      args: [props.wallet],
+      blockNumber: props.blockNumber,
+    });
+  }
+
+  /**
+   * {@inheritDoc IPoolsService.sharesToUnderlying}
+   */
+  public sharesToUnderlying(pool: Address, shares: bigint): TokenAmount {
+    const market = this.sdk.marketRegister.findByPool(pool);
+    return market.toUnderlyingAmount(
+      (shares * market.pool.pool.dieselRate) / RAY,
+    );
+  }
+
   /**
    * {@inheritDoc IPoolsService.getDepositTokensIn}
    */
@@ -714,16 +739,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       chainId: this.chainId,
       pool: pool.address,
       underlyingToken: market.underlyingToken,
-      netValue: {
-        // for RWA markets the shares are worth the unwrapped asset (e.g. USDC
-        // instead of dcUSDC), which the wrapper converts to one-for-one; the
-        // oracle only knows the wrapper, so that is what prices the amount
-        token: this.sdk.tokensMeta.mustGetToken(market.unwrappedUnderlying),
-        ...market.priceOracle.toAmount(
-          market.underlying,
-          (shares * pool.dieselRate) / RAY,
-        ),
-      },
+      netValue: this.sharesToUnderlying(pool.address, shares),
       apy: { organicApy: rayToBps(pool.supplyRate) },
     };
   }

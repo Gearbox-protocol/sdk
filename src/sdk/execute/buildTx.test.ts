@@ -52,18 +52,23 @@ const DEPOSIT_META = { type: "classic", zapper: undefined } as const;
 const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
 const CALL = { target: POOL, callData: "0xdead" as const };
 
+/** What every LP state carries beside the trade; inert to `buildTx`. */
+const LP_MARKET = { curator: CURATOR, positionAfter: amount(UNDERLYING, 0n) };
+
 /** A priced amount of `address`, which is what the simulations report in. */
-const amount = (address: Address, value: bigint): TokenAmount => ({
-  token: {
-    chainId: CHAIN_ID,
-    address,
-    symbol: "TKN",
-    name: "Token",
-    decimals: 18,
-  },
-  value,
-  valueUsd: null,
-});
+function amount(address: Address, value: bigint): TokenAmount {
+  return {
+    token: {
+      chainId: CHAIN_ID,
+      address,
+      symbol: "TKN",
+      name: "Token",
+      decimals: 18,
+    },
+    value,
+    valueUsd: null,
+  };
+}
 
 function mockChain(overrides?: {
   addLiquidity?: unknown;
@@ -113,6 +118,7 @@ describe("buildTx — pool", () => {
       state: {
         tokenIn: amount(UNDERLYING, 1_000n),
         tokenOut: amount(DIESEL, 990n),
+        ...LP_MARKET,
       },
       calls: [],
       ...AT,
@@ -157,6 +163,7 @@ describe("buildTx — pool", () => {
         state: {
           tokenIn: amount(DIESEL, 500n),
           tokenOut: amount(UNDERLYING, 505n),
+          ...LP_MARKET,
         },
         calls: [],
         ...AT,
@@ -197,6 +204,7 @@ describe("buildTx — pool", () => {
         state: {
           tokenIn: amount(DIESEL, 500n),
           tokenOut: amount(UNDERLYING, 505n),
+          ...LP_MARKET,
         },
         calls: [],
         ...AT,

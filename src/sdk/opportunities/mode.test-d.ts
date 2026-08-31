@@ -16,6 +16,7 @@ import type {
   DelayedStrategyResult,
   LpResult,
   StrategyRoutesResult,
+  UnexpectedFailureError,
   UnsupportedTokenPairError,
 } from "../prepare/index.js";
 import type { Mode } from "../types.js";
@@ -58,11 +59,13 @@ describe("mode gates the source escape hatches", () => {
 describe("prepare quotes the delayed route with the instant one", () => {
   const prepare = {} as IOpportunities<"onchain">["prepare"];
 
-  it("answers the LP flows outright, with no promise to await", () => {
+  it("answers the LP flows in the same envelope as the strategy ones", () => {
     const pool = {} as PoolOpportunityRef;
     const params = { amount: 1_000n, wallet: WALLET };
     expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError>
+      Promise<
+        SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+      >
     >();
   });
 

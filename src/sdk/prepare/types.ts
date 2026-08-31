@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type {
   Bps,
+  Curator,
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
   PositionCollateral,
@@ -9,6 +10,7 @@ import type {
   StrategyPosition,
   StrategyPositionKey,
   Timestamp,
+  TokenAmount,
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
@@ -33,6 +35,7 @@ import type {
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
   OpenFlowError,
+  UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
@@ -55,6 +58,30 @@ export type {
 export * from "../../onchain/validation/refusal.js";
 
 /**
+ * Where a pool operation leaves the wallet: the two sides of the trade as
+ * `sdk.pools` prices them, plus what a screen needs beside them and the raw
+ * simulation cannot know — whose market this is, and how large the position
+ * ends up.
+ **/
+export interface LpState extends PoolSimulation {
+  /**
+   * Curator of the market the pool belongs to, in the same shape
+   * {@link PoolOpportunity} and {@link CreditOperationMarket} report it.
+   **/
+  curator: Curator;
+  /**
+   * The wallet's position in this pool once the operation has run, in the
+   * market's underlying: what it holds now, moved by what this operation mints
+   * or burns. A first deposit lands at the size of the deposit itself.
+   *
+   * Denominated like {@link PoolPosition.netValue}, so a screen showing both
+   * reads one token: on an RWA market that is the unwrapped asset — USDC
+   * rather than the dcUSDC the pool actually holds.
+   **/
+  positionAfter: TokenAmount;
+}
+
+/**
  * What a pool deposit or withdrawal comes to.
  *
  * Shaped like {@link StrategyResult} so both kinds of result are consumed the
@@ -70,10 +97,11 @@ export interface LpResult {
    **/
   operations: [];
   /**
-   * What the wallet parts with and what it receives, plus the zapper the
-   * transaction goes through when one is involved.
+   * What the wallet parts with and what it receives, the zapper the
+   * transaction goes through when one is involved, and where the position ends
+   * up, see {@link LpState}.
    **/
-  state: PoolSimulation;
+  state: LpState;
   /**
    * The transaction implementing the operation: exactly one, since a pool
    * operation is a single call on the pool or on its zapper.
@@ -431,11 +459,9 @@ export interface FinalizeParams extends PrepareOptions {
  *
  * Every refusable method answers `SDKReturn` and names, in its own signature,
  * exactly the errors its flow can refuse with — the union is the list of
- * everything a caller has to handle, checked by the compiler. An async flow
- * never throws: a chain that cannot be reached or a crash on the way arrives
- * as `unexpectedFailure` with the cause attached. The synchronous LP flows
- * only do arithmetic on loaded state, so their one refusal is the unroutable
- * pair — anything else there is a bug or a lifecycle error, and it throws.
+ * everything a caller has to handle, checked by the compiler. None of them
+ * throws: a chain that cannot be reached or a crash on the way arrives as
+ * `unexpectedFailure` with the cause attached.
  *
  * The bare readers stay outside the envelope: the `max*` ceilings answer their
  * number and throw on an account or chain the SDK does not hold, and the two
@@ -447,13 +473,16 @@ export interface IOpportunitiesPrepare {
   /**
    * Depositing into a pool: underlying in, shares out.
    *
-   * Synchronous, unlike every strategy method below: the answer is the pool's
-   * share rate applied to the amount, and that rate is already loaded.
+   * The trade itself is the pool's share rate applied to the amount, which is
+   * loaded already; the wait is for the one thing that is not, the shares the
+   * wallet holds, without which {@link LpState.positionAfter} cannot be said.
    **/
   deposit(
     pool: PoolInput,
     params: LpParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  >;
 
   /**
    * Taking underlying out of a pool: `amount` is the `tokenOut` the wallet
@@ -465,7 +494,9 @@ export interface IOpportunitiesPrepare {
   withdraw(
     pool: PoolInput,
     params: LpParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  >;
 
   /**
    * Redeeming pool shares: `amount` is the `tokenIn` the wallet parts with,
@@ -474,7 +505,9 @@ export interface IOpportunitiesPrepare {
   redeem(
     pool: PoolInput,
     params: LpRedeemParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  >;
 
   /**
    * Opening a leveraged position from wallet collateral.

@@ -43,6 +43,14 @@ const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 /** The block state the LP fake below holds, and every result must report. */
 const LP_BLOCK = 5n;
 const LP_TIMESTAMP = 1_700_000_000n;
+/** Pool shares the wallet holds before the operation, in the LP fake. */
+const HELD_SHARES = 200n;
+
+const CURATOR = {
+  address: "0xc0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0" as Address,
+  name: "Test Curator",
+  url: null,
+};
 
 /** A priced amount, which is what a `PoolSimulation` reports. */
 const amount = (address: Address, value: bigint): TokenAmount => ({
@@ -74,6 +82,11 @@ function buildApi() {
       }),
     ),
     removeLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
+    // 200 shares held before the operation, worth one underlying each
+    getShareBalance: vi.fn(async () => HELD_SHARES),
+    sharesToUnderlying: vi.fn((_pool: Address, shares: bigint) =>
+      amount(UNDERLYING, shares),
+    ),
   };
   const api = new PrepareApi({
     chain: () => ({
@@ -81,7 +94,10 @@ function buildApi() {
       timestamp: LP_TIMESTAMP,
       pools,
       marketRegister: {
-        findByPool: () => ({ pool: { underlying: UNDERLYING } }),
+        findByPool: () => ({
+          pool: { underlying: UNDERLYING },
+          curator: CURATOR,
+        }),
       },
     }),
   } as unknown as MultichainSDK);
@@ -89,10 +105,10 @@ function buildApi() {
 }
 
 describe("PrepareApi.withdraw", () => {
-  it("passes the tokenOut amount through to simulateWithdraw", () => {
+  it("passes the tokenOut amount through to simulateWithdraw", async () => {
     const { api, pools } = buildApi();
 
-    const result = api.withdraw(
+    const result = await api.withdraw(
       { chainId: CHAIN_ID, pool: POOL },
       { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
     );
@@ -109,11 +125,11 @@ describe("PrepareApi.withdraw", () => {
     );
   });
 
-  it("stamps the result with the block the pool state was loaded at", () => {
+  it("stamps the result with the block the pool state was loaded at", async () => {
     const { api } = buildApi();
 
     const prepared = plan(
-      api.withdraw(
+      await api.withdraw(
         { chainId: CHAIN_ID, pool: POOL },
         { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
       ),
@@ -121,6 +137,53 @@ describe("PrepareApi.withdraw", () => {
 
     expect(prepared.blockNumber).toBe(Number(LP_BLOCK));
     expect(prepared.timestamp).toBe(Number(LP_TIMESTAMP));
+  });
+
+  it("reports the position the withdrawal leaves behind, and whose market it is", async () => {
+    const { api } = buildApi();
+
+    const prepared = plan(
+      await api.withdraw(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    // the fake burns 100 shares for the payout, off the 200 held
+    expect(prepared.state.positionAfter.value).toBe(HELD_SHARES - 100n);
+    expect(prepared.state.curator).toEqual(CURATOR);
+  });
+
+  it("floors the position at nothing when more is taken out than is held", async () => {
+    const { api, pools } = buildApi();
+    pools.simulateWithdraw.mockReturnValueOnce({
+      tokenIn: amount(POOL, HELD_SHARES + 1n),
+      tokenOut: amount(UNDERLYING, 1n),
+    });
+
+    const prepared = plan(
+      await api.withdraw(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 1n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    expect(prepared.state.positionAfter.value).toBe(0n);
+  });
+
+  it("answers the failed read in the envelope rather than throwing it", async () => {
+    const { api, pools } = buildApi();
+    pools.getShareBalance.mockRejectedValueOnce(new Error("rpc is down"));
+
+    const result = await api.withdraw(
+      { chainId: CHAIN_ID, pool: POOL },
+      { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
+    );
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "unexpectedFailure" },
+    });
   });
 });
 
@@ -452,19 +515,20 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ).toBe("no chain 999");
   });
 
-  it("the sync LP flows throw the same lifecycle error instead", () => {
+  it("the LP flows describe the same chain the same way", async () => {
     const api = new PrepareApi({
       chain: () => {
         throw new Error("no chain 999");
       },
     } as unknown as MultichainSDK);
 
-    expect(() =>
-      api.withdraw(
-        { chainId: 999, pool: POOL },
-        { amount: 1n, wallet: WALLET },
-      ),
-    ).toThrow("no chain 999");
+    const result = await api.withdraw(
+      { chainId: 999, pool: POOL },
+      { amount: 1n, wallet: WALLET },
+    );
+
+    if (!isSDKError(result)) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("unexpectedFailure");
   });
 
   it("the bare max* reads reject rather than describe", async () => {
@@ -654,10 +718,10 @@ describe("PrepareApi — the two-transaction route", () => {
 });
 
 describe("PrepareApi.redeem", () => {
-  it("passes the share amount through to simulateRedeem", () => {
+  it("passes the share amount through to simulateRedeem", async () => {
     const { api, pools } = buildApi();
 
-    const result = api.redeem(
+    const result = await api.redeem(
       { chainId: CHAIN_ID, pool: POOL },
       { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
     );
@@ -672,5 +736,18 @@ describe("PrepareApi.redeem", () => {
     expect(pools.removeLiquidity).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 100n, mode: "redeem" }),
     );
+  });
+
+  it("burns exactly the shares it was asked for, off the position", async () => {
+    const { api } = buildApi();
+
+    const prepared = plan(
+      await api.redeem(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    expect(prepared.state.positionAfter.value).toBe(HELD_SHARES - 100n);
   });
 });

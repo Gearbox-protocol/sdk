@@ -85,6 +85,9 @@ function buildService(args: MockPool = {}) {
     marketRegister: {
       findByPool: () => ({
         underlying: UNDERLYING,
+        // what the market names a figure already in its underlying: on an RWA
+        // market the unwrapped asset, here the underlying itself
+        toUnderlyingAmount: (value: bigint) => amt(UNDERLYING, value),
         // the read-model mappers the simulation prices its amounts with
         priceOracle: {
           toAmount: (_t: Address, value: bigint) => ({ value, valueUsd: null }),
@@ -224,5 +227,29 @@ describe("PoolService.simulateRedeem", () => {
       zapper: ZAPPER,
       availableLiquidity: { value: LIQUIDITY, valueUsd: null },
     });
+  });
+});
+
+describe("PoolService.sharesToUnderlying", () => {
+  it("values shares at the pool's rate, as a position is valued", () => {
+    // 120 shares at 1.1 underlying each, the same rate the simulations use
+    expect(buildService().sharesToUnderlying(POOL, 120n)).toEqual(
+      amt(UNDERLYING, 132n),
+    );
+  });
+
+  it("leaves the withdrawal fee alone: this is worth, not payout", () => {
+    // simulateRedeem takes the 1% off; holding the shares does not
+    expect(
+      buildService({ withdrawFee: 100n }).sharesToUnderlying(POOL, 120n),
+    ).toEqual(amt(UNDERLYING, 132n));
+  });
+
+  it("values nothing at nothing, on a pool that has no rate yet", () => {
+    const empty = buildService({ totalSupply: 0n, totalAssets: 0n });
+
+    expect(empty.sharesToUnderlying(POOL, 0n)).toEqual(amt(UNDERLYING, 0n));
+    // an empty pool mints one for one, and prices the shares back the same way
+    expect(empty.sharesToUnderlying(POOL, 100n)).toEqual(amt(UNDERLYING, 100n));
   });
 });

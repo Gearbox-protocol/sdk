@@ -372,17 +372,21 @@ describe("GearboxSDK loading", () => {
     });
   });
 
-  it("the sync LP prepare call before attach throws the SdkNotAttachedError", () => {
+  it("an LP prepare call before attach describes the lifecycle error", async () => {
     const { sdk } = build();
 
-    // the sync LP flows only do arithmetic on loaded state, so an SDK that
-    // has not attached yet is a lifecycle error rather than a refusal of the
-    // request — and lifecycle errors stay thrown there
-    expect(() =>
-      sdk.opportunities.prepare.deposit(
-        { chainId: 1, pool: POOL },
-        { amount: 1n, wallet: POOL },
-      ),
-    ).toThrow(SdkNotAttachedError);
+    // an SDK that has not attached yet holds no market to price the operation
+    // against; like every other prepare flow, the LP ones answer that in the
+    // envelope with the lifecycle error as the cause
+    const result = await sdk.opportunities.prepare.deposit(
+      { chainId: 1, pool: POOL },
+      { amount: 1n, wallet: POOL },
+    );
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("unexpectedFailure");
+    expect(
+      result.error.code === "unexpectedFailure" && result.error.cause,
+    ).toBeInstanceOf(SdkNotAttachedError);
   });
 });

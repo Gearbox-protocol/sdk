@@ -403,7 +403,7 @@ checked by the compiler.
 
 | method | error union |
 | --- | --- |
-| `deposit` / `withdraw` / `redeem` | `UnsupportedTokenPairError` (sync — bugs still throw) |
+| `deposit` / `withdraw` / `redeem` | `UnsupportedTokenPairError` + unexpectedFailure |
 | `openNewStrategy` | `OpenFlowError` + debtOutOfRange, leverageOutOfRange, unsupportedTokenPair, insufficientPoolLiquidity, noStrategyTargetCollateral |
 | `depositStrategy` | `AccountFlowError` + debtOutOfRange, leverageOutOfRange, unsupportedCollateralToken, unsupportedTokenPair, insufficientPoolLiquidity |
 | `repayStrategy` | `AccountFlowError` + debtOutOfRange, unsupportedCollateralToken |
@@ -456,6 +456,45 @@ raw tsc output: `docs/plans/precise-error-unions.impact.md`):
 **gearbox-backend — zero new errors** (it does not consume the facade);
 **client-v3 — 34 errors in 7 files**, led by `useSimulate.ts` (14) and
 `useClaimDelayedWithdrawal.ts` (7) — the seed of its own migration plan.
+
+### A pool operation says whose market it is and where it leaves the wallet
+
+`prepare.deposit`, `prepare.withdraw` and `prepare.redeem` used to report the
+trade alone — what goes in, what comes out, which zapper. A screen showing one
+wants two things more, and had to fetch both itself: the curator whose market
+this is, and the size the position ends up at. Both are on the state now, which
+is an **`LpState`**: the `PoolSimulation` `sdk.pools` returns, plus
+
+- **`curator`** — the same `Curator` object `PoolOpportunity` and every credit
+  result carry, so one label renders from any of them;
+- **`positionAfter`** — what the wallet will hold in this pool once the
+  transaction lands, in the market's underlying: the shares it holds now, moved
+  by the ones this operation mints or burns. A first deposit lands at the size
+  of the deposit. It is denominated like `PoolPosition.netValue` — the unwrapped
+  asset, USDC rather than the dcUSDC an RWA pool holds — so a position row and a
+  preparation of it read one token, and it takes no withdrawal fee off, being
+  what the shares are worth rather than what leaving with them pays.
+
+The shares a wallet holds are the one thing about a pool operation the SDK
+cannot work out from loaded state, so **the three LP methods are async now**:
+
+```diff
+- const sim = sdk.opportunities.prepare.deposit(pool, { amount, wallet });
++ const sim = await sdk.opportunities.prepare.deposit(pool, { amount, wallet });
+  if (isSDKError(sim)) return showRefusal(sim.error);
++ showPositionAfter(sim.data.state.positionAfter);
+```
+
+With the read comes the failure it can have, so their union gains
+`unexpectedFailure` — and with it the rule the strategy flows already followed:
+**an LP preparation no longer throws**. What used to come out as an exception —
+a chain the SDK does not hold, an SDK not attached yet — is `unexpectedFailure`
+with the cause attached.
+
+The read itself is public, for callers that want it without preparing anything:
+`sdk.chain(id).pools.getShareBalance({ pool, wallet })` gives the shares, and
+`sharesToUnderlying(pool, shares)` prices any share count the way a position
+row is priced.
 
 ### A claim can settle only part of a delayed withdrawal
 
