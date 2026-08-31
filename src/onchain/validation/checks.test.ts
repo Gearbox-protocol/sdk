@@ -316,22 +316,35 @@ describe("checkFunding", () => {
 });
 
 describe("checkPreviewError", () => {
+  const malformed = {
+    code: "adapterCallOutsideBracket" as const,
+    message: "bad bracket",
+    adapter: TOK.address,
+  };
+  const unpriceable = {
+    code: "unpriceableToken" as const,
+    message: "no price",
+    token: TOK.address,
+  };
+
   it("blocks a malformed transaction and carries the SDK's own detail", () => {
-    expect(checkPreviewError({ code: 1002, message: "bad bracket" })).toEqual({
+    expect(checkPreviewError(malformed)).toEqual({
       reason: "malformedTransaction",
-      detail: { code: 1002, message: "bad bracket" },
+      detail: malformed,
     });
   });
 
-  it("stands down for an incomplete evaluation and for no error at all", () => {
-    expect(checkPreviewError({ code: 2001, message: "no price" })).toBeNull();
+  it("stands down for an incomplete evaluation and for no warning at all", () => {
+    expect(checkPreviewError(unpriceable)).toBeNull();
     expect(checkPreviewError(undefined)).toBeNull();
   });
 
-  it("classifies by range, so an unseen 1xxx code still blocks", () => {
-    expect(isMalformedPreviewError({ code: 1007 })).toBe(true);
-    expect(isMalformedPreviewError({ code: 999 })).toBe(false);
-    expect(isMalformedPreviewError({ code: 2000 })).toBe(false);
+  it("classifies by code, not by a numeric range", () => {
+    expect(isMalformedPreviewError(malformed)).toBe(true);
+    expect(isMalformedPreviewError(unpriceable)).toBe(false);
+    expect(isMalformedPreviewError({ code: "other", message: "x" })).toBe(
+      false,
+    );
   });
 });
 

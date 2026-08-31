@@ -1,9 +1,7 @@
 import type { Address } from "viem";
-import {
-  ERROR_INVALID_TRANSACTION_VALUE,
-  type OperationPreviewError,
-} from "../../model/index.js";
+import type { OperationPreviewError } from "../../model/index.js";
 import { type Asset, AssetsMap, NATIVE_ADDRESS } from "../../onchain/index.js";
+import { invalidTransactionValueError } from "./errors.js";
 
 export interface UnwrapNativeCollateralResult {
   /**
@@ -11,9 +9,9 @@ export interface UnwrapNativeCollateralResult {
    */
   assets: Asset[];
   /**
-   * Error set when the transaction value is malformed.
+   * Warning set when the transaction value is malformed.
    */
-  error?: OperationPreviewError;
+  warning?: OperationPreviewError;
 }
 
 /**
@@ -28,14 +26,13 @@ export interface UnwrapNativeCollateralResult {
  *
  * When `nativeAmount` is positive but the WETH collateral is missing or
  * smaller than it, the transaction is malformed: the collateral is returned
- * as-is (no unwrapping) together with an `ERROR_INVALID_TRANSACTION_VALUE`
- * error.
+ * as-is (no unwrapping) together with an `invalidTransactionValue` warning.
  *
  * @param collateral - Collateral assets as declared by the multicall.
  * @param nativeAmount - Transaction `msg.value`.
  * @param wethToken - Wrapped native token address.
  * @returns Collateral with the native amount unwrapped from the WETH entry,
- * plus the error on a malformed transaction value.
+ * plus the warning on a malformed transaction value.
  */
 export function unwrapNativeCollateral(
   collateral: Asset[],
@@ -51,10 +48,7 @@ export function unwrapNativeCollateral(
   if (wethBalance < nativeAmount) {
     return {
       assets: collateral,
-      error: {
-        code: ERROR_INVALID_TRANSACTION_VALUE,
-        message: `transaction value ${nativeAmount} exceeds WETH collateral ${wethBalance}`,
-      },
+      warning: invalidTransactionValueError(nativeAmount, wethBalance),
     };
   }
 

@@ -34,7 +34,7 @@ export interface ReplayMulticallResult {
    * replay in facade execution order
    */
   after: ReplayState;
-  error?: OperationPreviewError;
+  warning?: OperationPreviewError;
 }
 
 /**
@@ -51,7 +51,7 @@ export function replayMulticall<P extends PluginsMap>(
   );
   const after = makeReplayState(before.clone());
 
-  const error = replayInnerOperations(sdk, operation.multicall, after);
+  const warning = replayInnerOperations(sdk, operation.multicall, after);
 
-  return { before, after, error };
+  return { before, after, warning };
 }

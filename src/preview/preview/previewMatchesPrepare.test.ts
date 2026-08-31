@@ -340,14 +340,14 @@ function expectSameMarket(
 
 /** Asserts everything the two sides say about the account after the operation. */
 function expectAgreement(
-  preview: EstimatedProjection & { error?: unknown },
+  preview: EstimatedProjection & { warning?: unknown },
   projected: OperationState,
   dust: bigint,
 ): void {
   // A preview that hit something it could not replay still answers, with the
   // fields it could not derive filled in best-effort. Agreement reached that way
   // would not be agreement, so it is checked for first.
-  expect(preview.error).toBeUndefined();
+  expect(preview.warning).toBeUndefined();
 
   expectSameMarket(preview, projected);
 
@@ -641,7 +641,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
       throw new Error(`expected a close, got ${preview.operation}`);
     }
 
-    expect(preview.error).toBeUndefined();
+    expect(preview.warning).toBeUndefined();
     expect(projected.totalDebt.value).toBe(0n);
     expect(byToken(projected.assets)).toEqual({});
     // the account is emptied but not closed: the facade's own entry point is
@@ -662,7 +662,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
       throw new Error(`expected an opening, got ${preview.operation}`);
     }
 
-    expect(preview.error).toBeUndefined();
+    expect(preview.warning).toBeUndefined();
     expectSameMarket(preview, projected);
 
     // 3x on 10 of margin: 20 borrowed, 30 held, and with the route standing

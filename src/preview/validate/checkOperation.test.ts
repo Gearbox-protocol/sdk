@@ -128,7 +128,11 @@ describe("checkOperation", () => {
     // is the only thing worth telling the caller.
     const issues = check(
       adjust({
-        error: { code: 1002, message: "adapter call outside bracket" },
+        warning: {
+          code: "adapterCallOutsideBracket",
+          message: "adapter call outside bracket",
+          adapter: CREDIT_MANAGER,
+        },
         estHealthFactor: 1,
         totalDebt: und(10n ** 30n),
       }),
@@ -137,13 +141,25 @@ describe("checkOperation", () => {
 
     expect(issues).toEqual({
       reason: "malformedTransaction",
-      detail: { code: 1002, message: "adapter call outside bracket" },
+      detail: {
+        code: "adapterCallOutsideBracket",
+        message: "adapter call outside bracket",
+        adapter: CREDIT_MANAGER,
+      },
     });
   });
 
   it("lets an incomplete evaluation through — it is a caveat, not a refusal", () => {
     expect(
-      check(adjust({ error: { code: 2001, message: "no price" } })),
+      check(
+        adjust({
+          warning: {
+            code: "unpriceableToken",
+            message: "no price",
+            token: WETH,
+          },
+        }),
+      ),
     ).toBeNull();
   });
 
@@ -520,7 +536,14 @@ describe("checkOperation — pool operations", () => {
   it("blocks a malformed pool transaction the same way", () => {
     const issues = checkOperation({
       sdk,
-      preview: deposit({ error: { code: 1006, message: "bad value" } }),
+      preview: deposit({
+        warning: {
+          code: "invalidTransactionValue",
+          message: "bad value",
+          value: 1n,
+          wethCollateral: 0n,
+        },
+      }),
     });
 
     expect(issues?.reason).toBe("malformedTransaction");

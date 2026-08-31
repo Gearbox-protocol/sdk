@@ -1,5 +1,11 @@
 import type { Address } from "viem";
-import type { Bps, Token, TokenAmount } from "../../model/index.js";
+import type {
+  Bps,
+  IGearboxError,
+  MalformedPreviewError,
+  Token,
+  TokenAmount,
+} from "../../model/index.js";
 import type { BorrowLimitBinding, PreviewIssue } from "./refusal.js";
 
 /**
@@ -298,27 +304,39 @@ export function checkFunding(args: {
 /**
  * The SDK could not replay the transaction.
  *
- * Only the 1xxx class lands here. A 2xxx error says the transaction is fine and
- * the SDK could not fully evaluate it, which is a caveat on the numbers rather
- * than a reason to refuse — it stays on the preview for the caller to surface.
+ * Only a {@link MalformedPreviewError} lands here. An `unpriceableToken`
+ * warning says the transaction is fine and the SDK could not fully evaluate
+ * it, which is a caveat on the numbers rather than a reason to refuse — it
+ * stays on the preview for the caller to surface.
  */
 export function checkPreviewError(
-  error: { code: number; message: string } | undefined,
+  warning: IGearboxError | undefined,
 ): PreviewIssue | null {
-  if (!error || !isMalformedPreviewError(error)) {
+  if (!warning || !isMalformedPreviewError(warning)) {
     return null;
   }
   return {
     reason: "malformedTransaction",
-    detail: error,
+    detail: warning,
   };
 }
 
 /**
- * The class boundary the preview error codes are written against: 1xxx means
- * the transaction itself is malformed, 2xxx that only the evaluation was
- * incomplete. A range, so a future 1007 classifies itself.
+ * Whether the preview warning means the transaction itself is malformed,
+ * rather than that only the evaluation was incomplete.
  */
-export function isMalformedPreviewError(error: { code: number }): boolean {
-  return error.code >= 1000 && error.code < 2000;
+export function isMalformedPreviewError(
+  warning: IGearboxError,
+): warning is MalformedPreviewError {
+  switch (warning.code) {
+    case "malformedBracket":
+    case "adapterCallOutsideBracket":
+    case "nonAdapterCallInBracket":
+    case "unpreviewableAdapterCall":
+    case "unsupportedOutOfBracketCall":
+    case "invalidTransactionValue":
+      return true;
+    default:
+      return false;
+  }
 }

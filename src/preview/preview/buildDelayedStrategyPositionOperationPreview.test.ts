@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import { getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Curator } from "../../model/index.js";
-import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import {
   AssetsMap,
   type ConvertFn,
@@ -327,7 +326,7 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       estLeverage: 0,
       estTimeToLiquidation: null,
       estLiquidationPrice: null,
-      error: undefined,
+      warning: undefined,
     });
   });
 
@@ -404,7 +403,7 @@ describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () =>
       quotasChange: [],
       estAssets: [amt(UNDERLYING, 400n)],
       assetsChange: [amt(UNDERLYING, 400n)],
-      error: undefined,
+      warning: undefined,
     });
   });
 
@@ -714,7 +713,7 @@ describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
       amt(USDC, 1000n),
     ]),
     assetsChange: [amt(USDC, 1000n)],
-    error: undefined,
+    warning: undefined,
   };
 
   it("applies only the claim step for resume intents with an unrecoverable swap target", () => {
@@ -744,7 +743,7 @@ describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
 });
 
 describe("buildDelayedStrategyPositionOperationPreview unpriceable tokens", () => {
-  it("sets ERROR_UNPRICEABLE_TOKEN and counts only priceable tokens", () => {
+  it("sets unpriceableToken and counts only priceable tokens", () => {
     const account = makeAccount({
       balances: new AssetsMap([
         { token: PHANTOM, balance: 1000n },
@@ -763,8 +762,9 @@ describe("buildDelayedStrategyPositionOperationPreview unpriceable tokens", () =
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
       expect(preview.estTotalValue.value).toBe(1000n);
-      expect(preview.error).toEqual({
-        code: ERROR_UNPRICEABLE_TOKEN,
+      expect(preview.warning).toEqual({
+        code: "unpriceableToken",
+        token: UNPRICEABLE,
         message: expect.stringContaining(UNPRICEABLE),
       });
     }

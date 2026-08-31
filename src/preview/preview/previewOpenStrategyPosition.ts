@@ -1,6 +1,5 @@
 import {
   asEstimated,
-  ERROR_UNPRICEABLE_TOKEN,
   type OpenStrategyPositionPreview,
   type OperationPreviewError,
 } from "../../model/index.js";
@@ -10,6 +9,7 @@ import {
   type Asset,
   NO_VERSION,
   type PluginsMap,
+  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   InnerOperation,
@@ -38,30 +38,27 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   const state = makeReplayState(
     CreditAccountState.beforeOpen(operation.creditManager, market.underlying),
   );
-  let error = replayInnerOperations(sdk, operation.multicall, state);
+  let warning = replayInnerOperations(sdk, operation.multicall, state);
   const account = state.account;
 
   // collateral value is computed before unwrapping since the oracle cannot
   // price the native token. Best-effort: tokens the oracle cannot price
   // contribute nothing.
-  let priceError: OperationPreviewError | undefined;
+  let priceWarning: OperationPreviewError | undefined;
   const netValue = state.collateralAdded.sum((token, balance) => {
     try {
       return oracle.convert(token, market.underlying, balance);
     } catch {
-      priceError ??= {
-        code: ERROR_UNPRICEABLE_TOKEN,
-        message: `cannot price token ${token}`,
-      };
+      priceWarning ??= unpriceableTokenError(token);
       return 0n;
     }
   });
-  const { assets: collateral, error: unwrapError } = unwrapNativeCollateral(
+  const { assets: collateral, warning: unwrapWarning } = unwrapNativeCollateral(
     state.collateralAdded.toAssets(),
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
-  error ??= unwrapError ?? priceError;
+  warning ??= unwrapWarning ?? priceWarning;
 
   // `toSnapshot` filters out dust, including the 1-wei leftovers of drained
   // inputs and intermediate tokens, and on opening the folded quotas are the
@@ -78,7 +75,7 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     // the fields the route decides, because the balances replayed here are the
     // floor the calls guarantee while that flow reports the branch it opens on
     // (`averageAssets`). Best-effort like the rest of the preview: tokens the
-    // oracle cannot price (ERROR_UNPRICEABLE_TOKEN) contribute nothing to the
+    // oracle cannot price (`unpriceableToken`) contribute nothing to the
     // metrics.
     //
     // Opening borrows the whole debt from the pool.
@@ -93,7 +90,7 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     collateralAdded: collateral.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
-    error,
+    warning,
   };
 }
 

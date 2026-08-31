@@ -12,7 +12,6 @@ import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
-import { ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -461,10 +460,10 @@ it("previews adjusting leverage to 4", async () => {
   });
 });
 
-it("reports an unpriceable-token error and keeps the best-effort preview", async () => {
+it("reports an unpriceable-token warning and keeps the best-effort preview", async () => {
   // Hand-crafted multicall adding collateral in a registered token the
   // oracle cannot price: the preview is still computed, the token
-  // contributes nothing to totalValue and a 2xxx preview-limitation error
+  // contributes nothing to totalValue and an unpriceableToken warning
   // is reported.
   const UNKNOWN: Address = "0x1111111111111111111111111111111111111111";
   sdk.tokensMeta.upsert(UNKNOWN, {
@@ -512,7 +511,11 @@ it("reports an unpriceable-token error and keeps the best-effort preview", async
       }),
     ]),
     estTotalValue: und(49_889_254_310_053_293_583n),
-    error: { code: ERROR_UNPRICEABLE_TOKEN, message: expect.any(String) },
+    warning: {
+      code: "unpriceableToken",
+      token: UNKNOWN,
+      message: expect.any(String),
+    },
   });
 });
 
