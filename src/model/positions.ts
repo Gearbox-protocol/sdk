@@ -605,21 +605,18 @@ export type PositionTransactionKind =
   | "liquidation"
   | "repay"
   /**
-   * The transaction only moved value inside the account — a swap, a claim or a
-   * quota change — without any borrower cash flow or debt movement.
+   * The transaction only rearranged what the account already held — a swap, a
+   * claim or a quota change — without moving its net value or its debt.
    **/
   | "rebalance"
   /**
-   * The transaction did several of the above at once (money moved both in and
-   * out, or debt both grew and shrank), so no single kind describes it.
+   * The residual kind: the transaction is not one of the above. Either the
+   * backend could not attribute the account's state movement completely, or
+   * the movements it did observe contradict each other (value left the
+   * account while debt grew, say), so no single intent describes it. Never a
+   * synonym for "nothing happened", and never a direction to infer from.
    **/
-  | "composite"
-  /**
-   * The indexed history shows no cash flow and no debt movement the backend
-   * can attribute, so the intent is not decidable. Never a synonym for "no
-   * change" — it means "not classifiable from what is indexed".
-   **/
-  | "unknown";
+  | "other";
 
 /**
  * One transaction in a position's history, from the backend's indexer.
@@ -636,8 +633,8 @@ export interface PositionTransaction {
   kind: PositionTransactionKind;
   /**
    * Net magnitudes of the assets the borrower moved. A directional kind
-   * supplies the direction; callers must not infer one for `composite` or
-   * `unknown` transactions.
+   * supplies the direction; callers must not infer one for an `other`
+   * transaction.
    **/
   assets: TokenAmount[];
   /**

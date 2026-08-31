@@ -52,7 +52,7 @@ describe("position transaction schema", () => {
     expect(encoded.debtChange.value).toBe("-750000");
   });
 
-  it.each(["repay", "rebalance", "composite", "unknown"] as const)(
+  it.each(["repay", "rebalance", "other"] as const)(
     "accepts the %s classifier result",
     kind => {
       expect(
@@ -65,6 +65,24 @@ describe("position transaction schema", () => {
           debtChange: { value: 0n, valueUsd: null, token: USDC },
         }).kind,
       ).toBe(kind);
+    },
+  );
+
+  // `other` replaced both residual kinds the classifier used to publish, so
+  // the old names must not survive as silent aliases of it.
+  it.each(["composite", "unknown"] as const)(
+    "rejects the retired %s classifier result",
+    kind => {
+      expect(() =>
+        positionTransactionSchema.parse({
+          txHash: "0x01",
+          timestamp: 1,
+          kind,
+          assets: [],
+          balanceChanges: [],
+          debtChange: { value: 0n, valueUsd: null, token: USDC },
+        }),
+      ).toThrow();
     },
   );
 });

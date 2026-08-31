@@ -277,8 +277,7 @@ export const positionTransactionKindSchema = z.union([
   z.literal("liquidation"),
   z.literal("repay"),
   z.literal("rebalance"),
-  z.literal("composite"),
-  z.literal("unknown"),
+  z.literal("other"),
 ]);
 
 /**
