@@ -1,5 +1,9 @@
 import type { Address } from "viem";
-import type { AccountProjection, DelayedIntent } from "../../../model/index.js";
+import type {
+  AccountProjection,
+  DelayedIntent,
+  TokenAmount,
+} from "../../../model/index.js";
 import type { MultiCall, OnchainSDK, RouterCASlice } from "../../index.js";
 import type {
   PreviewErrorReason,
@@ -74,6 +78,46 @@ export type IntentPreviewResult =
       state: OperationState;
       calls: MultiCall[];
     }
+  | PreviewRefusal;
+
+/**
+ * What a claim did not bring, when the venue served part of a matured
+ * withdrawal and left the rest of it queued.
+ *
+ * Every issuer the engine was written for answers a redemption whole: one
+ * request, one claim, one tail. A legacy Mellow multivault does not — it pays
+ * out whatever its subvaults hold liquid and queues the remainder, so the claim
+ * burns the phantom it names and mints a fresh one for what is still maturing.
+ * The tail then serves the share that arrived, and this says what is left to
+ * serve later.
+ */
+export interface ClaimRemainder {
+  /**
+   * The withdrawal position the claim left on the account: the phantom token
+   * standing for the part that has not matured.
+   */
+  inFlight: TokenAmount;
+  /**
+   * The intent to finish with once it does — this one minus what the tail
+   * beside it already served, so finalising twice pays the wallet and the loan
+   * once between them.
+   */
+  intent: ResumableIntent;
+}
+
+/**
+ * What finishing a delayed intent yields: {@link IntentPreviewResult}, plus
+ * whether the claim it was built on settled the withdrawal whole.
+ */
+export type FinishIntentResult =
+  | (Extract<IntentPreviewResult, { ok: true }> & {
+      /**
+       * `undefined` when the claim brought everything the request queued,
+       * which is every venue but a legacy Mellow one, see
+       * {@link ClaimRemainder}.
+       */
+      remainder: ClaimRemainder | undefined;
+    })
   | PreviewRefusal;
 
 /** What the request recorded, and when the tail can be run. */
@@ -385,6 +429,41 @@ export interface WithdrawStrategyIntent {
    * every balance there is.
    */
   sourceToken?: Address;
+}
+
+/**
+ * Where a withdraw form's scale ends, in underlying units — and it ends twice.
+ *
+ * A withdrawal is not one continuous range. Holding leverage flat costs a
+ * proportional repayment, and the loan left behind has to clear the facade's
+ * `minDebt`, so the partial flow stops at {@link partial}. Leaving entirely
+ * settles the loan instead of shrinking it, so the floor does not apply and
+ * the whole net value can go. Between the two the flow refuses with
+ * `debtOutOfRange` rather than quietly rounding the request to one end.
+ *
+ * An account borrowing at the floor therefore reports a `partial` of almost
+ * nothing — only the interest accrued above `minDebt` can be repaid — beside
+ * an `exit` of its entire net value. That gap is the market's rule showing
+ * through, not a miscount: such a position frees real money only by leaving.
+ */
+export interface WithdrawCeilings {
+  /**
+   * Largest partial withdrawal {@link WithdrawStrategyIntent} accepts: the one
+   * whose proportional repayment leaves the debt at `minDebt`. `0n` when the
+   * debt already sits below the floor, and always at least one unit under
+   * `exit` — the last unit closes the account rather than shrinking it.
+   */
+  partial: bigint;
+  /**
+   * What leaving hands over: the account's net value, which is also the amount
+   * at which a withdrawal turns into an exit. `0n` on an account whose debt
+   * has caught up with its collateral.
+   *
+   * A Max button is better served by sending `MAX_UINT256` than this figure —
+   * the exit is then named outright, and no rounding in the payout token's
+   * price can drop the request back into the refused gap.
+   */
+  exit: bigint;
 }
 
 export type StartIntent =

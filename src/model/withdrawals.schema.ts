@@ -9,12 +9,19 @@ import {
 } from "./primitives.schema.js";
 
 /**
+ * {@link WithdrawalOutputAmount}
+ **/
+export const withdrawalOutputAmountSchema = tokenAmountSchema.extend({
+  isDelayed: z.boolean(),
+});
+
+/**
  * {@link PositionClaimableWithdrawal}
  **/
 export const positionClaimableWithdrawalSchema = z.object({
   sourceToken: tokenSchema,
   withdrawalPhantomToken: tokenAmountSchema,
-  outputs: z.array(tokenAmountSchema),
+  outputs: z.array(withdrawalOutputAmountSchema),
   claimCall: txCallSchema,
   redeemer: ZodAddress().optional(),
   intent: delayedIntentSchema.optional(),
@@ -26,7 +33,7 @@ export const positionClaimableWithdrawalSchema = z.object({
 export const positionPendingWithdrawalSchema = z.object({
   sourceToken: tokenSchema,
   withdrawalPhantomToken: tokenSchema,
-  expectedOutputs: z.array(tokenAmountSchema),
+  expectedOutputs: z.array(withdrawalOutputAmountSchema),
   claimableAt: timestampSchema,
   redeemer: ZodAddress().optional(),
   intent: delayedIntentSchema.optional(),

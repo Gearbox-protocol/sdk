@@ -479,12 +479,14 @@ export class PositionsService extends SDKConstruct {
         withdrawals: withdrawals.get(t.token) ?? [],
       });
       if (recomputeTotals) {
-        const value =
-          priceOracle.safeConvert(t.token, market.underlying, t.balance) || 0n;
-        totalValue += value;
         const usd = priceOracle.safeConvertToUSD(t.token, t.balance) || 0n;
         totalValueUSD += usd;
       }
+    }
+    if (recomputeTotals) {
+      totalValue = market.valueInUnderlying(
+        ca.tokens.map(t => ({ token: t.token, balance: t.balance })),
+      ).value;
     }
 
     // healthFactor / leverage / borrowApy / netApy keep their existing
@@ -625,7 +627,10 @@ export class PositionsService extends SDKConstruct {
         w.withdrawalPhantomToken,
         w.withdrawalTokenSpent,
       ),
-      outputs: w.outputs.map(o => priceOracle.toTokenAmount(o.token, o.amount)),
+      outputs: w.outputs.map(o => ({
+        ...priceOracle.toTokenAmount(o.token, o.amount),
+        isDelayed: o.isDelayed,
+      })),
       claimCall: this.#claimTx(w.claimCalls, w.token),
       redeemer: w.redeemer,
       intent: w.intent,
@@ -641,9 +646,10 @@ export class PositionsService extends SDKConstruct {
       withdrawalPhantomToken: this.sdk.tokensMeta.mustGetToken(
         w.withdrawalPhantomToken,
       ),
-      expectedOutputs: w.expectedOutputs.map(o =>
-        priceOracle.toTokenAmount(o.token, o.amount),
-      ),
+      expectedOutputs: w.expectedOutputs.map(o => ({
+        ...priceOracle.toTokenAmount(o.token, o.amount),
+        isDelayed: o.isDelayed,
+      })),
       claimableAt: Number(w.claimableAt),
       redeemer: w.redeemer,
       intent: w.intent,

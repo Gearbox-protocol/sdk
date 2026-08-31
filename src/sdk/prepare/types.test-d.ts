@@ -30,12 +30,14 @@ import type {
   WithRouteRefusals,
 } from "./errors.js";
 import type {
+  FinalizeResult,
   IOpportunitiesPrepare,
   LeverageBand,
   LpResult,
   OpenStrategyResult,
   StrategyResult,
   StrategyRoutesResult,
+  WithdrawCeilings,
 } from "./types.js";
 
 type P = IOpportunitiesPrepare;
@@ -53,15 +55,15 @@ type RefusalOf<T> = T extends { ok: false; error: infer E } ? E : never;
  * allowed to abbreviate through those aliases.
  */
 describe("every prepare method names exactly its own refusals", () => {
-  it("the LP flows refuse with the unroutable pair alone, synchronously", () => {
-    expectTypeOf<ReturnType<P["deposit"]>>().toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError>
+  it("the LP flows refuse with the unroutable pair and the read that failed", () => {
+    expectTypeOf<Awaited<ReturnType<P["deposit"]>>>().toEqualTypeOf<
+      SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
     >();
-    expectTypeOf<ReturnType<P["withdraw"]>>().toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError>
+    expectTypeOf<Awaited<ReturnType<P["withdraw"]>>>().toEqualTypeOf<
+      SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
     >();
-    expectTypeOf<ReturnType<P["redeem"]>>().toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError>
+    expectTypeOf<Awaited<ReturnType<P["redeem"]>>>().toEqualTypeOf<
+      SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
     >();
   });
 
@@ -206,7 +208,7 @@ describe("every prepare method names exactly its own refusals", () => {
   it("finalize: the account-flow guards plus the tail's own codes", () => {
     expectTypeOf<Awaited<ReturnType<P["finalize"]>>>().toEqualTypeOf<
       SDKReturn<
-        StrategyResult,
+        FinalizeResult,
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError
@@ -227,9 +229,9 @@ describe("every prepare method names exactly its own refusals", () => {
 describe("the preview-only codes appear in no prepare union", () => {
   /** Everything any prepare method can put in its failure half. */
   type AnyPrepareRefusal =
-    | RefusalOf<ReturnType<P["deposit"]>>
-    | RefusalOf<ReturnType<P["withdraw"]>>
-    | RefusalOf<ReturnType<P["redeem"]>>
+    | RefusalOf<Awaited<ReturnType<P["deposit"]>>>
+    | RefusalOf<Awaited<ReturnType<P["withdraw"]>>>
+    | RefusalOf<Awaited<ReturnType<P["redeem"]>>>
     | RefusalOf<Awaited<ReturnType<P["openNewStrategy"]>>>
     | RefusalOf<Awaited<ReturnType<P["depositStrategy"]>>>
     | RefusalOf<Awaited<ReturnType<P["repayStrategy"]>>>
@@ -254,7 +256,7 @@ describe("the preview-only codes appear in no prepare union", () => {
 
 describe("narrowing the envelope settles which half is there", () => {
   it("ok narrows to the result, and the result is stamped", () => {
-    const lp = {} as ReturnType<P["deposit"]>;
+    const lp = {} as Awaited<ReturnType<P["deposit"]>>;
     if (lp.ok) {
       expectTypeOf(lp.data).toEqualTypeOf<LpResult>();
     }
@@ -289,9 +291,14 @@ describe("narrowing the envelope settles which half is there", () => {
 });
 
 describe("the reads outside the envelope stay bare", () => {
-  it("the max* ceilings answer a bigint or throw", () => {
+  it("the withdraw ceiling names both ends of the scale", () => {
+    expectTypeOf<WithdrawCeilings["partial"]>().toEqualTypeOf<bigint>();
+    expectTypeOf<WithdrawCeilings["exit"]>().toEqualTypeOf<bigint>();
+  });
+
+  it("the max* ceilings answer bare numbers or throw", () => {
     expectTypeOf<ReturnType<P["maxWithdraw"]>>().toEqualTypeOf<
-      Promise<bigint>
+      Promise<WithdrawCeilings>
     >();
     expectTypeOf<ReturnType<P["maxRepay"]>>().toEqualTypeOf<Promise<bigint>>();
     expectTypeOf<ReturnType<P["maxWithdrawCollateral"]>>().toEqualTypeOf<

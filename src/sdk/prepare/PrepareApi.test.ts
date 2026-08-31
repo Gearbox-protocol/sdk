@@ -43,6 +43,14 @@ const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
 /** The block state the LP fake below holds, and every result must report. */
 const LP_BLOCK = 5n;
 const LP_TIMESTAMP = 1_700_000_000n;
+/** Pool shares the wallet holds before the operation, in the LP fake. */
+const HELD_SHARES = 200n;
+
+const CURATOR = {
+  address: "0xc0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0" as Address,
+  name: "Test Curator",
+  url: null,
+};
 
 /** A priced amount, which is what a `PoolSimulation` reports. */
 const amount = (address: Address, value: bigint): TokenAmount => ({
@@ -58,6 +66,7 @@ const amount = (address: Address, value: bigint): TokenAmount => ({
 });
 
 function buildApi() {
+  const getShareBalance = vi.fn(async () => HELD_SHARES);
   const pools = {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
     getWithdrawalMetadata: vi.fn(() => ({})),
@@ -81,18 +90,28 @@ function buildApi() {
       timestamp: LP_TIMESTAMP,
       pools,
       marketRegister: {
-        findByPool: () => ({ pool: { underlying: UNDERLYING } }),
+        findByPool: () => ({
+          pool: {
+            underlying: UNDERLYING,
+            pool: {
+              getShareBalance,
+              sharesToUnderlying: (shares: bigint) => shares,
+            },
+          },
+          curator: CURATOR,
+          toUnderlyingAmount: (value: bigint) => amount(UNDERLYING, value),
+        }),
       },
     }),
   } as unknown as MultichainSDK);
-  return { api, pools };
+  return { api, pools, getShareBalance };
 }
 
 describe("PrepareApi.withdraw", () => {
-  it("passes the tokenOut amount through to simulateWithdraw", () => {
+  it("passes the tokenOut amount through to simulateWithdraw", async () => {
     const { api, pools } = buildApi();
 
-    const result = api.withdraw(
+    const result = await api.withdraw(
       { chainId: CHAIN_ID, pool: POOL },
       { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
     );
@@ -109,11 +128,11 @@ describe("PrepareApi.withdraw", () => {
     );
   });
 
-  it("stamps the result with the block the pool state was loaded at", () => {
+  it("stamps the result with the block the pool state was loaded at", async () => {
     const { api } = buildApi();
 
     const prepared = plan(
-      api.withdraw(
+      await api.withdraw(
         { chainId: CHAIN_ID, pool: POOL },
         { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
       ),
@@ -121,6 +140,53 @@ describe("PrepareApi.withdraw", () => {
 
     expect(prepared.blockNumber).toBe(Number(LP_BLOCK));
     expect(prepared.timestamp).toBe(Number(LP_TIMESTAMP));
+  });
+
+  it("reports the position the withdrawal leaves behind, and whose market it is", async () => {
+    const { api } = buildApi();
+
+    const prepared = plan(
+      await api.withdraw(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    // the fake burns 100 shares for the payout, off the 200 held
+    expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
+    expect(prepared.state.curator).toEqual(CURATOR);
+  });
+
+  it("floors the position at nothing when more is taken out than is held", async () => {
+    const { api, pools } = buildApi();
+    pools.simulateWithdraw.mockReturnValueOnce({
+      tokenIn: amount(POOL, HELD_SHARES + 1n),
+      tokenOut: amount(UNDERLYING, 1n),
+    });
+
+    const prepared = plan(
+      await api.withdraw(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 1n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    expect(prepared.state.netValue.value).toBe(0n);
+  });
+
+  it("answers the failed read in the envelope rather than throwing it", async () => {
+    const { api, getShareBalance } = buildApi();
+    getShareBalance.mockRejectedValueOnce(new Error("rpc is down"));
+
+    const result = await api.withdraw(
+      { chainId: CHAIN_ID, pool: POOL },
+      { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING },
+    );
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "unexpectedFailure" },
+    });
   });
 });
 
@@ -260,17 +326,40 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("maxWithdraw answers in underlying, and withdrawStrategy takes it", async () => {
     const { api, position } = buildStrategyApi();
 
-    const max = await api.maxWithdraw(position);
-    expect(max).toBeGreaterThan(0n);
+    const { partial } = await api.maxWithdraw(position);
+    expect(partial).toBeGreaterThan(0n);
 
     const result = await api.withdrawStrategy(position, {
-      amount: max,
+      amount: partial,
       to: WALLET,
     });
     const prepared = plan(result);
     // this market has no redemption venue, so only the instant route answers
     expect(prepared.instant).toBeDefined();
     expect(prepared.refused.delayed).toBe("noDelayedRoute");
+  });
+
+  it("maxWithdraw's exit is the net value, and it is the far side of a gap", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const { partial, exit } = await api.maxWithdraw(position);
+    expect(exit).toBe(TVL - DEBT);
+    // the partial flow stops short of it: anything in between is refused
+    expect(partial).toBeLessThan(exit);
+
+    const between = (partial + exit) / 2n;
+    const refused = await api.withdrawStrategy(position, {
+      amount: between,
+      to: WALLET,
+    });
+    expect(isSDKError(refused) && refused.error.code).toBe("debtOutOfRange");
+
+    // at the exit itself the flow accepts, and empties the account
+    const result = await api.withdrawStrategy(position, {
+      amount: exit,
+      to: WALLET,
+    });
+    expect(plan(result).instant?.state.totalDebt.value).toBe(0n);
   });
 
   it("withdrawStrategy past the net value exits the account", async () => {
@@ -452,19 +541,20 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ).toBe("no chain 999");
   });
 
-  it("the sync LP flows throw the same lifecycle error instead", () => {
+  it("the LP flows describe the same chain the same way", async () => {
     const api = new PrepareApi({
       chain: () => {
         throw new Error("no chain 999");
       },
     } as unknown as MultichainSDK);
 
-    expect(() =>
-      api.withdraw(
-        { chainId: 999, pool: POOL },
-        { amount: 1n, wallet: WALLET },
-      ),
-    ).toThrow("no chain 999");
+    const result = await api.withdraw(
+      { chainId: 999, pool: POOL },
+      { amount: 1n, wallet: WALLET },
+    );
+
+    if (!isSDKError(result)) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("unexpectedFailure");
   });
 
   it("the bare max* reads reject rather than describe", async () => {
@@ -527,9 +617,23 @@ describe("PrepareApi — the two-transaction route", () => {
   ): PositionClaimableWithdrawal => ({
     sourceToken: amount(POS, 0n).token,
     withdrawalPhantomToken: amount(POS2, 10000000000n),
-    outputs: [amount(UND, 10000000000n)],
+    outputs: [{ ...amount(UND, 10000000000n), isDelayed: false }],
     claimCall: { to: POS, callData: "0x" },
     intent,
+  });
+
+  /**
+   * The same redemption from a venue that pays in instalments: half of it is
+   * here, half is a fresh withdrawal position.
+   **/
+  const halfClaimableOf = (
+    intent: DelayedIntent | undefined,
+  ): PositionClaimableWithdrawal => ({
+    ...claimableOf(intent),
+    outputs: [
+      { ...amount(UND, 5000000000n), isDelayed: false },
+      { ...amount(POS2, 5000000000n), isDelayed: true },
+    ],
   });
 
   it("withdrawStrategy requests the redemption and records the tail", async () => {
@@ -589,6 +693,34 @@ describe("PrepareApi — the two-transaction route", () => {
     });
   });
 
+  it("finalize hands back what a claim that matured in part did not settle", async () => {
+    const { api, position } = buildStrategyApi(venue);
+
+    const result = await api.finalize(position, {
+      claimable: halfClaimableOf({
+        type: "WITHDRAW_COLLATERAL",
+        to: WALLET,
+        sourceToken: POS,
+        withdrawToken: UND,
+        withdrawAmount: 10000000000n,
+        debtRepaid: 0n,
+      }),
+    });
+
+    const prepared = plan(result);
+    // Half the redemption is still in flight, so the operation is not over:
+    // the caller comes back with the next claim and the intent this tail did
+    // not serve.
+    expect(prepared.remainder?.inFlight).toMatchObject({
+      token: expect.objectContaining({ address: POS2 }),
+      value: 5000000000n,
+    });
+    expect(prepared.remainder?.intent).toMatchObject({
+      type: "WITHDRAW_COLLATERAL",
+      withdrawAmount: 5000000000n,
+    });
+  });
+
   it("finalize completes an exit from the claim it recorded", async () => {
     const { api, position } = buildStrategyApi(venue);
 
@@ -612,10 +744,10 @@ describe("PrepareApi — the two-transaction route", () => {
 });
 
 describe("PrepareApi.redeem", () => {
-  it("passes the share amount through to simulateRedeem", () => {
+  it("passes the share amount through to simulateRedeem", async () => {
     const { api, pools } = buildApi();
 
-    const result = api.redeem(
+    const result = await api.redeem(
       { chainId: CHAIN_ID, pool: POOL },
       { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
     );
@@ -630,5 +762,18 @@ describe("PrepareApi.redeem", () => {
     expect(pools.removeLiquidity).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 100n, mode: "redeem" }),
     );
+  });
+
+  it("burns exactly the shares it was asked for, off the position", async () => {
+    const { api } = buildApi();
+
+    const prepared = plan(
+      await api.redeem(
+        { chainId: CHAIN_ID, pool: POOL },
+        { amount: 100n, wallet: WALLET, tokenOut: UNDERLYING },
+      ),
+    );
+
+    expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
   });
 });

@@ -17,14 +17,17 @@ import type {
   CreditAccountSlice,
   DelayableIntent,
   DelayedIntentExtended,
+  FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
   LeverageBand,
   OnchainSDK,
   OpenStrategyPreviewResult,
+  PoolSimulation,
   PreviewIssue,
   ResumableIntent,
   StartIntent,
+  WithdrawCeilings,
 } from "../../onchain/index.js";
 import {
   CreditAccountOperationsService,
@@ -45,6 +48,7 @@ import type {
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
   OpenFlowError,
+  UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
@@ -61,10 +65,12 @@ import type {
   AdjustLeverageParams,
   DepositStrategyParams,
   FinalizeParams,
+  FinalizeResult,
   IOpportunitiesPrepare,
   LpParams,
   LpRedeemParams,
   LpResult,
+  LpState,
   OpenStrategyParams,
   OpenStrategyResult,
   PoolInput,
@@ -146,7 +152,7 @@ export class PrepareApi
     params: FinalizeParams,
   ): Promise<
     SDKReturn<
-      StrategyResult,
+      FinalizeResult,
       | AccountFlowError
       | NoRecordedIntentError
       | NoDelayedRouteError
@@ -167,7 +173,7 @@ export class PrepareApi
       if (!creditAccount) {
         return sdkErr(creditAccountNotFound(position.creditAccount));
       }
-      return planned(
+      return finalized(
         await service(sdk).finishIntent({
           intent,
           claimable: toClaimableWithdrawal(params.claimable),
@@ -186,136 +192,160 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.deposit}
    **/
-  public deposit(
+  public async deposit(
     pool: PoolInput,
     params: LpParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError> {
-    // No try: everything here is arithmetic on loaded state, so a throw is a
-    // bug or a lifecycle error (a chain never connected, an SDK not attached),
-    // and those stay thrown, see {@link IOpportunitiesPrepare}.
-    const chain = this.sdk.chain(pool.chainId);
-    const { marketRegister, pools } = chain;
-    const tokenIn =
-      params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
-    const tokenOut = lpRoute(params.tokenOut, () =>
-      pools.getDepositTokensOut(pool.pool, tokenIn),
-    );
-    if (!tokenOut) {
-      return unroutable(chain, tokenIn, undefined);
-    }
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  > {
+    try {
+      const chain = await this.#chain(pool.chainId);
+      const { marketRegister, pools } = chain;
+      const tokenIn =
+        params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
+      const tokenOut = lpRoute(params.tokenOut, () =>
+        pools.getDepositTokensOut(pool.pool, tokenIn),
+      );
+      if (!tokenOut) {
+        return unroutable(chain, tokenIn, undefined);
+      }
 
-    const state = pools.simulateDeposit({
-      pool: pool.pool,
-      amount: params.amount,
-      tokenIn,
-      tokenOut,
-    });
-    const call = pools.addLiquidity({
-      collateral: {
-        token: state.tokenIn.token.address,
-        balance: state.tokenIn.value,
-      },
-      pool: pool.pool,
-      wallet: params.wallet,
-      meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),
-    });
-    // An on-demand RWA market takes deposits through its liquidity provider
-    // rather than a transaction of ours, so there is nothing to prepare.
-    if (!call) {
-      return unroutable(chain, tokenIn, tokenOut);
-    }
+      const state = pools.simulateDeposit({
+        pool: pool.pool,
+        amount: params.amount,
+        tokenIn,
+        tokenOut,
+      });
+      const call = pools.addLiquidity({
+        collateral: {
+          token: state.tokenIn.token.address,
+          balance: state.tokenIn.value,
+        },
+        pool: pool.pool,
+        wallet: params.wallet,
+        meta: pools.getDepositMetadata(pool.pool, tokenIn, tokenOut),
+      });
+      // An on-demand RWA market takes deposits through its liquidity provider
+      // rather than a transaction of ours, so there is nothing to prepare.
+      if (!call) {
+        return unroutable(chain, tokenIn, tokenOut);
+      }
 
-    return sdkOk<LpResult>({
-      operations: [],
-      state,
-      calls: call.calls,
-      ...stateBlock(chain),
-    });
+      return sdkOk<LpResult>({
+        operations: [],
+        // a deposit mints the shares it reports as its output
+        state: await lpState(chain, pool.pool, params.wallet, state, {
+          mints: state.tokenOut.value,
+        }),
+        calls: call.calls,
+        ...stateBlock(chain),
+      });
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
   }
 
   /**
    * {@inheritDoc IOpportunitiesPrepare.withdraw}
    **/
-  public withdraw(
+  public async withdraw(
     pool: PoolInput,
     params: LpParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError> {
-    // {@inheritDoc PrepareApi.deposit} — same footing: refusal or throw.
-    const chain = this.sdk.chain(pool.chainId);
-    const { pools } = chain;
-    // Withdrawals are paid in shares, and the share token *is* the pool.
-    const tokenIn = params.tokenIn ?? pool.pool;
-    const tokenOut = lpRoute(params.tokenOut, () =>
-      pools.getWithdrawalTokensOut(pool.pool, tokenIn),
-    );
-    if (!tokenOut) {
-      return unroutable(chain, tokenIn, undefined);
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  > {
+    // {@inheritDoc PrepareApi.deposit} — same footing.
+    try {
+      const chain = await this.#chain(pool.chainId);
+      const { pools } = chain;
+      // Withdrawals are paid in shares, and the share token *is* the pool.
+      const tokenIn = params.tokenIn ?? pool.pool;
+      const tokenOut = lpRoute(params.tokenOut, () =>
+        pools.getWithdrawalTokensOut(pool.pool, tokenIn),
+      );
+      if (!tokenOut) {
+        return unroutable(chain, tokenIn, undefined);
+      }
+
+      // Amount is the tokenOut the wallet wants back, which is what the pool's
+      // own `withdraw` takes: the share conversion is the pool's to make.
+      const state = pools.simulateWithdraw({
+        pool: pool.pool,
+        amount: params.amount,
+        tokenIn,
+        tokenOut,
+      });
+      const { calls } = pools.removeLiquidity({
+        pool: pool.pool,
+        amount: params.amount,
+        wallet: params.wallet,
+        permit: undefined,
+        meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
+        mode: "withdraw",
+      });
+
+      return sdkOk<LpResult>({
+        operations: [],
+        // a withdrawal burns the shares its payout costs
+        state: await lpState(chain, pool.pool, params.wallet, state, {
+          burns: state.tokenIn.value,
+        }),
+        calls,
+        ...stateBlock(chain),
+      });
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
     }
-
-    // Amount is the tokenOut the wallet wants back, which is what the pool's
-    // own `withdraw` takes: the share conversion is the pool's to make.
-    const state = pools.simulateWithdraw({
-      pool: pool.pool,
-      amount: params.amount,
-      tokenIn,
-      tokenOut,
-    });
-    const { calls } = pools.removeLiquidity({
-      pool: pool.pool,
-      amount: params.amount,
-      wallet: params.wallet,
-      permit: undefined,
-      meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
-      mode: "withdraw",
-    });
-
-    return sdkOk<LpResult>({
-      operations: [],
-      state,
-      calls,
-      ...stateBlock(chain),
-    });
   }
 
   /**
    * {@inheritDoc IOpportunitiesPrepare.redeem}
    **/
-  public redeem(
+  public async redeem(
     pool: PoolInput,
     params: LpRedeemParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError> {
-    // {@inheritDoc PrepareApi.deposit} — same footing: refusal or throw.
-    const chain = this.sdk.chain(pool.chainId);
-    const { pools } = chain;
-    const tokenIn = params.tokenIn ?? pool.pool;
-    const tokenOut = lpRoute(params.tokenOut, () =>
-      pools.getWithdrawalTokensOut(pool.pool, tokenIn),
-    );
-    if (!tokenOut) {
-      return unroutable(chain, tokenIn, undefined);
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  > {
+    // {@inheritDoc PrepareApi.deposit} — same footing.
+    try {
+      const chain = await this.#chain(pool.chainId);
+      const { pools } = chain;
+      const tokenIn = params.tokenIn ?? pool.pool;
+      const tokenOut = lpRoute(params.tokenOut, () =>
+        pools.getWithdrawalTokensOut(pool.pool, tokenIn),
+      );
+      if (!tokenOut) {
+        return unroutable(chain, tokenIn, undefined);
+      }
+
+      const state = pools.simulateRedeem({
+        pool: pool.pool,
+        amount: params.amount,
+        tokenIn,
+        tokenOut,
+      });
+      const { calls } = pools.removeLiquidity({
+        pool: pool.pool,
+        amount: params.amount,
+        wallet: params.wallet,
+        permit: undefined,
+        meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
+        mode: "redeem",
+      });
+
+      return sdkOk<LpResult>({
+        operations: [],
+        // a redemption burns exactly the shares it was asked for
+        state: await lpState(chain, pool.pool, params.wallet, state, {
+          burns: state.tokenIn.value,
+        }),
+        calls,
+        ...stateBlock(chain),
+      });
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
     }
-
-    const state = pools.simulateRedeem({
-      pool: pool.pool,
-      amount: params.amount,
-      tokenIn,
-      tokenOut,
-    });
-    const { calls } = pools.removeLiquidity({
-      pool: pool.pool,
-      amount: params.amount,
-      wallet: params.wallet,
-      permit: undefined,
-      meta: pools.getWithdrawalMetadata(pool.pool, tokenIn, tokenOut),
-      mode: "redeem",
-    });
-
-    return sdkOk<LpResult>({
-      operations: [],
-      state,
-      calls,
-      ...stateBlock(chain),
-    });
   }
 
   /**
@@ -428,7 +458,7 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.maxWithdraw}
    **/
-  public async maxWithdraw(position: PositionInput): Promise<bigint> {
+  public async maxWithdraw(position: PositionInput): Promise<WithdrawCeilings> {
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
     return service(sdk).maxWithdraw({ creditAccount, sdk });
@@ -733,7 +763,7 @@ function toClaimableWithdrawal(
     outputs: claimable.outputs.map(o => ({
       token: o.token.address,
       amount: o.value,
-      isDelayed: false,
+      isDelayed: o.isDelayed,
     })),
     claimCalls: [
       {
@@ -795,6 +825,23 @@ function planned<E extends IGearboxError>(
 
 /**
  * {@inheritDoc planned}
+ *
+ * A tail carries one thing the other results do not: whether the claim it was
+ * built on finished the withdrawal, or left part of it queued for another one.
+ **/
+function finalized<E extends IGearboxError>(
+  result: FinishIntentResult,
+  at: PreparedAt,
+): SDKReturn<FinalizeResult, E> {
+  if (!result.ok) {
+    return refusal<E>(result);
+  }
+  const { operations, state, calls, remainder } = result;
+  return sdkOk({ operations, state, calls, remainder, ...at });
+}
+
+/**
+ * {@inheritDoc planned}
  **/
 function opened<E extends IGearboxError>(
   result: OpenStrategyPreviewResult,
@@ -837,6 +884,37 @@ function routed<E extends IGearboxError & WithRouteRefusals>(
     refused,
     ...at,
   });
+}
+
+/**
+ * The pool's own numbers as the namespace reports them: the trade the service
+ * priced, the market it belongs to, and where the wallet's position lands.
+ *
+ * The position is measured in shares and converted once, rather than added up
+ * in underlying, so the figure is exactly what a later
+ * `sdk.positions.list()` will report — the same balance through the same rate.
+ * A withdrawal larger than the position floors at nothing: the transaction
+ * would revert long before it got there, and a negative holding is not a thing
+ * a screen can show.
+ **/
+async function lpState(
+  sdk: OnchainSDK,
+  pool: Address,
+  wallet: Address,
+  simulation: PoolSimulation,
+  moved: { mints: bigint; burns?: never } | { burns: bigint; mints?: never },
+): Promise<LpState> {
+  const market = sdk.marketRegister.findByPool(pool);
+  const poolContract = market.pool.pool;
+  const held = await poolContract.getShareBalance(wallet);
+  const after = held + (moved.mints ?? -moved.burns);
+  return {
+    ...simulation,
+    curator: market.curator,
+    netValue: market.toUnderlyingAmount(
+      poolContract.sharesToUnderlying(after > 0n ? after : 0n),
+    ),
+  };
 }
 
 /**

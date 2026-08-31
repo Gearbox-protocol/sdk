@@ -313,8 +313,7 @@ function expectMetrics(
 
 /**
  * Which market this happened in, in the words both sides use for it — every
- * result carries a {@link CreditOperationMarket}, including the ones that carry
- * no projection at all.
+ * credit result carries a {@link CreditOperationMarket}.
  *
  * The credit manager is compared case-blind: each side carries through the
  * casing it was handed — checksummed off the parsed calldata on the preview
@@ -453,7 +452,6 @@ describe("the preview of what prepare built agrees with what prepare projected",
       throw new Error(`expected a repayment, got ${preview.operation}`);
     }
 
-    expectSameMarket(preview, projected);
     expect(projected.totalDebt.value).toBe(0n);
     expect(preview.debtRepaid.value).toBe(
       toCreditAccountSlice(creditAccount).totalDebt,
@@ -465,6 +463,27 @@ describe("the preview of what prepare built agrees with what prepare projected",
     expect(preview.collateralAdded[0]?.token.address).toBe(WETH);
     expect(preview.collateralAdded[0]?.value).toBeGreaterThan(
       preview.debtRepaid.value,
+    );
+    // leftover collateral stays; the two halves describe that unleveraged
+    // remainder. Leftover WETH can differ by 1 wei (prepare's expected
+    // remainder vs the replay of addCollateral + decreaseDebt(MAX)), so
+    // the full `expectAgreement` asset match does not apply — the debt, the
+    // quotas, the health-factor sentinel and the 1x leverage still do.
+    expectSameMarket(preview, projected);
+    expect(preview.totalDebt).toEqual(projected.totalDebt);
+    expect(byToken(preview.quotas)).toEqual(byToken(projected.quotas));
+    expect(preview.estHealthFactor).toBe(projected.healthFactor);
+    expect(preview.estSafeHealthFactor).toBe(projected.safeHealthFactor);
+    expect(preview.estLeverage).toBe(projected.leverage);
+    expect(preview.estTimeToLiquidation).toBe(projected.timeToLiquidation);
+    expect(
+      preview.estAssets.find(
+        a => a.token.address.toLowerCase() === CBETH.toLowerCase(),
+      )?.value,
+    ).toBe(
+      projected.assets.find(
+        a => a.token.address.toLowerCase() === CBETH.toLowerCase(),
+      )?.value,
     );
   });
 
@@ -623,7 +642,6 @@ describe("the preview of what prepare built agrees with what prepare projected",
     }
 
     expect(preview.error).toBeUndefined();
-    expectSameMarket(preview, projected);
     expect(projected.totalDebt.value).toBe(0n);
     expect(byToken(projected.assets)).toEqual({});
     // the account is emptied but not closed: the facade's own entry point is
@@ -634,6 +652,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
     expect(preview.receivedAmount.value).toBe(
       parseEther("40") - before.totalDebt,
     );
+    expectAgreement(preview, projected, NO_DUST);
   });
 
   it("opening: the debt, the position and the metrics are the same on both sides", async () => {

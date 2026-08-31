@@ -142,7 +142,10 @@ export interface PoolPosition {
   underlyingToken: UnderlyingToken;
   /**
    * Underlying the held shares are worth at the current share rate, i.e.
-   * `pool.convertToAssets(pool.balanceOf(wallet))`.
+   * `pool.sharesToUnderlying(pool.getShareBalance(wallet))`.
+   *
+   * Does not account for withdraw fee: this is what the shares are worth,
+   * not what leaving with them would pay.
    **/
   netValue: TokenAmount;
   /**

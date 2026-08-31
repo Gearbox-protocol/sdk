@@ -25,13 +25,21 @@ export interface SimulationInput<Op extends Operation = Operation> {
  */
 export interface PoolOperationSimulationResult {
   /**
-   * Amount of tokens going from the user to the pool (underlying or zapper
-   * input token for deposit/mint, pool shares for withdraw/redeem).
+   * User -> pool.
+   *
+   * Deposit/mint: underlying (or zapper input); `withdrawFee` does not apply.
+   *
+   * Withdraw/redeem: shares burned. On withdraw, `previewWithdraw` inflates
+   * that burn for `withdrawFee`; on redeem, the shares from calldata.
    **/
   amountIn: bigint;
   /**
-   * Amount of tokens going from the pool to the user (pool shares or zapper
-   * output token for deposit/mint, underlying for withdraw/redeem).
+   * Pool -> user.
+   *
+   * Deposit/mint: shares minted (or zapper output); `withdrawFee` does not apply.
+   *
+   * Withdraw/redeem: underlying paid out. On withdraw, the requested amount;
+   * on redeem, `previewRedeem` after `withdrawFee`.
    **/
   amountOut: bigint;
 }

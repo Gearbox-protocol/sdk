@@ -1,12 +1,12 @@
 import { type Address, isAddressEqual } from "viem";
-import type {
-  AdjustStrategyPositionPreview,
-  DelayedWithdrawCollateralIntent,
-  ExitStrategyPositionPreview,
-  InstantStrategyPositionOperationPreview,
-  OperationPreviewError,
+import {
+  type AdjustStrategyPositionPreview,
+  asEstimated,
+  type DelayedWithdrawCollateralIntent,
+  type ExitStrategyPositionPreview,
+  type InstantStrategyPositionOperationPreview,
+  type OperationPreviewError,
 } from "../../model/index.js";
-import { asEstimated, ERROR_UNPRICEABLE_TOKEN } from "../../model/index.js";
 import type { DelayedWithdrawalRequest } from "../../onchain/index.js";
 import {
   AssetsMap,
@@ -17,6 +17,7 @@ import {
 import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import type { CreditAccountState } from "./CreditAccountState.js";
 import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
+import { unpriceableTokenError } from "./errors.js";
 
 /**
  * Builds the best-effort preview of the account state after the detected
@@ -24,8 +25,9 @@ import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
  * the claim itself followed by the intent-specific tail
  *
  * Pure function: the input states are never mutated and no network access is performed.
- * Swaps are estimated with the injected conversion; tokens it cannot price contribute
- * nothing and set a non-fatal `ERROR_UNPRICEABLE_TOKEN` error on the
+ * Swaps are estimated with the injected conversion; remaining holdings are
+ * priced by `MarketSuite.valueInUnderlying`. Tokens that cannot be priced
+ * contribute nothing and set a non-fatal `ERROR_UNPRICEABLE_TOKEN` error on the
  * preview.
  *
  * The changes (e.g. `totalDebtChange`) are reported relative to the account
@@ -102,10 +104,7 @@ function makeSafeConverter(convert: ConvertFn): SafeConverter {
       try {
         return convert(token, to, amount);
       } catch {
-        error ??= {
-          code: ERROR_UNPRICEABLE_TOKEN,
-          message: `cannot price token ${token}`,
-        };
+        error ??= unpriceableTokenError(token);
         return 0n;
       }
     },
@@ -239,20 +238,6 @@ function repayFromClaim(
 }
 
 /**
- * Oracle estimate of the account's total value in the underlying, ignoring
- * balances at or below `dust`.
- */
-function totalValueInUnderlying(
-  post: CreditAccountState,
-  convert: ConvertFn,
-  dust: bigint,
-): bigint {
-  return post.balances.sum((token, balance) =>
-    balance > dust ? convert(token, post.underlying, balance) : 0n,
-  );
-}
-
-/**
  * `CLOSE_ACCOUNT` operation tail: everything is swapped into the
  * underlying, the debt is repaid in full and the remainder is withdrawn to
  * the user as `receivedToken`.
@@ -263,15 +248,25 @@ function buildClosePreview(
   receivedToken: Address,
   sdk: OnchainSDK,
 ): ExitStrategyPositionPreview {
-  const totalValue = totalValueInUnderlying(post, converter.convert, 0n);
-  const oracle = sdk.marketRegister.findByCreditManager(
-    post.creditManager,
-  ).priceOracle;
+  const market = sdk.marketRegister.findByCreditManager(post.creditManager);
+  const priced = market.valueInUnderlying(post.balances.toAssets(), 0n);
+  const oracle = market.priceOracle;
   const suite = sdk.marketRegister.findCreditManager(post.creditManager);
   return {
     operation: "CloseCreditAccount",
     permanent: false,
-    ...suite.creditOperationMarket(),
+    ...asEstimated(
+      sdk.positions.projection(
+        {
+          creditManager: post.creditManager,
+          assets: [],
+          quotas: [],
+          totalDebt: 0n,
+          totalValue: 0n,
+        },
+        { availableLiquidityChange: post.totalDebt },
+      ),
+    ),
     creditAccount: post.creditAccount,
     name: suite.accountStrategyName(post.creditAccount),
     targetCollateral: suite.accountTargetCollateral(post.creditAccount),
@@ -279,9 +274,13 @@ function buildClosePreview(
     // 1:1 with their vault asset, so the amount holds for `receivedToken`
     receivedAmount: oracle.toTokenAmount(
       receivedToken,
-      BigIntMath.max(totalValue - post.totalDebt, 0n),
+      BigIntMath.max(priced.value - post.totalDebt, 0n),
     ),
-    error: converter.error,
+    error:
+      converter.error ??
+      (priced.unpriceable
+        ? unpriceableTokenError(priced.unpriceable)
+        : undefined),
   };
 }
 
@@ -292,10 +291,9 @@ function buildAdjustPreview(
   converter: SafeConverter,
   sdk: OnchainSDK,
 ): AdjustStrategyPositionPreview {
-  const snap = post.toSnapshot(
-    totalValueInUnderlying(post, converter.convert, DUST_THRESHOLD),
-  );
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
+  const priced = market.valueInUnderlying(post.balances.toAssets());
+  const snap = post.toSnapshot(priced.value);
   const suite = sdk.marketRegister.findCreditManager(post.creditManager);
   const oracle = market.priceOracle;
   return {
@@ -337,6 +335,10 @@ function buildAdjustPreview(
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD)
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    error: converter.error,
+    error:
+      converter.error ??
+      (priced.unpriceable
+        ? unpriceableTokenError(priced.unpriceable)
+        : undefined),
   };
 }

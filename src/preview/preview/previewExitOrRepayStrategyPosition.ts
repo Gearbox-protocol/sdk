@@ -1,6 +1,7 @@
-import type {
-  ExitStrategyPositionPreview,
-  RepayStrategyPositionPreview,
+import {
+  asEstimated,
+  type ExitStrategyPositionPreview,
+  type RepayStrategyPositionPreview,
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
@@ -18,6 +19,7 @@ import type {
   PreviewOperationOptions,
 } from "../types.js";
 import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
+import { unpriceableTokenError } from "./errors.js";
 import {
   type ReplayMulticallResult,
   replayMulticall,
@@ -76,7 +78,13 @@ function previewCloseCreditAccount<P extends PluginsMap>(
     operation.creditManager,
   );
 
-  const { after, error } = replay;
+  const { before, after, error: replayError } = replay;
+  const account = after.account;
+  let error = replayError;
+  const priced = market.valueInUnderlying(account.balances.toAssets());
+  if (priced.unpriceable) {
+    error ??= unpriceableTokenError(priced.unpriceable);
+  }
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   // in case of RWA markets, withdrawn token might be underlying (dcUSDC)
@@ -92,7 +100,11 @@ function previewCloseCreditAccount<P extends PluginsMap>(
   return {
     operation: "CloseCreditAccount",
     permanent,
-    ...suite.creditOperationMarket(),
+    ...asEstimated(
+      sdk.positions.projection(account.toSnapshot(priced.value), {
+        availableLiquidityChange: before.totalDebt - account.totalDebt,
+      }),
+    ),
     creditAccount: operation.creditAccount,
     name: suite.accountStrategyName(operation.creditAccount),
     targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
@@ -123,6 +135,7 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   );
 
   const { before, after, error: replayError } = replay;
+  const account = after.account;
 
   const { assets: collateralAdded, error: unwrapError } =
     unwrapNativeCollateral(
@@ -130,22 +143,28 @@ function previewRepayCreditAccount<P extends PluginsMap>(
       value,
       sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
     );
-  const error = replayError ?? unwrapError;
+  let error = replayError ?? unwrapError;
+  const priced = market.valueInUnderlying(account.balances.toAssets());
+  if (priced.unpriceable) {
+    error ??= unpriceableTokenError(priced.unpriceable);
+  }
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   return {
     operation: "RepayCreditAccount",
     permanent,
-    ...suite.creditOperationMarket(),
+    ...asEstimated(
+      sdk.positions.projection(account.toSnapshot(priced.value), {
+        availableLiquidityChange: before.totalDebt - account.totalDebt,
+      }),
+    ),
     creditAccount: operation.creditAccount,
     name: suite.accountStrategyName(operation.creditAccount),
     targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
     collateralAdded: collateralAdded.map(a =>
       market.priceOracle.toTokenAmount(a.token, a.balance),
     ),
-    debtRepaid: market.toUnderlyingAmount(
-      before.totalDebt - after.account.totalDebt,
-    ),
+    debtRepaid: market.toUnderlyingAmount(before.totalDebt - account.totalDebt),
     // On a malformed multicall the MAX_UINT256 withdrawal sentinel resolves
     // against best-effort replayed balances and may be unreliable
     collateralWithdrawn: after.collateralWithdrawn

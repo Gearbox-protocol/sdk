@@ -15,6 +15,7 @@ import type {
   OnchainSDK,
 } from "../../../index.js";
 import { CreditSuite } from "../../../market/credit/CreditSuite.js";
+import { MarketSuite } from "../../../market/MarketSuite.js";
 import { calcMaxLeverage, usdToNumber } from "../../../market/math.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
@@ -402,6 +403,10 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       underlying: args.underlying,
     },
   };
+
+  Object.assign(market, {
+    valueInUnderlying: MarketSuite.prototype.valueInUnderlying,
+  });
 
   // Bit `i` of the forbidden mask is `collateralTokens[i]`, so the mock needs a
   // token order to put the flags on.

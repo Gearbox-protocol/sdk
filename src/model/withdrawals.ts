@@ -3,6 +3,22 @@ import type { DelayedIntent } from "./delayed-intents.js";
 import type { Timestamp, Token, TokenAmount, TxCall } from "./primitives.js";
 
 /**
+ * One token amount a delayed withdrawal produces, and when.
+ **/
+export interface WithdrawalOutputAmount extends TokenAmount {
+  /**
+   * `false` when the amount lands on the credit account as the withdrawal is
+   * requested or claimed. `true` when it does not: the token is then the
+   * withdrawal phantom standing for a part that has not matured, and another
+   * claim is needed for it.
+   *
+   * A withdrawal that produces both at once is a legacy Mellow multivault: it
+   * serves whatever its subvaults hold liquid and queues the remainder.
+   **/
+  isDelayed: boolean;
+}
+
+/**
  * A delayed withdrawal of a strategy position that has matured and can be claimed.
  **/
 export interface PositionClaimableWithdrawal {
@@ -16,9 +32,12 @@ export interface PositionClaimableWithdrawal {
    **/
   withdrawalPhantomToken: TokenAmount;
   /**
-   * Tokens received by the credit account upon claiming.
+   * What the claim credits the account with. Everything a venue that answers
+   * whole produces lands at once; one that pays in instalments credits part of
+   * it as a fresh withdrawal position, see
+   * {@link WithdrawalOutputAmount.isDelayed}.
    **/
-  outputs: TokenAmount[];
+  outputs: WithdrawalOutputAmount[];
   /**
    * Adapter call that executes the claim. Subcompressors always report exactly
    * one call; it is wrapped into a facade multicall by `assembleClaimDelayedCalls`.
@@ -51,9 +70,10 @@ export interface PositionPendingWithdrawal {
   withdrawalPhantomToken: Token;
   /**
    * Estimated tokens the position will receive once the withdrawal
-   * matures and is claimed.
+   * matures and is claimed, see {@link WithdrawalOutputAmount.isDelayed} for
+   * the ones a single claim will not bring.
    **/
-  expectedOutputs: TokenAmount[];
+  expectedOutputs: WithdrawalOutputAmount[];
   /**
    * Unix timestamp (in seconds) when the withdrawal becomes claimable.
    **/

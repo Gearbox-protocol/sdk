@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type {
   Bps,
+  Curator,
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
   PositionCollateral,
@@ -9,10 +10,12 @@ import type {
   StrategyPosition,
   StrategyPositionKey,
   Timestamp,
+  TokenAmount,
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
   Asset,
+  ClaimRemainder,
   DelayedStart,
   LeverageBand,
   MultiCall,
@@ -21,6 +24,7 @@ import type {
   PoolSimulation,
   ResumableIntent,
   RouteRefusals,
+  WithdrawCeilings,
 } from "../../onchain/index.js";
 import type {
   AccountFlowError,
@@ -32,6 +36,7 @@ import type {
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
   OpenFlowError,
+  UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
@@ -42,6 +47,7 @@ export type {
   LeverageBand,
   OperationState,
   PathLossRate,
+  WithdrawCeilings,
 } from "../../onchain/index.js";
 /**
  * The vocabulary the failure half of everything below is written in.
@@ -52,6 +58,32 @@ export type {
  * defined in the intents engine and have no second home here.
  **/
 export * from "../../onchain/validation/refusal.js";
+
+/**
+ * Where a pool operation leaves the wallet: the two sides of the trade as
+ * `sdk.pools` prices them, plus what a screen needs beside them and the raw
+ * simulation cannot know — whose market this is, and how large the position
+ * ends up.
+ **/
+export interface LpState extends PoolSimulation {
+  /**
+   * Curator of the market the pool belongs to, in the same shape
+   * {@link PoolOpportunity} and {@link CreditOperationMarket} report it.
+   **/
+  curator: Curator;
+  /**
+   * The wallet's position in this pool once the operation has run, in the
+   * market's underlying.
+   *
+   * Denominated like {@link PoolPosition.netValue}, so a screen showing both
+   * reads one token: on an RWA market that is the unwrapped asset — USDC
+   * rather than the dcUSDC the pool actually holds.
+   *
+   * Does not account for withdrawal fee: this is what the remaining shares
+   * are worth, not what leaving with them would pay.
+   **/
+  netValue: TokenAmount;
+}
 
 /**
  * What a pool deposit or withdrawal comes to.
@@ -69,10 +101,11 @@ export interface LpResult {
    **/
   operations: [];
   /**
-   * What the wallet parts with and what it receives, plus the zapper the
-   * transaction goes through when one is involved.
+   * What the wallet parts with and what it receives, the zapper the
+   * transaction goes through when one is involved, and where the position ends
+   * up, see {@link LpState}.
    **/
-  state: PoolSimulation;
+  state: LpState;
   /**
    * The transaction implementing the operation: exactly one, since a pool
    * operation is a single call on the pool or on its zapper.
@@ -108,6 +141,25 @@ export interface StrategyResult {
   blockNumber: number;
   /** Unix seconds of {@link blockNumber}. */
   timestamp: Timestamp;
+}
+
+/**
+ * What the tail of a delayed operation comes to: {@link StrategyResult}, plus
+ * whether the claim it was built on settled the withdrawal whole.
+ **/
+export interface FinalizeResult extends StrategyResult {
+  /**
+   * What the claim did not bring, when the venue paid out part of the matured
+   * withdrawal and left the rest of it queued — only a legacy Mellow multivault
+   * does. `undefined` everywhere else, which is the normal case: one request,
+   * one claim, one tail.
+   *
+   * When it is set, the result beside it serves only the share that arrived,
+   * and the operation is not over: pass `remainder.intent` back to
+   * {@link IOpportunitiesPrepare.finalize} with the next claim, see
+   * {@link ClaimRemainder}.
+   **/
+  remainder: ClaimRemainder | undefined;
 }
 
 /**
@@ -391,7 +443,10 @@ export interface FinalizeParams extends PrepareOptions {
    * The operation to resume. Defaults to the one the request recorded in the
    * withdrawal's `extraData`, which is what
    * {@link PositionClaimableWithdrawal.intent} decodes; pass it explicitly
-   * when the compressor is too old to report it.
+   * when the compressor is too old to report it — as a Mellow one is, since a
+   * Mellow request cannot carry an intent at all — or when a previous claim
+   * served only part of the operation and left one in
+   * {@link FinalizeResult.remainder}.
    **/
   intent?: ResumableIntent;
 }
@@ -408,11 +463,9 @@ export interface FinalizeParams extends PrepareOptions {
  *
  * Every refusable method answers `SDKReturn` and names, in its own signature,
  * exactly the errors its flow can refuse with — the union is the list of
- * everything a caller has to handle, checked by the compiler. An async flow
- * never throws: a chain that cannot be reached or a crash on the way arrives
- * as `unexpectedFailure` with the cause attached. The synchronous LP flows
- * only do arithmetic on loaded state, so their one refusal is the unroutable
- * pair — anything else there is a bug or a lifecycle error, and it throws.
+ * everything a caller has to handle, checked by the compiler. None of them
+ * throws: a chain that cannot be reached or a crash on the way arrives as
+ * `unexpectedFailure` with the cause attached.
  *
  * The bare readers stay outside the envelope: the `max*` ceilings answer their
  * number and throw on an account or chain the SDK does not hold, and the two
@@ -424,13 +477,16 @@ export interface IOpportunitiesPrepare {
   /**
    * Depositing into a pool: underlying in, shares out.
    *
-   * Synchronous, unlike every strategy method below: the answer is the pool's
-   * share rate applied to the amount, and that rate is already loaded.
+   * The trade itself is the pool's share rate applied to the amount, which is
+   * loaded already; the wait is for the one thing that is not, the shares the
+   * wallet holds, without which {@link LpState.netValue} cannot be said.
    **/
   deposit(
     pool: PoolInput,
     params: LpParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  >;
 
   /**
    * Taking underlying out of a pool: `amount` is the `tokenOut` the wallet
@@ -442,7 +498,9 @@ export interface IOpportunitiesPrepare {
   withdraw(
     pool: PoolInput,
     params: LpParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  >;
 
   /**
    * Redeeming pool shares: `amount` is the `tokenIn` the wallet parts with,
@@ -451,7 +509,9 @@ export interface IOpportunitiesPrepare {
   redeem(
     pool: PoolInput,
     params: LpRedeemParams,
-  ): SDKReturn<LpResult, UnsupportedTokenPairError>;
+  ): Promise<
+    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+  >;
 
   /**
    * Opening a leveraged position from wallet collateral.
@@ -539,19 +599,26 @@ export interface IOpportunitiesPrepare {
   >;
 
   /**
-   * Largest partial withdrawal {@link withdrawStrategy} accepts, in underlying
-   * units: the amount whose proportional repayment leaves the debt at the
-   * credit manager's `minDebt`. Between this and the account's net value the
-   * flow refuses — the leftover loan would sit below `minDebt` — and at the net
-   * value it turns into an exit.
+   * How much {@link withdrawStrategy} can take out, both ends of it, in
+   * underlying units: `partial` is the largest withdrawal that keeps leverage
+   * and leaves the debt at the credit manager's `minDebt`, `exit` is the net
+   * value leaving entirely hands over.
    *
-   * Taking everything out needs none of this arithmetic: send `MAX_UINT256` to
-   * {@link withdrawStrategy} and the exit is what runs.
+   * Two numbers rather than one because the range has a hole in it: between
+   * them the flow refuses with `debtOutOfRange`, since the leftover loan would
+   * sit below the floor. A form driving a slider off `partial` and a Max
+   * button off `exit` describes what the account can actually do; a form using
+   * either alone will misstate one of them — see {@link WithdrawCeilings},
+   * which spells out how far apart they can be.
    *
-   * A bare read: it answers its number, and throws on an account or a chain
+   * Taking everything out needs neither figure: send `MAX_UINT256` to
+   * {@link withdrawStrategy} and the exit is what runs, named rather than
+   * priced.
+   *
+   * A bare read: it answers its numbers, and throws on an account or a chain
    * the SDK does not hold.
    **/
-  maxWithdraw(position: PositionInput): Promise<bigint>;
+  maxWithdraw(position: PositionInput): Promise<WithdrawCeilings>;
 
   /**
    * Paying debt down with funds from the wallet: collateral stays where it is,
@@ -719,13 +786,18 @@ export interface IOpportunitiesPrepare {
    *
    * Answers like the instant flows, so both halves are consumed the same way.
    * Reports `noRecordedIntent` when the claim names no operation to resume.
+   *
+   * A claim can settle only part of what was queued — a legacy Mellow
+   * multivault pays out what it holds liquid and re-queues the rest — and then
+   * the result serves that share and `remainder` says what is left, see
+   * {@link FinalizeResult.remainder}.
    **/
   finalize(
     position: PositionInput,
     params: FinalizeParams,
   ): Promise<
     SDKReturn<
-      StrategyResult,
+      FinalizeResult,
       | AccountFlowError
       | NoRecordedIntentError
       | NoDelayedRouteError

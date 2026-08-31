@@ -433,9 +433,10 @@ describe("checkOperation", () => {
     });
   });
 
-  it("leaves a close alone: there is no position left for the bars to weigh", () => {
-    // Close and repay carry neither a debt nor a health factor. Reading their
-    // absence as an unread factor would refuse every wind-down.
+  it("leaves a close alone: the bars do not weigh a wound-down account", () => {
+    // Close and repay now carry a projection, but the loan is gone, so the
+    // health-factor bars would no-op. Only the market's own state can refuse
+    // one, and this fixture's market is live.
     const issues = checkOperation(
       {
         sdk,
@@ -472,6 +473,18 @@ describe("checkOperation — pool operations", () => {
         wrappedAddress: null,
       },
       shareRate: 10n ** 27n,
+      curator: { address: POOL, url: null },
+      netValue: {
+        token: {
+          chainId: 1,
+          address: WSTETH,
+          symbol: "wstETH",
+          name: "Wrapped liquid staked Ether 2.0",
+          decimals: 18,
+        },
+        value: 10n ** 18n,
+        valueUsd: null,
+      },
       tokenIn: {
         token: toToken(sdk, WSTETH),
         value: 10n ** 18n,

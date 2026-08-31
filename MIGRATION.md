@@ -233,6 +233,7 @@ npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 - **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to the simulator, which refuses such a deposit before there is calldata to preview.
 - **Previews report the safe factor** beside the main one (`estSafeHealthFactor` beside `estHealthFactor`), and so does a simulation (`OperationState.safeHealthFactor`); both are always filled in, whether or not the operation hands funds over. On the `est` prefix, see [Two amounts per swap](#two-amounts-per-swap-est-on-what-only-the-floor-is-known-for).
 - **`checkSimulation`** applies a caller's stricter bars to a simulation the engine already accepted, and `checkOperation`/`checkCollateralised` take `currentHealthFactor`/`improvesFrom`, so an operation that raises the factor is not refused from under the bar.
+- **`prepare.finalize` reports a claim that settled only part of a withdrawal**, which a legacy Mellow multivault answers with: it serves that share and returns the rest as `remainder`, see [A claim can settle only part of a delayed withdrawal](#a-claim-can-settle-only-part-of-a-delayed-withdrawal).
 
 ### Replace the flat validators with the checks
 
@@ -402,7 +403,7 @@ checked by the compiler.
 
 | method | error union |
 | --- | --- |
-| `deposit` / `withdraw` / `redeem` | `UnsupportedTokenPairError` (sync — bugs still throw) |
+| `deposit` / `withdraw` / `redeem` | `UnsupportedTokenPairError` + unexpectedFailure |
 | `openNewStrategy` | `OpenFlowError` + debtOutOfRange, leverageOutOfRange, unsupportedTokenPair, insufficientPoolLiquidity, noStrategyTargetCollateral |
 | `depositStrategy` | `AccountFlowError` + debtOutOfRange, leverageOutOfRange, unsupportedCollateralToken, unsupportedTokenPair, insufficientPoolLiquidity |
 | `repayStrategy` | `AccountFlowError` + debtOutOfRange, unsupportedCollateralToken |
@@ -414,9 +415,9 @@ checked by the compiler.
 
 `poolSunset`, `quotaCountExceeded` and `malformedTransaction` are preview-only
 and appear in no prepare union — the exactness type tests refuse them.
-`maxWithdraw`, `maxRepay` and `maxWithdrawCollateral` return bare
-`Promise<bigint>` and throw on a missing account; `leverageBand` and
-`withdrawableCollaterals` stay as they were.
+`maxRepay` and `maxWithdrawCollateral` return bare `Promise<bigint>` and throw
+on a missing account, and so does `maxWithdraw` — but it answers two numbers,
+see below; `leverageBand` and `withdrawableCollaterals` stay as they were.
 
 `preview` speaks the same envelope: `previewOperation` returns
 `SDKReturn<OperationPreview, PreviewOperationError>` where the union is the
@@ -455,6 +456,125 @@ raw tsc output: `docs/plans/precise-error-unions.impact.md`):
 **gearbox-backend — zero new errors** (it does not consume the facade);
 **client-v3 — 34 errors in 7 files**, led by `useSimulate.ts` (14) and
 `useClaimDelayedWithdrawal.ts` (7) — the seed of its own migration plan.
+
+### A pool operation says whose market it is and where it leaves the wallet
+
+`prepare.deposit`, `prepare.withdraw` and `prepare.redeem` used to report the
+trade alone — what goes in, what comes out, which zapper. A screen showing one
+wants two things more, and had to fetch both itself: the curator whose market
+this is, and the size the position ends up at. Both are on the state now, which
+is an **`LpState`**: the `PoolSimulation` `sdk.pools` returns, plus
+
+- **`curator`** — the same `Curator` object `PoolOpportunity` and every credit
+  result carry, so one label renders from any of them;
+- **`netValue`** — what the wallet will hold in this pool once the
+  transaction lands, in the market's underlying: the shares it holds now, moved
+  by the ones this operation mints or burns. A first deposit lands at the size
+  of the deposit. It is denominated like `PoolPosition.netValue` — the unwrapped
+  asset, USDC rather than the dcUSDC an RWA pool holds — so a position row and a
+  preparation of it read one token, and it takes no withdrawal fee off, being
+  what the shares are worth rather than what leaving with them pays.
+
+The shares a wallet holds are the one thing about a pool operation the SDK
+cannot work out from loaded state, so **the three LP methods are async now**:
+
+```diff
+- const sim = sdk.opportunities.prepare.deposit(pool, { amount, wallet });
++ const sim = await sdk.opportunities.prepare.deposit(pool, { amount, wallet });
+  if (isSDKError(sim)) return showRefusal(sim.error);
++ showPositionAfter(sim.data.state.netValue);
+```
+
+With the read comes the failure it can have, so their union gains
+`unexpectedFailure` — and with it the rule the strategy flows already followed:
+**an LP preparation no longer throws**. What used to come out as an exception —
+a chain the SDK does not hold, an SDK not attached yet — is `unexpectedFailure`
+with the cause attached.
+
+The read itself is public, for callers that want it without preparing anything:
+`sdk.chain(id).pools.getShareBalance({ pool, wallet })` gives the shares, and
+`sharesToUnderlying(pool, shares)` prices any share count the way a position
+row is priced.
+
+### `maxWithdraw` reports both ends of a scale that has a hole in it
+
+`prepare.maxWithdraw` answered one `bigint`: the largest **partial** withdrawal,
+the one whose proportional repayment leaves the debt at the manager's
+`minDebt`. That is the top of the slider, and forms read it as the top of the
+scale — which it is not. Leaving entirely settles the loan instead of shrinking
+it, so the floor does not apply and the whole net value can go; between the two
+the flow refuses with `debtOutOfRange`.
+
+The distance between them is the account's own, `≈ C0 · minDebt / D0`, and on an
+account borrowing at the floor it is nearly everything: only the interest
+accrued above `minDebt` can be repaid, so the partial ceiling collapses to dust
+beside a net value that can be withdrawn in full by leaving. A Max button wired
+to the old answer told such a wallet it could free a few wei, or a third of its
+money, and the close it then ran handed over all of it.
+
+So the read answers both, as a **`WithdrawCeilings`**:
+
+```diff
+- const max = await sdk.opportunities.prepare.maxWithdraw(position);
+- showMax(max);
++ const { partial, exit } = await sdk.opportunities.prepare.maxWithdraw(position);
++ setSliderRange(0n, partial); // what a withdrawal may ask for
++ showMax(exit);               // what leaving hands over
+```
+
+Send `MAX_UINT256` for the Max button rather than `exit` itself: the exit is
+then named rather than derived, and no rounding in the payout token's price can
+drop the request back into the refused band. Nothing else changed — it is still
+a bare read that throws on an account the SDK does not hold, and `maxRepay` and
+`maxWithdrawCollateral` still answer a plain `bigint`.
+
+### A claim can settle only part of a delayed withdrawal
+
+`prepare.finalize` used to assume what every redemption venue but one does: a
+request queues an amount, one claim brings all of it, one tail finishes the
+operation. A legacy Mellow multivault pays out what its subvaults hold liquid
+and re-queues the rest, so its claim credits an instant output **and** a delayed
+one — and accounts holding those phantoms are still around.
+
+The tail now serves the share that arrived and says what is left, so the result
+is a **`FinalizeResult`**: a `StrategyResult` with one field more.
+
+```diff
+  const tail = await sdk.opportunities.prepare.finalize(position, {
+    claimable,
++   // a Mellow request cannot carry an intent, so it is passed in — as is the
++   // one a previous partial claim left behind
++   intent,
+  });
+  if (isSDKError(tail)) return showRefusal(tail.error.code, tail.error);
+  await send(tail.data.calls);
++ if (tail.data.remainder) {
++   // not over: come back with the next claim and the intent this one did not
++   // serve, in tail.data.remainder.intent
++   showStillInFlight(tail.data.remainder.inFlight);
++ }
+```
+
+`remainder` is `undefined` for every venue that answers whole, which is the
+normal case and the only one that existed before. When it is set, a withdrawal
+splits its payout and its deferred repayment in the proportion that arrived — so
+the two claims together pay the wallet once and the loan once — a deleveraging
+puts what came into the debt as it always did, and an exit repays instead of
+selling, because the account cannot be emptied while a phantom sits on it. A
+claim that credited nothing at all is now planned as a claim alone rather than
+refused with `insufficientSourceBalance`: sending it is what moves the queue.
+
+The engine's `finishIntent` mirrors this: it returns `FinishIntentResult`, which
+is its old `ok` union plus `remainder: ClaimRemainder | undefined`.
+
+For any of it to be visible, the read model had to stop flattening what the
+compressor reports: the outputs of a withdrawal are **`WithdrawalOutputAmount`**
+now, a `TokenAmount` with the `isDelayed` the compressor puts on it. It is on
+`PositionClaimableWithdrawal.outputs` and `PositionPendingWithdrawal.expectedOutputs`,
+both read through `sdk.positions.getCurrentWithdrawals()`, and it is what tells
+an output that lands from one that is another phantom. Code that only reads
+`token` and `value` off them needs no change; code that builds one — a fixture,
+a mock — has a field to fill in.
 
 ### Two amounts per swap: `est` on what only the floor is known for
 

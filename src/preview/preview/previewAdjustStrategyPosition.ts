@@ -1,7 +1,6 @@
 import {
   type AdjustStrategyPositionPreview,
   asEstimated,
-  ERROR_UNPRICEABLE_TOKEN,
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
@@ -17,6 +16,7 @@ import type {
   PreviewOperationInput,
   PreviewOperationOptions,
 } from "../types.js";
+import { unpriceableTokenError } from "./errors.js";
 import { replayMulticall } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -69,20 +69,11 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
   //
   // On a malformed multicall the replayed balances the sum is taken over are
   // best-effort and may be unreliable.
-  const totalValue = account.balances
-    .toAssets(DUST_THRESHOLD)
-    .reduce((acc, { token, balance }) => {
-      try {
-        return acc + oracle.convert(token, market.underlying, balance);
-      } catch {
-        error ??= {
-          code: ERROR_UNPRICEABLE_TOKEN,
-          message: `cannot price token ${token}`,
-        };
-        return acc;
-      }
-    }, 0n);
-  const snap = account.toSnapshot(totalValue);
+  const priced = market.valueInUnderlying(account.balances.toAssets());
+  if (priced.unpriceable) {
+    error ??= unpriceableTokenError(priced.unpriceable);
+  }
+  const snap = account.toSnapshot(priced.value);
 
   return {
     operation: "AdjustCreditAccount",

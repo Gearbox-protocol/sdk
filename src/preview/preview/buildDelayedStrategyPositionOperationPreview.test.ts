@@ -9,6 +9,7 @@ import {
   type OnchainSDK,
 } from "../../onchain/index.js";
 import { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
+import { MarketSuite } from "../../onchain/market/MarketSuite.js";
 import { PositionsService } from "../../onchain/positions/PositionsService.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
@@ -110,64 +111,86 @@ const metricsSdk = (() => {
       mustGetToken,
     },
     marketRegister: {
-      findByCreditManager: () => ({
-        underlying: UNDERLYING,
-        // {@inheritDoc MarketSuite.toUnderlyingAmount} — an underlying-denominated
-        // figure names USDC, the asset the dcUSDC share wraps one-for-one
-        toUnderlyingAmount: (value: bigint) => ({
-          token: mustGetToken(USDC),
-          value,
-          valueUsd: null,
-        }),
-        pool: {
+      findByCreditManager: () => {
+        const m = {
           underlying: UNDERLYING,
-          pool: { baseInterestRate: 0n },
-          pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
-        },
-        priceOracle: {
-          convertToUSD: (token: Address, amount: bigint) => {
-            const addr = getAddress(token);
-            const price = prices[addr];
-            if (price === undefined) {
-              throw new Error(`no answer found for token ${token}`);
-            }
-            const d = decimals[addr] ?? 18;
-            return (amount * price) / 10n ** BigInt(d);
-          },
-          // what `PositionsService` collects the metrics from; a token with no
-          // price throws, as the real oracle does, and is left out of the sum
-          mainPrice: (token: Address) => {
-            const price = prices[getAddress(token)];
-            if (price === undefined) {
-              throw new Error(`no answer found for token ${token}`);
-            }
-            return price;
-          },
-          // the stub has one feed per token, so safe prices are the main ones
-          reservePrice: (token: Address) => {
-            const price = prices[getAddress(token)];
-            if (price === undefined) {
-              throw new Error(`no answer found for token ${token}`);
-            }
-            return price;
-          },
-          safeConvertToUSD: (token: Address, amount: bigint) => {
-            const addr = getAddress(token);
-            const price = prices[addr];
-            if (price === undefined) {
-              return null;
-            }
-            const d = decimals[addr] ?? 18;
-            return (amount * price) / 10n ** BigInt(d);
-          },
-          safeUsdValue,
-          toAmount,
-          toTokenAmount: (token: Address, value: bigint) => ({
-            token: mustGetToken(token),
-            ...toAmount(token, value),
+          // {@inheritDoc MarketSuite.toUnderlyingAmount} — an underlying-denominated
+          // figure names USDC, the asset the dcUSDC share wraps one-for-one
+          toUnderlyingAmount: (value: bigint) => ({
+            token: mustGetToken(USDC),
+            value,
+            valueUsd: null,
           }),
-        },
-      }),
+          pool: {
+            underlying: UNDERLYING,
+            pool: { baseInterestRate: 0n },
+            pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
+          },
+          priceOracle: {
+            convertToUSD: (token: Address, amount: bigint) => {
+              const addr = getAddress(token);
+              const price = prices[addr];
+              if (price === undefined) {
+                throw new Error(`no answer found for token ${token}`);
+              }
+              const d = decimals[addr] ?? 18;
+              return (amount * price) / 10n ** BigInt(d);
+            },
+            // what `PositionsService` collects the metrics from; a token with no
+            // price throws, as the real oracle does, and is left out of the sum
+            mainPrice: (token: Address) => {
+              const price = prices[getAddress(token)];
+              if (price === undefined) {
+                throw new Error(`no answer found for token ${token}`);
+              }
+              return price;
+            },
+            // the stub has one feed per token, so safe prices are the main ones
+            reservePrice: (token: Address) => {
+              const price = prices[getAddress(token)];
+              if (price === undefined) {
+                throw new Error(`no answer found for token ${token}`);
+              }
+              return price;
+            },
+            // Same rates as the injected `convert` below: WETH is 2000
+            // underlying per unit, everything else 1:1. Null when unknown,
+            // so `valueInUnderlying` can name the miss.
+            safeConvert: (from: Address, to: Address, amount: bigint) => {
+              const rates: Partial<Record<Address, bigint>> = {
+                [UNDERLYING]: 1n,
+                [USDC]: 1n,
+                [PHANTOM]: 1n,
+                [WETH]: 2000n,
+              };
+              const src = rates[getAddress(from)];
+              const dst = rates[getAddress(to)];
+              if (src === undefined || dst === undefined) {
+                return null;
+              }
+              return (amount * src) / dst;
+            },
+            safeConvertToUSD: (token: Address, amount: bigint) => {
+              const addr = getAddress(token);
+              const price = prices[addr];
+              if (price === undefined) {
+                return null;
+              }
+              const d = decimals[addr] ?? 18;
+              return (amount * price) / 10n ** BigInt(d);
+            },
+            safeUsdValue,
+            toAmount,
+            toTokenAmount: (token: Address, value: bigint) => ({
+              token: mustGetToken(token),
+              ...toAmount(token, value),
+            }),
+          },
+        };
+        return Object.assign(m, {
+          valueInUnderlying: MarketSuite.prototype.valueInUnderlying,
+        });
+      },
       findCreditManager: () => ({
         name: "TOKEN / TOKEN",
         strategyName: "TOKEN / TOKEN",
@@ -296,6 +319,14 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       // total value (underlying + claimed USDC at 1:1) minus total debt,
       // denominated in the unwrapped underlying (1:1 with the vault share)
       receivedAmount: amt(USDC, 88300811096n + 22070460800n - 88300819164n),
+      totalDebt: und(0n),
+      estAssets: [],
+      estTotalValue: und(0n),
+      estNetValue: und(0n),
+      estHealthFactor: 65535,
+      estLeverage: 0,
+      estTimeToLiquidation: null,
+      estLiquidationPrice: null,
       error: undefined,
     });
   });

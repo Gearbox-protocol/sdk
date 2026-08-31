@@ -13,9 +13,9 @@ import type {
   UnderlyingToken,
 } from "../../model/index.js";
 import { isFilterSet, matchesOpportunityFilter } from "../../model/index.js";
-import type { MarketData } from "../base/index.js";
-import { SDKConstruct } from "../base/index.js";
+import { type Asset, type MarketData, SDKConstruct } from "../base/index.js";
 import { isRWAToken, isSunsetPool } from "../chain/chains.js";
+import { DUST_THRESHOLD } from "../constants/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
@@ -30,6 +30,24 @@ import type { IPriceOracleContract } from "./oracle/index.js";
 import { createPriceOracle } from "./oracle/index.js";
 import { PoolSuite } from "./pool/index.js";
 import type { IRWAFactory } from "./rwa/types.js";
+
+/**
+ * Oracle estimate of a bag of holdings in this market's underlying.
+ *
+ * Tokens the oracle cannot price contribute `0` and are named on
+ * {@link unpriceable} (the first miss). Callers that speak preview errors map
+ * that address to `ERROR_UNPRICEABLE_TOKEN` themselves.
+ **/
+export interface ValueInUnderlying {
+  /**
+   * Sum of converted balances, in the pool underlying's decimals.
+   **/
+  value: bigint;
+  /**
+   * First token with no price; omitted if every entry converted.
+   **/
+  unpriceable?: Address;
+}
 
 /**
  * Aggregates all SDK wrappers that make up one Gearbox market.
@@ -161,6 +179,18 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
+   * Whether `token` is this market's pool underlying or the asset it wraps
+   * (dcUSDC or USDC on an RWA pool). Amounts in either unit are 1:1 with the
+   * figure {@link toUnderlyingAmount} reports.
+   */
+  public isUnderlyingLike(token: Address): boolean {
+    return (
+      isAddressEqual(token, this.underlying) ||
+      isAddressEqual(token, this.unwrappedUnderlying)
+    );
+  }
+
+  /**
    * Prices a figure already denominated in this market's underlying — a debt,
    * a TVL, a payout — as the read model reports one.
    *
@@ -175,6 +205,39 @@ export class MarketSuite extends SDKConstruct {
     token: this.underlyingToken,
     ...this.priceOracle.toAmount(this.underlying, value),
   });
+
+  /**
+   * Sums `assets` in this market's underlying at latest oracle prices.
+   *
+   * Balances at or below `minBalance` are ignored. A token the oracle cannot
+   * price contributes nothing; the first such token is {@link ValueInUnderlying.unpriceable}.
+   *
+   * The counterpart of {@link toUnderlyingAmount}: that method labels a figure
+   * already in underlying, this one produces the figure from mixed holdings.
+   **/
+  public valueInUnderlying(
+    assets: Asset[],
+    minBalance: bigint = DUST_THRESHOLD,
+  ): ValueInUnderlying {
+    let unpriceable: Address | undefined;
+    let value = 0n;
+    for (const { token, balance } of assets) {
+      if (balance <= minBalance) {
+        continue;
+      }
+      const converted = this.priceOracle.safeConvert(
+        token,
+        this.underlying,
+        balance,
+      );
+      if (converted === null) {
+        unpriceable ??= token;
+        continue;
+      }
+      value += converted;
+    }
+    return unpriceable === undefined ? { value } : { value, unpriceable };
+  }
 
   /**
    * Display name of this market's pool, e.g. `"USDC Pool"`.
@@ -204,10 +267,7 @@ export class MarketSuite extends SDKConstruct {
       this.pool.pool.address,
     )) {
       const tokenIn = zapper.tokenIn.addr;
-      if (
-        isAddressEqual(tokenIn, this.pool.underlying) ||
-        isAddressEqual(tokenIn, this.unwrappedUnderlying)
-      ) {
+      if (this.isUnderlyingLike(tokenIn)) {
         continue;
       }
       seen.upsert(tokenIn, this.tokensMeta.mustGetToken(tokenIn));

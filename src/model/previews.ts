@@ -140,23 +140,24 @@ export interface PoolPositionOperationPreview {
    */
   underlyingToken: UnderlyingToken;
   /**
-   * Token that goes from user to pool
-   * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit
-   * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out
+   * Token that goes from user to pool.
+   * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit.
+   * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out.
    *
-   * For mint/withdraw the amount of tokenIn cannot be determined from
-   * transaction calldata alone and requires an additional async call
-   * (previewMint/previewWithdraw).
+   * On withdraw, this is the amount of shares burend that covers both the requested payout
+   * and the fee.
+   *
+   * On redeem this is the shares from calldata, fee-free.
    */
   tokenIn: TokenAmount;
   /**
-   * Token that goes from pool to user
-   * In case of deposit, pool shares (diesel token) for direct deposit or zapper token out
-   * In case of withdraw, underlying for direct withdraw or zapper token in
+   * Token that goes from pool to user.
+   * In case of deposit, pool shares (diesel token) for direct deposit or zapper token out.
+   * In case of withdraw, underlying for direct withdraw or zapper token in.
    *
-   * For deposit/redeem the amount of tokenOut cannot be determined from
-   * transaction calldata alone and requires an additional async call
-   * (previewDeposit/previewRedeem).
+   * On withdraw this is the requested underlying.
+   * On redeem this is the underlying after `withdrawFee`, so less than
+   * the burned shares are worth.
    */
   tokenOut: TokenAmount;
   /**
@@ -164,6 +165,21 @@ export interface PoolPositionOperationPreview {
    * (`1e27`).
    */
   shareRate: bigint;
+  /**
+   * Curator of the market this pool belongs to
+   */
+  curator: Curator;
+  /**
+   * Remaining LP after this transaction: the same quantity
+   * {@link PoolPosition.netValue} reports for a live position, denominated in
+   * the market's unwrapped underlying. For RWA markets this is USDC rather than
+   * dcUSDC (the pool's on-chain underlying) or diesel shares.
+   *
+   * Does not account for withdraw fee: this is what the remaining shares are worth, not
+   * what leaving with them would pay. The fee shows up on {@link tokenIn} /
+   * {@link tokenOut} instead.
+   */
+  netValue: TokenAmount;
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort
@@ -526,12 +542,8 @@ export interface AdjustStrategyPositionPreview
  * What an exit transaction that already exists would do — the counterpart of
  * `prepare.withdrawStrategy` asked for everything, read off calldata rather
  * than planned into it.
- *
- * Carries no {@link AccountProjection}: the account it describes ends up empty,
- * so there is no position left to weigh — what a caller wants to know is the
- * payout. The market it happened in is still named, as everywhere else.
  **/
-export interface ExitStrategyPositionPreview extends CreditOperationMarket {
+export interface ExitStrategyPositionPreview extends EstimatedProjection {
   operation: "CloseCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -564,7 +576,8 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the
-   * balance-derived `receivedAmount` may be unreliable in that case.
+   * balance-derived `receivedAmount` and the projected holdings may be
+   * unreliable in that case.
    */
   error?: OperationPreviewError;
 }
@@ -573,11 +586,8 @@ export interface ExitStrategyPositionPreview extends CreditOperationMarket {
  * What a settling repayment that already exists would do — the counterpart of
  * `prepare.repayStrategy` asked for the whole debt, read off calldata rather
  * than planned into it.
- *
- * Carries no {@link AccountProjection} for the same reason the exit does not:
- * the loan ends here, so the risk metrics have nothing left to describe.
  **/
-export interface RepayStrategyPositionPreview extends CreditOperationMarket {
+export interface RepayStrategyPositionPreview extends EstimatedProjection {
   operation: "RepayCreditAccount";
   /**
    * True when the account is closed permanently (facade `closeCreditAccount`
@@ -623,7 +633,8 @@ export interface RepayStrategyPositionPreview extends CreditOperationMarket {
   /**
    * Set when preview encountered non-fatal errors, all fields are
    * still computed best-effort, but the
-   * balance-derived `collateralWithdrawn` may be unreliable in that case.
+   * balance-derived `collateralWithdrawn` and the projected holdings may be
+   * unreliable in that case.
    */
   error?: OperationPreviewError;
 }

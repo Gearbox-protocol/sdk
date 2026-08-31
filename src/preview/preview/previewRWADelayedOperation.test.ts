@@ -626,6 +626,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
           token: expect.objectContaining({ address: spec.withdrawToken }),
           value: expect.toBeWithinBps(walletReceived.close.amount),
         },
+        totalDebt: und(0n),
+        estAssets: [],
+        estHealthFactor: 65535,
+        estLeverage: 0,
       },
     });
 
@@ -675,6 +679,10 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         token: expect.objectContaining({ address: spec.withdrawToken }),
         value: expect.toBeWithinBps(walletReceived.close.amount, 300n),
       },
+      totalDebt: { value: 0n },
+      estAssets: [],
+      estHealthFactor: 65535,
+      estLeverage: 0,
     });
   });
 });
