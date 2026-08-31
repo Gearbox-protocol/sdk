@@ -625,7 +625,10 @@ export class PositionsService extends SDKConstruct {
         w.withdrawalPhantomToken,
         w.withdrawalTokenSpent,
       ),
-      outputs: w.outputs.map(o => priceOracle.toTokenAmount(o.token, o.amount)),
+      outputs: w.outputs.map(o => ({
+        ...priceOracle.toTokenAmount(o.token, o.amount),
+        isDelayed: o.isDelayed,
+      })),
       claimCall: this.#claimTx(w.claimCalls, w.token),
       redeemer: w.redeemer,
       intent: w.intent,
@@ -641,9 +644,10 @@ export class PositionsService extends SDKConstruct {
       withdrawalPhantomToken: this.sdk.tokensMeta.mustGetToken(
         w.withdrawalPhantomToken,
       ),
-      expectedOutputs: w.expectedOutputs.map(o =>
-        priceOracle.toTokenAmount(o.token, o.amount),
-      ),
+      expectedOutputs: w.expectedOutputs.map(o => ({
+        ...priceOracle.toTokenAmount(o.token, o.amount),
+        isDelayed: o.isDelayed,
+      })),
       claimableAt: Number(w.claimableAt),
       redeemer: w.redeemer,
       intent: w.intent,

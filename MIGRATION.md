@@ -233,6 +233,7 @@ npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 - **`checkOperation` weighs a pool payout** against the liquidity the pool holds, refusing at equality as the legacy withdrawal validator did. It does **not** check whether a deposit has a route — that belongs to the simulator, which refuses such a deposit before there is calldata to preview.
 - **Previews report the safe factor** beside the main one (`estSafeHealthFactor` beside `estHealthFactor`), and so does a simulation (`OperationState.safeHealthFactor`); both are always filled in, whether or not the operation hands funds over. On the `est` prefix, see [Two amounts per swap](#two-amounts-per-swap-est-on-what-only-the-floor-is-known-for).
 - **`checkSimulation`** applies a caller's stricter bars to a simulation the engine already accepted, and `checkOperation`/`checkCollateralised` take `currentHealthFactor`/`improvesFrom`, so an operation that raises the factor is not refused from under the bar.
+- **`prepare.finalize` reports a claim that settled only part of a withdrawal**, which a legacy Mellow multivault answers with: it serves that share and returns the rest as `remainder`, see [A claim can settle only part of a delayed withdrawal](#a-claim-can-settle-only-part-of-a-delayed-withdrawal).
 
 ### Replace the flat validators with the checks
 
@@ -455,6 +456,54 @@ raw tsc output: `docs/plans/precise-error-unions.impact.md`):
 **gearbox-backend — zero new errors** (it does not consume the facade);
 **client-v3 — 34 errors in 7 files**, led by `useSimulate.ts` (14) and
 `useClaimDelayedWithdrawal.ts` (7) — the seed of its own migration plan.
+
+### A claim can settle only part of a delayed withdrawal
+
+`prepare.finalize` used to assume what every redemption venue but one does: a
+request queues an amount, one claim brings all of it, one tail finishes the
+operation. A legacy Mellow multivault pays out what its subvaults hold liquid
+and re-queues the rest, so its claim credits an instant output **and** a delayed
+one — and accounts holding those phantoms are still around.
+
+The tail now serves the share that arrived and says what is left, so the result
+is a **`FinalizeResult`**: a `StrategyResult` with one field more.
+
+```diff
+  const tail = await sdk.opportunities.prepare.finalize(position, {
+    claimable,
++   // a Mellow request cannot carry an intent, so it is passed in — as is the
++   // one a previous partial claim left behind
++   intent,
+  });
+  if (isSDKError(tail)) return showRefusal(tail.error.code, tail.error);
+  await send(tail.data.calls);
++ if (tail.data.remainder) {
++   // not over: come back with the next claim and the intent this one did not
++   // serve, in tail.data.remainder.intent
++   showStillInFlight(tail.data.remainder.inFlight);
++ }
+```
+
+`remainder` is `undefined` for every venue that answers whole, which is the
+normal case and the only one that existed before. When it is set, a withdrawal
+splits its payout and its deferred repayment in the proportion that arrived — so
+the two claims together pay the wallet once and the loan once — a deleveraging
+puts what came into the debt as it always did, and an exit repays instead of
+selling, because the account cannot be emptied while a phantom sits on it. A
+claim that credited nothing at all is now planned as a claim alone rather than
+refused with `insufficientSourceBalance`: sending it is what moves the queue.
+
+The engine's `finishIntent` mirrors this: it returns `FinishIntentResult`, which
+is its old `ok` union plus `remainder: ClaimRemainder | undefined`.
+
+For any of it to be visible, the read model had to stop flattening what the
+compressor reports: the outputs of a withdrawal are **`WithdrawalOutputAmount`**
+now, a `TokenAmount` with the `isDelayed` the compressor puts on it. It is on
+`PositionClaimableWithdrawal.outputs` and `PositionPendingWithdrawal.expectedOutputs`,
+both read through `sdk.positions.getCurrentWithdrawals()`, and it is what tells
+an output that lands from one that is another phantom. Code that only reads
+`token` and `value` off them needs no change; code that builds one — a fixture,
+a mock — has a field to fill in.
 
 ### Two amounts per swap: `est` on what only the floor is known for
 

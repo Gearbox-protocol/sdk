@@ -181,11 +181,13 @@ import type {
   PositionClaimableWithdrawal,
   PositionPendingWithdrawal,
   PositionWithdrawals,
+  WithdrawalOutputAmount,
 } from "./withdrawals.js";
 import type {
   positionClaimableWithdrawalSchema,
   positionPendingWithdrawalSchema,
   positionWithdrawalsSchema,
+  withdrawalOutputAmountSchema,
 } from "./withdrawals.schema.js";
 
 /**
@@ -437,6 +439,9 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof delayedIntentSchema>
     >().toEqualTypeOf<DelayedIntent>();
+    expectTypeOf<
+      z.infer<typeof withdrawalOutputAmountSchema>
+    >().toEqualTypeOf<WithdrawalOutputAmount>();
     expectTypeOf<
       z.infer<typeof positionClaimableWithdrawalSchema>
     >().toEqualTypeOf<PositionClaimableWithdrawal>();

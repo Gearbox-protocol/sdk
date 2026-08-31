@@ -139,9 +139,9 @@ flowchart TD
   w --> wq{"claim credits something now?"}
   d --> dq{"claim credits something now?"}
   x --> xq{"claim credits something now?"}
-  wq -->|"no"| e2["insufficientSourceBalance"]
-  dq -->|"no"| e2
-  xq -->|"no"| e2
+  wq -->|"no, and nothing queued"| e2["insufficientSourceBalance"]
+  dq -->|"no, and nothing queued"| e2
+  xq -->|"no, and nothing queued"| e2
   wq --> wp["planFinishWithdraw: four shapes"]
   dq --> dp["claim, convert(claimed → U, all), repay(raised)"]
   xq --> xp["planFinishCloseAccount: the instant exit, over again"]
@@ -216,6 +216,48 @@ For the operations that were never interrupted by the delay — collateral added
 leverage raised, a deposit — the claim is the whole tail: the tokens land on the
 account and only their quota has to catch up.
 
+### A claim that matured in part
+
+Every venue above answers a redemption whole: one request, one claim, one tail.
+A legacy Mellow multivault does not — it pays out what its subvaults hold liquid
+and re-queues the rest — so its claim credits an instant output **and** a delayed
+one, the phantom it names is burned and a fresh one minted for the remainder,
+and the operation is not over when the tail has run.
+
+The engine cannot finish an intent it was handed a fraction of the funds for, so
+the fraction is what it serves. `finalize` reports the rest as `remainder`:
+
+```ts
+const tail = await sdk.opportunities.prepare.finalize(position, {
+  claimable,
+  intent, // a Mellow request carries none, so it is passed in
+});
+if (tail.ok && tail.data.remainder) {
+  // send tail.data.calls now, then come back with the next claim and
+  // tail.data.remainder.intent — which is this operation minus what was
+  // just served
+}
+```
+
+- **`WITHDRAW_COLLATERAL`** — the payout `W` and the deferred repayment `dD` are
+  cut in the proportion that arrived. Serving them whole out of half the claim
+  would pay the wallet in full now and deleverage a claim later, which is not
+  the fixed leverage the withdrawal asked for; in proportion, each claim moves
+  both, and the two add up to exactly one payout and one repayment.
+- **`DECREASE_LEVERAGE`** — everything claimed goes into the debt already, so a
+  claim at a time needs no adjusting.
+- **`CLOSE_ACCOUNT`** — the exit cannot run while a withdrawal is in flight: the
+  phantom can neither be sold nor swept, and `closeAll` refuses it
+  (`withdrawalInProgress`). So a partial claim only repays what it brought, and
+  the account is emptied by the claim that brings the last of it.
+- **nothing credited at all** — the claim is taken alone. It is still worth
+  sending: it is what moves the queue, and it mints the phantom the next claim
+  is made from.
+
+The share is measured against the phantom the claim left behind, which stands
+for its payout one for one — the same reading the request half takes when it
+names the claim it expects — so only the decimals of the two are reconciled.
+
 ## Notes
 
 - The tail is planned at claim time, not stored: only then are the claimed amount
@@ -229,4 +271,5 @@ account and only their quota has to catch up.
   [`finish-withdraw.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-withdraw.onchain.test.ts),
   [`finish-decrease-leverage.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-decrease-leverage.onchain.test.ts),
   [`finish-claim-only.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-claim-only.onchain.test.ts),
-  [`finish-close-account.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-close-account.onchain.test.ts).
+  [`finish-close-account.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-close-account.onchain.test.ts),
+  [`finish-partial.onchain.test.ts`](../../src/onchain/accounts/intents/tests/finish-partial.onchain.test.ts).

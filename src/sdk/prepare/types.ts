@@ -13,6 +13,7 @@ import type {
 import type {
   AccountCalculatorOperation,
   Asset,
+  ClaimRemainder,
   DelayedStart,
   LeverageBand,
   MultiCall,
@@ -108,6 +109,25 @@ export interface StrategyResult {
   blockNumber: number;
   /** Unix seconds of {@link blockNumber}. */
   timestamp: Timestamp;
+}
+
+/**
+ * What the tail of a delayed operation comes to: {@link StrategyResult}, plus
+ * whether the claim it was built on settled the withdrawal whole.
+ **/
+export interface FinalizeResult extends StrategyResult {
+  /**
+   * What the claim did not bring, when the venue paid out part of the matured
+   * withdrawal and left the rest of it queued — only a legacy Mellow multivault
+   * does. `undefined` everywhere else, which is the normal case: one request,
+   * one claim, one tail.
+   *
+   * When it is set, the result beside it serves only the share that arrived,
+   * and the operation is not over: pass `remainder.intent` back to
+   * {@link IOpportunitiesPrepare.finalize} with the next claim, see
+   * {@link ClaimRemainder}.
+   **/
+  remainder: ClaimRemainder | undefined;
 }
 
 /**
@@ -391,7 +411,10 @@ export interface FinalizeParams extends PrepareOptions {
    * The operation to resume. Defaults to the one the request recorded in the
    * withdrawal's `extraData`, which is what
    * {@link PositionClaimableWithdrawal.intent} decodes; pass it explicitly
-   * when the compressor is too old to report it.
+   * when the compressor is too old to report it — as a Mellow one is, since a
+   * Mellow request cannot carry an intent at all — or when a previous claim
+   * served only part of the operation and left one in
+   * {@link FinalizeResult.remainder}.
    **/
   intent?: ResumableIntent;
 }
@@ -719,13 +742,18 @@ export interface IOpportunitiesPrepare {
    *
    * Answers like the instant flows, so both halves are consumed the same way.
    * Reports `noRecordedIntent` when the claim names no operation to resume.
+   *
+   * A claim can settle only part of what was queued — a legacy Mellow
+   * multivault pays out what it holds liquid and re-queues the rest — and then
+   * the result serves that share and `remainder` says what is left, see
+   * {@link FinalizeResult.remainder}.
    **/
   finalize(
     position: PositionInput,
     params: FinalizeParams,
   ): Promise<
     SDKReturn<
-      StrategyResult,
+      FinalizeResult,
       | AccountFlowError
       | NoRecordedIntentError
       | NoDelayedRouteError

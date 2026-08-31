@@ -1,7 +1,11 @@
 import type { Address } from "viem";
 import type { OnchainSDK } from "../../index.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
-import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
+import { toTokenAmount } from "../../validation/token.js";
+import type {
+  ClaimableWithdrawal,
+  WithdrawalOutput,
+} from "../withdrawal-compressor/types.js";
 import {
   type AccountCalculatorOperation,
   instantOutput,
@@ -17,13 +21,22 @@ import {
 } from "./plan.js";
 import { realize } from "./realize.js";
 import type {
+  ClaimRemainder,
   CreditAccountSlice,
   DelayedStart,
   OperationState,
   ResumableIntent,
 } from "./types.js";
+import { toTargetDecimals } from "./utils/common.js";
 import { createOraclePaths } from "./utils/router-path.js";
 import { accountView } from "./view.js";
+
+/** The steps a claim leads to, and what it left behind for a later one. */
+export interface TailPlan {
+  steps: Step[];
+  /** {@inheritDoc ClaimRemainder} */
+  remainder: ClaimRemainder | undefined;
+}
 
 /**
  * The second half of a delayed intent: the claim, then whatever the intent
@@ -32,12 +45,16 @@ import { accountView } from "./view.js";
  * Shared by the two callers that need it and must not disagree — the tail as
  * it is previewed days later against the account that really exists, and the
  * tail as it is projected the moment the request is made.
+ *
+ * A claim that brought only part of what was queued is served in proportion,
+ * see {@link partialTail}: the intent's payout and its repayment are cut to the
+ * share that arrived, and the rest of both is handed to the next claim.
  */
 export function planTail(args: {
   intent: ResumableIntent;
   claimable: ClaimableWithdrawal;
   view: AccountView;
-}): Step[] {
+}): TailPlan {
   const { intent, claimable, view } = args;
 
   // What the claim credits on the spot, which is what the tail spends.
@@ -53,18 +70,23 @@ export function planTail(args: {
     return output;
   };
 
+  const queued = claimable.outputs.find(o => o.isDelayed && o.amount > 0n);
+  if (queued) {
+    return partialTail({ intent, claimable, queued, view });
+  }
+
   switch (intent.type) {
     case "WITHDRAW_COLLATERAL":
-      return planFinishWithdraw(intent, claimable, claimed(), view);
+      return whole(planFinishWithdraw(intent, claimable, claimed(), view));
     case "DECREASE_LEVERAGE":
-      return planFinishDecreaseLeverage(claimable, claimed(), view);
+      return whole(planFinishDecreaseLeverage(claimable, claimed(), view));
     case "CLOSE_ACCOUNT":
-      return planFinishCloseAccount(intent, claimable, claimed(), view);
+      return whole(planFinishCloseAccount(intent, claimable, claimed(), view));
     case "ADD_COLLATERAL":
     case "INCREASE_LEVERAGE":
     case "DEPOSIT":
     case "DEPOSIT_AND_INCREASE_LEVERAGE":
-      return planFinishClaimOnly(claimable);
+      return whole(planFinishClaimOnly(claimable));
     default: {
       // disposition(D1-S6): kept — unreachable invariant; decodeDelayedIntent
       // already refuses unknown intent types before a ResumableIntent exists.
@@ -73,6 +95,118 @@ export function planTail(args: {
       throw new Error(`${(intent as ResumableIntent).type} - not implemented`);
     }
   }
+}
+
+const whole = (steps: Step[]): TailPlan => ({ steps, remainder: undefined });
+
+/**
+ * The tail of a claim that settled only part of the withdrawal it matured.
+ *
+ * Only a legacy Mellow multivault answers one this way — it pays out what its
+ * subvaults hold liquid and queues the rest — and the engine cannot finish an
+ * intent it has been given a fraction of the funds for. So the fraction is what
+ * it serves: the payout and the repayment are cut in the proportion that
+ * arrived, which keeps the withdrawal at the fixed leverage it was asked for
+ * instead of paying the wallet out first and deleveraging a claim later, and
+ * the untouched half of each is carried to the next claim by the remainder.
+ *
+ * Two intents cannot be served in part at all. An exit sells the account whole,
+ * and it cannot while a withdrawal is in flight — the phantom is neither
+ * sellable nor transferable — so a partial claim only repays what it brought
+ * and the account is emptied by the claim that brings the last of it. A claim
+ * that credited nothing at all leaves nothing to spend, so it is taken alone:
+ * it is still worth sending, since it is what moves the queue.
+ */
+function partialTail(args: {
+  intent: ResumableIntent;
+  claimable: ClaimableWithdrawal;
+  queued: WithdrawalOutput;
+  view: AccountView;
+}): TailPlan {
+  const { intent, claimable, queued, view } = args;
+  const inFlight = toTokenAmount(view.sdk, queued.token, queued.amount);
+  const claimed = instantOutput(claimable.outputs);
+
+  if (!claimed) {
+    return {
+      steps: planFinishClaimOnly(claimable),
+      remainder: { inFlight, intent },
+    };
+  }
+
+  switch (intent.type) {
+    case "WITHDRAW_COLLATERAL": {
+      const served = arrivedShare(claimed, queued, view.sdk);
+      const withdrawAmount = part(intent.withdrawAmount, served);
+      const debtRepaid = part(intent.debtRepaid, served);
+      return {
+        steps: planFinishWithdraw(
+          { ...intent, withdrawAmount, debtRepaid },
+          claimable,
+          claimed,
+          view,
+        ),
+        remainder: {
+          inFlight,
+          intent: {
+            ...intent,
+            withdrawAmount: intent.withdrawAmount - withdrawAmount,
+            debtRepaid: intent.debtRepaid - debtRepaid,
+          },
+        },
+      };
+    }
+    // Both put everything the claim brought into the debt, which needs no
+    // adjusting to be done a claim at a time.
+    case "DECREASE_LEVERAGE":
+    case "CLOSE_ACCOUNT":
+      return {
+        steps: planFinishDecreaseLeverage(claimable, claimed, view),
+        remainder: { inFlight, intent },
+      };
+    case "ADD_COLLATERAL":
+    case "INCREASE_LEVERAGE":
+    case "DEPOSIT":
+    case "DEPOSIT_AND_INCREASE_LEVERAGE":
+      return {
+        steps: planFinishClaimOnly(claimable),
+        remainder: { inFlight, intent },
+      };
+    default: {
+      // disposition(D1-S6): kept — the same unreachable invariant planTail's
+      // own switch guards, on the same typed ResumableIntent union.
+      const _exhaustive: never = intent;
+      void _exhaustive;
+      throw new Error(`${(intent as ResumableIntent).type} - not implemented`);
+    }
+  }
+}
+
+/**
+ * How much of the redemption this claim was: what it credited, over that plus
+ * what it left queued.
+ *
+ * The phantom stands for its payout one for one — the same reading the request
+ * side takes when it names the claim it expects — so only the decimals of the
+ * two have to be reconciled before they can be added up.
+ */
+function arrivedShare(
+  claimed: { token: Address; amount: bigint },
+  queued: WithdrawalOutput,
+  sdk: OnchainSDK,
+): { got: bigint; of: bigint } {
+  const rest = toTargetDecimals(
+    queued.amount,
+    queued.token,
+    claimed.token,
+    sdk,
+  );
+  return { got: claimed.amount, of: claimed.amount + rest };
+}
+
+/** A share of an amount, rounded down: a tail never promises more than it has. */
+function part(amount: bigint, share: { got: bigint; of: bigint }): bigint {
+  return share.of > 0n ? (amount * share.got) / share.of : 0n;
 }
 
 /**
@@ -121,7 +255,10 @@ export async function projectTail(args: {
   }
 
   const next = sliceAfter(creditAccount, delayed.afterRequest);
-  const steps = planTail({
+  // The projected claim brings the whole queue by construction, so this walk
+  // never leaves a remainder — what a venue that pays in instalments does to a
+  // real claim is discovered by the claim, not predicted here.
+  const { steps } = planTail({
     intent: delayed.record,
     claimable: projectedClaimable(request, queued.token, queued.amount, claim),
     view: accountView(next, sdk),

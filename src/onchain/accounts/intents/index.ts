@@ -40,11 +40,13 @@ import {
 import { realize } from "./realize.js";
 import { planTail, projectTail } from "./tail.js";
 import type {
+  ClaimRemainder,
   CreditAccountSlice,
   DelayableIntent,
   DelayedStart,
   DelayedStartResult,
   FinishIntentProps,
+  FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
   RouteRefusals,
@@ -61,12 +63,14 @@ export type {
 export type {
   AddCollateralIntent,
   AdjustLeverageIntent,
+  ClaimRemainder,
   DelayableIntent,
   DelayedRoute,
   DelayedStart,
   DelayedStartResult,
   DepositStrategyIntent,
   FinishIntentProps,
+  FinishIntentResult,
   InstantRoute,
   IntentRoutesResult,
   OperationState,
@@ -402,21 +406,32 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * whole tail: the tokens land on the account and only their quota has to
    * catch up.
    *
+   * A claim that brought only part of what the request queued — a legacy Mellow
+   * multivault, which pays out what it holds liquid and re-queues the rest — is
+   * served in proportion, and what it did not settle comes back as `remainder`:
+   * the withdrawal still in flight and the intent to finish it with.
+   *
    * @param props - The recorded intent, the account slice as it stands now, and
    * the matured claimable
-   * @returns Shaped exactly like {@link startIntent}'s result, so both halves of
-   * an operation are consumed the same way
+   * @returns Shaped exactly like {@link startIntent}'s result with the remainder
+   * beside it, so both halves of an operation are consumed the same way
    */
-  async finishIntent(props: FinishIntentProps): Promise<IntentPreviewResult> {
-    return plain(
-      await this.#preview(props, () =>
-        planTail({
-          intent: props.intent,
-          claimable: props.claimable,
-          view: accountView(props.creditAccount, props.sdk),
-        }),
-      ),
-    );
+  async finishIntent(props: FinishIntentProps): Promise<FinishIntentResult> {
+    let remainder: ClaimRemainder | undefined;
+    const result = await this.#preview(props, () => {
+      const tail = planTail({
+        intent: props.intent,
+        claimable: props.claimable,
+        view: accountView(props.creditAccount, props.sdk),
+      });
+      remainder = tail.remainder;
+      return tail.steps;
+    });
+    if (!result.ok) {
+      return result;
+    }
+    const { operations, state, calls } = result;
+    return { ok: true, operations, state, calls, remainder };
   }
 
   /**

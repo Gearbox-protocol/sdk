@@ -30,6 +30,7 @@ import type {
   WithRouteRefusals,
 } from "./errors.js";
 import type {
+  FinalizeResult,
   IOpportunitiesPrepare,
   LeverageBand,
   LpResult,
@@ -206,7 +207,7 @@ describe("every prepare method names exactly its own refusals", () => {
   it("finalize: the account-flow guards plus the tail's own codes", () => {
     expectTypeOf<Awaited<ReturnType<P["finalize"]>>>().toEqualTypeOf<
       SDKReturn<
-        StrategyResult,
+        FinalizeResult,
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError

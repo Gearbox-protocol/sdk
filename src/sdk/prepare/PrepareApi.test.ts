@@ -527,9 +527,23 @@ describe("PrepareApi — the two-transaction route", () => {
   ): PositionClaimableWithdrawal => ({
     sourceToken: amount(POS, 0n).token,
     withdrawalPhantomToken: amount(POS2, 10000000000n),
-    outputs: [amount(UND, 10000000000n)],
+    outputs: [{ ...amount(UND, 10000000000n), isDelayed: false }],
     claimCall: { to: POS, callData: "0x" },
     intent,
+  });
+
+  /**
+   * The same redemption from a venue that pays in instalments: half of it is
+   * here, half is a fresh withdrawal position.
+   **/
+  const halfClaimableOf = (
+    intent: DelayedIntent | undefined,
+  ): PositionClaimableWithdrawal => ({
+    ...claimableOf(intent),
+    outputs: [
+      { ...amount(UND, 5000000000n), isDelayed: false },
+      { ...amount(POS2, 5000000000n), isDelayed: true },
+    ],
   });
 
   it("withdrawStrategy requests the redemption and records the tail", async () => {
@@ -586,6 +600,34 @@ describe("PrepareApi — the two-transaction route", () => {
     expect(result).toEqual({
       ok: false,
       error: { code: "noRecordedIntent", message: expect.any(String) },
+    });
+  });
+
+  it("finalize hands back what a claim that matured in part did not settle", async () => {
+    const { api, position } = buildStrategyApi(venue);
+
+    const result = await api.finalize(position, {
+      claimable: halfClaimableOf({
+        type: "WITHDRAW_COLLATERAL",
+        to: WALLET,
+        sourceToken: POS,
+        withdrawToken: UND,
+        withdrawAmount: 10000000000n,
+        debtRepaid: 0n,
+      }),
+    });
+
+    const prepared = plan(result);
+    // Half the redemption is still in flight, so the operation is not over:
+    // the caller comes back with the next claim and the intent this tail did
+    // not serve.
+    expect(prepared.remainder?.inFlight).toMatchObject({
+      token: expect.objectContaining({ address: POS2 }),
+      value: 5000000000n,
+    });
+    expect(prepared.remainder?.intent).toMatchObject({
+      type: "WITHDRAW_COLLATERAL",
+      withdrawAmount: 5000000000n,
     });
   });
 

@@ -17,6 +17,7 @@ import type {
   CreditAccountSlice,
   DelayableIntent,
   DelayedIntentExtended,
+  FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
   LeverageBand,
@@ -61,6 +62,7 @@ import type {
   AdjustLeverageParams,
   DepositStrategyParams,
   FinalizeParams,
+  FinalizeResult,
   IOpportunitiesPrepare,
   LpParams,
   LpRedeemParams,
@@ -146,7 +148,7 @@ export class PrepareApi
     params: FinalizeParams,
   ): Promise<
     SDKReturn<
-      StrategyResult,
+      FinalizeResult,
       | AccountFlowError
       | NoRecordedIntentError
       | NoDelayedRouteError
@@ -167,7 +169,7 @@ export class PrepareApi
       if (!creditAccount) {
         return sdkErr(creditAccountNotFound(position.creditAccount));
       }
-      return planned(
+      return finalized(
         await service(sdk).finishIntent({
           intent,
           claimable: toClaimableWithdrawal(params.claimable),
@@ -733,7 +735,7 @@ function toClaimableWithdrawal(
     outputs: claimable.outputs.map(o => ({
       token: o.token.address,
       amount: o.value,
-      isDelayed: false,
+      isDelayed: o.isDelayed,
     })),
     claimCalls: [
       {
@@ -791,6 +793,23 @@ function planned<E extends IGearboxError>(
   }
   const { operations, state, calls } = result;
   return sdkOk({ operations, state, calls, ...at });
+}
+
+/**
+ * {@inheritDoc planned}
+ *
+ * A tail carries one thing the other results do not: whether the claim it was
+ * built on finished the withdrawal, or left part of it queued for another one.
+ **/
+function finalized<E extends IGearboxError>(
+  result: FinishIntentResult,
+  at: PreparedAt,
+): SDKReturn<FinalizeResult, E> {
+  if (!result.ok) {
+    return refusal<E>(result);
+  }
+  const { operations, state, calls, remainder } = result;
+  return sdkOk({ operations, state, calls, remainder, ...at });
 }
 
 /**
