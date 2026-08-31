@@ -275,6 +275,10 @@ export const positionTransactionKindSchema = z.union([
   z.literal("addCollateral"),
   z.literal("withdrawCollateral"),
   z.literal("liquidation"),
+  z.literal("repay"),
+  z.literal("rebalance"),
+  z.literal("composite"),
+  z.literal("unknown"),
 ]);
 
 /**
@@ -285,4 +289,6 @@ export const positionTransactionSchema = z.object({
   timestamp: timestampSchema,
   kind: positionTransactionKindSchema,
   assets: z.array(tokenAmountSchema),
+  balanceChanges: z.array(tokenAmountSchema),
+  debtChange: tokenAmountSchema,
 });

@@ -602,12 +602,32 @@ export type PositionTransactionKind =
   | "adjustLeverage"
   | "addCollateral"
   | "withdrawCollateral"
-  | "liquidation";
+  | "liquidation"
+  | "repay"
+  /**
+   * The transaction only moved value inside the account — a swap, a claim or a
+   * quota change — without any borrower cash flow or debt movement.
+   **/
+  | "rebalance"
+  /**
+   * The transaction did several of the above at once (money moved both in and
+   * out, or debt both grew and shrank), so no single kind describes it.
+   **/
+  | "composite"
+  /**
+   * The indexed history shows no cash flow and no debt movement the backend
+   * can attribute, so the intent is not decidable. Never a synonym for "no
+   * change" — it means "not classifiable from what is indexed".
+   **/
+  | "unknown";
 
 /**
  * One transaction in a position's history, from the backend's indexer.
  **/
 export interface PositionTransaction {
+  /**
+   * Hash of the transaction.
+   **/
   txHash: Hex;
   /**
    * Unix seconds of the block the transaction was mined in.
@@ -615,7 +635,25 @@ export interface PositionTransaction {
   timestamp: Timestamp;
   kind: PositionTransactionKind;
   /**
-   * Assets the transaction moved, in the direction the kind implies.
+   * Net magnitudes of the assets the borrower moved. A directional kind
+   * supplies the direction; callers must not infer one for `composite` or
+   * `unknown` transactions.
    **/
   assets: TokenAmount[];
+  /**
+   * Signed change of every credit-account token balance caused by the
+   * transaction. Positive values were added to the account; negative values
+   * left it. Tokens whose balance did not change are omitted.
+   **/
+  balanceChanges: TokenAmount[];
+  /**
+   * Signed change of the position's total debt — principal plus accrued
+   * interest plus accrued fees — denominated in the market underlying. It is
+   * differenced between the backend's consecutive debt observations around
+   * the transaction, so it is what the borrower ends up owing, not the
+   * principal the transaction asked to move: a repayment outrun by accrued
+   * interest is positive, and a transaction that moved no principal at all
+   * can still carry the interest that accrued alongside it.
+   **/
+  debtChange: TokenAmount;
 }
