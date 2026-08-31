@@ -53,7 +53,7 @@ const WITHDRAW_META = { type: "classic", zapper: undefined } as const;
 const CALL = { target: POOL, callData: "0xdead" as const };
 
 /** What every LP state carries beside the trade; inert to `buildTx`. */
-const LP_MARKET = { curator: CURATOR, positionAfter: amount(UNDERLYING, 0n) };
+const LP_MARKET = { curator: CURATOR, netValue: amount(UNDERLYING, 0n) };
 
 /** A priced amount of `address`, which is what the simulations report in. */
 function amount(address: Address, value: bigint): TokenAmount {

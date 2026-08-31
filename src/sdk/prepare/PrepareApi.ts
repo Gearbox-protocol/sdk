@@ -909,7 +909,7 @@ async function lpState(
   return {
     ...simulation,
     curator: sdk.marketRegister.findByPool(pool).curator,
-    positionAfter: sdk.pools.sharesToUnderlying(pool, after > 0n ? after : 0n),
+    netValue: sdk.pools.sharesToUnderlying(pool, after > 0n ? after : 0n),
   };
 }
 

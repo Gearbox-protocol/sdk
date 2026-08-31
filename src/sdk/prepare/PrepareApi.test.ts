@@ -150,7 +150,7 @@ describe("PrepareApi.withdraw", () => {
     );
 
     // the fake burns 100 shares for the payout, off the 200 held
-    expect(prepared.state.positionAfter.value).toBe(HELD_SHARES - 100n);
+    expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
     expect(prepared.state.curator).toEqual(CURATOR);
   });
 
@@ -168,7 +168,7 @@ describe("PrepareApi.withdraw", () => {
       ),
     );
 
-    expect(prepared.state.positionAfter.value).toBe(0n);
+    expect(prepared.state.netValue.value).toBe(0n);
   });
 
   it("answers the failed read in the envelope rather than throwing it", async () => {
@@ -771,6 +771,6 @@ describe("PrepareApi.redeem", () => {
       ),
     );
 
-    expect(prepared.state.positionAfter.value).toBe(HELD_SHARES - 100n);
+    expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
   });
 });

@@ -80,7 +80,7 @@ export interface LpState extends PoolSimulation {
    * reads one token: on an RWA market that is the unwrapped asset — USDC
    * rather than the dcUSDC the pool actually holds.
    **/
-  positionAfter: TokenAmount;
+  netValue: TokenAmount;
 }
 
 /**
@@ -477,7 +477,7 @@ export interface IOpportunitiesPrepare {
    *
    * The trade itself is the pool's share rate applied to the amount, which is
    * loaded already; the wait is for the one thing that is not, the shares the
-   * wallet holds, without which {@link LpState.positionAfter} cannot be said.
+   * wallet holds, without which {@link LpState.netValue} cannot be said.
    **/
   deposit(
     pool: PoolInput,

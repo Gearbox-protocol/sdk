@@ -467,7 +467,7 @@ is an **`LpState`**: the `PoolSimulation` `sdk.pools` returns, plus
 
 - **`curator`** — the same `Curator` object `PoolOpportunity` and every credit
   result carry, so one label renders from any of them;
-- **`positionAfter`** — what the wallet will hold in this pool once the
+- **`netValue`** — what the wallet will hold in this pool once the
   transaction lands, in the market's underlying: the shares it holds now, moved
   by the ones this operation mints or burns. A first deposit lands at the size
   of the deposit. It is denominated like `PoolPosition.netValue` — the unwrapped
@@ -482,7 +482,7 @@ cannot work out from loaded state, so **the three LP methods are async now**:
 - const sim = sdk.opportunities.prepare.deposit(pool, { amount, wallet });
 + const sim = await sdk.opportunities.prepare.deposit(pool, { amount, wallet });
   if (isSDKError(sim)) return showRefusal(sim.error);
-+ showPositionAfter(sim.data.state.positionAfter);
++ showPositionAfter(sim.data.state.netValue);
 ```
 
 With the read comes the failure it can have, so their union gains
