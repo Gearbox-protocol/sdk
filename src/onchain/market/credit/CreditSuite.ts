@@ -410,8 +410,7 @@ export class CreditSuite extends SDKConstruct {
 
   /**
    * Describes this suite's leveraged strategy as the shared read model does,
-   * or `undefined` when {@link strategyTargetCollateral} cannot be resolved or
-   * {@link maxBorrowAmount} is at or below {@link MIN_STRATEGY_BORROW_AMOUNT}.
+   * or `undefined` when credit suite does not offer a strategy opportunity.
    */
   public strategyOpportunity(): StrategyOpportunity | undefined {
     if (this.maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
@@ -420,6 +419,16 @@ export class CreditSuite extends SDKConstruct {
 
     const collateral = this.strategyTargetCollateral;
     if (!collateral) {
+      return undefined;
+    }
+
+    // strategyTargetCollateral's legacy path does not perdorm any checks,
+    // because it's also used to determine position's strategy.
+    // To know if CreditSuite offers a strategy opportunity, we need do
+    // full check again
+    if (
+      !isStrategyCollateral(this.#strategyCollateralProps(collateral), true)
+    ) {
       return undefined;
     }
 
