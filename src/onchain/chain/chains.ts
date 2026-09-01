@@ -247,6 +247,10 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0xb79d6544839d169869476589d2e54014a074317b",
         "0xc307a074bd5aec2d6ad1d9b74465c24a59b490fd",
         "0xf5edc34204e67e592bdcb84114571c9e4bd0bdf7",
+        "0x29350A3C2627FB78C7E915cd59AF754edf8998c5",
+        "0x5A93bc6983F80f5c55675eA4e77bb46DdC9665e8",
+        "0x5415092F06403F30486EF846dBAE0532c6Bd8759",
+        "0x9D866298f6B8E168a06e313D47059f2C097A92F1",
       ]),
       isPublic: true,
       wellKnownToken: {
@@ -385,6 +389,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0x09cA6b76276eC0682adb896418b99CB7E44a58A0",
       "0x34752948B0dc28969485Df2066fFE86D5dc36689",
       "0x164A35F31e4E0F6c45D500962a6978D2cbD5a16b",
+      "0xc4173359087CE643235420b7bC610d9B0CF2B82D",
     ]),
     sunsetStrategies: new AddressSet([
       "0xA1F05494Dab74Eb9C352C3A042836579fE168aa7",
@@ -395,6 +400,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
       "0x04620081bb818B8CD3996943D0A4a37Dbf296cF4",
       "0x5452971Fc17d025a1AFFDd5F7a44CCDD1BF0524C",
       "0x7ea06087C63568f1071c6BEA3AeB51e070ec68B9",
+      "0x06F5b5062477DCf6723c30a76232A5C0B6FCb01A",
     ]),
     rwaFactories: [] as Address[],
     isPublic: true,
