@@ -1,25 +1,17 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
-import { PRICE_DECIMALS, WAD } from "../../../constants/math.js";
-import type { Asset, IPriceOracleContract } from "../../../index.js";
+import { WAD } from "../../../constants/math.js";
+import type { Asset } from "../../../index.js";
+import {
+  MockTokens,
+  type TestOracleToken,
+  TestPriceOracle,
+} from "../../../market/oracle/TestPriceOracle.mock.js";
 import { collectPriceImpact, type LegProbe, lossRate } from "./price-impact.js";
 
-const A = "0x1111111111111111111111111111111111111111" as Address;
-const B = "0x2222222222222222222222222222222222222222" as Address;
-const UND = "0x3333333333333333333333333333333333333333" as Address;
-
-/** Prices every token at `usd` per whole unit, with 18-decimal balances. */
-function oracle(usd: Record<Address, bigint>): IPriceOracleContract {
-  return {
-    safeConvertToUSD: (token: Address, amount: bigint) => {
-      const price = usd[token];
-      if (price === undefined) {
-        return { value: 0n };
-      }
-      return { value: (amount * price * PRICE_DECIMALS) / WAD };
-    },
-  } as unknown as IPriceOracleContract;
-}
+const A = MockTokens.WETH;
+const B = MockTokens.cbETH;
+const UND = MockTokens.DAI;
 
 function probe(
   over: Partial<LegProbe> & Pick<LegProbe, "realAmount">,
@@ -180,13 +172,16 @@ describe("collectPriceImpact", () => {
 
 describe("the probe basket", () => {
   /** Reaches `probeBasket` through the only door that exposes it. */
-  async function scaled(basket: Asset[], usd: Record<Address, bigint>) {
+  async function scaled(
+    basket: Asset[],
+    tokens: Record<Address, TestOracleToken>,
+  ) {
     const { startProbe } = await import("./price-impact.js");
     let seen: Asset[] | undefined;
     const started = startProbe({
       basket,
       tokenOut: UND,
-      oracle: oracle(usd),
+      oracle: new TestPriceOracle(tokens),
       route: async balances => {
         seen = balances;
         return 1n;
@@ -202,7 +197,7 @@ describe("the probe basket", () => {
         { token: A, balance: 100_000n * WAD },
         { token: B, balance: 100_000n * WAD },
       ],
-      { [A]: 1n, [B]: 3n },
+      { [A]: { price: 1 }, [B]: { price: 3 } },
     );
 
     expect(started).toBeDefined();
@@ -214,7 +209,7 @@ describe("the probe basket", () => {
 
   it("probes a small basket rather than refusing it", async () => {
     const { started } = await scaled([{ token: A, balance: 5n * WAD }], {
-      [A]: 1n,
+      [A]: { price: 1 },
     });
 
     // A dollar of a five-dollar position is barely marginal, and the reference
@@ -226,9 +221,7 @@ describe("the probe basket", () => {
   it("probes a basket that leaves room for a unit of it", async () => {
     const { started, seen } = await scaled(
       [{ token: A, balance: 100n * WAD }],
-      {
-        [A]: 1n,
-      },
+      { [A]: { price: 1 } },
     );
 
     // One dollar out of a hundred: the reference implementation's own anchor.
@@ -243,7 +236,7 @@ describe("the probe basket", () => {
         { token: B, balance: 1n * WAD },
       ],
       // No price for B.
-      { [A]: 1n },
+      { [A]: { price: 1 } },
     );
 
     // The reference implementation adds only what it can price, and scales the
@@ -259,7 +252,9 @@ describe("the probe basket", () => {
   });
 
   it("declines an empty basket", async () => {
-    const { started } = await scaled([{ token: A, balance: 0n }], { [A]: 1n });
+    const { started } = await scaled([{ token: A, balance: 0n }], {
+      [A]: { price: 1 },
+    });
 
     expect(started).toBeUndefined();
   });

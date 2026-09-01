@@ -1,11 +1,13 @@
 import type { Address } from "viem";
-import { getAddress } from "viem";
+import { getAddress, parseEther, parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Curator } from "../../model/index.js";
 import { AssetsMap, type OnchainSDK } from "../../onchain/index.js";
 import { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
-import { unpriceableTokenError } from "../../onchain/market/oracle/errors.js";
-import { PriceOracleBaseContract } from "../../onchain/market/oracle/PriceOracleBaseContract.js";
+import {
+  MockTokens,
+  TestPriceOracle,
+} from "../../onchain/market/oracle/TestPriceOracle.mock.js";
 import { PositionsService } from "../../onchain/positions/PositionsService.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
@@ -19,11 +21,10 @@ const CURATOR: Curator = {
   url: null,
 };
 // dcUSDC, the credit manager underlying (RWA vault share over USDC)
-const UNDERLYING = getAddress("0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D");
-const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-// Securitize redemption phantom token
-const PHANTOM = getAddress("0xF126EaCAcf6B14C8985fC195768A55E886Af4208");
-const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
+const UNDERLYING = MockTokens.dcUSDC;
+const USDC = MockTokens.USDC;
+const PHANTOM = MockTokens.srpACRED_USDC;
+const WETH = MockTokens.WETH;
 const OWNER = getAddress("0xC32FEB4DBd127a1993478Ad6E5250710f838b908");
 const UNPRICEABLE = getAddress("0x1111111111111111111111111111111111111111");
 
@@ -48,12 +49,6 @@ const metricsSdk = (() => {
     [PHANTOM]: 6,
     [WETH]: 18,
     [UNPRICEABLE]: 18,
-  };
-  const prices: Record<Address, bigint> = {
-    [UNDERLYING]: 10n ** 8n,
-    [USDC]: 10n ** 8n,
-    [PHANTOM]: 10n ** 8n,
-    [WETH]: 2000n * 10n ** 8n,
   };
   const lts: Record<Address, number> = {
     [UNDERLYING]: 9800,
@@ -82,34 +77,13 @@ const metricsSdk = (() => {
     }
     return meta;
   };
-  const safeUsdValue = (token: Address, amount: bigint) => {
-    const addr = getAddress(token);
-    const price = prices[addr];
-    if (price === undefined) {
-      return null;
-    }
-    const d = decimals[addr] ?? 18;
-    return Number((amount * price) / 10n ** BigInt(d)) / 1e8;
-  };
-  const toAmount = (token: Address, value: bigint) => ({
-    value,
-    valueUsd: safeUsdValue(token, value),
+  const priceOracle = new TestPriceOracle({
+    [UNDERLYING]: { price: 1, reservePrice: 1 },
+    [USDC]: { price: 1, reservePrice: 1 },
+    [PHANTOM]: { price: 1, reservePrice: 1 },
+    [WETH]: { price: 2000, reservePrice: 2000 },
+    [UNPRICEABLE]: {},
   });
-  const convertRates: Partial<Record<Address, bigint>> = {
-    [UNDERLYING]: 1n,
-    [USDC]: 1n,
-    [PHANTOM]: 1n,
-    [WETH]: 2000n,
-  };
-  const safeConvert = (from: Address, to: Address, amount: bigint) => {
-    const src = convertRates[getAddress(from)];
-    const dst = convertRates[getAddress(to)];
-    if (src === undefined || dst === undefined) {
-      return { value: 0n, error: unpriceableTokenError(from) };
-    }
-    return { value: (amount * src) / dst };
-  };
-  const proto = PriceOracleBaseContract.prototype;
   const sdk = {
     chainId: 1,
     chain: { nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 } },
@@ -137,50 +111,7 @@ const metricsSdk = (() => {
             pool: { baseInterestRate: 0n },
             pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
           },
-          priceOracle: {
-            convertToUSD: (token: Address, amount: bigint) => {
-              const addr = getAddress(token);
-              const price = prices[addr];
-              if (price === undefined) {
-                throw new Error(`no answer found for token ${token}`);
-              }
-              const d = decimals[addr] ?? 18;
-              return (amount * price) / 10n ** BigInt(d);
-            },
-            // what `PositionsService` collects the metrics from; a token with no
-            // price throws, as the real oracle does, and is left out of the sum
-            mainPrice: (token: Address) => {
-              const price = prices[getAddress(token)];
-              if (price === undefined) {
-                throw new Error(`no answer found for token ${token}`);
-              }
-              return price;
-            },
-            // the stub has one feed per token, so safe prices are the main ones
-            reservePrice: (token: Address) => {
-              const price = prices[getAddress(token)];
-              if (price === undefined) {
-                throw new Error(`no answer found for token ${token}`);
-              }
-              return price;
-            },
-            safeConvert,
-            safeConvertAssets: proto.safeConvertAssets,
-            safeConvertToUSD: (token: Address, amount: bigint) => {
-              const addr = getAddress(token);
-              const price = prices[addr];
-              if (price === undefined) {
-                return { value: 0n, error: unpriceableTokenError(token) };
-              }
-              const d = decimals[addr] ?? 18;
-              return { value: (amount * price) / 10n ** BigInt(d) };
-            },
-            toAmount,
-            toTokenAmount: (token: Address, value: bigint) => ({
-              token: mustGetToken(token),
-              ...toAmount(token, value),
-            }),
-          },
+          priceOracle,
         };
         return m;
       },
@@ -527,11 +458,16 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
     // RLUSD-style scenario: the withdrawal token is not on the account,
     // the claim funds both the withdrawal and the debt repayment
     const account = makeAccount({
-      balances: new AssetsMap([{ token: PHANTOM, balance: 100_000n }]),
-      debt: 50_000n,
-      totalDebt: 60_000n,
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: parseUnits("100000", 6) },
+      ]),
+      debt: parseUnits("50000", 6),
+      totalDebt: parseUnits("60000", 6),
     });
-    const before = makeAccount({ debt: 50_000n, totalDebt: 60_000n });
+    const before = makeAccount({
+      debt: parseUnits("50000", 6),
+      totalDebt: parseUnits("60000", 6),
+    });
     const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
@@ -540,21 +476,25 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         to: OWNER,
         // WETH is worth 2000 USDC: withdrawing 10 WETH costs 20_000 USDC
         withdrawToken: WETH,
-        withdrawAmount: 10n,
+        withdrawAmount: parseEther("10"),
         sourceToken: WETH,
-        debtRepaid: 60_000n,
+        debtRepaid: parseUnits("60000", 6),
       }),
       USDC,
       metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 10n)]);
+      expect(preview.collateralWithdrawn).toMatchObject([
+        amt(WETH, parseEther("10")),
+      ]);
       // 100_000 claimed - 20_000 spent on the withdrawal = 80_000 swept
       // into the underlying; 60_000 repays the total debt in full
       expect(preview.totalDebt.value).toBe(0n);
-      expect(preview.totalDebtChange.value).toBe(-60_000n);
-      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 20_000n)]);
+      expect(preview.totalDebtChange.value).toBe(-parseUnits("60000", 6));
+      expect(preview.estAssets).toMatchObject([
+        amt(UNDERLYING, parseUnits("20000", 6)),
+      ]);
     }
   });
 
@@ -597,24 +537,25 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
       expect(preview.estAssets).toEqual(
         expect.arrayContaining([amt(UNDERLYING, 400n), amt(WETH, 20n)]),
       );
-      expect(preview.estTotalValue.value).toBe(400n + 20n * 2000n);
+      // remaining WETH is 20 wei, which converts to 0 underlying at 18 decimals
+      expect(preview.estTotalValue.value).toBe(400n);
     }
   });
 
   it("splits the withdrawal between the existing balance and claim proceeds", () => {
     const account = makeAccount({
       balances: new AssetsMap([
-        { token: PHANTOM, balance: 10_000n },
+        { token: PHANTOM, balance: parseUnits("10000", 6) },
         // covers only 3 of the 5 WETH to withdraw
-        { token: WETH, balance: 3n },
+        { token: WETH, balance: parseEther("3") },
       ]),
-      debt: 4000n,
-      totalDebt: 5000n,
+      debt: parseUnits("4000", 6),
+      totalDebt: parseUnits("5000", 6),
     });
     const before = makeAccount({
-      balances: new AssetsMap([{ token: WETH, balance: 3n }]),
-      debt: 4000n,
-      totalDebt: 5000n,
+      balances: new AssetsMap([{ token: WETH, balance: parseEther("3") }]),
+      debt: parseUnits("4000", 6),
+      totalDebt: parseUnits("5000", 6),
     });
     const preview = buildDelayedStrategyPositionOperationPreview(
       account,
@@ -623,20 +564,24 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         type: "WITHDRAW_COLLATERAL",
         to: OWNER,
         withdrawToken: WETH,
-        withdrawAmount: 5n,
+        withdrawAmount: parseEther("5"),
         sourceToken: WETH,
-        debtRepaid: 5000n,
+        debtRepaid: parseUnits("5000", 6),
       }),
       USDC,
       metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 5n)]);
+      expect(preview.collateralWithdrawn).toMatchObject([
+        amt(WETH, parseEther("5")),
+      ]);
       // 2 WETH shortfall costs 4000 of the 10_000 claim; the remaining
       // 6000 sweeps into the underlying and repays the 5000 total debt
       expect(preview.totalDebt.value).toBe(0n);
-      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 1000n)]);
+      expect(preview.estAssets).toMatchObject([
+        amt(UNDERLYING, parseUnits("1000", 6)),
+      ]);
     }
   });
 });
