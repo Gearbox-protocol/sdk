@@ -253,14 +253,17 @@ export class LiquidationsService extends SDKConstruct {
 
   // delayed-withdrawal positions are owned by a wallet rather than by a credit
   // account, so they span markets and there is no single oracle to ask; a
-  // token no oracle prices is reported without a USD value, the same
-  // degradation `safeUsdValue` applies to a dead feed
+  // token no oracle prices is reported without a USD value
   #anyMarketTokenAmount(token: Address, value: bigint): TokenAmount {
     const meta = this.sdk.tokensMeta.mustGetToken(token);
     for (const market of this.sdk.marketRegister.markets) {
-      const valueUsd = market.priceOracle.safeUsdValue(token, value);
-      if (valueUsd !== null) {
-        return { token: meta, value, valueUsd };
+      const priced = market.priceOracle.safeConvertToUSD(token, value);
+      if (!priced.error) {
+        return {
+          token: meta,
+          value,
+          valueUsd: usdToNumber(priced.value),
+        };
       }
     }
     return { token: meta, value, valueUsd: null };

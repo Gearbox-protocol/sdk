@@ -21,7 +21,7 @@ export function accountView(
   const oracle =
     sdk.marketRegister.findByCreditManager(creditManager).priceOracle;
   const price: ConvertFn = (from, to, amount) =>
-    oracle.safeConvert(from, to, amount) ?? 0n;
+    oracle.safeConvert(from, to, amount).value;
   const { creditFacade } = sdk.marketRegister.findCreditManager(creditManager);
 
   let totalValue = 0n;

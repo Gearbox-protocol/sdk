@@ -2,6 +2,10 @@ import { type Address, getAddress, isAddressEqual, padHex } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Curator, UnderlyingToken } from "../../model/index.js";
 import { type OnchainSDK, RAY } from "../../onchain/index.js";
+import {
+  MockTokens,
+  TestPriceOracle,
+} from "../../onchain/market/oracle/TestPriceOracle.mock.js";
 import type {
   PoolDepositOperation,
   PoolOperation,
@@ -16,10 +20,10 @@ const addr = (hex: string): Address =>
 const RECEIVER = addr("0xc1");
 const OWNER = addr("0x0e");
 const POOL = addr("0x90");
-const UNDERLYING = addr("0xde");
-const DC_USDC = addr("0xdc");
-const USDC = addr("0xa0");
-const WETH = addr("0xee");
+const UNDERLYING = MockTokens.DAI;
+const DC_USDC = MockTokens.dcUSDC;
+const USDC = MockTokens.USDC;
+const WETH = MockTokens.WETH;
 const ZAPPER = addr("0x2a");
 const FARM_TOKEN = addr("0xfa");
 
@@ -68,6 +72,16 @@ function fakeMarket(args: FakeMarketArgs = {}) {
   const sharesToUnderlying = (shares: bigint) =>
     dieselRate === 0n ? shares : (shares * dieselRate) / RAY;
 
+  const priceOracle = new TestPriceOracle({
+    [underlying]: {},
+    [unwrappedUnderlying]: {},
+    [POOL]: {},
+    [USDC]: {},
+    [DC_USDC]: {},
+    [WETH]: {},
+    [FARM_TOKEN]: {},
+  });
+
   return {
     underlying,
     unwrappedUnderlying,
@@ -77,19 +91,7 @@ function fakeMarket(args: FakeMarketArgs = {}) {
       isAddressEqual(token, underlying) ||
       isAddressEqual(token, unwrappedUnderlying),
     pool: { pool: { dieselRate, sharesToUnderlying } },
-    priceOracle: {
-      toTokenAmount: (token: Address, value: bigint) => ({
-        token: {
-          chainId: 1,
-          address: token,
-          symbol: "T",
-          name: "Token",
-          decimals: 18,
-        },
-        value,
-        valueUsd: null,
-      }),
-    },
+    priceOracle,
     toUnderlyingAmount: (value: bigint) => ({
       token: underlyingToken,
       value,
@@ -180,9 +182,7 @@ function withdraw(
   };
 }
 
-function redeem(
-  over: Partial<PoolRedeemOperation> = {},
-): PoolRedeemOperation {
+function redeem(over: Partial<PoolRedeemOperation> = {}): PoolRedeemOperation {
   return {
     operation: "Redeem",
     pool: POOL,

@@ -69,10 +69,11 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
   //
   // On a malformed multicall the replayed balances the sum is taken over are
   // best-effort and may be unreliable.
-  const priced = market.valueInUnderlying(account.balances.toAssets());
-  if (priced.unpriceable) {
-    warning ??= unpriceableTokenError(priced.unpriceable);
-  }
+  const priced = oracle.safeConvertAssets(
+    account.balances.toAssets(),
+    market.underlying,
+  );
+  warning ??= priced.error;
   const snap = account.toSnapshot(priced.value);
 
   return {

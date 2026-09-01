@@ -22,9 +22,11 @@ export interface MaxWithdrawCollateralProps {
  * check counts: a holding backed by a quota contributes the lesser of the
  * quota and its threshold-weighted value, an unquoted one — the underlying —
  * its weighted value alone, and dust or a disabled balance nothing at all.
- * Collateral is valued at the lower of its two feeds, the way the facade
- * values a call that hands funds over; the debt is valued at the main feed,
- * as the check does. Zero debt frees the whole balance.
+ * Collateral is valued at the protocol safe price (`min` of the two feeds,
+ * 0 when there is no reserve), the way the facade values a call that hands
+ * funds over; the underlying is exempt and is valued at the main feed, as
+ * `CreditManagerV3._safeConvertToUSD` does. The debt is valued at the main
+ * feed, as the check does. Zero debt frees the whole balance.
  *
  * Rounding always favours the account, so the answer clears the check rather
  * than landing a wei short of it.
@@ -62,7 +64,10 @@ export function maxWithdrawCollateral(
   /** What a holding backs, in the check's units: USD × PERCENTAGE_FACTOR. */
   const weigh = (t: CreditAccountSlice["tokens"][number]): bigint => {
     const lt = BigInt(creditManager.liquidationThresholds.get(t.token) ?? 0);
-    const weighted = (safeUsd(priceOracle, t.token, t.balance) ?? 0n) * lt;
+    const valueUsd = eq(t.token, underlying)
+      ? (usd(priceOracle, t.token, t.balance) ?? 0n)
+      : priceOracle.safeConvertMinUSD(t.token, t.balance).value;
+    const weighted = valueUsd * lt;
     // no quota bought is how an unquoted token reads, and the underlying is
     // the one every account holds
     if (t.quota === 0n) {
@@ -107,8 +112,10 @@ export function maxWithdrawCollateral(
   const targetLt = BigInt(
     creditManager.liquidationThresholds.get(target.token) ?? 0,
   );
-  const targetUsd = safeUsd(priceOracle, target.token, target.balance);
-  if (targetLt === 0n || !targetUsd) {
+  const targetUsd = eq(target.token, underlying)
+    ? (usd(priceOracle, target.token, target.balance) ?? 0n)
+    : priceOracle.safeConvertMinUSD(target.token, target.balance).value;
+  if (targetLt === 0n || targetUsd === 0n) {
     return 0n;
   }
 
@@ -131,25 +138,5 @@ function usd(
     return oracle.convertToUSD(token, amount);
   } catch {
     return undefined;
-  }
-}
-
-/**
- * USD value at the lower of the token's two feeds — what a call handing funds
- * over is judged at. Falls back to the main feed where there is no second one.
- **/
-function safeUsd(
-  oracle: IPriceOracleContract,
-  token: Address,
-  amount: bigint,
-): bigint | undefined {
-  const main = usd(oracle, token, amount);
-  if (main === undefined) {
-    return undefined;
-  }
-  try {
-    return BigIntMath.min(main, oracle.convertToUSD(token, amount, true));
-  } catch {
-    return main;
   }
 }

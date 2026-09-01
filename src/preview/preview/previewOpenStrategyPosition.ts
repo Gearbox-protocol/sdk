@@ -46,12 +46,9 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   // contribute nothing.
   let priceWarning: OperationPreviewError | undefined;
   const netValue = state.collateralAdded.sum((token, balance) => {
-    try {
-      return oracle.convert(token, market.underlying, balance);
-    } catch {
-      priceWarning ??= unpriceableTokenError(token);
-      return 0n;
-    }
+    const priced = oracle.safeConvert(token, market.underlying, balance);
+    priceWarning ??= priced.error;
+    return priced.value;
   });
   const { assets: collateral, warning: unwrapWarning } = unwrapNativeCollateral(
     state.collateralAdded.toAssets(),

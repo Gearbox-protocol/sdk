@@ -1,14 +1,13 @@
 import type { Address } from "viem";
-import { getAddress } from "viem";
+import { getAddress, parseEther, parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Curator } from "../../model/index.js";
-import {
-  AssetsMap,
-  type ConvertFn,
-  type OnchainSDK,
-} from "../../onchain/index.js";
+import { AssetsMap, type OnchainSDK } from "../../onchain/index.js";
 import { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
-import { MarketSuite } from "../../onchain/market/MarketSuite.js";
+import {
+  MockTokens,
+  TestPriceOracle,
+} from "../../onchain/market/oracle/TestPriceOracle.mock.js";
 import { PositionsService } from "../../onchain/positions/PositionsService.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { CreditAccountState } from "./CreditAccountState.js";
@@ -22,11 +21,10 @@ const CURATOR: Curator = {
   url: null,
 };
 // dcUSDC, the credit manager underlying (RWA vault share over USDC)
-const UNDERLYING = getAddress("0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D");
-const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-// Securitize redemption phantom token
-const PHANTOM = getAddress("0xF126EaCAcf6B14C8985fC195768A55E886Af4208");
-const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
+const UNDERLYING = MockTokens.dcUSDC;
+const USDC = MockTokens.USDC;
+const PHANTOM = MockTokens.srpACRED_USDC;
+const WETH = MockTokens.WETH;
 const OWNER = getAddress("0xC32FEB4DBd127a1993478Ad6E5250710f838b908");
 const UNPRICEABLE = getAddress("0x1111111111111111111111111111111111111111");
 
@@ -51,12 +49,6 @@ const metricsSdk = (() => {
     [PHANTOM]: 6,
     [WETH]: 18,
     [UNPRICEABLE]: 18,
-  };
-  const prices: Record<Address, bigint> = {
-    [UNDERLYING]: 10n ** 8n,
-    [USDC]: 10n ** 8n,
-    [PHANTOM]: 10n ** 8n,
-    [WETH]: 2000n * 10n ** 8n,
   };
   const lts: Record<Address, number> = {
     [UNDERLYING]: 9800,
@@ -85,18 +77,12 @@ const metricsSdk = (() => {
     }
     return meta;
   };
-  const safeUsdValue = (token: Address, amount: bigint) => {
-    const addr = getAddress(token);
-    const price = prices[addr];
-    if (price === undefined) {
-      return null;
-    }
-    const d = decimals[addr] ?? 18;
-    return Number((amount * price) / 10n ** BigInt(d)) / 1e8;
-  };
-  const toAmount = (token: Address, value: bigint) => ({
-    value,
-    valueUsd: safeUsdValue(token, value),
+  const priceOracle = new TestPriceOracle({
+    [UNDERLYING]: { price: 1, reservePrice: 1 },
+    [USDC]: { price: 1, reservePrice: 1 },
+    [PHANTOM]: { price: 1, reservePrice: 1 },
+    [WETH]: { price: 2000, reservePrice: 2000 },
+    [UNPRICEABLE]: {},
   });
   const sdk = {
     chainId: 1,
@@ -125,70 +111,9 @@ const metricsSdk = (() => {
             pool: { baseInterestRate: 0n },
             pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
           },
-          priceOracle: {
-            convertToUSD: (token: Address, amount: bigint) => {
-              const addr = getAddress(token);
-              const price = prices[addr];
-              if (price === undefined) {
-                throw new Error(`no answer found for token ${token}`);
-              }
-              const d = decimals[addr] ?? 18;
-              return (amount * price) / 10n ** BigInt(d);
-            },
-            // what `PositionsService` collects the metrics from; a token with no
-            // price throws, as the real oracle does, and is left out of the sum
-            mainPrice: (token: Address) => {
-              const price = prices[getAddress(token)];
-              if (price === undefined) {
-                throw new Error(`no answer found for token ${token}`);
-              }
-              return price;
-            },
-            // the stub has one feed per token, so safe prices are the main ones
-            reservePrice: (token: Address) => {
-              const price = prices[getAddress(token)];
-              if (price === undefined) {
-                throw new Error(`no answer found for token ${token}`);
-              }
-              return price;
-            },
-            // Same rates as the injected `convert` below: WETH is 2000
-            // underlying per unit, everything else 1:1. Null when unknown,
-            // so `valueInUnderlying` can name the miss.
-            safeConvert: (from: Address, to: Address, amount: bigint) => {
-              const rates: Partial<Record<Address, bigint>> = {
-                [UNDERLYING]: 1n,
-                [USDC]: 1n,
-                [PHANTOM]: 1n,
-                [WETH]: 2000n,
-              };
-              const src = rates[getAddress(from)];
-              const dst = rates[getAddress(to)];
-              if (src === undefined || dst === undefined) {
-                return null;
-              }
-              return (amount * src) / dst;
-            },
-            safeConvertToUSD: (token: Address, amount: bigint) => {
-              const addr = getAddress(token);
-              const price = prices[addr];
-              if (price === undefined) {
-                return null;
-              }
-              const d = decimals[addr] ?? 18;
-              return (amount * price) / 10n ** BigInt(d);
-            },
-            safeUsdValue,
-            toAmount,
-            toTokenAmount: (token: Address, value: bigint) => ({
-              token: mustGetToken(token),
-              ...toAmount(token, value),
-            }),
-          },
+          priceOracle,
         };
-        return Object.assign(m, {
-          valueInUnderlying: MarketSuite.prototype.valueInUnderlying,
-        });
+        return m;
       },
       findCreditManager: () => ({
         name: "TOKEN / TOKEN",
@@ -223,25 +148,6 @@ const metricsSdk = (() => {
   Object.assign(sdk, { positions: new PositionsService(sdk) });
   return sdk;
 })();
-
-/**
- * Oracle stub: USDC and the underlying are 1:1 (dcUSDC is a USDC wrapper),
- * WETH is 2000 underlying per unit; anything else is unpriceable.
- */
-const convert: ConvertFn = (token, to, amount) => {
-  const rates: Record<Address, bigint> = {
-    [UNDERLYING]: 1n,
-    [USDC]: 1n,
-    [PHANTOM]: 1n,
-    [WETH]: 2000n,
-  };
-  const from = rates[getAddress(token)];
-  const target = rates[getAddress(to)];
-  if (from === undefined || target === undefined) {
-    throw new Error(`cannot price ${token}`);
-  }
-  return (amount * from) / target;
-};
 
 interface MakeAccountOptions {
   balances?: AssetsMap;
@@ -303,7 +209,6 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -337,7 +242,6 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       indebted,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -352,7 +256,6 @@ describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
       account,
       before,
       detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -376,7 +279,6 @@ describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () =>
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -418,7 +320,6 @@ describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () =>
       account,
       before,
       detected({ type: "DECREASE_LEVERAGE" }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -452,7 +353,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 600n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -485,7 +385,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         // only 200 of the 700 remaining claim goes to debt
         debtRepaid: 200n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -518,7 +417,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 0n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -545,7 +443,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 0n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -561,11 +458,16 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
     // RLUSD-style scenario: the withdrawal token is not on the account,
     // the claim funds both the withdrawal and the debt repayment
     const account = makeAccount({
-      balances: new AssetsMap([{ token: PHANTOM, balance: 100_000n }]),
-      debt: 50_000n,
-      totalDebt: 60_000n,
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: parseUnits("100000", 6) },
+      ]),
+      debt: parseUnits("50000", 6),
+      totalDebt: parseUnits("60000", 6),
     });
-    const before = makeAccount({ debt: 50_000n, totalDebt: 60_000n });
+    const before = makeAccount({
+      debt: parseUnits("50000", 6),
+      totalDebt: parseUnits("60000", 6),
+    });
     const preview = buildDelayedStrategyPositionOperationPreview(
       account,
       before,
@@ -574,22 +476,25 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         to: OWNER,
         // WETH is worth 2000 USDC: withdrawing 10 WETH costs 20_000 USDC
         withdrawToken: WETH,
-        withdrawAmount: 10n,
+        withdrawAmount: parseEther("10"),
         sourceToken: WETH,
-        debtRepaid: 60_000n,
+        debtRepaid: parseUnits("60000", 6),
       }),
-      convert,
       USDC,
       metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 10n)]);
+      expect(preview.collateralWithdrawn).toMatchObject([
+        amt(WETH, parseEther("10")),
+      ]);
       // 100_000 claimed - 20_000 spent on the withdrawal = 80_000 swept
       // into the underlying; 60_000 repays the total debt in full
       expect(preview.totalDebt.value).toBe(0n);
-      expect(preview.totalDebtChange.value).toBe(-60_000n);
-      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 20_000n)]);
+      expect(preview.totalDebtChange.value).toBe(-parseUnits("60000", 6));
+      expect(preview.estAssets).toMatchObject([
+        amt(UNDERLYING, parseUnits("20000", 6)),
+      ]);
     }
   });
 
@@ -621,7 +526,6 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         sourceToken: WETH,
         debtRepaid: 600n,
       }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -633,24 +537,25 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
       expect(preview.estAssets).toEqual(
         expect.arrayContaining([amt(UNDERLYING, 400n), amt(WETH, 20n)]),
       );
-      expect(preview.estTotalValue.value).toBe(400n + 20n * 2000n);
+      // remaining WETH is 20 wei, which converts to 0 underlying at 18 decimals
+      expect(preview.estTotalValue.value).toBe(400n);
     }
   });
 
   it("splits the withdrawal between the existing balance and claim proceeds", () => {
     const account = makeAccount({
       balances: new AssetsMap([
-        { token: PHANTOM, balance: 10_000n },
+        { token: PHANTOM, balance: parseUnits("10000", 6) },
         // covers only 3 of the 5 WETH to withdraw
-        { token: WETH, balance: 3n },
+        { token: WETH, balance: parseEther("3") },
       ]),
-      debt: 4000n,
-      totalDebt: 5000n,
+      debt: parseUnits("4000", 6),
+      totalDebt: parseUnits("5000", 6),
     });
     const before = makeAccount({
-      balances: new AssetsMap([{ token: WETH, balance: 3n }]),
-      debt: 4000n,
-      totalDebt: 5000n,
+      balances: new AssetsMap([{ token: WETH, balance: parseEther("3") }]),
+      debt: parseUnits("4000", 6),
+      totalDebt: parseUnits("5000", 6),
     });
     const preview = buildDelayedStrategyPositionOperationPreview(
       account,
@@ -659,21 +564,24 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
         type: "WITHDRAW_COLLATERAL",
         to: OWNER,
         withdrawToken: WETH,
-        withdrawAmount: 5n,
+        withdrawAmount: parseEther("5"),
         sourceToken: WETH,
-        debtRepaid: 5000n,
+        debtRepaid: parseUnits("5000", 6),
       }),
-      convert,
       USDC,
       metricsSdk,
     );
     expect(preview.operation).toBe("AdjustCreditAccount");
     if (preview.operation === "AdjustCreditAccount") {
-      expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 5n)]);
+      expect(preview.collateralWithdrawn).toMatchObject([
+        amt(WETH, parseEther("5")),
+      ]);
       // 2 WETH shortfall costs 4000 of the 10_000 claim; the remaining
       // 6000 sweeps into the underlying and repays the 5000 total debt
       expect(preview.totalDebt.value).toBe(0n);
-      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 1000n)]);
+      expect(preview.estAssets).toMatchObject([
+        amt(UNDERLYING, parseUnits("1000", 6)),
+      ]);
     }
   });
 });
@@ -721,7 +629,6 @@ describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
       account,
       before,
       detected({ type: "DEPOSIT" }),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -733,7 +640,6 @@ describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
       account,
       before,
       detected(undefined),
-      convert,
       USDC,
       metricsSdk,
     );
@@ -755,7 +661,6 @@ describe("buildDelayedStrategyPositionOperationPreview unpriceable tokens", () =
       account,
       makeAccount(),
       detected(undefined),
-      convert,
       USDC,
       metricsSdk,
     );

@@ -228,14 +228,23 @@ describe("collateral check — where the transaction has to end", () => {
     expect(result.ok).toBe(true);
   });
 
-  it("judges a payout by the lower of the two feeds", async () => {
-    // 600 UND left is comfortable at the main price of 2 — 588 against 500 —
-    // and short of the debt at the reserve price of 1.5, which is the one the
-    // credit manager reads on a call that hands funds over.
+  it("does not judge the underlying at its reserve feed", async () => {
+    // 600 UND left is comfortable at the main price of 2, and the credit
+    // manager always prices the underlying at main even on a payout.
+    const result = await withUnderlying(40000000000n, {
+      reservePrices: { [UND]: toBN("1.5", 8) },
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("judges a non-underlying payout at the lower of the two feeds", async () => {
+    // POS at $2 main covers the debt; at $1 reserve it does not, so even a
+    // wei leaving is refused.
     expectPreviewError(
-      await withUnderlying(40000000000n, {
-        reservePrices: { [UND]: toBN("1.5", 8) },
-      }),
+      await run(
+        { type: "WITHDRAW_ASSET", token: POS, amount: 1n, to: WALLET },
+        { reservePrices: { [POS]: toBN("1", 8), [UND]: toBN("2", 8) } },
+      ),
       "insufficientCollateral",
     );
   });

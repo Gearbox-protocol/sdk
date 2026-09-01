@@ -2,30 +2,31 @@ import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { RAY } from "../constants/index.js";
-
+import {
+  MockTokens,
+  TestPriceOracle,
+} from "../market/oracle/TestPriceOracle.mock.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { PoolService } from "./PoolService.js";
 
-/** What the stub oracle prices an amount as; the tests pin it whole. */
-const amt = (address: Address, value: bigint) => ({
-  token: {
-    chainId: 1,
-    address,
-    symbol: "TKN",
-    name: "Token",
-    decimals: 18,
-  },
-  value,
-  valueUsd: null,
-});
-
 const POOL = "0x1111111111111111111111111111111111111111" as Address;
-const UNDERLYING = "0x2222222222222222222222222222222222222222" as Address;
+const UNDERLYING = MockTokens.WETH;
 /** Zapper input: what the user pays in on a routed deposit. */
-const USDC = "0x3333333333333333333333333333333333333333" as Address;
+const USDC = MockTokens.USDC;
 /** Zapper output: the farmed diesel wrapper the user ends up holding. */
 const FARM_TOKEN = "0x4444444444444444444444444444444444444444" as Address;
 const ZAPPER = "0x5555555555555555555555555555555555555555" as Address;
+
+const priceOracle = new TestPriceOracle({
+  [POOL]: {},
+  [UNDERLYING]: {},
+  [USDC]: {},
+  [FARM_TOKEN]: {},
+});
+
+/** What the stub oracle prices an amount as; the tests pin it whole. */
+const amt = (address: Address, value: bigint) =>
+  priceOracle.toTokenAmount(address, value);
 
 interface MockZapper {
   addr: Address;
@@ -89,10 +90,7 @@ function buildService(args: MockPool = {}) {
         // market the unwrapped asset, here the underlying itself
         toUnderlyingAmount: (value: bigint) => amt(UNDERLYING, value),
         // the read-model mappers the simulation prices its amounts with
-        priceOracle: {
-          toAmount: (_t: Address, value: bigint) => ({ value, valueUsd: null }),
-          toTokenAmount: (token: Address, value: bigint) => amt(token, value),
-        },
+        priceOracle,
         pool: {
           underlying: UNDERLYING,
           pool: {

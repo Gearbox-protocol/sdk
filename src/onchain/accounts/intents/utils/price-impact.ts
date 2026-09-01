@@ -57,8 +57,8 @@ function probeBasket(
     if (asset.balance <= 0n) {
       continue;
     }
-    const usd = oracle.safeConvertToUSD(asset.token, asset.balance);
-    if (usd !== null && usd > 0n) {
+    const usd = oracle.safeConvertToUSD(asset.token, asset.balance).value;
+    if (usd > 0n) {
       basketWad += (usd * WAD) / PRICE_DECIMALS;
     }
   }

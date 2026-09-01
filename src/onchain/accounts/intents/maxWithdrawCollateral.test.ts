@@ -155,6 +155,31 @@ describe("maxWithdrawCollateral", () => {
     expect(atSafe).toBeLessThan(atMain);
   });
 
+  it("values an untrusted token (no reserve feed) at 0", () => {
+    const ca = account(
+      [caToken(POS, toBN("100", 8), toBN("1000", 8))],
+      toBN("50", 8),
+    );
+    expect(ceiling(ca, POS, { reservePrices: {} })).toBe(0n);
+  });
+
+  it("values the underlying at the main feed, even when a cheaper reserve exists", () => {
+    const ca = account(
+      [
+        caToken(POS, toBN("100", 8), toBN("1000", 8)),
+        caToken(UND, toBN("100", 8), 0n),
+      ],
+      toBN("50", 8),
+    );
+    // UND at $2 main / $1 reserve: on-chain still prices it at $2, which
+    // covers the debt on its own, so POS is free to go.
+    expect(
+      ceiling(ca, POS, {
+        reservePrices: { [POS]: toBN("2", 8), [UND]: toBN("1", 8) },
+      }),
+    ).toBe(toBN("100", 8));
+  });
+
   it("refuses to answer when the debt has no price", () => {
     const NO_FEED = "0x9999999999999999999999999999999999999999" as Address;
     const ca = account([caToken(NO_FEED, toBN("100", 18), 0n)], toBN("50", 8));

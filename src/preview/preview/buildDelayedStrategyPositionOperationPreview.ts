@@ -25,10 +25,9 @@ import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
  * the claim itself followed by the intent-specific tail
  *
  * Pure function: the input states are never mutated and no network access is performed.
- * Swaps are estimated with the injected conversion; remaining holdings are
- * priced by `MarketSuite.valueInUnderlying`. Tokens that cannot be priced
- * contribute nothing and set a non-fatal `unpriceableToken` warning on the
- * preview.
+ * Swaps and remaining holdings are priced by the market oracle. Tokens that
+ * cannot be priced contribute nothing and set a non-fatal `unpriceableToken`
+ * warning on the preview.
  *
  * The changes (e.g. `totalDebtChange`) are reported relative to the account
  * state before the whole transaction.
@@ -46,23 +45,30 @@ export function buildDelayedStrategyPositionOperationPreview(
   afterInstant: CreditAccountState,
   before: CreditAccountState,
   detected: DetectedDelayedOperation,
-  convert: ConvertFn,
   receivedToken: Address,
   sdk: OnchainSDK,
 ): InstantStrategyPositionOperationPreview {
   const { request, intent } = detected;
 
   const post = afterInstant.clone();
-  const converter = makeSafeConverter(convert);
+  const oracle = sdk.marketRegister.findByCreditManager(
+    post.creditManager,
+  ).priceOracle;
+  let warning: OperationPreviewError | undefined;
+  const convert: ConvertFn = (from, to, amount) => {
+    const priced = oracle.safeConvert(from, to, amount);
+    warning ??= priced.error;
+    return priced.value;
+  };
   const claimed = applyClaim(post, request);
   const collateralWithdrawn = new AssetsMap();
 
   switch (intent?.type) {
     case "CLOSE_ACCOUNT":
-      return buildClosePreview(post, converter, receivedToken, sdk);
+      return buildClosePreview(post, receivedToken, sdk, warning);
 
     case "DECREASE_LEVERAGE":
-      repayFromClaim(post, request.claimToken, converter.convert, claimed);
+      repayFromClaim(post, request.claimToken, convert, claimed);
       break;
 
     case "WITHDRAW_COLLATERAL": {
@@ -70,7 +76,7 @@ export function buildDelayedStrategyPositionOperationPreview(
         post,
         request,
         intent,
-        converter,
+        convert,
         collateralWithdrawn,
       );
       break;
@@ -82,36 +88,7 @@ export function buildDelayedStrategyPositionOperationPreview(
       break;
   }
 
-  return buildAdjustPreview(post, before, collateralWithdrawn, converter, sdk);
-}
-
-/**
- * Oracle conversion that never throws: tokens the oracle cannot price
- * convert to zero and set {@link SafeConverter.warning} instead.
- */
-interface SafeConverter {
-  convert: ConvertFn;
-  /**
-   * Set after the first token the oracle could not price
-   */
-  readonly warning: OperationPreviewError | undefined;
-}
-
-function makeSafeConverter(convert: ConvertFn): SafeConverter {
-  let warning: OperationPreviewError | undefined;
-  return {
-    convert: (token, to, amount) => {
-      try {
-        return convert(token, to, amount);
-      } catch {
-        warning ??= unpriceableTokenError(token);
-        return 0n;
-      }
-    },
-    get warning() {
-      return warning;
-    },
-  };
+  return buildAdjustPreview(post, before, collateralWithdrawn, sdk, warning);
 }
 
 /**
@@ -166,7 +143,7 @@ function applyWithdrawCollateral(
   post: CreditAccountState,
   request: DelayedWithdrawalRequest,
   intent: DelayedWithdrawCollateralIntent,
-  converter: SafeConverter,
+  convert: ConvertFn,
   collateralWithdrawn: AssetsMap,
 ): void {
   const { withdrawToken, withdrawAmount, debtRepaid } = intent;
@@ -189,7 +166,7 @@ function applyWithdrawCollateral(
   const missing = withdrawAmount - fromBalance;
   if (missing > 0n && !sameToken) {
     const available = post.balances.getOrZero(claimToken);
-    const cost = converter.convert(withdrawToken, claimToken, missing);
+    const cost = convert(withdrawToken, claimToken, missing);
     if (cost > 0n && cost <= available) {
       post.balances.dec(claimToken, cost);
       withdrawn += missing;
@@ -197,7 +174,7 @@ function applyWithdrawCollateral(
       // the whole claim balance is not enough: spend all of it and withdraw
       // whatever it buys
       post.balances.dec(claimToken, available);
-      withdrawn += converter.convert(claimToken, withdrawToken, available);
+      withdrawn += convert(claimToken, withdrawToken, available);
     }
   }
   if (withdrawn > 0n) {
@@ -209,7 +186,7 @@ function applyWithdrawCollateral(
   // than the intent's debtRepaid target
   const remaining = post.balances.getOrZero(claimToken);
   if (remaining > 0n) {
-    const proceeds = converter.convert(claimToken, post.underlying, remaining);
+    const proceeds = convert(claimToken, post.underlying, remaining);
     post.balances.dec(claimToken, remaining);
     post.balances.inc(post.underlying, proceeds);
     post.repay(BigIntMath.min(proceeds, debtRepaid));
@@ -244,13 +221,16 @@ function repayFromClaim(
  */
 function buildClosePreview(
   post: CreditAccountState,
-  converter: SafeConverter,
   receivedToken: Address,
   sdk: OnchainSDK,
+  warning: OperationPreviewError | undefined,
 ): ExitStrategyPositionPreview {
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
-  const priced = market.valueInUnderlying(post.balances.toAssets(), 0n);
   const oracle = market.priceOracle;
+  const priced = oracle.safeConvertAssets(
+    post.balances.toAssets(),
+    market.underlying,
+  );
   const suite = sdk.marketRegister.findCreditManager(post.creditManager);
   return {
     operation: "CloseCreditAccount",
@@ -276,11 +256,7 @@ function buildClosePreview(
       receivedToken,
       BigIntMath.max(priced.value - post.totalDebt, 0n),
     ),
-    warning:
-      converter.warning ??
-      (priced.unpriceable
-        ? unpriceableTokenError(priced.unpriceable)
-        : undefined),
+    warning: warning ?? priced.error,
   };
 }
 
@@ -288,14 +264,17 @@ function buildAdjustPreview(
   post: CreditAccountState,
   before: CreditAccountState,
   collateralWithdrawn: AssetsMap,
-  converter: SafeConverter,
   sdk: OnchainSDK,
+  warning: OperationPreviewError | undefined,
 ): AdjustStrategyPositionPreview {
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
-  const priced = market.valueInUnderlying(post.balances.toAssets());
+  const oracle = market.priceOracle;
+  const priced = oracle.safeConvertAssets(
+    post.balances.toAssets(),
+    market.underlying,
+  );
   const snap = post.toSnapshot(priced.value);
   const suite = sdk.marketRegister.findCreditManager(post.creditManager);
-  const oracle = market.priceOracle;
   return {
     operation: "AdjustCreditAccount",
     // {@inheritDoc previewAdjustStrategyPosition} — the same shared builder, so
@@ -335,10 +314,6 @@ function buildAdjustPreview(
       .difference(before.balances)
       .toAssets(DUST_THRESHOLD)
       .map(a => oracle.toTokenAmount(a.token, a.balance)),
-    warning:
-      converter.warning ??
-      (priced.unpriceable
-        ? unpriceableTokenError(priced.unpriceable)
-        : undefined),
+    warning: warning ?? priced.error,
   };
 }

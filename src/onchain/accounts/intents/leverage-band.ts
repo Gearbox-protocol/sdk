@@ -77,7 +77,7 @@ export function calcLeverageBand({
   const ceiling = suite.creditManager.maxLeverage(target, targetHF);
   const underlying = market.pool.underlying;
   const convert: ConvertFn = (from, to, amount) =>
-    market.priceOracle.safeConvert(from, to, amount) ?? 0n;
+    market.priceOracle.safeConvert(from, to, amount).value;
   const netValue = collateral.reduce(
     (acc, a) => acc + convert(a.token, underlying, a.balance),
     0n,

@@ -24,21 +24,24 @@ function makePool(over: { dieselRate?: bigint; withdrawFee?: bigint } = {}) {
       }),
     }),
   );
-  return new PoolV310Contract({ register } as unknown as OnchainSDK, {
-    baseParams: {
-      addr: POOL,
-      version: 310n,
-      contractType: stringToHex("POOL", { size: 32 }),
-      serializedParams: "0x",
-    },
-    name: "Test Pool",
-    symbol: "dUND",
-    decimals: 18,
-    underlying: UNDERLYING,
-    dieselRate: over.dieselRate ?? DIESEL_RATE,
-    withdrawFee: over.withdrawFee ?? 0n,
-    creditManagerDebtParams: [],
-  } as unknown as PoolState);
+  return new PoolV310Contract(
+    { register } as unknown as OnchainSDK,
+    {
+      baseParams: {
+        addr: POOL,
+        version: 310n,
+        contractType: stringToHex("POOL", { size: 32 }),
+        serializedParams: "0x",
+      },
+      name: "Test Pool",
+      symbol: "dUND",
+      decimals: 18,
+      underlying: UNDERLYING,
+      dieselRate: over.dieselRate ?? DIESEL_RATE,
+      withdrawFee: over.withdrawFee ?? 0n,
+      creditManagerDebtParams: [],
+    } as unknown as PoolState,
+  );
 }
 
 describe("PoolV310Contract.sharesToUnderlying", () => {

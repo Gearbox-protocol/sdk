@@ -50,6 +50,8 @@ function hf(
   extras: {
     activeQuotas?: Record<Address, boolean>;
     prices?: Record<Address, bigint>;
+    reservePrices?: Record<Address, bigint>;
+    safePrices?: boolean;
   } = {},
 ) {
   return calcHealthFactor({
@@ -57,6 +59,8 @@ function hf(
     underlying: DAI,
     decimals,
     prices: extras.prices ?? prices,
+    reservePrices: extras.reservePrices,
+    safePrices: extras.safePrices,
     liquidationThresholds,
     activeQuotas: extras.activeQuotas ?? { [WETH]: true },
   });
@@ -148,5 +152,50 @@ describe("calcHealthFactor", () => {
   it("collapses to zero when the underlying has no price", () => {
     const { [DAI]: _dai, ...pricesWithoutUnderlying } = prices;
     expect(hf({}, { prices: pricesWithoutUnderlying })).toBe(0);
+  });
+
+  it("at safe prices takes the min of the two feeds", () => {
+    const atMain = hf();
+    const atSafe = hf(
+      {},
+      {
+        safePrices: true,
+        reservePrices: {
+          [DAI]: prices[DAI],
+          [WETH]: prices[WETH] / 2n,
+        },
+      },
+    );
+    expect(atSafe).toBeLessThan(atMain);
+  });
+
+  it("at safe prices values a token with no reserve feed at 0", () => {
+    // WETH has a main price but no reserve — untrusted, contributes nothing.
+    // DAI (underlying) is exempt and still prices both the debt and its own
+    // collateral at the main feed, so the factor is just DAI's LT: 9300.
+    expect(
+      hf(
+        {},
+        {
+          safePrices: true,
+          reservePrices: { [DAI]: prices[DAI] },
+        },
+      ),
+    ).toBe(9300);
+  });
+
+  it("at safe prices still values the underlying at the main feed", () => {
+    expect(
+      hf(
+        {},
+        {
+          safePrices: true,
+          reservePrices: {
+            [DAI]: prices[DAI] / 2n,
+            [WETH]: prices[WETH],
+          },
+        },
+      ),
+    ).toBe(hf());
   });
 });

@@ -1,7 +1,6 @@
 import type { Address } from "viem";
 import { vi } from "vitest";
 import type {
-  Amount,
   Bps,
   Curator,
   Token,
@@ -15,8 +14,11 @@ import type {
   OnchainSDK,
 } from "../../../index.js";
 import { CreditSuite } from "../../../market/credit/CreditSuite.js";
-import { MarketSuite } from "../../../market/MarketSuite.js";
-import { calcMaxLeverage, usdToNumber } from "../../../market/math.js";
+import { calcMaxLeverage } from "../../../market/math.js";
+import {
+  type TestOracleToken,
+  TestPriceOracle,
+} from "../../../market/oracle/TestPriceOracle.mock.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -224,43 +226,35 @@ export interface MockDelayedVenue {
 /**
  * Mock `OnchainSDK` covering exactly what the intent-service touches:
  * price conversion, quota params, CM/facade lookup and call assembly.
- * Conversion mirrors the legacy price-based math:
- * `amount * price[from] * 10^dec(to) / (price[to] * 10^dec(from))`.
+ * Conversion is a real {@link TestPriceOracle} seeded from the fixture records.
  */
 export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const decimalsOf = (token: Address): number =>
     args.decimals[token.toLowerCase() as Address] ?? 18;
 
-  const convert = (token: Address, to: Address, amount: bigint): bigint => {
-    const from = token.toLowerCase() as Address;
-    const target = to.toLowerCase() as Address;
-    if (from === target) {
-      return amount;
-    }
-    const fromPrice = args.prices[from];
-    const toPrice = args.prices[target];
-    if (fromPrice === undefined || toPrice === undefined) {
-      throw new Error(
-        `mock priceOracle: missing price for ${from} or ${target}`,
-      );
-    }
-    return (
-      (amount * fromPrice * 10n ** BigInt(decimalsOf(target))) /
-      (toPrice * 10n ** BigInt(decimalsOf(from)))
-    );
-  };
+  const lookup = <T>(
+    record: Record<Address, T> | undefined,
+    token: string,
+  ): T | undefined =>
+    record?.[token.toLowerCase() as Address] ?? record?.[token as Address];
 
-  const safeConvert = (
-    token: Address,
-    to: Address,
-    amount: bigint,
-  ): bigint | null => {
-    try {
-      return convert(token, to, amount);
-    } catch {
-      return null;
-    }
-  };
+  const tokenCfgs: Record<Address, TestOracleToken> = {};
+  for (const token of new Set([
+    ...Object.keys(args.decimals),
+    ...Object.keys(args.prices),
+    ...Object.keys(args.reservePrices ?? {}),
+  ])) {
+    tokenCfgs[token as Address] = {
+      decimals: lookup(args.decimals, token) ?? 18,
+      symbol: "TOKEN",
+      name: "TOKEN",
+      price: lookup(args.prices, token),
+      reservePrice: lookup(args.reservePrices, token),
+    };
+  }
+  const priceOracle = new TestPriceOracle(tokenCfgs);
+  const convert = (from: Address, to: Address, amount: bigint): bigint =>
+    priceOracle.convert(from, to, amount);
 
   const fullQuota = (q: MockQuotaEntry) => ({
     cumulativeIndexLU: 0n,
@@ -287,33 +281,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       args.liquidationThresholds[token],
   };
 
-  // USD is the oracle's own 8-decimal scale, which the fixture prices are
-  // already quoted in. A token with no reserve feed throws on the reserve
-  // branch, the way the real oracle does.
-  const _convertToUSD = (
-    token: Address,
-    amount: bigint,
-    reserve = false,
-  ): bigint => {
-    const key = token.toLowerCase() as Address;
-    const price = reserve ? args.reservePrices?.[key] : args.prices[key];
-    if (price === undefined) {
-      throw new Error(
-        `mock priceOracle: missing ${reserve ? "reserve" : "main"} price for ${token}`,
-      );
-    }
-    return (amount * price) / 10n ** BigInt(decimalsOf(token));
-  };
-
-  const safeUsd = (token: Address, amount: bigint): bigint | null => {
-    const from = token.toLowerCase() as Address;
-    const price = args.prices[from] ?? args.prices[token];
-    if (price === undefined) {
-      return null;
-    }
-    return (amount * price) / 10n ** BigInt(decimalsOf(from));
-  };
-
   const tokenOf = (token: Address): Token => ({
     chainId: 1,
     address: token,
@@ -322,66 +289,24 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     decimals: decimalsOf(token),
   });
 
-  const mainPriceOf = (token: Address): bigint => {
-    const key = token.toLowerCase() as Address;
-    const price = args.prices[key] ?? args.prices[token];
-    if (price === undefined) {
-      throw new Error(`mock priceOracle: missing main price for ${token}`);
-    }
-    return price;
-  };
-
-  const reservePriceOf = (token: Address): bigint => {
-    const key = token.toLowerCase() as Address;
-    const price = args.reservePrices?.[key] ?? args.reservePrices?.[token];
-    if (price === undefined) {
-      throw new Error(`mock priceOracle: missing reserve price for ${token}`);
-    }
-    return price;
-  };
-
   const poolPaused = args.poolPaused ?? false;
   /** {@inheritDoc MarketSuite.toUnderlyingAmount} */
-  const toUnderlyingAmount = (value: bigint): TokenAmount => {
-    const usd = safeUsd(args.underlying, value);
-    return {
-      // an RWA market reports the asset the underlying wraps, as the read model
-      // and the suite both do
-      token: tokenOf(
-        args.rwaAssets?.[args.underlying.toLowerCase() as Address] ??
-          args.underlying,
-      ),
-      value,
-      valueUsd: usd === null ? null : usdToNumber(usd),
-    };
-  };
+  const toUnderlyingAmount = (value: bigint): TokenAmount => ({
+    // an RWA market reports the asset the underlying wraps, as the read model
+    // and the suite both do
+    token: tokenOf(
+      args.rwaAssets?.[args.underlying.toLowerCase() as Address] ??
+        args.underlying,
+    ),
+    ...priceOracle.toAmount(args.underlying, value),
+  });
   const market = {
     toUnderlyingAmount,
     /** {@inheritDoc MarketSuite.curator} */
     curator: MOCK_CURATOR,
     /** {@inheritDoc MarketSuite.underlying} */
     underlying: args.underlying,
-    priceOracle: {
-      convert,
-      safeConvert,
-      mainPrice: mainPriceOf,
-      reservePrice: reservePriceOf,
-      convertToUSD: _convertToUSD,
-      // the read-model mappers the calculator hands its holdings to
-      toAmount: (token: Address, value: bigint): Amount => {
-        const usd = safeUsd(token, value);
-        return { value, valueUsd: usd === null ? null : usdToNumber(usd) };
-      },
-      toTokenAmount: (token: Address, value: bigint): TokenAmount => {
-        const usd = safeUsd(token, value);
-        return {
-          token: tokenOf(token),
-          value,
-          valueUsd: usd === null ? null : usdToNumber(usd),
-        };
-      },
-      safeConvertToUSD: safeUsd,
-    },
+    priceOracle,
     pool: {
       pqk: {
         quotas,
@@ -403,10 +328,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       underlying: args.underlying,
     },
   };
-
-  Object.assign(market, {
-    valueInUnderlying: MarketSuite.prototype.valueInUnderlying,
-  });
 
   // Bit `i` of the forbidden mask is `collateralTokens[i]`, so the mock needs a
   // token order to put the flags on.

@@ -2,14 +2,12 @@ import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { MAX_UINT256, MIN_INT96 } from "../../onchain/index.js";
+import { MockTokens } from "../../onchain/market/oracle/TestPriceOracle.mock.js";
 import type { InnerOperation } from "../parse/index.js";
 import { classifyCloseOrRepay, isCloseOrRepay } from "./detectCloseOrRepay.js";
 
-const UNDERLYING: Address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"; // WETH
-const COLLATERAL: Address = "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704"; // cbETH
-const dcUSDC: Address = "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D"; // Wrapped USDC used as RWA underlying
-const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // USDC
-const OWNER: Address = "0xC32FEB4DBd127a1993478Ad6E5250710f838b908";
+const { WETH: UNDERLYING, cbETH: COLLATERAL, dcUSDC, USDC } = MockTokens;
+const OWNER = "0xC32FEB4DBd127a1993478Ad6E5250710f838b908" as Address;
 
 function decreaseDebt(amount: bigint): InnerOperation {
   return { operation: "DecreaseBorrowedAmount", token: UNDERLYING, amount };

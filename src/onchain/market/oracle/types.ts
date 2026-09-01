@@ -3,9 +3,11 @@ import type {
   Amount,
   PriceFeedData,
   PriceFeedSummary,
+  SafeValue,
   TokenAmount,
 } from "../../../model/index.js";
 import type {
+  Asset,
   CreditAccountTokensSlice,
   IBaseContract,
 } from "../../base/index.js";
@@ -18,6 +20,7 @@ import type {
   PriceUpdate,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
+import type { UnpriceableTokenError } from "./errors.js";
 import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 
 /**
@@ -51,9 +54,7 @@ export interface PriceFeedsForAccountOptions
 }
 
 /**
- * Token-to-token conversion at latest known prices, result in `to`-token
- * decimals. Whether an unpriceable token throws (raw `convert`) or coerces
- * to 0n (`safeConvert(...) ?? 0n`) is the implementation's contract.
+ * Token-to-token conversion at latest known prices, result in `to`-token decimals.
  */
 export type ConvertFn = (from: Address, to: Address, amount: bigint) => bigint;
 
@@ -168,14 +169,15 @@ export interface IPriceOracleContract extends IBaseContract {
     reserve?: boolean,
   ) => bigint;
   /**
-   * Like {@link convert}, but returns `null` instead of throwing when either
-   * token cannot be priced (missing or unsuccessful feed).
-   *
-   * @param from - Source token address.
-   * @param to - Destination token address.
-   * @param amount - Amount in source-token decimals.
+   * Like {@link convert}, but never throws: main feed, then reserve, else
+   * `{ value: 0n, error }`. Fallback only on a missing or failed feed, not
+   * on a successful 0 price.
    **/
-  safeConvert: (from: Address, to: Address, amount: bigint) => bigint | null;
+  safeConvert: (
+    from: Address,
+    to: Address,
+    amount: bigint,
+  ) => SafeValue<bigint, UnpriceableTokenError>;
   /**
    * Converts a token amount to its USD value using latest known prices.
    *
@@ -188,13 +190,34 @@ export interface IPriceOracleContract extends IBaseContract {
    **/
   convertToUSD: (from: Address, amount: bigint, reserve?: boolean) => bigint;
   /**
-   * Like {@link convertToUSD}, but returns `null` instead of throwing when
-   * the token cannot be priced (missing or unsuccessful feed).
-   *
-   * @param token - Token address.
-   * @param amount - Amount in token decimals.
+   * Like {@link convertToUSD}, but never throws: main feed, then reserve,
+   * else `{ value: 0n, error }`. Fallback only on a missing or failed feed,
+   * not on a successful 0 price — not a min of feeds.
    **/
-  safeConvertToUSD: (token: Address, amount: bigint) => bigint | null;
+  safeConvertToUSD: (
+    token: Address,
+    amount: bigint,
+  ) => SafeValue<bigint, UnpriceableTokenError>;
+  /**
+   * USD value at the protocol "safe price": `min(main, reserve)`, matching
+   * on-chain `_getSafePrice` / `safeConvertToUSD`. For predicting a collateral
+   * check that runs with `USE_SAFE_PRICES_FLAG` (after `withdrawCollateral`,
+   * or an adapter that asked for safe prices).
+   *
+   * On-chain quirks, copied:
+   * - no main feed → `{ value: 0n, error }` (the check would revert);
+   * - main answers, no reserve feed → `{ value: 0n }` with no error (untrusted
+   *   token, the check values it at 0);
+   * - reserve feed present but its answer failed → `{ value: 0n, error }`
+   *   (the check would revert).
+   *
+   * The underlying is exempt on-chain (`CreditManagerV3._safeConvertToUSD`);
+   * callers that weigh a whole account must still price it at the main feed.
+   **/
+  safeConvertMinUSD: (
+    token: Address,
+    amount: bigint,
+  ) => SafeValue<bigint, UnpriceableTokenError>;
   /**
    * Converts a USD amount to a token amount using latest known prices.
    *
@@ -207,19 +230,25 @@ export interface IPriceOracleContract extends IBaseContract {
    **/
   convertFromUSD: (to: Address, amount: bigint, reserve?: boolean) => bigint;
   /**
-   * USD value of a token amount as the read model expresses it: plain dollars
-   * rather than {@link convertToUSD}'s 8-decimal fixed point, and `null`
-   * instead of a throw when the token cannot be priced.
-   *
-   * A dead or not-yet-updated feed must degrade one field, not fail a whole
-   * list, which is why {@link Amount.valueUsd} is nullable.
-   *
-   * @param token - Token address.
-   * @param amount - Amount in token decimals.
+   * Like {@link convertFromUSD}, but never throws: main feed, then reserve,
+   * else `{ value: 0n, error }`. Availability only — not a min of feeds.
    **/
-  safeUsdValue: (token: Address, amount: bigint) => number | null;
+  safeConvertFromUSD: (
+    token: Address,
+    amount: bigint,
+  ) => SafeValue<bigint, UnpriceableTokenError>;
   /**
-   * Pairs a token amount with its USD value, using {@link safeUsdValue}.
+   * Sum of {@link safeConvert} over `assets` into `to`. Balances at or below
+   * `DUST_THRESHOLD` are skipped. First unpriceable token wins `error`.
+   **/
+  safeConvertAssets: (
+    assets: Asset[],
+    to: Address,
+  ) => SafeValue<bigint, UnpriceableTokenError>;
+  /**
+   * Pairs a token amount with its USD value via {@link safeConvertToUSD}:
+   * main feed, then reserve. `valueUsd` is `null` when neither feed can
+   * price the token — unknown is not `$0`.
    * Syntactic sugar for high-level sdk.
    * @param token - Token address.
    * @param value - Amount in token decimals.
@@ -231,7 +260,7 @@ export interface IPriceOracleContract extends IBaseContract {
    * Syntactic sugar for high-level sdk.
    *
    * `NATIVE_ADDRESS` is not in the token registry: it is synthesized from the
-   * chain's native currency. Pricing is delegated to {@link convertToUSD}.
+   * chain's native currency. Pricing is delegated to {@link toAmount}.
    *
    * @param token - Token address.
    * @param value - Amount in token decimals.

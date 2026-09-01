@@ -324,9 +324,10 @@ export interface AccountMetrics {
    **/
   healthFactor: Bps;
   /**
-   * The same factor with collateral valued at safe prices — the lower of each
-   * token's main and reserve oracle feeds, which is what the credit manager
-   * switches to for a call that hands funds over.
+   * The same factor with collateral valued at safe prices — `min` of each
+   * token's main and reserve feeds (0 when there is no reserve), which is
+   * what the credit manager switches to for a call that hands funds over.
+   * The underlying is always priced at the main feed.
    *
    * Always reported, whether or not the operation in question hands anything
    * over: which of the two factors decides a transaction is a property of the
