@@ -1,3 +1,5 @@
+export * from "./analytics.js";
+export * from "./analytics.schema.js";
 export * from "./charts.js";
 export * from "./charts.schema.js";
 export * from "./compare.schema.js";

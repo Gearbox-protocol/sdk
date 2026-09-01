@@ -1,4 +1,5 @@
 export * from "./AbstractNamespace.js";
+export * from "./analytics/index.js";
 export * from "./errors/index.js";
 export * from "./execute/index.js";
 export * from "./GearboxSDK.js";

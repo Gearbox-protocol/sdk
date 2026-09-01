@@ -11,6 +11,7 @@ const KEY = { kind: "strategy", chainId: 1, creditAccount: WALLET } as const;
 const envelope = <T>(data: T) => ({ data, meta: { chains: [] } });
 
 function backend() {
+  const analytics = { positions: { list: vi.fn(async () => envelope([])) } };
   const positions = {
     getCharts: vi.fn(async () =>
       envelope({
@@ -25,7 +26,7 @@ function backend() {
   const notices = { list: vi.fn(async () => envelope([{ kind: "expired" }])) };
   // a real GearboxAPI's prototype, so the SDK's `instanceof` injection seam holds
   const api = Object.create(GearboxAPI.prototype) as GearboxAPI;
-  Object.assign(api, { positions, notices, chainIds: [1] });
+  Object.assign(api, { analytics, positions, notices, chainIds: [1] });
   return { positions, notices, api };
 }
 

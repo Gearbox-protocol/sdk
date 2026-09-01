@@ -12,6 +12,7 @@ import type {
   NetworkType,
 } from "../onchain/index.js";
 import type { ILogger } from "../onchain/types/logger.js";
+import type { IAnalyticsByMode } from "./analytics/types.js";
 import type { ILiquidationsByMode } from "./liquidations/types.js";
 import type { IOpportunities } from "./opportunities/types.js";
 import type { IPositions } from "./positions/types.js";
@@ -167,6 +168,8 @@ export interface IGearboxSDK<M extends Mode = Mode> {
    * `offchain` mode and when an already-attached SDK was injected.
    **/
   attach(): Promise<void>;
+  /** Protocol-wide analytics. Absent in `onchain` mode. */
+  readonly analytics: IAnalyticsByMode[M];
   /**
    * Namespace for pool and strategy opportunities.
    **/

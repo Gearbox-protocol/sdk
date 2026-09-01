@@ -1,6 +1,21 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type { z } from "zod/v4";
 import type {
+  AnalyticsPosition,
+  AnalyticsPositionListOptions,
+  AnalyticsPositionPage,
+  AnalyticsPositionSortField,
+  AnalyticsSortDirection,
+} from "./analytics.js";
+import type {
+  analyticsPositionListOptionsSchema,
+  analyticsPositionListQuerySchema,
+  analyticsPositionPageSchema,
+  analyticsPositionSchema,
+  analyticsPositionSortFieldSchema,
+  analyticsSortDirectionSchema,
+} from "./analytics.schema.js";
+import type {
   ChartBundle,
   ChartDenomination,
   ChartMetric,
@@ -202,6 +217,27 @@ import type {
  **/
 
 describe("model schemas match model types", () => {
+  it("analytics", () => {
+    expectTypeOf<
+      z.infer<typeof analyticsPositionSchema>
+    >().toEqualTypeOf<AnalyticsPosition>();
+    expectTypeOf<
+      z.infer<typeof analyticsPositionSortFieldSchema>
+    >().toEqualTypeOf<AnalyticsPositionSortField>();
+    expectTypeOf<
+      z.infer<typeof analyticsSortDirectionSchema>
+    >().toEqualTypeOf<AnalyticsSortDirection>();
+    expectTypeOf<
+      z.infer<typeof analyticsPositionListOptionsSchema>
+    >().toEqualTypeOf<AnalyticsPositionListOptions>();
+    expectTypeOf<
+      z.infer<typeof analyticsPositionListQuerySchema>
+    >().toEqualTypeOf<AnalyticsPositionListOptions>();
+    expectTypeOf<
+      z.infer<typeof analyticsPositionPageSchema>
+    >().toEqualTypeOf<AnalyticsPositionPage>();
+  });
+
   it("primitives", () => {
     expectTypeOf<z.infer<typeof amountSchema>>().toEqualTypeOf<Amount>();
     expectTypeOf<z.infer<typeof assetTypeSchema>>().toEqualTypeOf<AssetType>();
