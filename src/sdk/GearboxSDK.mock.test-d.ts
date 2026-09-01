@@ -15,6 +15,11 @@ const mockSDK = {
   networks: [],
   attached: true,
   attach: notImplemented,
+  analytics: {
+    positions: {
+      list: notImplemented,
+    },
+  },
   opportunities: {
     list: notImplemented,
     getPool: notImplemented,

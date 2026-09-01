@@ -1,4 +1,5 @@
 import type { ChainId } from "../model/primitives.js";
+import { OffchainAnalytics } from "./analytics/index.js";
 import { OffchainNotices } from "./notices/index.js";
 import { OffchainOpportunities } from "./opportunities/index.js";
 import { OffchainPositions } from "./positions/index.js";
@@ -26,6 +27,8 @@ export class GearboxAPI {
    * Chains every read of this client is scoped to.
    **/
   public readonly chainIds: readonly ChainId[];
+  /** Protocol-wide, backend-only analytics. */
+  public readonly analytics: OffchainAnalytics;
   /**
    * Namespace for pool and strategy opportunities.
    **/
@@ -41,6 +44,7 @@ export class GearboxAPI {
 
   constructor(options: GearboxAPIOptions) {
     this.chainIds = [...options.chainIds];
+    this.analytics = new OffchainAnalytics(options);
     this.opportunities = new OffchainOpportunities(options);
     this.positions = new OffchainPositions(options);
     this.notices = new OffchainNotices(options);

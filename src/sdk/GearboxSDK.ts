@@ -7,6 +7,8 @@ import type {
   OnchainSDK,
 } from "../onchain/index.js";
 import { MultichainSDK, toChainIds } from "../onchain/index.js";
+import type { IAnalyticsByMode } from "./analytics/index.js";
+import { AnalyticsNamespace } from "./analytics/index.js";
 import { assertSameChains, MissingSourceError } from "./errors/index.js";
 import type { ILiquidationsByMode } from "./liquidations/index.js";
 import { LiquidationsNamespace } from "./liquidations/index.js";
@@ -62,6 +64,8 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
    * Chains this instance covers, which every read is scoped to.
    **/
   public readonly networks: readonly NetworkType[];
+  /** Protocol-wide analytics. Undefined in `onchain` mode. */
+  public readonly analytics: IAnalyticsByMode[M];
   /**
    * Namespace for pool and strategy opportunities.
    **/
@@ -175,6 +179,9 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
         : undefined,
       logger,
     };
+    this.analytics = (
+      this.#offchain ? new AnalyticsNamespace(this.#offchain) : undefined
+    ) as IAnalyticsByMode[M];
     // the namespaces hand out these two sources' own sub-namespaces (the
     // on-chain one behind the loading policy), so `sdk.opportunities.onchain`
     // and `sdk.onchain.opportunities` cannot drift
