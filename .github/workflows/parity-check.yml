@@ -93,7 +93,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           to: ${{ vars.TELEGRAM_MAINNET_NOTIFICATIONS }}
           message: |
-            Parity check succeeded
+            SDK onchain/offcain parity check succeeded
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Notify failure
@@ -103,5 +103,5 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           to: ${{ vars.TELEGRAM_MAINNET_ALERTS }}
           message: |
-            Parity check failed (opportunities: ${{ needs.opportunities.result }}, positions: ${{ needs.positions.result }})
+            SDK onchain/offcain parity check failed (opportunities: ${{ needs.opportunities.result }}, positions: ${{ needs.positions.result }})
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
