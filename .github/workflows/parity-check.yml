@@ -1,0 +1,107 @@
+name: Parity check
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend_url:
+        description: Backend URL to compare against
+        required: false
+        default: https://api.gear-dev.dev
+        type: string
+  # schedule:
+  #   - cron: "0 6 * * *"
+
+env:
+  HUSKY: 0
+  CI: true
+  BACKEND_URL: ${{ inputs.backend_url || 'https://api.gear-dev.dev' }}
+
+jobs:
+  opportunities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - uses: pnpm/action-setup@v5
+        with:
+          cache: true
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Compare opportunities
+        env:
+          ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
+          SOMNIA_PROVIDER: ${{ secrets.SOMNIA_PROVIDER }}
+          ETHERLINK_PROVIDER: ${{ secrets.ETHERLINK_PROVIDER }}
+        run: pnpm tsx ci/compare-opportunities.ts
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opportunities-compare
+          path: tmp/opportunities-compare/*.json
+          if-no-files-found: warn
+
+  positions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - uses: pnpm/action-setup@v5
+        with:
+          cache: true
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Compare positions
+        env:
+          ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
+          SOMNIA_PROVIDER: ${{ secrets.SOMNIA_PROVIDER }}
+          ETHERLINK_PROVIDER: ${{ secrets.ETHERLINK_PROVIDER }}
+        run: pnpm tsx ci/compare-positions.ts
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: positions-compare
+          path: tmp/positions-compare/*.json
+          if-no-files-found: warn
+
+  notify:
+    needs: [opportunities, positions]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify success
+        if: ${{ needs.opportunities.result == 'success' && needs.positions.result == 'success' }}
+        uses: appleboy/telegram-action@v1
+        with:
+          token: ${{ vars.TELEGRAM_BOT_TOKEN }}
+          to: ${{ vars.TELEGRAM_MAINNET_NOTIFICATIONS }}
+          message: |
+            Parity check succeeded
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Notify failure
+        if: ${{ needs.opportunities.result != 'success' || needs.positions.result != 'success' }}
+        uses: appleboy/telegram-action@v1
+        with:
+          token: ${{ vars.TELEGRAM_BOT_TOKEN }}
+          to: ${{ vars.TELEGRAM_MAINNET_ALERTS }}
+          message: |
+            Parity check failed (opportunities: ${{ needs.opportunities.result }}, positions: ${{ needs.positions.result }})
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
