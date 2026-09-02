@@ -178,10 +178,10 @@ describe("matched rows", () => {
     const report = compare([pool()], [pool()]);
 
     expect(report.matched).toEqual([
-      expect.objectContaining({ identical: true, clean: true, diffs: [] }),
+      expect.objectContaining({ similar: true, diffs: [] }),
     ]);
-    expect(report.summary.differing).toBe(0);
-    expect(report.summary.clean).toBe(1);
+    expect(report.summary.different).toBe(0);
+    expect(report.summary.similar).toBe(1);
   });
 
   it("matches a row whose addresses differ only in case", () => {
@@ -389,7 +389,7 @@ describe("quota assets", () => {
       expected: true,
       reason: "tolerance",
     });
-    expect(inside.matched[0]?.clean).toBe(true);
+    expect(inside.matched[0]?.similar).toBe(true);
     expect(
       diffAt(
         outside.matched[0]?.diffs ?? [],
@@ -401,7 +401,7 @@ describe("quota assets", () => {
       offchain: 1_010_000n,
       kind: "numeric",
     });
-    expect(outside.matched[0]?.clean).toBe(false);
+    expect(outside.matched[0]?.similar).toBe(false);
   });
 
   it("marks quota allocation fields as mode-scoped", () => {
@@ -446,7 +446,7 @@ describe("quota assets", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(match?.clean).toBe(true);
+    expect(match?.similar).toBe(true);
   });
 
   it("treats a limit.value disagreement as unexpected", () => {
@@ -472,7 +472,7 @@ describe("quota assets", () => {
       offchain: 10_001n,
       kind: "numeric",
     });
-    expect(report.matched[0]?.clean).toBe(false);
+    expect(report.matched[0]?.similar).toBe(false);
   });
 });
 
@@ -496,7 +496,7 @@ describe("the report as a whole", () => {
       ],
     );
 
-    expect(report.summary.differing).toBe(2);
+    expect(report.summary.different).toBe(2);
     expect(report.summary.diffsByPath).toEqual([
       {
         path: "allowedDepositTokens[].symbol",
@@ -573,7 +573,7 @@ describe("the report as a whole", () => {
 });
 
 describe("expected diffs", () => {
-  it("marks a documented offchain-only field as expected, not identical", () => {
+  it("marks a documented offchain-only field as expected, still similar", () => {
     const report = compare(
       [strategy()],
       [
@@ -592,10 +592,8 @@ describe("expected diffs", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(match?.identical).toBe(false);
-    expect(match?.clean).toBe(true);
-    expect(report.summary.identical).toBe(0);
-    expect(report.summary.clean).toBe(1);
+    expect(match?.similar).toBe(true);
+    expect(report.summary.similar).toBe(1);
   });
 
   it("treats strategy utilization as mode-scoped", () => {
@@ -610,7 +608,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(strategyMatch?.clean).toBe(true);
+    expect(strategyMatch?.similar).toBe(true);
   });
 
   it("tolerates a USD float inside 0.1% and flags one outside it", () => {
@@ -636,7 +634,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "tolerance",
     });
-    expect(inside.matched[0]?.clean).toBe(true);
+    expect(inside.matched[0]?.similar).toBe(true);
     expect(
       diffAt(
         outside.matched[0]?.diffs ?? [],
@@ -648,7 +646,7 @@ describe("expected diffs", () => {
       offchain: 601.42,
       kind: "usd",
     });
-    expect(outside.matched[0]?.clean).toBe(false);
+    expect(outside.matched[0]?.similar).toBe(false);
   });
 
   it("tolerates a ±1 bps rate and a lag-bounded amount, not a larger gap", () => {
@@ -670,7 +668,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "tolerance",
     });
-    expect(rate.matched[0]?.clean).toBe(true);
+    expect(rate.matched[0]?.similar).toBe(true);
     expect(
       diffAt(amountLag.matched[0]?.diffs ?? [], "totalSupply.value"),
     ).toEqual({
@@ -681,7 +679,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "tolerance",
     });
-    expect(amountLag.matched[0]?.clean).toBe(true);
+    expect(amountLag.matched[0]?.similar).toBe(true);
     expect(
       diffAt(amountGap.matched[0]?.diffs ?? [], "totalSupply.value"),
     ).toEqual({
@@ -690,7 +688,7 @@ describe("expected diffs", () => {
       offchain: 1_010_000n,
       kind: "numeric",
     });
-    expect(amountGap.matched[0]?.clean).toBe(false);
+    expect(amountGap.matched[0]?.similar).toBe(false);
   });
 
   it("does not treat a pool supplyApy.totalApy presence as unexpected", () => {
@@ -709,7 +707,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(report.matched[0]?.clean).toBe(true);
+    expect(report.matched[0]?.similar).toBe(true);
     expect(report.summary.diffsByPath).toEqual([
       {
         path: "supplyApy.totalApy",

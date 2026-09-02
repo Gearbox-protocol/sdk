@@ -173,8 +173,8 @@ export function evaluateCompareFailure(
   if (summary.onchainRows === 0 && summary.offchainRows === 0) {
     reasons.push("both sources produced no data");
   }
-  if (summary.differing > 0) {
-    reasons.push(`${summary.differing} matched rows have unexpected diffs`);
+  if (summary.different > 0) {
+    reasons.push(`${summary.different} matched rows are different`);
   }
   if (summary.onlyOnchain > 0) {
     reasons.push(`${summary.onlyOnchain} rows only onchain`);
@@ -238,9 +238,8 @@ export function printCompareSummary(
       onchain: chain.onchainRows,
       offchain: chain.offchainRows,
       matched: chain.matched,
-      identical: chain.identical,
-      clean: chain.clean,
-      differing: chain.differing,
+      similar: chain.similar,
+      different: chain.different,
       "only onchain": chain.onlyOnchain,
       "only offchain": chain.onlyOffchain,
     })),
@@ -331,9 +330,8 @@ export function formatCompareMarkdown(
           "onchain",
           "offchain",
           "matched",
-          "identical",
-          "clean",
-          "differing",
+          "similar",
+          "different",
           "only onchain",
           "only offchain",
         ],
@@ -342,9 +340,8 @@ export function formatCompareMarkdown(
           chain.onchainRows,
           chain.offchainRows,
           chain.matched,
-          chain.identical,
-          chain.clean,
-          chain.differing,
+          chain.similar,
+          chain.different,
           chain.onlyOnchain,
           chain.onlyOffchain,
         ]),
@@ -442,7 +439,7 @@ export function writeGithubJobSummary(
 
 /**
  * Console + job-summary output for a compare run. Returns the failure reasons
- * so the caller can exit 1 when the report is not clean.
+ * so the caller can exit 1 when the report is not similar.
  **/
 export function reportCompare(
   noun: string,

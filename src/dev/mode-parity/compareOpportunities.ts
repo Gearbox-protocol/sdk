@@ -75,13 +75,9 @@ export interface OpportunityMatch {
   onchainName: string;
   offchainName: string;
   /**
-   * No diffs at all, including the documented offchain-only ones.
-   **/
-  identical: boolean;
-  /**
    * No unexpected diffs: every disagreement is mode-scoped or within tolerance.
    **/
-  clean: boolean;
+  similar: boolean;
   diffs: FieldDiff[];
 }
 
@@ -135,8 +131,8 @@ export interface CompareOpportunitiesInput {
  *
  * Nothing is filtered out. A field only the backend can fill, or a USD value
  * that drifted within snapshot-lag noise, is still reported — tagged
- * {@link FieldDiff.expected} so that {@link CompareCounts.clean} can ignore it
- * while {@link CompareCounts.identical} stays strict.
+ * {@link FieldDiff.expected} so that {@link CompareCounts.similar} can ignore
+ * it.
  **/
 export function compareOpportunities(
   input: CompareOpportunitiesInput,
@@ -161,8 +157,7 @@ export function compareOpportunities(
       chainId: row.chainId,
       onchainName: row.name,
       offchainName: counterpart.name,
-      identical: diffs.length === 0,
-      clean: diffs.every(diff => diff.expected),
+      similar: diffs.every(diff => diff.expected),
       diffs,
     });
   }

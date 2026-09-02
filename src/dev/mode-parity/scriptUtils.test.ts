@@ -19,9 +19,8 @@ function counts(
     onchainRows: 2,
     offchainRows: 2,
     matched: 2,
-    identical: 2,
-    clean: 2,
-    differing: 0,
+    similar: 2,
+    different: 0,
     onlyOnchain: 0,
     onlyOffchain: 0,
     byChain: [
@@ -30,9 +29,8 @@ function counts(
         onchainRows: 2,
         offchainRows: 2,
         matched: 2,
-        identical: 2,
-        clean: 2,
-        differing: 0,
+        similar: 2,
+        different: 0,
         onlyOnchain: 0,
         onlyOffchain: 0,
       },
@@ -83,8 +81,8 @@ describe("evaluateCompareFailure", () => {
             onchainRows: 0,
             offchainRows: 0,
             matched: 0,
-            identical: 0,
-            clean: 0,
+            similar: 0,
+            different: 0,
           }),
         }),
       ),
@@ -99,16 +97,15 @@ describe("evaluateCompareFailure", () => {
             onchainRows: 3,
             offchainRows: 3,
             matched: 2,
-            identical: 1,
-            clean: 1,
-            differing: 1,
+            similar: 1,
+            different: 1,
             onlyOnchain: 1,
             onlyOffchain: 1,
           }),
         }),
       ),
     ).toEqual([
-      "1 matched rows have unexpected diffs",
+      "1 matched rows are different",
       "1 rows only onchain",
       "1 rows only offchain",
     ]);
@@ -139,7 +136,7 @@ describe("evaluateCompareFailure", () => {
 });
 
 describe("formatCompareMarkdown", () => {
-  it("marks a clean report as passed", () => {
+  it("marks a similar report as passed", () => {
     const markdown = formatCompareMarkdown("opportunities", report(), [
       "total: 2 onchain, 2 offchain",
     ]);
@@ -147,9 +144,10 @@ describe("formatCompareMarkdown", () => {
     expect(markdown).toContain("**Passed**");
     expect(markdown).toContain("total: 2 onchain, 2 offchain");
     expect(markdown).toContain("| chain | onchain | offchain |");
+    expect(markdown).toContain("| similar | different |");
   });
 
-  it("lists failure reasons when the report is not clean", () => {
+  it("lists failure reasons when the report is not similar", () => {
     const markdown = formatCompareMarkdown(
       "positions",
       report(),

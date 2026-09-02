@@ -240,7 +240,7 @@ describe("membership", () => {
 
     expect(report.summary.walletsFailed).toBe(1);
     expect(walletOf(report, OTHER)?.error).toBe("timeout");
-    expect(report.summary.walletsClean).toBe(1);
+    expect(report.summary.walletsSimilar).toBe(1);
   });
 });
 
@@ -249,10 +249,11 @@ describe("matched rows", () => {
     const report = compare([pool()], [pool()]);
 
     expect(walletOf(report)?.matched).toEqual([
-      expect.objectContaining({ identical: true, clean: true, diffs: [] }),
+      expect.objectContaining({ similar: true, diffs: [] }),
     ]);
-    expect(report.summary.clean).toBe(1);
-    expect(report.summary.walletsClean).toBe(1);
+    expect(report.summary.similar).toBe(1);
+    expect(report.summary.different).toBe(0);
+    expect(report.summary.walletsSimilar).toBe(1);
   });
 
   it("matches a liquidation by redeemer, not by source token alone", () => {
@@ -282,7 +283,7 @@ describe("matched rows", () => {
 });
 
 describe("expected diffs", () => {
-  it("marks offchain-only pnl as expected, not identical", () => {
+  it("marks offchain-only pnl as expected, still similar", () => {
     const report = compare([pool()], [pool({ pnl: pnl(10n, 12n) })]);
     const match = walletOf(report)?.matched[0];
 
@@ -294,10 +295,8 @@ describe("expected diffs", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(match?.identical).toBe(false);
-    expect(match?.clean).toBe(true);
-    expect(report.summary.identical).toBe(0);
-    expect(report.summary.clean).toBe(1);
+    expect(match?.similar).toBe(true);
+    expect(report.summary.similar).toBe(1);
   });
 
   it("marks onchain-only borrowRate as expected", () => {
@@ -314,7 +313,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "mode-scoped",
     });
-    expect(walletOf(report)?.matched[0]?.clean).toBe(true);
+    expect(walletOf(report)?.matched[0]?.similar).toBe(true);
   });
 
   it("treats pool apy.totalApy as mode-scoped", () => {
@@ -355,7 +354,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "tolerance",
     });
-    expect(walletOf(inside)?.matched[0]?.clean).toBe(true);
+    expect(walletOf(inside)?.matched[0]?.similar).toBe(true);
     expect(
       diffAt(walletOf(outside)?.matched[0]?.diffs ?? [], "netValue.valueUsd"),
     ).toEqual({
@@ -364,7 +363,7 @@ describe("expected diffs", () => {
       offchain: 1_002,
       kind: "usd",
     });
-    expect(walletOf(outside)?.matched[0]?.clean).toBe(false);
+    expect(walletOf(outside)?.matched[0]?.similar).toBe(false);
   });
 
   it("tolerates a ±1 bps health factor and a lag-bounded amount, not a larger gap", () => {
@@ -388,7 +387,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "tolerance",
     });
-    expect(walletOf(rate)?.matched[0]?.clean).toBe(true);
+    expect(walletOf(rate)?.matched[0]?.similar).toBe(true);
     expect(
       diffAt(walletOf(amountLag)?.matched[0]?.diffs ?? [], "totalDebt.value"),
     ).toEqual({
@@ -457,9 +456,8 @@ describe("expected diffs", () => {
       expected: true,
       reason: "backend-preferred",
     });
-    expect(match?.identical).toBe(false);
-    expect(match?.clean).toBe(true);
-    expect(report.summary.walletsClean).toBe(1);
+    expect(match?.similar).toBe(true);
+    expect(report.summary.walletsSimilar).toBe(1);
   });
 
   it("tolerates a backend null targetCollateral against an onchain token", () => {
@@ -482,7 +480,7 @@ describe("expected diffs", () => {
       expected: true,
       reason: "backend-preferred",
     });
-    expect(match?.clean).toBe(true);
+    expect(match?.similar).toBe(true);
   });
 });
 
@@ -512,7 +510,7 @@ describe("collateral lists", () => {
         kind: "presence",
       },
     ]);
-    expect(walletOf(report)?.matched[0]?.clean).toBe(false);
+    expect(walletOf(report)?.matched[0]?.similar).toBe(false);
   });
 
   it("ignores the order the collaterals came in", () => {
@@ -552,7 +550,7 @@ describe("the report as a whole", () => {
     });
   });
 
-  it("does not count a wallet as clean when a pool name disagrees", () => {
+  it("does not count a wallet as similar when a pool name disagrees", () => {
     const report = compare([pool()], [pool({ name: "USDC pool" })]);
 
     expect(diffAt(walletOf(report)?.matched[0]?.diffs ?? [], "name")).toEqual({
@@ -561,8 +559,9 @@ describe("the report as a whole", () => {
       offchain: "USDC pool",
       kind: "other",
     });
-    expect(report.summary.walletsClean).toBe(0);
-    expect(report.summary.clean).toBe(0);
+    expect(report.summary.walletsSimilar).toBe(0);
+    expect(report.summary.similar).toBe(0);
+    expect(report.summary.different).toBe(1);
   });
 
   it("names the entity with the largest unexpected numeric gap", () => {

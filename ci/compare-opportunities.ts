@@ -85,7 +85,7 @@ function printSummary(report: OpportunityCompareReport): string[] {
   const { summary } = report;
   return reportCompare("opportunities", report, [
     `total: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
-      `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +
+      `${summary.matched} matched (${summary.similar} similar, ${summary.different} different), ` +
       `${summary.onlyOnchain} only onchain, ${summary.onlyOffchain} only offchain`,
   ]);
 }

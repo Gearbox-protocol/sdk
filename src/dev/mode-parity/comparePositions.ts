@@ -65,14 +65,10 @@ export interface PositionMatch {
   onchainName: string;
   offchainName: string;
   /**
-   * No diffs at all, including the documented mode-scoped ones.
-   **/
-  identical: boolean;
-  /**
    * No unexpected diffs: every disagreement is mode-scoped, backend-preferred,
    * or within tolerance.
    **/
-  clean: boolean;
+  similar: boolean;
   diffs: FieldDiff[];
 }
 
@@ -111,7 +107,7 @@ export interface PositionsCompareSummary extends CompareCounts {
    * Wallets whose listings were read and that have no membership gaps and no
    * unexpected field diffs.
    **/
-  walletsClean: number;
+  walletsSimilar: number;
   walletsFailed: number;
   byChain: ChainCompareCounts[];
   byWallet: WalletCompareCounts[];
@@ -177,8 +173,8 @@ export interface ComparePositionsInput {
  * Nothing is filtered out. A field only one mode can fill, a strategy field
  * both-mode merge overlays from the backend, or a USD value that drifted
  * within snapshot-lag noise, is still reported — tagged
- * {@link FieldDiff.expected} so that {@link CompareCounts.clean} can ignore it
- * while {@link CompareCounts.identical} stays strict.
+ * {@link FieldDiff.expected} so that {@link CompareCounts.similar} can ignore
+ * it.
  **/
 export function comparePositions(
   input: ComparePositionsInput,
@@ -242,8 +238,7 @@ function compareWallet(input: WalletPositions): WalletComparison {
       chainId: row.chainId,
       onchainName: row.name,
       offchainName: counterpart.name,
-      identical: diffs.length === 0,
-      clean: diffs.every(diff => diff.expected),
+      similar: diffs.every(diff => diff.expected),
       diffs,
     });
   }
@@ -350,11 +345,11 @@ function summarize(
     ),
   }));
 
-  const walletsClean = compared.filter(
+  const walletsSimilar = compared.filter(
     wallet =>
       wallet.onlyOnchain.length === 0 &&
       wallet.onlyOffchain.length === 0 &&
-      wallet.matched.every(match => match.clean),
+      wallet.matched.every(match => match.similar),
   ).length;
 
   return {
@@ -366,7 +361,7 @@ function summarize(
       matched,
     ),
     wallets: wallets.length,
-    walletsClean,
+    walletsSimilar,
     walletsFailed: failed,
     byChain,
     byWallet,

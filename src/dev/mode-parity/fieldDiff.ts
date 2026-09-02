@@ -46,7 +46,7 @@ export interface FieldDiff {
   kind: DiffKind;
   /**
    * Present when this disagreement is documented or within snapshot-lag noise,
-   * so it does not keep the row from being counted as clean.
+   * so it does not keep the row from being counted as similar.
    **/
   expected?: true;
   reason?: ExpectedDiffReason;
@@ -110,12 +110,14 @@ export interface CompareCounts {
   onchainRows: number;
   offchainRows: number;
   matched: number;
-  identical: number;
   /**
-   * Matched rows with no unexpected diffs, including the identical ones.
+   * Matched rows with no unexpected diffs.
    **/
-  clean: number;
-  differing: number;
+  similar: number;
+  /**
+   * Matched rows with at least one unexpected diff.
+   **/
+  different: number;
   onlyOnchain: number;
   onlyOffchain: number;
 }
@@ -212,7 +214,7 @@ export function diffObjects(
 }
 
 /**
- * Mark a diff expected, so a later `clean` count can ignore it.
+ * Mark a diff expected, so a later `similar` count can ignore it.
  **/
 export function withExpected(
   diff: FieldDiff,
@@ -309,17 +311,15 @@ export function toCompareCounts(
   offchainRows: number,
   onlyOnchain: number,
   onlyOffchain: number,
-  matched: ReadonlyArray<{ identical: boolean; clean: boolean }>,
+  matched: ReadonlyArray<{ similar: boolean }>,
 ): CompareCounts {
-  const identical = matched.filter(match => match.identical).length;
-  const clean = matched.filter(match => match.clean).length;
+  const similar = matched.filter(match => match.similar).length;
   return {
     onchainRows,
     offchainRows,
     matched: matched.length,
-    identical,
-    clean,
-    differing: matched.length - identical,
+    similar,
+    different: matched.length - similar,
     onlyOnchain,
     onlyOffchain,
   };

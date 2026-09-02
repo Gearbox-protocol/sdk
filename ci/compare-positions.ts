@@ -439,9 +439,9 @@ function printSummary(
 ): string[] {
   const { summary } = report;
   return reportCompare(`positions (${kind})`, report, [
-    `wallets: ${summary.wallets} compared, ${summary.walletsClean} clean, ${summary.walletsFailed} failed`,
+    `wallets: ${summary.wallets} compared, ${summary.walletsSimilar} similar, ${summary.walletsFailed} failed`,
     `positions: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
-      `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +
+      `${summary.matched} matched (${summary.similar} similar, ${summary.different} different), ` +
       `${summary.onlyOnchain} only onchain, ${summary.onlyOffchain} only offchain`,
   ]);
 }
