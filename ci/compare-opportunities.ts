@@ -5,7 +5,7 @@ import {
   BACKEND_URL,
   createLogger,
   NETWORKS,
-  printCompareSummary,
+  reportCompare,
   rpcUrls,
   TIMEOUT,
 } from "../src/dev/mode-parity/scriptUtils.js";
@@ -17,13 +17,13 @@ import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
  * where they disagree, for a later reading of the report.
  *
  * ```sh
- * ALCHEMY_KEY=... SOMNIA_PROVIDER=... ETHERLINK_PROVIDER=... pnpm tsx scripts/compare-opportunities.ts
+ * ALCHEMY_KEY=... SOMNIA_PROVIDER=... ETHERLINK_PROVIDER=... pnpm tsx ci/compare-opportunities.ts
  * ```
  *
- * Differences are expected — naming, USD values the backend smooths, fields
- * only the backend can fill, eligibility rules and formulas the two sides
- * define differently — so a disagreement is reported, never asserted on. The
- * run only fails when a source could not be read at all.
+ * Expected diffs (mode-scoped, backend-preferred, or within tolerance) are
+ * reported but do not fail the run. The process exits 1 on unexpected diffs,
+ * membership gaps, a chain that could not be read, or when both sources
+ * produced no data.
  **/
 const OUT_DIR = "tmp/opportunities-compare";
 
@@ -71,13 +71,19 @@ async function compare(): Promise<void> {
     writeFile(`${OUT_DIR}/report.json`, json_stringify(report)),
   ]);
 
-  printSummary(report);
+  const reasons = printSummary(report);
   logger.info(`wrote ${OUT_DIR}/{onchain,offchain,report}.json`);
+  if (reasons.length) {
+    for (const reason of reasons) {
+      logger.error(reason);
+    }
+    process.exit(1);
+  }
 }
 
-function printSummary(report: OpportunityCompareReport): void {
+function printSummary(report: OpportunityCompareReport): string[] {
   const { summary } = report;
-  printCompareSummary("opportunities", report, [
+  return reportCompare("opportunities", report, [
     `total: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
       `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +
       `${summary.onlyOnchain} only onchain, ${summary.onlyOffchain} only offchain`,

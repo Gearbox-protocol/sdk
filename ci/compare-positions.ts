@@ -13,7 +13,7 @@ import {
   errorMessage,
   mapPool,
   NETWORKS,
-  printCompareSummary,
+  reportCompare,
   rpcUrls,
   TIMEOUT,
 } from "../src/dev/mode-parity/scriptUtils.js";
@@ -28,13 +28,15 @@ import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
  * disagree.
  *
  * ```sh
- * ALCHEMY_KEY=... SOMNIA_PROVIDER=... ETHERLINK_PROVIDER=... pnpm tsx scripts/compare-positions.ts
+ * ALCHEMY_KEY=... SOMNIA_PROVIDER=... ETHERLINK_PROVIDER=... pnpm tsx ci/compare-positions.ts
  * ```
  *
  * Optional: `WALLETS=0x...,0x...` restricts the comparison to a subset of the
  * discovered borrowers; `CONCURRENCY=4` caps how many wallets are listed at
- * once. Differences are expected, so a disagreement is reported, never
- * asserted on. The run only fails when attach itself cannot complete.
+ * once. Expected diffs (mode-scoped, backend-preferred, or within tolerance)
+ * are reported but do not fail the run. The process exits 1 on unexpected
+ * diffs, membership gaps, a chain that could not be read, wallets that failed
+ * to list, or when both sources produced no data.
  **/
 const OUT_DIR = "tmp/positions-compare";
 const CONCURRENCY = Math.max(1, Number(process.env.CONCURRENCY ?? 4) || 4);
@@ -184,8 +186,14 @@ async function compare(): Promise<void> {
   ]);
 
   printDiscovery(dump);
-  printSummary(report);
+  const reasons = printSummary(report);
   logger.info(`wrote ${OUT_DIR}/{borrowers,onchain,offchain,report}.json`);
+  if (reasons.length) {
+    for (const reason of reasons) {
+      logger.error(reason);
+    }
+    process.exit(1);
+  }
 }
 
 function chainIdsOf(dump: BorrowersDump, wallet: Address): ChainId[] {
@@ -320,9 +328,9 @@ function printDiscovery(dump: BorrowersDump): void {
   console.log(`${dump.wallets.length} distinct wallets`);
 }
 
-function printSummary(report: PositionsCompareReport): void {
+function printSummary(report: PositionsCompareReport): string[] {
   const { summary } = report;
-  printCompareSummary("positions", report, [
+  return reportCompare("positions", report, [
     `wallets: ${summary.wallets} compared, ${summary.walletsClean} clean, ${summary.walletsFailed} failed`,
     `positions: ${summary.onchainRows} onchain, ${summary.offchainRows} offchain, ` +
       `${summary.matched} matched (${summary.identical} identical, ${summary.clean} clean, ${summary.differing} differing), ` +

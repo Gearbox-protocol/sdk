@@ -11,6 +11,13 @@
     "removeComments": false,
     "resolveJsonModule": true
   },
-  "include": ["src", "scripts", "dev", "tsdown.config.ts", "vitest.setup.ts"],
+  "include": [
+    "src",
+    "scripts",
+    "ci",
+    "dev",
+    "tsdown.config.ts",
+    "vitest.setup.ts"
+  ],
   "exclude": ["dist", "node_modules"]
 }

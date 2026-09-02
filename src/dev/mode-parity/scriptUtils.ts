@@ -1,3 +1,4 @@
+import { appendFileSync } from "node:fs";
 import { type Logger, pino } from "pino";
 import type { ChainMetadata } from "../../model/index.js";
 import type { NetworkType } from "../../onchain/index.js";
@@ -45,6 +46,10 @@ export const TIMEOUT = 480_000;
 export interface PrintableCompareSummary extends CompareCounts {
   byChain: ChainCompareCounts[];
   diffsByPath: DiffPathCount[];
+  /**
+   * Present on position reports: wallets whose listings could not be read.
+   **/
+  walletsFailed?: number;
 }
 
 /**
@@ -155,6 +160,68 @@ function worstColumns(worst: WorstDiff | undefined): WorstTableColumns {
 }
 
 /**
+ * Reasons a compare run should fail CI: unexpected membership or field diffs,
+ * both sources empty, a chain that could not be read, or wallets that failed
+ * to list. Expected diffs (mode-scoped, backend-preferred, tolerance) do not
+ * fail the run.
+ **/
+export function evaluateCompareFailure(
+  report: PrintableCompareReport,
+): string[] {
+  const { summary } = report;
+  const reasons: string[] = [];
+  if (summary.onchainRows === 0 && summary.offchainRows === 0) {
+    reasons.push("both sources produced no data");
+  }
+  if (summary.differing > 0) {
+    reasons.push(`${summary.differing} matched rows have unexpected diffs`);
+  }
+  if (summary.onlyOnchain > 0) {
+    reasons.push(`${summary.onlyOnchain} rows only onchain`);
+  }
+  if (summary.onlyOffchain > 0) {
+    reasons.push(`${summary.onlyOffchain} rows only offchain`);
+  }
+  if ((summary.walletsFailed ?? 0) > 0) {
+    reasons.push(`${summary.walletsFailed} wallets failed to list`);
+  }
+  for (const chain of [...report.onchainChains, ...report.offchainChains]) {
+    if (chain.status === "error") {
+      reasons.push(
+        `chain ${chain.chainId} failed on ${chain.source ?? "unknown"}: ${errorMessage(chain.error)}`,
+      );
+    }
+  }
+  return reasons;
+}
+
+function splitDiffs(summary: PrintableCompareSummary): {
+  unexpected: DiffPathCount[];
+  expected: DiffPathCount[];
+} {
+  return {
+    unexpected: summary.diffsByPath.filter(entry => entry.unexpected > 0),
+    expected: summary.diffsByPath.filter(
+      entry => entry.unexpected === 0 && entry.expected > 0,
+    ),
+  };
+}
+
+function markdownCell(value: string | number): string {
+  return String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
+}
+
+function markdownTable(headers: string[], rows: (string | number)[][]): string {
+  const line = (cells: (string | number)[]): string =>
+    `| ${cells.map(markdownCell).join(" | ")} |`;
+  return [
+    line(headers),
+    line(headers.map(() => "---")),
+    ...rows.map(line),
+  ].join("\n");
+}
+
+/**
  * Prints the shared membership table, the fields that differed most often,
  * and any chain that failed to answer.
  **/
@@ -182,10 +249,7 @@ export function printCompareSummary(
     console.log(line);
   }
 
-  const unexpected = summary.diffsByPath.filter(entry => entry.unexpected > 0);
-  const expected = summary.diffsByPath.filter(
-    entry => entry.unexpected === 0 && entry.expected > 0,
-  );
+  const { unexpected, expected } = splitDiffs(summary);
 
   if (unexpected.length) {
     console.log("\nunexpected fields that differed most often:");
@@ -222,4 +286,171 @@ export function printCompareSummary(
       );
     }
   }
+}
+
+/**
+ * Markdown of the same summary printed to the console, for GitHub job summaries.
+ **/
+export function formatCompareMarkdown(
+  noun: string,
+  report: PrintableCompareReport,
+  extraLines: string[] = [],
+  reasons: string[] = [],
+): string {
+  const { summary } = report;
+  const { unexpected, expected } = splitDiffs(summary);
+  const parts: string[] = [
+    `# ${noun} compare`,
+    "",
+    reasons.length ? "**Failed**" : "**Passed**",
+    "",
+    `${noun} from \`${report.backendUrl}\` vs the chain`,
+    "",
+  ];
+
+  if (reasons.length) {
+    parts.push("## Failures", "");
+    for (const reason of reasons) {
+      parts.push(`- ${reason}`);
+    }
+    parts.push("");
+  }
+
+  if (extraLines.length) {
+    for (const line of extraLines) {
+      parts.push(line);
+    }
+    parts.push("");
+  }
+
+  if (summary.byChain.length) {
+    parts.push(
+      markdownTable(
+        [
+          "chain",
+          "onchain",
+          "offchain",
+          "matched",
+          "identical",
+          "clean",
+          "differing",
+          "only onchain",
+          "only offchain",
+        ],
+        summary.byChain.map(chain => [
+          chain.chainId,
+          chain.onchainRows,
+          chain.offchainRows,
+          chain.matched,
+          chain.identical,
+          chain.clean,
+          chain.differing,
+          chain.onlyOnchain,
+          chain.onlyOffchain,
+        ]),
+      ),
+      "",
+    );
+  }
+
+  if (unexpected.length) {
+    parts.push(
+      "## Unexpected fields that differed most often",
+      "",
+      markdownTable(
+        [
+          "field",
+          "unexpected",
+          "expected",
+          "kinds",
+          "max diff",
+          "worst entity",
+        ],
+        unexpected.slice(0, 25).map(entry => {
+          const worst = worstColumns(entry.worstUnexpected);
+          return [
+            entry.path,
+            entry.unexpected,
+            entry.expected,
+            entry.kinds.join(", "),
+            worst["max diff"],
+            worst["worst entity"],
+          ];
+        }),
+      ),
+      "",
+    );
+  }
+
+  if (expected.length) {
+    parts.push(
+      "## Expected fields (mode-scoped, backend-preferred, or within tolerance)",
+      "",
+      markdownTable(
+        ["field", "rows", "kinds", "max diff", "worst entity"],
+        expected.slice(0, 25).map(entry => {
+          const worst = worstColumns(entry.worstExpected);
+          return [
+            entry.path,
+            entry.expected,
+            entry.kinds.join(", "),
+            worst["max diff"],
+            worst["worst entity"],
+          ];
+        }),
+      ),
+      "",
+    );
+  }
+
+  const failedChains = [
+    ...report.onchainChains,
+    ...report.offchainChains,
+  ].filter(chain => chain.status === "error");
+  if (failedChains.length) {
+    parts.push("## Chain errors", "");
+    for (const chain of failedChains) {
+      parts.push(
+        `- chain ${chain.chainId} failed on ${chain.source ?? "unknown"}: ${errorMessage(chain.error)}`,
+      );
+    }
+    parts.push("");
+  }
+
+  return parts.join("\n");
+}
+
+/**
+ * Appends {@link formatCompareMarkdown} to `GITHUB_STEP_SUMMARY` when running
+ * in GitHub Actions. No-op locally.
+ **/
+export function writeGithubJobSummary(
+  noun: string,
+  report: PrintableCompareReport,
+  extraLines: string[] = [],
+  reasons: string[] = [],
+): void {
+  const path = process.env.GITHUB_STEP_SUMMARY;
+  if (!path) {
+    return;
+  }
+  appendFileSync(
+    path,
+    `${formatCompareMarkdown(noun, report, extraLines, reasons)}\n`,
+  );
+}
+
+/**
+ * Console + job-summary output for a compare run. Returns the failure reasons
+ * so the caller can exit 1 when the report is not clean.
+ **/
+export function reportCompare(
+  noun: string,
+  report: PrintableCompareReport,
+  extraLines: string[] = [],
+): string[] {
+  printCompareSummary(noun, report, extraLines);
+  const reasons = evaluateCompareFailure(report);
+  writeGithubJobSummary(noun, report, extraLines, reasons);
+  return reasons;
 }
