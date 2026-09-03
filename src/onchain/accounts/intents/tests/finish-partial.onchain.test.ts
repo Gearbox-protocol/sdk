@@ -103,7 +103,7 @@ function run(args: {
 
 function ok(result: FinishIntentResult) {
   if (!result.ok) {
-    throw new Error(`expected a tail, got ${result.reason}`);
+    throw new Error(`expected a tail, got ${result.error.code}`);
   }
   return result;
 }

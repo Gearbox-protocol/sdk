@@ -82,8 +82,9 @@ describe("checkSimulation", () => {
     // The engine returns `ok` for anything landing at 1.0; a form asks for more.
     expect(check({ healthFactor: 10_050 })).toBeNull();
     expect(
-      check({ healthFactor: 10_050 }, { minHealthFactor: 10_101 })?.detail,
-    ).toEqual({
+      check({ healthFactor: 10_050 }, { minHealthFactor: 10_101 }),
+    ).toMatchObject({
+      code: "insufficientCollateral",
       healthFactor: 10_050,
       healthFactorThreshold: 10_101,
       safePrices: false,
@@ -101,7 +102,7 @@ describe("checkSimulation", () => {
       );
 
     expect(at(10_050)).toBeNull();
-    expect(at(10_090)?.reason).toBe("insufficientCollateral");
+    expect(at(10_090)?.code).toBe("insufficientCollateral");
   });
 
   it("weighs the safe-price factor against its own bar", () => {
@@ -110,9 +111,9 @@ describe("checkSimulation", () => {
     expect(check({ safeHealthFactor: 10_000 })).toBeNull();
 
     expect(
-      check({ safeHealthFactor: 10_000 }, { minSafeHealthFactor: 10_001 })
-        ?.detail,
-    ).toEqual({
+      check({ safeHealthFactor: 10_000 }, { minSafeHealthFactor: 10_001 }),
+    ).toMatchObject({
+      code: "insufficientCollateral",
       healthFactor: 10_000,
       healthFactorThreshold: 10_001,
       safePrices: true,
@@ -134,9 +135,10 @@ describe("checkSimulation", () => {
       und(1n, "0x2222222222222222222222222222222222222222"),
     ];
 
-    expect(check({ quotas })).toEqual({
-      reason: "quotaCountExceeded",
-      detail: { count: 2, max: 1 },
+    expect(check({ quotas })).toMatchObject({
+      code: "quotaCountExceeded",
+      count: 2,
+      max: 1,
     });
     cap.mockRestore();
   });
@@ -157,9 +159,9 @@ describe("checkSimulation", () => {
     const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
     const paused = vi.spyOn(suite, "isPaused", "get").mockReturnValue(true);
 
-    expect(
-      check({ healthFactor: 1 }, { minHealthFactor: 10_101 })?.reason,
-    ).toBe("marketPaused");
+    expect(check({ healthFactor: 1 }, { minHealthFactor: 10_101 })?.code).toBe(
+      "creditManagerPaused",
+    );
     paused.mockRestore();
   });
 });

@@ -157,46 +157,44 @@ floor sits a percent under its expectation.
 ## Guards
 
 Read from the loaded market before anything is signed, so a revert with an
-opaque selector becomes a refusal a form can explain.
+opaque selector becomes an error a form can explain.
 
 ```mermaid
 flowchart LR
-  m["assertMarketOperable<br/>facade / pool paused, expiration"] --> mp["marketPaused<br/>marketExpired"]
-  b["assertCanBorrow<br/>min(free liquidity, debt limit, maxDebt x per-block)"] --> bl["insufficientPoolLiquidity"]
+  m["assertMarketOperable<br/>facade / pool paused, expiration"] --> mp["creditManagerPaused<br/>marketExpired"]
+  b["assertCanBorrow<br/>min(available liquidity, debt limit, maxDebt x per-block)"] --> bl["insufficientPoolLiquidity"]
   g["assertGrowthAllowed<br/>balance grew: forbidden mask, active quota"] --> gr["forbiddenToken<br/>quotaLimitReached"]
   q["assertQuotaHeadroom<br/>limit minus totalQuoted"] --> qr["quotaLimitReached"]
   c["assertCollateralised<br/>projected HF vs 1.0"] --> cr["insufficientCollateral"]
 ```
 
-## Refusal reasons
+## Error codes
 
-Every refusal carries a `detail` with the numbers behind it, so a caller reads
-the limit that was missed instead of re-deriving it. Anything with a token and
-an amount is an `Asset`; `undefined` marks a reason raised from several places,
-only some of which hold the numbers.
+Every error is an `IGearboxError` object: `code` plus the numbers behind it, so
+a caller reads the limit that was missed instead of re-deriving it. Anything
+with a token and an amount is a `TokenAmount`; optional fields are absent where
+the plan stopped before those numbers existed.
 
-This is the engine's own shape. The `prepare` namespace answers in the SDK's
-error envelope instead — `{ success: false, error }`, where `error.code` is the
-reason below and the `detail` is spread onto the error beside it — so a caller
-of `sdk.prepare.*` reads `error.code === "debtOutOfRange"` and `error.maxDebt`.
-One table, two spellings of it: `PrepareApi` is the only place that converts.
+The engine's `{ ok: false, error }` half is the same `SDKError` envelope
+`prepare` answers with. `error.code` is the discriminant below; the numbers sit
+on the error beside it — `error.maxDebt`, `error.token`.
 
-| Reason                      | Raised when                                                                 | Detail |
+| Code                        | Raised when                                                                 | Fields |
 | --------------------------- | --------------------------------------------------------------------------- | ------ |
 | `debtOutOfRange`            | the resulting debt would sit outside `[minDebt, maxDebt]` and is not zero    | `requested`, `minDebt`, `maxDebt`, in underlying |
 | `leverageOutOfRange`        | target below 1x, or a deposit target that would require repaying            | `requested`, `min`, scaled by `LEVERAGE_DECIMALS` |
-| `insufficientSourceBalance` | non-positive amount, nothing to sell, net value already eaten by the debt   | `required`, `held` where both are known |
-| `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      | `token`, `accepted` |
+| `insufficientBalance`       | non-positive amount, nothing to sell, net value already eaten by the debt   | `required`, `held`, `holderKind` where known |
+| `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      | `token` |
 | `unsupportedTokenPair`      | no pool route for the requested pair, or the pathfinder found no path        | `from`, `to` where the market named one |
 | `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a payout the tail cannot serve | `token` |
 | `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        | `token`, `venues` |
 | `withdrawalInProgress`      | a redemption of the asset is already in flight                              | `inFlight` |
 | `noRecordedIntent`          | a claim naming no operation to resume                                       | — |
-| `marketPaused` / `marketExpired` | the facade takes no multicall at all                                   | `creditManager`, plus `expirationDate` |
-| `insufficientPoolLiquidity` | the pool cannot lend what the plan draws in this block                      | `requested`, `available`, in underlying |
+| `creditManagerPaused` / `marketExpired` | the facade takes no multicall at all                             | `creditManager`, plus `expirationDate` |
+| `insufficientPoolLiquidity` | the pool cannot lend what the plan draws in this block                      | `requested`, `available`, `limit`, in underlying |
 | `quotaLimitReached`         | no quota left for a token the plan wants to hold, or the token takes none    | `token`, plus `requested`/`available` **in underlying** — a quota is measured there, not in the token it is held against |
 | `forbiddenToken`            | the plan would grow the balance of a forbidden token                        | `token` |
-| `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `required`, `safePrices` |
+| `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `healthFactorThreshold`, `safePrices` |
 
 `insufficientCollateral`'s `healthFactor` is the factor the check compared: safe
 prices for a call that hands funds over, main prices otherwise. `safePrices` says
@@ -208,7 +206,7 @@ contradiction — the safe factor is reported there as `safeHealthFactor`.
 `WITHDRAW` and `ADJUST_LEVERAGE` sell a position asset, and some assets only
 redeem through their issuer — a Securitize dsToken, a Mellow share — which
 answers now and pays out days later. `intentRoutes` quotes both from one
-request; a route the account cannot take comes back `undefined` with its refusal.
+request; a route the account cannot take comes back `undefined` with its error.
 The pathfinder reverts rather than answering when it finds no path, and that
 revert is read as `unsupportedTokenPair` — otherwise an asset no pool trades
 would take the working route down with the one that does not exist.
@@ -217,9 +215,9 @@ would take the working route down with the one that does not exist.
 flowchart TD
   r["intentRoutes(intent)"] --> i["startIntent<br/>router, one transaction"]
   r --> d["startDelayedIntent<br/>request now, tail later"]
-  i --> res["instant / delayed / refused"]
+  i --> res["instant / delayed / errors"]
   d --> res
-  res -->|"neither answered"| no["ok: false, reason"]
+  res -->|"neither answered"| no["ok: false, error"]
 ```
 
 Details and the tails in [delayed.md](./delayed.md).

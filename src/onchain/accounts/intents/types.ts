@@ -2,13 +2,11 @@ import type { Address } from "viem";
 import type {
   AccountProjection,
   DelayedIntent,
+  SDKError,
   TokenAmount,
 } from "../../../model/index.js";
 import type { MultiCall, OnchainSDK, RouterCASlice } from "../../index.js";
-import type {
-  PreviewErrorReason,
-  PreviewRefusal,
-} from "../../validation/refusal.js";
+import type { IntentValidationError } from "../../validation/raise.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
 
@@ -69,7 +67,7 @@ export interface OperationState extends AccountProjection, SimulationPrices {}
 
 /**
  * What planning an intent yields: the operation chain, the state it projects,
- * and the calldata that realises it — or the reason the request is not viable.
+ * and the calldata that realises it — or the error that stopped the plan.
  */
 export type IntentPreviewResult =
   | {
@@ -78,7 +76,7 @@ export type IntentPreviewResult =
       state: OperationState;
       calls: MultiCall[];
     }
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /**
  * What a claim did not bring, when the venue served part of a matured
@@ -118,7 +116,7 @@ export type FinishIntentResult =
        */
       remainder: ClaimRemainder | undefined;
     })
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** What the request recorded, and when the tail can be run. */
 export interface DelayedStart {
@@ -182,7 +180,7 @@ export type DelayedStartResult =
       calls: MultiCall[];
       delayed: DelayedStart;
     }
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** An intent previewed through the router: one transaction, settled now. */
 export type InstantRoute = Extract<IntentPreviewResult, { ok: true }>;
@@ -193,15 +191,15 @@ export type DelayedRoute = Extract<DelayedStartResult, { ok: true }>;
 /**
  * Why a route is missing from an {@link IntentRoutesResult}.
  *
- * A reason is the engine's refusal — `noDelayedRoute` for a source with no
+ * An error is the engine's verdict — `noDelayedRoute` for a source with no
  * redemption venue or for a leverage move that settles at once,
- * `insufficientSourceBalance` for a payout the account cannot fund. `undefined`
+ * `insufficientBalance` for a payout the account cannot fund. A missing key
  * next to a missing route means the route could not be quoted at all: the
  * pathfinder found no way out of the source, or the read behind it failed.
  */
-export interface RouteRefusals {
-  instant: PreviewErrorReason | undefined;
-  delayed: PreviewErrorReason | undefined;
+export interface RouteErrors {
+  instant?: IntentValidationError;
+  delayed?: IntentValidationError;
 }
 
 /**
@@ -211,20 +209,20 @@ export interface RouteRefusals {
  *
  * Which of them an account can take depends on the intent and the token it
  * sells, so both are quoted and a route it cannot take comes back `undefined`
- * with its refusal in `refused`. Only when neither answers is the request itself
- * unviable, and then `reason` is the instant route's refusal — the route every
- * account is expected to have — falling back to the delayed one's.
+ * with its error in `errors`. Only when neither answers is the request itself
+ * unviable, and then `error` is the instant route's — the route every account
+ * is expected to have — falling back to the delayed one's.
  */
 export type IntentRoutesResult =
   | {
       ok: true;
       instant: InstantRoute | undefined;
       delayed: DelayedRoute | undefined;
-      refused: RouteRefusals;
+      errors: RouteErrors;
     }
-  | (PreviewRefusal & {
-      /** {@inheritDoc IntentRoutesResult.refused} */
-      refused: RouteRefusals;
+  | (SDKError<IntentValidationError> & {
+      /** {@inheritDoc IntentRoutesResult.errors} */
+      errors: RouteErrors;
     });
 
 /**

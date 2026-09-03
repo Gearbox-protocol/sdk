@@ -1,9 +1,13 @@
 import type { Address } from "viem";
-import type { AccountProjection, TokenAmount } from "../../../model/index.js";
+import {
+  type AccountProjection,
+  insufficientBalance,
+  type TokenAmount,
+} from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import {
   assertCanBorrow,
   assertCollateralised,
@@ -113,8 +117,7 @@ export async function buildOpenStrategyState(
   );
   if (margin <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       "openStrategy: collateral is worth nothing in underlying",
     );
   }

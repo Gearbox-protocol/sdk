@@ -1,34 +1,31 @@
 import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  CreditAccountNotFoundError,
+  CreditManagerPausedError,
   DebtOutOfRangeError,
   ForbiddenTokenError,
   IGearboxError,
+  InsufficientBalanceError,
   InsufficientCollateralError,
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
   MalformedTransactionError,
   MarketExpiredError,
+  MultipleDelayedWithdrawalsError,
+  NoDelayedRouteError,
+  NoRecordedIntentError,
+  NoStrategyTargetCollateralError,
   PoolSunsetError,
   PositionCollateral,
   QuotaCountExceededError,
   QuotaLimitReachedError,
   SDKReturn,
-} from "../../model/index.js";
-import type {
-  CreditAccountNotFoundError,
-  InsufficientSourceBalanceError,
-  MarketPausedError,
-  MultipleDelayedWithdrawalsError,
-  NoDelayedRouteError,
-  NoRecordedIntentError,
-  NoStrategyTargetCollateralError,
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
-  WithRouteRefusals,
-} from "./errors.js";
+} from "../../model/index.js";
 import type {
   FinalizeResult,
   IOpportunitiesPrepare,
@@ -38,24 +35,25 @@ import type {
   StrategyResult,
   StrategyRoutesResult,
   WithdrawCeilings,
+  WithRouteErrors,
 } from "./types.js";
 
 type P = IOpportunitiesPrepare;
 
 /**
- * The failure half a method's answer names — `never` for one that cannot be
- * refused, which is what keeps the negative probes below honest.
+ * The failure half a method's answer names — `never` for one that cannot
+ * error, which is what keeps the negative probes below honest.
  */
-type RefusalOf<T> = T extends { ok: false; error: infer E } ? E : never;
+type ErrorOf<T> = T extends { ok: false; error: infer E } ? E : never;
 
 /**
  * Every method's own union is spelled out below, expanded member by member:
- * the point of this file is that the base aliases in `errors.ts` cannot gain
+ * the point of this file is that the base aliases in `types.ts` cannot gain
  * or lose a member without the signatures moving with them, so nothing here is
  * allowed to abbreviate through those aliases.
  */
-describe("every prepare method names exactly its own refusals", () => {
-  it("the LP flows refuse with the unroutable pair and the read that failed", () => {
+describe("every prepare method names exactly its own errors", () => {
+  it("the LP flows answer with the unroutable pair and the read that failed", () => {
     expectTypeOf<Awaited<ReturnType<P["deposit"]>>>().toEqualTypeOf<
       SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
     >();
@@ -71,12 +69,12 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["openNewStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         OpenStrategyResult,
-        | MarketPausedError
+        | CreditManagerPausedError
         | MarketExpiredError
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
-        | InsufficientSourceBalanceError
+        | InsufficientBalanceError
         | UnexpectedFailureError
         | DebtOutOfRangeError
         | LeverageOutOfRangeError
@@ -91,12 +89,12 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["depositStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | MarketPausedError
+        | CreditManagerPausedError
         | MarketExpiredError
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
-        | InsufficientSourceBalanceError
+        | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
         | DebtOutOfRangeError
@@ -112,12 +110,12 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["repayStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | MarketPausedError
+        | CreditManagerPausedError
         | MarketExpiredError
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
-        | InsufficientSourceBalanceError
+        | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
         | DebtOutOfRangeError
@@ -130,12 +128,12 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["addCollateral"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | MarketPausedError
+        | CreditManagerPausedError
         | MarketExpiredError
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
-        | InsufficientSourceBalanceError
+        | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
       >
@@ -143,29 +141,29 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["withdrawCollateral"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | MarketPausedError
+        | CreditManagerPausedError
         | MarketExpiredError
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
-        | InsufficientSourceBalanceError
+        | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
       >
     >();
   });
 
-  it("withdrawStrategy: the two-route flow, every refusal carrying `refused`", () => {
+  it("withdrawStrategy: the two-route flow, every error carrying `errors`", () => {
     expectTypeOf<Awaited<ReturnType<P["withdrawStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyRoutesResult,
         (
-          | MarketPausedError
+          | CreditManagerPausedError
           | MarketExpiredError
           | ForbiddenTokenError
           | QuotaLimitReachedError
           | InsufficientCollateralError
-          | InsufficientSourceBalanceError
+          | InsufficientBalanceError
           | CreditAccountNotFoundError
           | UnexpectedFailureError
           | DebtOutOfRangeError
@@ -174,7 +172,7 @@ describe("every prepare method names exactly its own refusals", () => {
           | MultipleDelayedWithdrawalsError
           | WithdrawalInProgressError
         ) &
-          WithRouteRefusals
+          WithRouteErrors
       >
     >();
   });
@@ -184,12 +182,12 @@ describe("every prepare method names exactly its own refusals", () => {
       SDKReturn<
         StrategyRoutesResult,
         (
-          | MarketPausedError
+          | CreditManagerPausedError
           | MarketExpiredError
           | ForbiddenTokenError
           | QuotaLimitReachedError
           | InsufficientCollateralError
-          | InsufficientSourceBalanceError
+          | InsufficientBalanceError
           | CreditAccountNotFoundError
           | UnexpectedFailureError
           | DebtOutOfRangeError
@@ -200,7 +198,7 @@ describe("every prepare method names exactly its own refusals", () => {
           | InsufficientPoolLiquidityError
           | LeverageOutOfRangeError
         ) &
-          WithRouteRefusals
+          WithRouteErrors
       >
     >();
   });
@@ -209,12 +207,12 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["finalize"]>>>().toEqualTypeOf<
       SDKReturn<
         FinalizeResult,
-        | MarketPausedError
+        | CreditManagerPausedError
         | MarketExpiredError
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
-        | InsufficientSourceBalanceError
+        | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
         | NoRecordedIntentError
@@ -228,26 +226,26 @@ describe("every prepare method names exactly its own refusals", () => {
 
 describe("the preview-only codes appear in no prepare union", () => {
   /** Everything any prepare method can put in its failure half. */
-  type AnyPrepareRefusal =
-    | RefusalOf<Awaited<ReturnType<P["deposit"]>>>
-    | RefusalOf<Awaited<ReturnType<P["withdraw"]>>>
-    | RefusalOf<Awaited<ReturnType<P["redeem"]>>>
-    | RefusalOf<Awaited<ReturnType<P["openNewStrategy"]>>>
-    | RefusalOf<Awaited<ReturnType<P["depositStrategy"]>>>
-    | RefusalOf<Awaited<ReturnType<P["repayStrategy"]>>>
-    | RefusalOf<Awaited<ReturnType<P["addCollateral"]>>>
-    | RefusalOf<Awaited<ReturnType<P["withdrawCollateral"]>>>
-    | RefusalOf<Awaited<ReturnType<P["withdrawStrategy"]>>>
-    | RefusalOf<Awaited<ReturnType<P["adjustLeverage"]>>>
-    | RefusalOf<Awaited<ReturnType<P["finalize"]>>>;
+  type AnyPrepareError =
+    | ErrorOf<Awaited<ReturnType<P["deposit"]>>>
+    | ErrorOf<Awaited<ReturnType<P["withdraw"]>>>
+    | ErrorOf<Awaited<ReturnType<P["redeem"]>>>
+    | ErrorOf<Awaited<ReturnType<P["openNewStrategy"]>>>
+    | ErrorOf<Awaited<ReturnType<P["depositStrategy"]>>>
+    | ErrorOf<Awaited<ReturnType<P["repayStrategy"]>>>
+    | ErrorOf<Awaited<ReturnType<P["addCollateral"]>>>
+    | ErrorOf<Awaited<ReturnType<P["withdrawCollateral"]>>>
+    | ErrorOf<Awaited<ReturnType<P["withdrawStrategy"]>>>
+    | ErrorOf<Awaited<ReturnType<P["adjustLeverage"]>>>
+    | ErrorOf<Awaited<ReturnType<P["finalize"]>>>;
 
   it("poolSunset, quotaCountExceeded and malformedTransaction stay preview's", () => {
     // @ts-expect-error poolSunset judges a deposit already sent, not a request
-    const _sunset: AnyPrepareRefusal = {} as PoolSunsetError;
-    // @ts-expect-error quotaCountExceeded is the replay's refusal, not prepare's
-    const _count: AnyPrepareRefusal = {} as QuotaCountExceededError;
+    const _sunset: AnyPrepareError = {} as PoolSunsetError;
+    // @ts-expect-error quotaCountExceeded is the replay's error, not prepare's
+    const _count: AnyPrepareError = {} as QuotaCountExceededError;
     // @ts-expect-error malformedTransaction can only be said of calldata handed in
-    const _malformed: AnyPrepareRefusal = {} as MalformedTransactionError;
+    const _malformed: AnyPrepareError = {} as MalformedTransactionError;
     void _sunset;
     void _count;
     void _malformed;
@@ -272,7 +270,7 @@ describe("narrowing the envelope settles which half is there", () => {
     if (routes.ok) {
       expectTypeOf(routes.data).toEqualTypeOf<StrategyRoutesResult>();
     } else {
-      expectTypeOf(routes.error.refused).toExtend<object>();
+      expectTypeOf(routes.error.errors).toExtend<object>();
     }
 
     const open = {} as Awaited<ReturnType<P["openNewStrategy"]>>;
@@ -317,10 +315,12 @@ describe("the reads outside the envelope stay bare", () => {
 });
 
 describe("I7: prepare error shapes are narrowed to what the trace proves", () => {
-  it("marketPaused from prepare always names the credit manager, never a pool", () => {
-    expectTypeOf<MarketPausedError["creditManager"]>().toEqualTypeOf<Address>();
+  it("creditManagerPaused from prepare always names the credit manager, never a pool", () => {
+    expectTypeOf<
+      CreditManagerPausedError["creditManager"]
+    >().toEqualTypeOf<Address>();
     if (Math.abs(0) !== 0) {
-      const paused = {} as MarketPausedError;
+      const paused = {} as CreditManagerPausedError;
       // @ts-expect-error the pool-paused variant is preview-only
       void paused.pool;
     }

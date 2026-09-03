@@ -74,7 +74,7 @@ describe("withdrawAsset.start — one held asset out, debt fixed", () => {
       ...case_any_token,
       intent: { ...case_any_token.intent, amount: HELD_ANY + 1n },
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 
   it("rejects a token that is not on the account", async () => {
@@ -82,6 +82,6 @@ describe("withdrawAsset.start — one held asset out, debt fixed", () => {
       ...case_underlying,
       intent: { ...case_underlying.intent, token: ANY, amount: OUT_ANY },
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 });

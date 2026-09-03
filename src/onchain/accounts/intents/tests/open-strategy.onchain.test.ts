@@ -36,7 +36,7 @@ async function expectCase(c: OpenStrategyCase) {
   const { sdk, result } = run(c);
   const outcome = await result;
   if (!outcome.ok) {
-    throw new Error(`expected a state, got error: ${outcome.reason}`);
+    throw new Error(`expected a state, got error: ${outcome.error.code}`);
   }
   const { state } = outcome;
 
@@ -113,7 +113,7 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     );
     const outcome = await result;
     if (!outcome.ok) {
-      throw new Error(`expected a state, got error: ${outcome.reason}`);
+      throw new Error(`expected a state, got error: ${outcome.error.code}`);
     }
 
     expect(outcome.state.safeHealthFactor).toBeLessThan(
@@ -151,21 +151,26 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     const { result } = run({ ...case_underlying_3x, leverage: 50n });
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "leverageOutOfRange") {
+    if (refusal.ok || refusal.error.code !== "leverageOutOfRange") {
       throw new Error("expected leverageOutOfRange");
     }
-    expect(refusal.detail).toEqual({ requested: 50n, min: LEVERAGE_DECIMALS });
+    expect(refusal.error).toMatchObject({
+      code: "leverageOutOfRange",
+      requested: 50n,
+      min: LEVERAGE_DECIMALS,
+    });
   });
 
   it("rejects collateral that is worth nothing in underlying", async () => {
     const { result } = run({ ...case_underlying_3x, collateral: [] });
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "insufficientSourceBalance") {
-      throw new Error("expected insufficientSourceBalance");
+    if (refusal.ok || refusal.error.code !== "insufficientBalance") {
+      throw new Error("expected insufficientBalance");
     }
     // Nothing was supplied, so there is no amount to name.
-    expect(refusal.detail).toBeUndefined();
+    expect(refusal.error.required).toBeUndefined();
+    expect(refusal.error.held).toBeUndefined();
   });
 
   it("rejects a debt above the facade maxDebt, and says what the ceiling is", async () => {
@@ -175,16 +180,16 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     });
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "debtOutOfRange") {
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange") {
       throw new Error("expected debtOutOfRange");
     }
-    expect(refusal.detail.maxDebt).toEqual({
+    expect(refusal.error.maxDebt).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: MAX_DEBT,
       valueUsd: null,
     });
-    expect(refusal.detail.requested.token.address).toBe(UND);
-    expect(refusal.detail.requested.value).toBeGreaterThan(MAX_DEBT);
+    expect(refusal.error.requested.token.address).toBe(UND);
+    expect(refusal.error.requested.value).toBeGreaterThan(MAX_DEBT);
   });
 
   it("rejects a debt below the facade minDebt, and says what the floor is", async () => {
@@ -197,14 +202,14 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     );
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "debtOutOfRange") {
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange") {
       throw new Error("expected debtOutOfRange");
     }
-    expect(refusal.detail.minDebt).toEqual({
+    expect(refusal.error.minDebt).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: MARGIN_UND,
       valueUsd: null,
     });
-    expect(refusal.detail.requested.value).toBeLessThan(MARGIN_UND);
+    expect(refusal.error.requested.value).toBeLessThan(MARGIN_UND);
   });
 });

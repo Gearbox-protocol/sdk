@@ -171,6 +171,6 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
         targetLeverage: case_increase_underlying.intent.targetLeverage,
       },
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 });

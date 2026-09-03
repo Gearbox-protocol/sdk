@@ -336,7 +336,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     const prepared = plan(result);
     // this market has no redemption venue, so only the instant route answers
     expect(prepared.instant).toBeDefined();
-    expect(prepared.refused.delayed).toBe("noDelayedRoute");
+    expect(prepared.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("maxWithdraw's exit is the net value, and it is the far side of a gap", async () => {
@@ -402,7 +402,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(exit.state.assets).toEqual([]);
     expect(exit.state.quotas).toEqual([]);
     // an exit is the router's business; the issuer cannot serve one
-    expect(prepared.refused.delayed).toBe("noDelayedRoute");
+    expect(prepared.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("repayStrategy with MAX_UINT256 settles the debt and drops the quotas", async () => {
@@ -597,7 +597,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(result).toEqual({
       ok: false,
       error: {
-        code: "marketPaused",
+        code: "creditManagerPaused",
         message: expect.any(String),
         creditManager: CREDIT_MANAGER,
       },
@@ -647,7 +647,7 @@ describe("PrepareApi — the two-transaction route", () => {
     const prepared = plan(result);
     const start = prepared.delayed;
     if (!start)
-      throw new Error(`no delayed route: ${prepared.refused.delayed}`);
+      throw new Error(`no delayed route: ${prepared.errors.delayed?.code}`);
 
     expect(start.delayed).toMatchObject({
       record: {

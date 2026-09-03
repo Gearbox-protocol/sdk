@@ -7,8 +7,8 @@ import {
   OnchainSDK,
 } from "../../onchain/index.js";
 // @ts-expect-error IntentPreviewError left the public validation barrel: the
-// engine keeps it internally (refusal.js), the public surface answers plain
-// refusal objects instead.
+// engine keeps it internally (raise.js), the public surface answers error
+// objects instead.
 import { IntentPreviewError } from "../../onchain/validation/index.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
 import type {

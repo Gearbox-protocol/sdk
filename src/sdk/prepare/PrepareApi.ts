@@ -13,7 +13,15 @@ import type {
   StrategyPosition,
   Timestamp,
 } from "../../model/index.js";
-import { sdkErr, sdkOk } from "../../model/index.js";
+import {
+  creditAccountNotFound,
+  noRecordedIntent,
+  noStrategyTargetCollateral,
+  sdkErr,
+  sdkOk,
+  unexpectedFailure,
+  unsupportedTokenPair,
+} from "../../model/index.js";
 import type {
   Asset,
   ClaimableWithdrawal,
@@ -27,7 +35,6 @@ import type {
   OnchainSDK,
   OpenStrategyPreviewResult,
   PoolSimulation,
-  PreviewIssue,
   ResumableIntent,
   StartIntent,
   WithdrawCeilings,
@@ -43,24 +50,6 @@ import {
 import type { EnsureFreshChains } from "../types.js";
 import type {
   AccountFlowError,
-  MultipleDelayedWithdrawalsError,
-  NoDelayedRouteError,
-  NoRecordedIntentError,
-  NoStrategyTargetCollateralError,
-  OpenFlowError,
-  UnexpectedFailureError,
-  UnsupportedCollateralTokenError,
-  UnsupportedTokenPairError,
-  WithdrawalInProgressError,
-  WithRouteRefusals,
-} from "./errors.js";
-import {
-  creditAccountNotFound,
-  noStrategyTargetCollateral,
-  toRefusalError,
-  unexpectedFailure,
-} from "./errors.js";
-import type {
   AddCollateralParams,
   AdjustLeverageParams,
   DepositStrategyParams,
@@ -71,6 +60,11 @@ import type {
   LpRedeemParams,
   LpResult,
   LpState,
+  MultipleDelayedWithdrawalsError,
+  NoDelayedRouteError,
+  NoRecordedIntentError,
+  NoStrategyTargetCollateralError,
+  OpenFlowError,
   OpenStrategyParams,
   OpenStrategyResult,
   PoolInput,
@@ -80,8 +74,13 @@ import type {
   StrategyInput,
   StrategyResult,
   StrategyRoutesResult,
+  UnexpectedFailureError,
+  UnsupportedCollateralTokenError,
+  UnsupportedTokenPairError,
+  WithdrawalInProgressError,
   WithdrawCollateralParams,
   WithdrawStrategyParams,
+  WithRouteErrors,
 } from "./types.js";
 import { withdrawableCollaterals } from "./withdrawable-collaterals.js";
 
@@ -165,9 +164,7 @@ export class PrepareApi
       const at = stateBlock(sdk);
       const intent = resumable(params.intent ?? params.claimable.intent);
       if (!intent) {
-        return sdkErr(
-          toRefusalError({ reason: "noRecordedIntent", detail: undefined }),
-        );
+        return sdkErr(noRecordedIntent());
       }
       const creditAccount = await slice(sdk, position.creditAccount);
       if (!creditAccount) {
@@ -443,7 +440,7 @@ export class PrepareApi
         | MultipleDelayedWithdrawalsError
         | WithdrawalInProgressError
       ) &
-        WithRouteRefusals
+        WithRouteErrors
     >
   > {
     return this.#startRoutes(position, params, {
@@ -514,7 +511,7 @@ export class PrepareApi
         | InsufficientPoolLiquidityError
         | LeverageOutOfRangeError
       ) &
-        WithRouteRefusals
+        WithRouteErrors
     >
   > {
     return this.#startRoutes<
@@ -625,7 +622,7 @@ export class PrepareApi
   /**
    * Shared path of the two flows that sell a position asset, and therefore
    * have two routes to offer: one account read, one intent, both routes
-   * quoted. Every refusal, the crash wrap included, carries `refused` so a
+   * quoted. Every error, the crash wrap included, carries `errors` so a
    * form can say which routes were ruled out and why.
    *
    * @typeParam X - The codes the calling flow can raise beyond the shared
@@ -647,7 +644,7 @@ export class PrepareApi
         | WithdrawalInProgressError
         | X
       ) &
-        WithRouteRefusals
+        WithRouteErrors
     >
   > {
     try {
@@ -776,37 +773,38 @@ function toClaimableWithdrawal(
 }
 
 /**
- * The engine's refusal as one flow's failure half.
+ * The engine's error as one flow's failure half.
  *
- * The engine answers with the open union of every reason it can raise
+ * The engine answers with the open union of every error it can raise
  * anywhere; which of them a given flow actually reaches is the engine trace
  * written into the public signatures. This cast is the one place the open
  * union is narrowed onto them — a code added to or removed from a flow has to
  * move its signature, which `types.test-d.ts` pins.
  **/
-function refusal<E extends IGearboxError>(issue: PreviewIssue): SDKError<E> {
-  return sdkErr(toRefusalError(issue) as unknown as E);
+function methodError<E extends IGearboxError>(
+  result: SDKError<IGearboxError>,
+): SDKError<E> {
+  return result as SDKError<E>;
 }
 
 /**
- * A flow with two routes, refused before either could be quoted: the error is
+ * A flow with two routes, stopped before either could be quoted: the error is
  * the same one any other flow would report, with nothing to say about the
  * routes because neither was reached.
  **/
 function neitherRoute<E extends IGearboxError>(
   error: E,
-): SDKError<E & WithRouteRefusals> {
+): SDKError<E & WithRouteErrors> {
   return sdkErr({
     ...error,
-    refused: { instant: undefined, delayed: undefined },
+    errors: {},
   });
 }
 
 /**
  * The engine's answer, as the envelope the namespace speaks in: what the
  * operation comes to under `data`, stamped with the block it was computed
- * from, or the refusal as an error carrying its own numbers, see
- * {@link refusal}.
+ * from, or the error carrying its own numbers.
  *
  * The engine keeps its `ok` union — it is the shape the planners, the guards
  * and their tests are written against — and the boundary is the one place the
@@ -817,7 +815,7 @@ function planned<E extends IGearboxError>(
   at: PreparedAt,
 ): SDKReturn<StrategyResult, E> {
   if (!result.ok) {
-    return refusal<E>(result);
+    return methodError<E>(result);
   }
   const { operations, state, calls } = result;
   return sdkOk({ operations, state, calls, ...at });
@@ -834,7 +832,7 @@ function finalized<E extends IGearboxError>(
   at: PreparedAt,
 ): SDKReturn<FinalizeResult, E> {
   if (!result.ok) {
-    return refusal<E>(result);
+    return methodError<E>(result);
   }
   const { operations, state, calls, remainder } = result;
   return sdkOk({ operations, state, calls, remainder, ...at });
@@ -847,26 +845,27 @@ function opened<E extends IGearboxError>(
   result: OpenStrategyPreviewResult,
   at: PreparedAt,
 ): SDKReturn<OpenStrategyResult, E> {
-  return result.ok ? sdkOk({ state: result.state, ...at }) : refusal<E>(result);
+  return result.ok
+    ? sdkOk({ state: result.state, ...at })
+    : methodError<E>(result);
 }
 
 /**
  * {@inheritDoc planned}
  *
- * Both routes are payload, refusal and all: `refused` says why a missing one is
+ * Both routes are payload, error and all: `errors` says why a missing one is
  * missing, and it stays on the error when neither route answered, since that is
  * the same question asked of a request that has no viable half at all.
  **/
-function routed<E extends IGearboxError & WithRouteRefusals>(
+function routed<E extends IGearboxError & WithRouteErrors>(
   result: IntentRoutesResult,
   at: PreparedAt,
 ): SDKReturn<StrategyRoutesResult, E> {
   if (!result.ok) {
-    const { refused, ...issue } = result;
-    // {@inheritDoc refusal} — the same narrowing, with `refused` carried over
-    return sdkErr({ ...toRefusalError(issue), refused } as unknown as E);
+    const { errors, error } = result;
+    return sdkErr({ ...error, errors } as unknown as E);
   }
-  const { instant, delayed, refused } = result;
+  const { instant, delayed, errors } = result;
   return sdkOk({
     instant: instant && {
       operations: instant.operations,
@@ -881,7 +880,7 @@ function routed<E extends IGearboxError & WithRouteRefusals>(
       delayed: delayed.delayed,
       ...at,
     },
-    refused,
+    errors,
     ...at,
   });
 }
@@ -918,7 +917,7 @@ async function lpState(
 }
 
 /**
- * A pool route the market does not offer, as the refusal a caller reads.
+ * A pool route the market does not offer, as the error a caller reads.
  *
  * `to` is absent where {@link lpRoute} found no output to name at all, which
  * is the usual way of it; both are present where a pair exists but nothing of
@@ -930,12 +929,9 @@ function unroutable(
   to: Address | undefined,
 ): SDKError<UnsupportedTokenPairError> {
   return sdkErr(
-    toRefusalError({
-      reason: "unsupportedTokenPair",
-      detail: {
-        from: toToken(sdk, from),
-        to: to === undefined ? undefined : toToken(sdk, to),
-      },
+    unsupportedTokenPair({
+      from: toToken(sdk, from),
+      to: to === undefined ? undefined : toToken(sdk, to),
     }),
   );
 }

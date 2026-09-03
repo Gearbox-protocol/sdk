@@ -139,9 +139,9 @@ describe("checkOperation", () => {
       { minHealthFactor: 10_000 },
     );
 
-    expect(issues).toEqual({
-      reason: "malformedTransaction",
-      detail: {
+    expect(issues).toMatchObject({
+      code: "malformedTransaction",
+      warning: {
         code: "adapterCallOutsideBracket",
         message: "adapter call outside bracket",
         adapter: CREDIT_MANAGER,
@@ -169,13 +169,11 @@ describe("checkOperation", () => {
     const issues = check(adjust({ estHealthFactor: 10_000 }), {
       minHealthFactor: 10_101,
     });
-    expect(issues).toEqual({
-      reason: "insufficientCollateral",
-      detail: {
-        healthFactor: 10_000,
-        healthFactorThreshold: 10_101,
-        safePrices: false,
-      },
+    expect(issues).toMatchObject({
+      code: "insufficientCollateral",
+      healthFactor: 10_000,
+      healthFactorThreshold: 10_101,
+      safePrices: false,
     });
   });
 
@@ -194,7 +192,7 @@ describe("checkOperation", () => {
       check(adjust({ estHealthFactor: 10_080 }), {
         minHealthFactor: 10_101,
         currentHealthFactor: 10_090,
-      })?.reason,
+      })?.code,
     ).toBe("insufficientCollateral");
   });
 
@@ -208,9 +206,11 @@ describe("checkOperation", () => {
       },
     );
 
-    expect(issues).toEqual({
-      reason: "insufficientCollateral",
-      detail: { healthFactor: 9_000, healthFactorThreshold: 10_000, safePrices: true },
+    expect(issues).toMatchObject({
+      code: "insufficientCollateral",
+      healthFactor: 9_000,
+      healthFactorThreshold: 10_000,
+      safePrices: true,
     });
   });
 
@@ -232,9 +232,11 @@ describe("checkOperation", () => {
       check(adjust({ estHealthFactor: 9_000, estSafeHealthFactor: 8_500 }), {
         minHealthFactor: 10_000,
       }),
-    ).toEqual({
-      reason: "insufficientCollateral",
-      detail: { healthFactor: 9_000, healthFactorThreshold: 10_000, safePrices: false },
+    ).toMatchObject({
+      code: "insufficientCollateral",
+      healthFactor: 9_000,
+      healthFactorThreshold: 10_000,
+      safePrices: false,
     });
   });
 
@@ -249,9 +251,11 @@ describe("checkOperation", () => {
         minHealthFactor: 10_000,
         minSafeHealthFactor: 10_000,
       }),
-    ).toEqual({
-      reason: "insufficientCollateral",
-      detail: { healthFactor: 9_000, healthFactorThreshold: 10_000, safePrices: true },
+    ).toMatchObject({
+      code: "insufficientCollateral",
+      healthFactor: 9_000,
+      healthFactorThreshold: 10_000,
+      safePrices: true,
     });
 
     expect(
@@ -296,7 +300,7 @@ describe("checkOperation", () => {
       const spy = withLiquidity(1n);
       try {
         const issue = check(adjust({ totalDebtChange: und(10n ** 20n) }));
-        expect(issue?.reason).toBe("insufficientPoolLiquidity");
+        expect(issue?.code).toBe("insufficientPoolLiquidity");
       } finally {
         spy.mockRestore();
       }
@@ -305,7 +309,7 @@ describe("checkOperation", () => {
     it("weighs the whole debt of an account being opened", () => {
       const spy = withLiquidity(1n);
       try {
-        expect(check(open())?.reason).toBe("insufficientPoolLiquidity");
+        expect(check(open())?.code).toBe("insufficientPoolLiquidity");
       } finally {
         spy.mockRestore();
       }
@@ -336,7 +340,7 @@ describe("checkOperation", () => {
 
   it("refuses a debt outside the facade's debtLimits", () => {
     const issues = check(adjust({ totalDebt: und(10n ** 30n) }));
-    expect(issues?.reason).toBe("debtOutOfRange");
+    expect(issues?.code).toBe("debtOutOfRange");
   });
 
   it("checks the wallet's side only when it is given balances", () => {
@@ -351,7 +355,7 @@ describe("checkOperation", () => {
     const issues = check(preview, {
       balances: new AddressMap<bigint>([[WETH, 1n]]),
     });
-    expect(issues?.reason).toBe("insufficientSourceBalance");
+    expect(issues?.code).toBe("insufficientBalance");
   });
 
   it("judges a delayed operation on the half that executes now", () => {
@@ -368,7 +372,7 @@ describe("checkOperation", () => {
       } as never,
     });
 
-    expect(issues?.reason).toBe("debtOutOfRange");
+    expect(issues?.code).toBe("debtOutOfRange");
   });
 
   it("reports the most fundamental issue when several would fire", () => {
@@ -380,15 +384,15 @@ describe("checkOperation", () => {
     expect(
       check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
         minHealthFactor: 10_101,
-      })?.reason,
-    ).toBe("marketPaused");
+      })?.code,
+    ).toBe("creditManagerPaused");
 
     paused.mockRestore();
 
     expect(
       check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
         minHealthFactor: 10_101,
-      })?.reason,
+      })?.code,
     ).toBe("debtOutOfRange");
   });
 
@@ -406,11 +410,9 @@ describe("checkOperation", () => {
       );
 
     // Only a balance that grows is refused; the market tolerates one that shrinks.
-    expect(gained(1n)).toEqual({
-      reason: "forbiddenToken",
-      detail: expect.objectContaining({
-        token: expect.objectContaining({ address: WETH }),
-      }),
+    expect(gained(1n)).toMatchObject({
+      code: "forbiddenToken",
+      token: expect.objectContaining({ address: WETH }),
     });
     expect(gained(0n)).toBeNull();
     forbidden.mockRestore();
@@ -434,7 +436,7 @@ describe("checkOperation", () => {
       );
 
     expect(asking(room)).toBeNull();
-    expect(asking(room + 1n)?.reason).toBe("quotaLimitReached");
+    expect(asking(room + 1n)?.code).toBe("quotaLimitReached");
   });
 
   it("counts a token the market quotes nothing for as no collateral", () => {
@@ -447,9 +449,9 @@ describe("checkOperation", () => {
       }),
     );
 
-    expect(issues).toEqual({
-      reason: "quotaLimitReached",
-      detail: expect.objectContaining({ requested: undefined }),
+    expect(issues).toMatchObject({
+      code: "quotaLimitReached",
+      requested: undefined,
     });
   });
 
@@ -528,12 +530,10 @@ describe("checkOperation — pool operations", () => {
       { balances: new AddressMap<bigint>([[WSTETH, 1n]]) },
     );
 
-    expect(issues).toEqual({
-      reason: "insufficientSourceBalance",
-      detail: {
-        required: expect.objectContaining({ value: 10n ** 18n }),
-        held: expect.objectContaining({ value: 1n }),
-      },
+    expect(issues).toMatchObject({
+      code: "insufficientBalance",
+      required: expect.objectContaining({ value: 10n ** 18n }),
+      held: expect.objectContaining({ value: 1n }),
     });
   });
 
@@ -550,7 +550,7 @@ describe("checkOperation — pool operations", () => {
       }),
     });
 
-    expect(issues?.reason).toBe("malformedTransaction");
+    expect(issues?.code).toBe("malformedTransaction");
   });
 
   it("lets a withdrawal out of a pool that takes no more deposits", () => {
@@ -578,7 +578,7 @@ describe("checkOperation — pool operations", () => {
         }),
       });
 
-    expect(withdraw(availableLiquidity)?.reason).toBe(
+    expect(withdraw(availableLiquidity)?.code).toBe(
       "insufficientPoolLiquidity",
     );
     expect(withdraw(availableLiquidity - 1n)).toBeNull();

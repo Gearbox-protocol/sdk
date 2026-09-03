@@ -96,7 +96,7 @@ describe("planAdjustLeverage — collateral is the invariant", () => {
     );
     expect(() =>
       planAdjustLeverage({ targetLeverage: X1 - 1n, token: T }, twoX),
-    ).toThrowError(expect.objectContaining({ reason: "leverageOutOfRange" }));
+    ).toThrowError(expect.objectContaining({ error: expect.objectContaining({ code: "leverageOutOfRange" }) }));
   });
 
   it("[INV-4] falls back to the fattest non-underlying balance", () => {
@@ -144,7 +144,7 @@ describe("planDeposit — collateral grows, debt follows", () => {
         { token: U, amount: 500n, positionToken: T, targetLeverage: X1 },
         twoX,
       ),
-    ).toThrowError(expect.objectContaining({ reason: "leverageOutOfRange" }));
+    ).toThrowError(expect.objectContaining({ error: expect.objectContaining({ code: "leverageOutOfRange" }) }));
   });
 
   it("[INV-6] RWA asset is wrapped into the underlying before conversion", () => {
@@ -178,7 +178,7 @@ describe("planDeposit — collateral grows, debt follows", () => {
     expect(() =>
       planDeposit({ token: T, amount: 500n, positionToken: T }, twoX),
     ).toThrowError(
-      expect.objectContaining({ reason: "unsupportedCollateralToken" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "unsupportedCollateralToken" }) }),
     );
   });
 });
@@ -252,23 +252,23 @@ describe("planRepay — funding in, debt down, position untouched", () => {
     const v = view({ debt: 1_000n, balances: { [T]: 2_000n } });
     v.debtLimits.minDebt = 700n;
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
-      expect.objectContaining({ reason: "debtOutOfRange" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "debtOutOfRange" }) }),
     );
     expect(() => planRepay({ token: U, amount: 0n }, twoX)).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "insufficientBalance" }) }),
     );
   });
 
   it("only the underlying, or the RWA asset, can pay a loan down", () => {
     expect(() => planRepay({ token: T, amount: 400n }, twoX)).toThrowError(
-      expect.objectContaining({ reason: "unsupportedCollateralToken" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "unsupportedCollateralToken" }) }),
     );
   });
 
   it("an account that owes nothing has nothing to repay", () => {
     const v = view({ debt: 0n, balances: { [T]: 2_000n } });
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
-      expect.objectContaining({ reason: "debtOutOfRange" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "debtOutOfRange" }) }),
     );
   });
 });
@@ -361,7 +361,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
   it("[INV-3] an account the debt has caught up with has nothing to hand over", () => {
     const v = view({ debt: 2_000n, balances: { [U]: 2_000n } });
     expect(() => planWithdraw({ amount: 100n, to: WALLET }, v)).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "insufficientBalance" }) }),
     );
   });
 
@@ -386,7 +386,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
         twoX,
       ),
     ).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "insufficientBalance" }) }),
     );
   });
 });

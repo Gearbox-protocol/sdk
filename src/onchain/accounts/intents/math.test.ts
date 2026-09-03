@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Token } from "../../../model/index.js";
 
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
-import type { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import {
   assertDebtLimits,
   assertLeverageAtLeastOne,
@@ -33,12 +33,12 @@ const SDK = {
 /** The amount shape a refusal reports: the token inlined, no price attached. */
 const und = (value: bigint) => ({ token: UND_TOKEN, value, valueUsd: null });
 
-/** The detail of the refusal `debt` draws, for a debt that draws one. */
-function debtLimitsDetail(debt: bigint): unknown {
+/** The error a debtLimits check raises, for a debt that draws one. */
+function debtLimitsError(debt: bigint) {
   try {
     assertDebtLimits(SDK, debt, DEBT_LIMITS, UND);
   } catch (e) {
-    return (e as IntentPreviewError).detail;
+    if (e instanceof IntentPreviewError) return e.error;
   }
   throw new Error(`assertDebtLimits accepted ${debt}`);
 }
@@ -77,13 +77,13 @@ describe("math — the three formulas behind every intent", () => {
     expect(() =>
       proportionalDebt({ debt: 1_000n, collateral: 0n }, 100n),
     ).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "insufficientBalance" }) }),
     );
   });
 
   it("[INV-4] leverage below 1x is rejected as leverageOutOfRange", () => {
     expect(() => assertLeverageAtLeastOne(X1 - 1n)).toThrowError(
-      expect.objectContaining({ reason: "leverageOutOfRange" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "leverageOutOfRange" }) }),
     );
     expect(() => assertLeverageAtLeastOne(X1)).not.toThrow();
   });
@@ -95,23 +95,25 @@ describe("math — the three formulas behind every intent", () => {
     expect(withinLimits(100n)).not.toThrow();
     expect(withinLimits(10_000n)).not.toThrow();
     expect(withinLimits(99n)).toThrowError(
-      expect.objectContaining({ reason: "debtOutOfRange" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "debtOutOfRange" }) }),
     );
     expect(withinLimits(10_001n)).toThrowError(
-      expect.objectContaining({ reason: "debtOutOfRange" }),
+      expect.objectContaining({ error: expect.objectContaining({ code: "debtOutOfRange" }) }),
     );
   });
 
   it("[INV-9] a debt outside debtLimits reports the limits it missed", () => {
     // The whole point of the detail: a slider that overshot gets the ceiling
     // to clamp to without a second call to find out what it is.
-    expect(debtLimitsDetail(10_001n)).toEqual({
+    expect(debtLimitsError(10_001n)).toMatchObject({
+      code: "debtOutOfRange",
       requested: und(10_001n),
       minDebt: und(DEBT_LIMITS.minDebt),
       maxDebt: und(DEBT_LIMITS.maxDebt),
     });
     // Under the floor the same three numbers say which end was missed.
-    expect(debtLimitsDetail(99n)).toEqual({
+    expect(debtLimitsError(99n)).toMatchObject({
+      code: "debtOutOfRange",
       requested: und(99n),
       minDebt: und(DEBT_LIMITS.minDebt),
       maxDebt: und(DEBT_LIMITS.maxDebt),

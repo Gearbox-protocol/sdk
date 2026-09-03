@@ -14,7 +14,7 @@ import type {
   CreditSuite,
   MarketSuite,
   OnchainSDK,
-  PreviewIssue,
+  OperationCheckError,
 } from "../../onchain/index.js";
 
 import {
@@ -33,7 +33,6 @@ import {
   checkQuotaLimit,
   toToken,
 } from "../../onchain/index.js";
-import { firstIssue } from "../../onchain/validation/legacy-issue.js";
 
 /** Omitting a threshold switches its check off — there is no single right one. */
 export interface CheckOperationOptions {
@@ -66,11 +65,11 @@ export interface CheckOperationOptions {
 export function checkOperation(
   input: { sdk: OnchainSDK; preview: OperationPreview },
   options: CheckOperationOptions = {},
-): PreviewIssue | null {
+): OperationCheckError | null {
   const { sdk, preview } = input;
 
-  // Every check below reads fields this refusal declares untrustworthy.
-  const malformed = firstIssue(
+  // Every check below reads fields this error declares untrustworthy.
+  const malformed = first(
     checkPreviewError("warning" in preview ? preview.warning : undefined),
   );
   if (malformed) {
@@ -103,21 +102,25 @@ export function checkOperation(
   }
 }
 
+function first<E>(errors: readonly E[]): E | null {
+  return errors[0] ?? null;
+}
+
 function poolIssues(
   sdk: OnchainSDK,
   preview: PoolPositionOperationPreview,
   options: CheckOperationOptions,
   isDeposit: boolean,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const market = sdk.marketRegister.findByPool(preview.pool);
   return (
-    firstIssue(
+    first(
       checkPoolPaused({
         isPaused: market.pool.pool.isPaused,
         pool: preview.pool,
       }),
     ) ||
-    firstIssue(
+    first(
       checkPoolSunset({
         isSunset: market.sunset,
         isDeposit,
@@ -127,7 +130,7 @@ function poolIssues(
     // A payout is served out of what the pool actually holds.
     (isDeposit
       ? null
-      : firstIssue(
+      : first(
           checkPoolPayout({
             requested: preview.tokenOut.value,
             available: market.pool.pool.availableLiquidity,
@@ -138,14 +141,14 @@ function poolIssues(
   );
 }
 
-/** What the market itself refuses, whatever the operation does. */
-export function marketIssues(suite: CreditSuite): PreviewIssue | null {
+/** What the market itself stops, whatever the operation does. */
+export function marketIssues(suite: CreditSuite): OperationCheckError | null {
   const creditManager = suite.creditManager.address;
   return (
-    firstIssue(
+    first(
       checkCreditManagerPaused({ isPaused: suite.isPaused, creditManager }),
     ) ||
-    firstIssue(
+    first(
       checkMarketExpired({
         isExpired: suite.isExpired,
         creditManager,
@@ -159,7 +162,7 @@ function creditIssues(
   sdk: OnchainSDK,
   preview: CreditPreview,
   options: CheckOperationOptions,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const suite = sdk.marketRegister.findCreditManager(preview.creditManager);
   const market = suite.market;
   const underlying = toToken(sdk, market.pool.underlying);
@@ -171,7 +174,7 @@ function creditIssues(
     marketIssues(suite) ||
     // An account being opened has to carry a real loan; one being adjusted may
     // end owing nothing at all.
-    firstIssue(
+    first(
       checkDebtLimits({
         debt: preview.totalDebt.value,
         minDebt: suite.creditFacade.minDebt,
@@ -209,8 +212,8 @@ function creditIssues(
 export function quotaCountIssue(
   suite: CreditSuite,
   account: Pick<AccountProjection, "quotas">,
-): PreviewIssue | null {
-  return firstIssue(
+): OperationCheckError | null {
+  return first(
     checkQuotaCount({
       count: account.quotas.filter(q => q.value > 0n).length,
       max: suite.creditManager.maxEnabledTokens,
@@ -233,7 +236,7 @@ function borrowIssue(
   suite: CreditSuite,
   preview: CreditPreview,
   underlying: Token,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const drawn =
     preview.operation === "AdjustCreditAccount"
       ? preview.totalDebtChange.value
@@ -242,7 +245,7 @@ function borrowIssue(
     return null;
   }
   const { value, limit } = suite.maxBorrowAmount();
-  return firstIssue(
+  return first(
     checkBorrowLimit({
       requested: drawn,
       available: value,
@@ -274,7 +277,7 @@ export interface WeighedFactors
 export function collateralIssue(
   account: WeighedFactors,
   options: CheckOperationOptions,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const { minHealthFactor, minSafeHealthFactor, currentHealthFactor } = options;
   if (account.totalDebt.value === 0n) {
     return null;
@@ -282,7 +285,7 @@ export function collateralIssue(
   return (
     (minHealthFactor === undefined
       ? null
-      : firstIssue(
+      : first(
           checkCollateralised({
             healthFactor: account.healthFactor,
             healthFactorThreshold: minHealthFactor,
@@ -295,7 +298,7 @@ export function collateralIssue(
     // transaction that hands nothing over is not judged at those prices.
     (minSafeHealthFactor === undefined
       ? null
-      : firstIssue(
+      : first(
           checkCollateralised({
             healthFactor: account.safeHealthFactor,
             healthFactorThreshold: minSafeHealthFactor,
@@ -314,13 +317,13 @@ type CreditPreview =
 function fundingIssue(
   options: CheckOperationOptions,
   puts: ReadonlyArray<{ token: Token; value: bigint }>,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const { balances } = options;
   if (!balances) {
     return null;
   }
   for (const { token, value } of puts) {
-    const issue = firstIssue(
+    const issue = first(
       checkFunding({
         token,
         required: value,
@@ -338,7 +341,7 @@ function fundingIssue(
 function forbiddenIssue(
   suite: CreditSuite,
   preview: CreditPreview,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const obtained =
     preview.operation === "AdjustCreditAccount"
       ? preview.assetsChange
@@ -348,7 +351,7 @@ function forbiddenIssue(
     if (asset.value <= 0n) {
       continue;
     }
-    const issue = firstIssue(
+    const issue = first(
       checkForbiddenToken({
         token: asset.token,
         isForbidden: suite.isForbidden(asset.token.address),
@@ -365,7 +368,7 @@ function quotaIssue(
   market: MarketSuite,
   preview: CreditPreview,
   underlying: Token,
-): PreviewIssue | null {
+): OperationCheckError | null {
   const increases =
     preview.operation === "AdjustCreditAccount"
       ? preview.quotasChange
@@ -380,7 +383,7 @@ function quotaIssue(
     // A token the market quotes nothing for has no ceiling to weigh against and
     // counts as no collateral — the same reading the engine's guard takes.
     const quoted = pqk.hasActiveQuota(q.token.address);
-    const issue = firstIssue(
+    const issue = first(
       checkQuotaLimit({
         token: q.token,
         requested: quoted ? q.value : undefined,

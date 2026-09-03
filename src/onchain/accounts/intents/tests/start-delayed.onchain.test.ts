@@ -380,18 +380,19 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
   });
 });
 
-/** Each refusal carries the numbers a form would otherwise re-derive. */
-describe("withdraw.startDelayed — what each refusal names", () => {
+/** Each error carries the numbers a form would otherwise re-derive. */
+describe("withdraw.startDelayed — what each error names", () => {
   it("a payout the tail cannot serve names the token asked for", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET, tokenOut: POS },
       buildSdk(),
     );
 
-    if (result.ok || result.reason !== "noDelayedRoute") {
+    if (result.ok || result.error.code !== "noDelayedRoute") {
       throw new Error("expected noDelayedRoute");
     }
-    expect(result.detail).toEqual({
+    expect(result.error).toMatchObject({
+      code: "noDelayedRoute",
       token: expect.objectContaining({ address: POS }),
     });
   });
@@ -402,10 +403,11 @@ describe("withdraw.startDelayed — what each refusal names", () => {
       buildSdk({ [POS]: [queued, { withdrawalPhantomToken: UND }] }),
     );
 
-    if (result.ok || result.reason !== "multipleDelayedWithdrawals") {
+    if (result.ok || result.error.code !== "multipleDelayedWithdrawals") {
       throw new Error("expected multipleDelayedWithdrawals");
     }
-    expect(result.detail).toEqual({
+    expect(result.error).toMatchObject({
+      code: "multipleDelayedWithdrawals",
       token: expect.objectContaining({ address: POS }),
       venues: 2,
     });
@@ -418,10 +420,11 @@ describe("withdraw.startDelayed — what each refusal names", () => {
       [caToken(POS, TVL_BEFORE, QUOTA_BEFORE), caToken(PHANTOM, W)],
     );
 
-    if (result.ok || result.reason !== "withdrawalInProgress") {
+    if (result.ok || result.error.code !== "withdrawalInProgress") {
       throw new Error("expected withdrawalInProgress");
     }
-    expect(result.detail).toEqual({
+    expect(result.error).toMatchObject({
+      code: "withdrawalInProgress",
       inFlight: {
         token: expect.objectContaining({ address: PHANTOM }),
         value: W,

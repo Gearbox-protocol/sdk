@@ -145,7 +145,7 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
       ...case_fixed_leverage,
       intent: { ...case_fixed_leverage.intent, amount: 0n },
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 });
 

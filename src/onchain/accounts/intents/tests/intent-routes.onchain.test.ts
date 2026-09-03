@@ -83,7 +83,7 @@ function expectRoutes(
   result: IntentRoutesResult,
 ): Extract<IntentRoutesResult, { ok: true }> {
   if (!result.ok) {
-    throw new Error(`expected at least one route, got ${result.reason}`);
+    throw new Error(`expected at least one route, got ${result.error.code}`);
   }
   return result;
 }
@@ -141,7 +141,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
       type: "WITHDRAW_COLLATERAL",
       debtRepaid: W,
     });
-    expect(routes.refused).toEqual({ instant: undefined, delayed: undefined });
+    expect(routes.errors).toEqual({});
   });
 
   it("returns the instant route alone when the source has no redemption venue", async () => {
@@ -149,10 +149,8 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
 
     expect(routes.instant).toBeDefined();
     expect(routes.delayed).toBeUndefined();
-    expect(routes.refused).toEqual({
-      instant: undefined,
-      delayed: "noDelayedRoute",
-    });
+    expect(routes.errors.instant).toBeUndefined();
+    expect(routes.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("returns the instant route alone when only its payout token is servable", async () => {
@@ -163,7 +161,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
 
     expect(routes.instant).toBeDefined();
     expect(routes.delayed).toBeUndefined();
-    expect(routes.refused.delayed).toBe("noDelayedRoute");
+    expect(routes.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("returns the delayed route alone when the source cannot be sold", async () => {
@@ -174,7 +172,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     expect(routes.instant).toBeUndefined();
     expect(routes.delayed).toBeDefined();
     // Nothing refused it: the route exists, it simply could not be quoted.
-    expect(routes.refused.instant).toBeUndefined();
+    expect(routes.errors.instant).toBeUndefined();
   });
 
   it("offers both for an exit: sold whole, or redeemed and then sold", async () => {
@@ -201,7 +199,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     expect(routes.delayed?.delayed.afterRequest.totalDebt.value).toBe(
       DEBT_BEFORE,
     );
-    expect(routes.refused).toEqual({ instant: undefined, delayed: undefined });
+    expect(routes.errors).toEqual({});
   });
 
   it("reads the pathfinder's revert as a refusal, and the exit keeps its second route", async () => {
@@ -215,7 +213,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     // The revert is the pathfinder saying no, so it is reported as a reason
     // rather than raised — otherwise the route that does work is lost with it.
     expect(routes.instant).toBeUndefined();
-    expect(routes.refused.instant).toBe("unsupportedTokenPair");
+    expect(routes.errors.instant?.code).toBe("unsupportedTokenPair");
     expect(routes.delayed?.delayed.record).toEqual({
       type: "CLOSE_ACCOUNT",
       to: WALLET,
@@ -232,10 +230,8 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     if (result.ok) {
       throw new Error("expected no route");
     }
-    expect(result.refused).toEqual({
-      instant: "unsupportedTokenPair",
-      delayed: "noDelayedRoute",
-    });
+    expect(result.errors.instant?.code).toBe("unsupportedTokenPair");
+    expect(result.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("fails once, with the instant route's reason, when neither is viable", async () => {
@@ -245,11 +241,9 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     if (result.ok) {
       throw new Error("expected no route");
     }
-    expect(result.reason).toBe("insufficientSourceBalance");
-    expect(result.refused).toEqual({
-      instant: "insufficientSourceBalance",
-      delayed: "insufficientSourceBalance",
-    });
+    expect(result.error.code).toBe("insufficientBalance");
+    expect(result.errors.instant?.code).toBe("insufficientBalance");
+    expect(result.errors.delayed?.code).toBe("insufficientBalance");
   });
 
   it("rethrows when nothing answered and a route could not be quoted", async () => {
@@ -288,7 +282,7 @@ describe("adjustLeverage.routes — only deleveraging has a second route", () =>
     expect(routes.delayed?.delayed.record).toEqual({
       type: "DECREASE_LEVERAGE",
     });
-    expect(routes.refused).toEqual({ instant: undefined, delayed: undefined });
+    expect(routes.errors).toEqual({});
   });
 
   it("returns the instant route alone when leverage goes up", async () => {
@@ -299,7 +293,7 @@ describe("adjustLeverage.routes — only deleveraging has a second route", () =>
       type: "increaseDebt",
     });
     expect(routes.delayed).toBeUndefined();
-    expect(routes.refused.delayed).toBe("noDelayedRoute");
+    expect(routes.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("returns the instant route alone when idle underlying covers the repayment", async () => {
@@ -315,7 +309,7 @@ describe("adjustLeverage.routes — only deleveraging has a second route", () =>
       amount: DEBT_BEFORE / 2n,
     });
     expect(routes.delayed).toBeUndefined();
-    expect(routes.refused.delayed).toBe("noDelayedRoute");
+    expect(routes.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("fails once when the target leverage is not viable for either route", async () => {
@@ -325,10 +319,8 @@ describe("adjustLeverage.routes — only deleveraging has a second route", () =>
     if (result.ok) {
       throw new Error("expected no route");
     }
-    expect(result.reason).toBe("leverageOutOfRange");
-    expect(result.refused).toEqual({
-      instant: "leverageOutOfRange",
-      delayed: "leverageOutOfRange",
-    });
+    expect(result.error.code).toBe("leverageOutOfRange");
+    expect(result.errors.instant?.code).toBe("leverageOutOfRange");
+    expect(result.errors.delayed?.code).toBe("leverageOutOfRange");
   });
 });

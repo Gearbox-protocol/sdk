@@ -1,6 +1,7 @@
 import type { Address } from "viem";
+import { insufficientBalance, noRecordedIntent } from "../../../model/index.js";
 import type { OnchainSDK } from "../../index.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import { toTokenAmount } from "../../validation/token.js";
 import type {
   ClaimableWithdrawal,
@@ -62,8 +63,7 @@ export function planTail(args: {
     const output = instantOutput(claimable.outputs);
     if (!output) {
       throw new IntentPreviewError(
-        "insufficientSourceBalance",
-        undefined,
+        insufficientBalance(),
         "finishIntent: the claim credits nothing to spend",
       );
     }
@@ -248,8 +248,7 @@ export async function projectTail(args: {
     // foreign or malformed claim can name a request that queued nothing),
     // so it refuses as noRecordedIntent instead of crashing the boundary.
     throw new IntentPreviewError(
-      "noRecordedIntent",
-      undefined,
+      noRecordedIntent(),
       "projectTail: the request queued nothing to claim",
     );
   }

@@ -148,7 +148,7 @@ async function roundTrip(
     quotaReserve: undefined,
   });
   if (!result.ok)
-    throw new Error(`prepare refused the intent: ${result.reason}`);
+    throw new Error(`prepare refused the intent: ${result.error.code}`);
 
   const calldata = encodeFunctionData({
     abi: iCreditFacadeV310Abi,
@@ -216,7 +216,7 @@ async function openRoundTrip(margin: bigint, leverage: bigint) {
       quotaReserve: undefined,
     });
     if (!result.ok)
-      throw new Error(`prepare refused the opening: ${result.reason}`);
+      throw new Error(`prepare refused the opening: ${result.error.code}`);
     projected = result.state;
   } finally {
     routerFor.mockRestore();

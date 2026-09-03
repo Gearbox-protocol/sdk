@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { insufficientBalance } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
@@ -8,7 +9,7 @@ import {
   raise,
   toToken,
 } from "../../validation/index.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 
 /**
  * The whole arithmetic behind every intent, in underlying units.
@@ -48,9 +49,7 @@ export function proportionalDebt(
 ): bigint {
   if (position.collateral <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      // There is no amount to name: the account has nothing to lever at all.
-      undefined,
+      insufficientBalance(),
       "cannot preserve leverage on an account with no collateral",
     );
   }

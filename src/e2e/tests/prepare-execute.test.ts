@@ -267,7 +267,7 @@ describe("prepare → execute on a mainnet fork", () => {
     if (!sim.ok) throw new Error(`sim failed: ${sim.error.code}`);
     const { instant } = sim.data;
     if (!instant) {
-      throw new Error(`no instant route: ${sim.data.refused.instant}`);
+      throw new Error(`no instant route: ${sim.data.errors.instant?.code}`);
     }
     return {
       // the route, back in the envelope `buildTx` takes
@@ -1102,10 +1102,8 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.ok || sim.error.code !== "insufficientCollateral") {
         throw new Error("expected insufficientCollateral");
       }
-      expect(sim.error.refused).toEqual({
-        instant: "insufficientCollateral",
-        delayed: "noDelayedRoute",
-      });
+      expect(sim.error.errors.instant?.code).toBe("insufficientCollateral");
+      expect(sim.error.errors.delayed?.code).toBe("noDelayedRoute");
       expect(sim.error.healthFactor).toBeLessThan(
         sim.error.healthFactorThreshold,
       );
@@ -1120,8 +1118,8 @@ describe("prepare → execute on a mainnet fork", () => {
         to: borrower,
       });
 
-      if (sim.ok || sim.error.code !== "insufficientSourceBalance") {
-        throw new Error("expected insufficientSourceBalance");
+      if (sim.ok || sim.error.code !== "insufficientBalance") {
+        throw new Error("expected insufficientBalance");
       }
       // The amounts are optional on this code because most of its sites refuse
       // before there is a balance to compare. This one is the ledger walk, so

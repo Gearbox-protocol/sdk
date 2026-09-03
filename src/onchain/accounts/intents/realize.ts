@@ -1,8 +1,14 @@
 import type { Address } from "viem";
+import {
+  insufficientBalance,
+  multipleDelayedWithdrawals,
+  noDelayedRoute,
+  withdrawalInProgress,
+} from "../../../model/index.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
@@ -153,11 +159,12 @@ export async function realize(
     const held = ledger.balanceOf(token);
     if (amount <= 0n || held < amount) {
       throw new IntentPreviewError(
-        "insufficientSourceBalance",
-        {
+        insufficientBalance({
           required: toTokenAmount(sdk, token, amount),
           held: toTokenAmount(sdk, token, held),
-        },
+          holderKind: "creditAccount",
+          holder: creditAccount.creditAccount,
+        }),
         `${what}: needs ${amount} of ${token}, account holds ${held}`,
       );
     }
@@ -292,8 +299,9 @@ export async function realize(
         );
         if (pending) {
           throw new IntentPreviewError(
-            "withdrawalInProgress",
-            { inFlight: toTokenAmount(sdk, pending.token, pending.balance) },
+            withdrawalInProgress(
+              toTokenAmount(sdk, pending.token, pending.balance),
+            ),
             `closeAll: ${pending.token} is a pending withdrawal, claim it first`,
           );
         }
@@ -350,14 +358,13 @@ export async function realize(
         // already in flight, and its claim owns the tail that follows it.
         if (ledger.balanceOf(asset.withdrawalPhantomToken) > 0n) {
           throw new IntentPreviewError(
-            "withdrawalInProgress",
-            {
-              inFlight: toTokenAmount(
+            withdrawalInProgress(
+              toTokenAmount(
                 sdk,
                 asset.withdrawalPhantomToken,
                 ledger.balanceOf(asset.withdrawalPhantomToken),
               ),
-            },
+            ),
             `request: ${asset.withdrawalPhantomToken} already holds a pending withdrawal`,
           );
         }
@@ -570,8 +577,7 @@ async function delayedConfig(
   const compressor = sdk.withdrawalCompressor;
   if (!compressor) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      { token: toToken(sdk, token) },
+      noDelayedRoute(toToken(sdk, token)),
       "request: chain has no withdrawal compressor",
     );
   }
@@ -582,15 +588,13 @@ async function delayedConfig(
   );
   if (assets.length === 0) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      { token: toToken(sdk, token) },
+      noDelayedRoute(toToken(sdk, token)),
       `request: ${token} has no delayed withdrawal config`,
     );
   }
   if (assets.length > 1) {
     throw new IntentPreviewError(
-      "multipleDelayedWithdrawals",
-      { token: toToken(sdk, token), venues: assets.length },
+      multipleDelayedWithdrawals(toToken(sdk, token), assets.length),
       `request: ${token} has ${assets.length} delayed withdrawal configs`,
     );
   }

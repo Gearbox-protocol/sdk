@@ -1,11 +1,15 @@
 import type { Address } from "viem";
+import {
+  type SDKError,
+  sdkErr,
+  unsupportedTokenPair,
+} from "../../../model/index.js";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
 import { MIN_HF_LIMITED } from "../../validation/index.js";
 import {
   IntentPreviewError,
-  type PreviewRefusal,
-  refuse,
-} from "../../validation/refusal.js";
+  type IntentValidationError,
+} from "../../validation/raise.js";
 import { assertMarketOperable } from "./guards.js";
 
 import {
@@ -47,7 +51,7 @@ import type {
   FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
-  RouteRefusals,
+  RouteErrors,
   StartIntent,
   StartIntentProps,
   WithdrawCeilings,
@@ -76,7 +80,7 @@ export type {
   PathLossRate,
   RepayStrategyIntent,
   ResumableIntent,
-  RouteRefusals,
+  RouteErrors,
   StartIntent,
   WithdrawAssetIntent,
   WithdrawCeilings,
@@ -102,7 +106,7 @@ export type {
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; state: OpenStrategyState }
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** An intent plus everything previewing it needs. */
 type StartProps = StartIntentProps & { intent: StartIntent };
@@ -119,7 +123,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Previews an operation on an existing account.
    *
    * @param props - Intent plus account slice, quota reserve and slippage
-   * @returns Operations, projected state and calldata, or `{ ok: false, reason }`
+   * @returns Operations, projected state and calldata, or `{ ok: false, error }`
    * when the intent cannot be satisfied (e.g. the account lacks the source
    * balance)
    */
@@ -269,7 +273,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * @param props - Intent plus account slice, quota reserve and slippage
    * @returns The request transaction, the state it ends in and what it recorded
-   * for the tail, or `{ ok: false, reason }` — `noDelayedRoute` when this route
+   * for the tail, or `{ ok: false, error }` — `noDelayedRoute` when this route
    * does not exist for the account at all
    */
   async startDelayedIntent(
@@ -329,8 +333,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
       return { ...result, state: tail.state, delayed };
     } catch (e) {
       // A tail that cannot be walked is a request that would strand the
-      // account, so it is refused here rather than started and regretted.
-      return asFailure(e);
+      // account, so it is stopped here rather than started and regretted.
+      return asSDKError(e);
     }
   }
 
@@ -341,7 +345,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Which routes an account has depends on the intent and the token it sells,
    * and a form has to know before it can offer a choice — so both are quoted
    * from the same request and each is reported on its own. A route the account
-   * cannot take comes back `undefined` with its refusal in `refused`; only when
+   * cannot take comes back `undefined` with its error in `errors`; only when
    * neither answers is the whole result `{ ok: false }`.
    *
    * A route that could not be quoted at all — a pathfinder with no path out of
@@ -351,7 +355,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * @param props - A withdraw or adjust-leverage intent plus account slice,
    * quota reserve and slippage
-   * @returns Whichever routes are viable, or `{ ok: false, reason }` when none is
+   * @returns Whichever routes are viable, or `{ ok: false, error }` when none is
    */
   async intentRoutes(
     props: StartIntentProps & { intent: DelayableIntent },
@@ -369,17 +373,17 @@ export class CreditAccountOperationsService extends SDKConstruct {
       delayed.status === "fulfilled" && delayed.value.ok
         ? delayed.value
         : undefined;
-    const instantRefusal =
+    const instantError =
       instant.status === "fulfilled" && !instant.value.ok
-        ? instant.value
+        ? instant.value.error
         : undefined;
-    const delayedRefusal =
+    const delayedError =
       delayed.status === "fulfilled" && !delayed.value.ok
-        ? delayed.value
+        ? delayed.value.error
         : undefined;
-    const refused: RouteRefusals = {
-      instant: instantRefusal?.reason,
-      delayed: delayedRefusal?.reason,
+    const errors: RouteErrors = {
+      ...(instantError === undefined ? {} : { instant: instantError }),
+      ...(delayedError === undefined ? {} : { delayed: delayedError }),
     };
 
     if (instantRoute || delayedRoute) {
@@ -387,24 +391,24 @@ export class CreditAccountOperationsService extends SDKConstruct {
         ok: true,
         instant: instantRoute,
         delayed: delayedRoute,
-        refused,
+        errors,
       };
     }
 
-    // Nothing answered. A refusal is a value the caller can act on, but a route
+    // Nothing answered. An error is a value the caller can act on, but a route
     // that could not be quoted at all is a genuine failure, and there is no
     // preview left to report it alongside.
     const failed = [instant, delayed].find(s => s.status === "rejected");
     if (failed?.status === "rejected") {
       throw failed.reason;
     }
-    const chosen = instantRefusal ?? delayedRefusal;
+    const chosen = instantError ?? delayedError;
     if (chosen === undefined) {
       // disposition(D1-S6): kept — allSettled invariant; every route settles
       // as an answer or a refusal, anything else is a bug.
       throw new Error("intentRoutes: a route neither answered nor refused");
     }
-    return { ...chosen, refused };
+    return { ...sdkErr(chosen), errors };
   }
 
   /**
@@ -453,7 +457,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * @param props - Credit manager, wallet collateral, target token and leverage
    * @returns Debt, position size, projected balances and quotas for both the
-   * expected and the floor branch, or `{ ok: false, reason }` when the requested
+   * expected and the floor branch, or `{ ok: false, error }` when the requested
    * leverage or the resulting debt is not viable
    */
   async openStrategyIntent(
@@ -462,7 +466,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
     try {
       return { ok: true, state: await buildOpenStrategyState(props) };
     } catch (e) {
-      return asFailure(e);
+      return asSDKError(e);
     }
   }
 
@@ -485,7 +489,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
       });
       return { ok: true, operations, state, calls, delayed };
     } catch (e) {
-      return asFailure(e);
+      return asSDKError(e);
     }
   }
 }
@@ -498,7 +502,7 @@ type Previewed =
   | (Extract<IntentPreviewResult, { ok: true }> & {
       delayed: DelayedStart | undefined;
     })
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** Drops the delayed half for the flows that cannot produce one. */
 function plain(result: Previewed): IntentPreviewResult {
@@ -510,14 +514,9 @@ function plain(result: Previewed): IntentPreviewResult {
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */
-function asFailure(e: unknown): PreviewRefusal {
-  if (e instanceof IntentPreviewError) {
-    return refuse(e.reason, e.detail);
-  }
-  if (isUnroutable(e)) {
-    // The revert names no pair: the leg that asked for one is frames away.
-    return refuse("unsupportedTokenPair", undefined);
-  }
+function asSDKError(e: unknown): SDKError<IntentValidationError> {
+  if (e instanceof IntentPreviewError) return sdkErr(e.error);
+  if (isUnroutable(e)) return sdkErr(unsupportedTokenPair());
   throw e;
 }
 
@@ -525,7 +524,7 @@ function asFailure(e: unknown): PreviewRefusal {
  * How the pathfinder says there is no route: it reverts instead of answering
  * with an empty path, so viem raises a contract error where the rest of the
  * engine raises an {@link IntentPreviewError}. Nothing is wrong — the trade
- * asked for cannot be made, which is a refusal the caller can act on, and one
+ * asked for cannot be made, which is an error the caller can act on, and one
  * `intentRoutes` in particular must keep as a value so the other route can
  * still be offered.
  */

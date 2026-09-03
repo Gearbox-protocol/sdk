@@ -1,7 +1,9 @@
-import type { OperationState, PreviewIssue } from "../../onchain/index.js";
+import type {
+  OperationCheckError,
+  OperationState,
+} from "../../onchain/index.js";
 import { checkDebtLimits, toToken } from "../../onchain/index.js";
 import type { OnchainSDK } from "../../onchain/OnchainSDK.js";
-import { firstIssue } from "../../onchain/validation/legacy-issue.js";
 import type { CheckOperationOptions } from "./checkOperation.js";
 import {
   collateralIssue,
@@ -32,22 +34,21 @@ import {
 export function checkSimulation(
   input: { sdk: OnchainSDK; state: OperationState },
   options: CheckOperationOptions = {},
-): PreviewIssue | null {
+): OperationCheckError | null {
   const { sdk, state } = input;
   const suite = sdk.marketRegister.findCreditManager(state.creditManager);
 
   return (
     marketIssues(suite) ||
-    firstIssue(
-      checkDebtLimits({
-        debt: state.totalDebt.value,
-        minDebt: suite.creditFacade.minDebt,
-        maxDebt: suite.creditFacade.maxDebt,
-        underlying: toToken(sdk, suite.market.pool.underlying),
-        // A simulated adjustment may end owing nothing, as one being previewed may.
-        allowZero: true,
-      }),
-    ) ||
+    (checkDebtLimits({
+      debt: state.totalDebt.value,
+      minDebt: suite.creditFacade.minDebt,
+      maxDebt: suite.creditFacade.maxDebt,
+      underlying: toToken(sdk, suite.market.pool.underlying),
+      // A simulated adjustment may end owing nothing, as one being previewed may.
+      allowZero: true,
+    })[0] ??
+      null) ||
     quotaCountIssue(suite, state) ||
     collateralIssue(state, options)
   );

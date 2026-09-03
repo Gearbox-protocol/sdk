@@ -137,7 +137,8 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
 
   it("names the payout: a partial withdrawal cannot empty the balance", async () => {
     const result = await run(case_und_und);
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     const paid = result.operations.find(op => op.type === "withdrawCollateral");
     expect(paid?.type === "withdrawCollateral" && paid.all).toBeUndefined();
@@ -148,7 +149,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
       ...case_und_und,
       totalDebt: 200000000000n,
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 
   it("rejects a source that cannot cover payout plus repayment", async () => {
@@ -165,7 +166,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
         },
       ],
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 
   it("rejects a non-positive amount", async () => {
@@ -173,7 +174,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
       ...case_und_und,
       intent: { ...case_und_und.intent, amount: 0n },
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 });
 

@@ -1,19 +1,34 @@
 import type { Address } from "viem";
 import type {
   Bps,
+  CreditAccountNotFoundError,
+  CreditManagerPausedError,
   Curator,
   DebtOutOfRangeError,
+  ForbiddenTokenError,
+  InsufficientBalanceError,
+  InsufficientCollateralError,
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
+  MarketExpiredError,
+  MultipleDelayedWithdrawalsError,
+  NoDelayedRouteError,
+  NoRecordedIntentError,
+  NoStrategyTargetCollateralError,
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  QuotaLimitReachedError,
   SDKReturn,
   StrategyOpportunityKey,
   StrategyPosition,
   StrategyPositionKey,
   Timestamp,
   TokenAmount,
+  UnexpectedFailureError,
+  UnsupportedCollateralTokenError,
+  UnsupportedTokenPairError,
+  WithdrawalInProgressError,
 } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
@@ -26,38 +41,65 @@ import type {
   OperationState,
   PoolSimulation,
   ResumableIntent,
-  RouteRefusals,
+  RouteErrors,
   WithdrawCeilings,
 } from "../../onchain/index.js";
-import type {
-  AccountFlowError,
+
+export type {
+  CreditAccountNotFoundError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
-  OpenFlowError,
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
-  WithRouteRefusals,
-} from "./errors.js";
-
+} from "../../model/index.js";
 export type {
   LeverageBand,
   OperationState,
   PathLossRate,
+  RouteErrors,
   WithdrawCeilings,
 } from "../../onchain/index.js";
+
 /**
- * The vocabulary the failure half of everything below is written in.
- *
- * Published here because the codes on the errors this module hands out are
- * these reasons: a caller switching on `error.code` should not have to reach
- * into `@gearbox-protocol/sdk/onchain` for the names to do it with. They are
- * defined in the intents engine and have no second home here.
+ * What any operation on an existing account can answer with: the engine's
+ * shared guards, the missing account, and a wrapped crash.
  **/
-export * from "../../onchain/validation/refusal.js";
+export type AccountFlowError =
+  | CreditManagerPausedError
+  | MarketExpiredError
+  | ForbiddenTokenError
+  | QuotaLimitReachedError
+  | InsufficientCollateralError
+  | InsufficientBalanceError
+  | CreditAccountNotFoundError
+  | UnexpectedFailureError;
+
+/** Same guards for the account-less open flow. */
+export type OpenFlowError =
+  | CreditManagerPausedError
+  | MarketExpiredError
+  | ForbiddenTokenError
+  | QuotaLimitReachedError
+  | InsufficientCollateralError
+  | InsufficientBalanceError
+  | UnexpectedFailureError;
+
+/**
+ * What every error of a two-route request carries on top of its own code,
+ * see {@link StrategyRoutesResult}.
+ *
+ * `errors` says why each route is missing, which is the answer a form needs
+ * even when neither exists: the error itself is the instant route's — the one
+ * a caller can usually act on — or the delayed route's when the instant one
+ * did not get far enough to have a reason of its own.
+ **/
+export interface WithRouteErrors {
+  errors: RouteErrors;
+}
 
 /**
  * Where a pool operation leaves the wallet: the two sides of the trade as
@@ -211,27 +253,27 @@ export interface DelayedStrategyResult {
  * Whether the account can sell that asset on the router, redeem it through its
  * issuer, or both, is not something the caller can know up front, so both routes
  * are quoted from one request. A route the account cannot take is `undefined`
- * with its refusal in `refused`, which is what lets a form offer exactly the
+ * with its error in `errors`, which is what lets a form offer exactly the
  * routes that exist; a failure means neither does, and the error still carries
- * `refused`, see {@link WithRouteRefusals}.
+ * `errors`, see {@link WithRouteErrors}.
  **/
 export interface StrategyRoutesResult {
   /**
    * The router route: one transaction, settled on the spot. `undefined`
-   * when the asset cannot be sold, see `refused.instant`.
+   * when the asset cannot be sold, see `errors.instant`.
    **/
   instant: StrategyResult | undefined;
   /**
    * The request half of the redemption route, which
    * {@link IOpportunitiesPrepare.finalize} completes once it matures.
    * `undefined` when the route does not exist — no redemption venue for the
-   * asset, or a request that settles at once anyway — see `refused.delayed`.
+   * asset, or a request that settles at once anyway — see `errors.delayed`.
    **/
   delayed: DelayedStrategyResult | undefined;
   /**
-   * Why a missing route was refused, see {@link RouteRefusals}.
+   * Why a missing route is missing, see {@link RouteErrors}.
    **/
-  refused: RouteRefusals;
+  errors: RouteErrors;
   /** Block of the chain state this result was computed from. */
   blockNumber: number;
   /** Unix seconds of {@link blockNumber}. */
@@ -411,7 +453,7 @@ export interface LpParams {
   tokenIn?: Address;
   /**
    * Token the user receives. Defaults to the only route available for `tokenIn`;
-   * required when the pool offers several, otherwise the preparation is refused
+   * required when the pool offers several, otherwise the preparation answers
    * with `unsupportedTokenPair`.
    **/
   tokenOut?: Address;
@@ -462,7 +504,7 @@ export interface FinalizeParams extends PrepareOptions {
  * calldata that already exists and reports what it would do.
  *
  * Every refusable method answers `SDKReturn` and names, in its own signature,
- * exactly the errors its flow can refuse with — the union is the list of
+ * exactly the errors its flow can answer with — the union is the list of
  * everything a caller has to handle, checked by the compiler. None of them
  * throws: a chain that cannot be reached or a crash on the way arrives as
  * `unexpectedFailure` with the cause attached.
@@ -594,7 +636,7 @@ export interface IOpportunitiesPrepare {
         | MultipleDelayedWithdrawalsError
         | WithdrawalInProgressError
       ) &
-        WithRouteRefusals
+        WithRouteErrors
     >
   >;
 
@@ -662,7 +704,7 @@ export interface IOpportunitiesPrepare {
    * Answers with both routes, like {@link withdrawStrategy}, since deleveraging
    * sells the position token and may only be able to redeem it. Raising leverage
    * buys instead, so there the delayed route is always absent with
-   * `refused.delayed: "noDelayedRoute"`.
+   * `errors.delayed` set to `noDelayedRoute`.
    **/
   adjustLeverage(
     position: PositionInput,
@@ -680,7 +722,7 @@ export interface IOpportunitiesPrepare {
         | InsufficientPoolLiquidityError
         | LeverageOutOfRangeError
       ) &
-        WithRouteRefusals
+        WithRouteErrors
     >
   >;
 
