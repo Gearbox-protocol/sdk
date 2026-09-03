@@ -1,14 +1,12 @@
 import type { Address } from "viem";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
-import { MIN_HF_LIMITED } from "../../validation/checks.js";
+import { MIN_HF_LIMITED } from "../../validation/index.js";
 import {
   IntentPreviewError,
   type PreviewRefusal,
   refuse,
 } from "../../validation/refusal.js";
 import { assertMarketOperable } from "./guards.js";
-
-export { borrowable } from "./guards.js";
 
 import {
   calcLeverageBand,
@@ -159,8 +157,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Both ends of what a `WITHDRAW` can take out, in underlying: the largest
-   * partial withdrawal that keeps leverage and stays inside the facade's debt
-   * band, and the net value an exit hands over. They are reported together
+   * partial withdrawal that keeps leverage and stays inside the facade's
+   * `debtLimits`, and the net value an exit hands over. They are reported together
    * because a withdraw form needs both — the range it may offer, and the one
    * amount past it that is allowed — and because the distance between them is
    * the account's own, not a constant a caller could assume.
@@ -178,7 +176,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
   ): WithdrawCeilings {
     const view = accountView(props.creditAccount, props.sdk);
     return {
-      partial: maxProportionalWithdrawal(view, view.band),
+      partial: maxProportionalWithdrawal(view, view.debtLimits),
       // an account underwater owes more than it holds, and has nothing to hand
       // over on the way out
       exit: view.collateral > 0n ? view.collateral : 0n,
@@ -207,8 +205,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * A credit manager's `maxLeverage` follows from the liquidation threshold
    * alone, so it is the same for a hundred dollars and for a million. What a
-   * given deposit reaches is decided by the debt it implies and by the band
-   * the market puts that debt in — the range a leverage slider should offer.
+   * given deposit reaches is decided by the debt it implies and by the
+   * `debtLimits` the market puts that debt in — the range a leverage slider should offer.
    *
    * Unlike the other ceilings here this one reads no account: opening has none
    * yet, and adjusting measures against the net value the caller already
@@ -230,7 +228,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * activity come from the account's market, valued the way the facade values
    * a call that pays out; zero debt frees the whole balance.
    *
-   * The default is {@link MIN_HF_LIMITED}, the bar a form holds an
+   * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
    * account to.
    *
    * @param props - Account slice, the SDK holding its market, the collateral
@@ -246,8 +244,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const { targetHF = MIN_HF_LIMITED, ...rest } = props;
     return maxWithdrawCollateral({
       ...rest,
-      // two basis points clear of the bar: a ceiling equal to it would make a
-      // Max button produce an amount the form then refuses
+      // two basis points clear of the threshold: a ceiling equal to it would
+      // make a Max button produce an amount the form then refuses
       targetHF: targetHF + 2n,
     });
   }

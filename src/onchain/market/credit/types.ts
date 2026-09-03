@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { Bps, Leverage } from "../../../model/index.js";
+import type { BorrowLimitCause, Bps, Leverage } from "../../../model/index.js";
 import type {
   AssertAssignable,
   Asset,
@@ -25,6 +25,16 @@ export interface ICreditConfiguratorContract extends IBaseContract {
 
   checkRamps: () => Promise<RampEvent[]>;
   stateHuman: (raw?: boolean) => CreditConfiguratorStateHuman;
+}
+
+/**
+ * Largest debt a new position can take right now, and which limit set it.
+ **/
+export interface MaxBorrowAmount {
+  /** In the pool's underlying. */
+  value: bigint;
+  /** The limit {@link value} ran into; see {@link BorrowLimitCause}. */
+  limit: BorrowLimitCause;
 }
 
 /**

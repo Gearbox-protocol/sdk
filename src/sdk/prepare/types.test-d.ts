@@ -1,28 +1,28 @@
 import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  DebtOutOfRangeError,
+  ForbiddenTokenError,
   IGearboxError,
+  InsufficientCollateralError,
+  InsufficientPoolLiquidityError,
+  LeverageOutOfRangeError,
+  MalformedTransactionError,
+  MarketExpiredError,
+  PoolSunsetError,
   PositionCollateral,
+  QuotaCountExceededError,
+  QuotaLimitReachedError,
   SDKReturn,
 } from "../../model/index.js";
 import type {
   CreditAccountNotFoundError,
-  DebtOutOfRangeError,
-  ForbiddenTokenError,
-  InsufficientCollateralError,
-  InsufficientPoolLiquidityError,
   InsufficientSourceBalanceError,
-  LeverageOutOfRangeError,
-  MalformedTransactionError,
-  MarketExpiredError,
   MarketPausedError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
-  PoolSunsetError,
-  QuotaCountExceededError,
-  QuotaLimitReachedError,
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
@@ -108,7 +108,7 @@ describe("every prepare method names exactly its own refusals", () => {
     >();
   });
 
-  it("repayStrategy: the account-flow guards, the band and the funding token", () => {
+  it("repayStrategy: the account-flow guards, debtLimits and the funding token", () => {
     expectTypeOf<Awaited<ReturnType<P["repayStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,

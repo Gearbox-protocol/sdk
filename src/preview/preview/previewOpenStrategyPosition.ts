@@ -9,7 +9,6 @@ import {
   type Asset,
   NO_VERSION,
   type PluginsMap,
-  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   InnerOperation,

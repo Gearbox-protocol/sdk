@@ -102,7 +102,7 @@ beforeAll(() => {
  * The same market and the same borrower, holding the underlying itself.
  *
  * 40 WETH against 20 of principal: twice levered, twice the facade's `minDebt`,
- * so there is room to move in either direction without leaving the band. What
+ * so there is room to move in either direction without leaving debtLimits. What
  * this buys is the flows that convert — a deposit, a leverage change, a
  * withdrawal, an exit — because a conversion into the token already held is not
  * a swap and needs no pathfinder.

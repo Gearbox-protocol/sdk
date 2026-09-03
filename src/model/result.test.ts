@@ -3,7 +3,7 @@
 // which field exists, in both directions, at type level and at runtime.
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import type { IGearboxError } from "./errors.js";
+import type { IGearboxError } from "./errors/index.js";
 import type { SafeValue, SDKError, SDKResult, SDKReturn } from "./result.js";
 import { isSDKError, safeValue, sdkErr, sdkOk } from "./result.js";
 

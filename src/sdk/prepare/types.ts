@@ -2,6 +2,9 @@ import type { Address } from "viem";
 import type {
   Bps,
   Curator,
+  DebtOutOfRangeError,
+  InsufficientPoolLiquidityError,
+  LeverageOutOfRangeError,
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
   PositionCollateral,
@@ -28,9 +31,6 @@ import type {
 } from "../../onchain/index.js";
 import type {
   AccountFlowError,
-  DebtOutOfRangeError,
-  InsufficientPoolLiquidityError,
-  LeverageOutOfRangeError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -712,7 +712,7 @@ export interface IOpportunitiesPrepare {
    * `maxLeverage` on the opportunity is the ceiling the liquidation threshold
    * allows, and it is the same number whatever the deposit. What a given
    * deposit reaches is decided by the debt it implies —
-   * `debt = netValue x (leverage - 1)` — and by the band the market puts that
+   * `debt = netValue x (leverage - 1)` — and by the `debtLimits` the market puts that
    * debt in.
    *
    * Synchronous, unlike the ceilings above it: those read the account from the
@@ -721,7 +721,7 @@ export interface IOpportunitiesPrepare {
    * opening takes the tokens being deposited, adjusting the position's own net
    * value in the underlying.
    *
-   * Nothing at all when the market has no band to offer: a deposit too small
+   * Nothing at all when the market has no range to offer: a deposit too small
    * to carry `minDebt` at any leverage the threshold allows, or a manager with
    * no borrowing room left. Not the same answer as "every leverage works", and
    * a caller must not mark a range for it.
@@ -759,7 +759,7 @@ export interface IOpportunitiesPrepare {
    * withdraw-collateral form should offer.
    *
    * `targetHF` names the health factor to leave the account at, in basis
-   * points; omitted, the SDK holds it to the bar a form would.
+   * points; omitted, the SDK holds it to the threshold a form would.
    *
    * A bare read: it answers its number, and throws on an account or a chain
    * the SDK does not hold.

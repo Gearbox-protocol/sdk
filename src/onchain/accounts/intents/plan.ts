@@ -6,9 +6,9 @@ import { IntentPreviewError } from "../../validation/refusal.js";
 import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
-  assertDebtInBand,
+  assertDebtLimits,
   assertLeverageAtLeastOne,
-  type DebtBand,
+  type DebtLimits,
   debtForLeverage,
   proportionalDebt,
 } from "./math.js";
@@ -98,7 +98,7 @@ export interface AccountView {
   debt: bigint;
   /** TVL − debt, in underlying. */
   collateral: bigint;
-  band: DebtBand;
+  debtLimits: DebtLimits;
   balanceOf(token: Address): bigint;
   /** Oracle conversion; unpriceable tokens contribute 0n. */
   price(from: Address, to: Address, amount: bigint): bigint;
@@ -194,7 +194,7 @@ export function planDeposit(
       `deposit: target leverage ${intent.targetLeverage} would require repaying debt`,
     );
   }
-  assertDebtInBand(view.sdk, view.debt + debtDelta, view.band, U);
+  assertDebtLimits(view.sdk, view.debt + debtDelta, view.debtLimits, U);
 
   const T = intent.positionToken ?? positionToken(view, "deposit");
   // The deposit is already the position token: convert only what is borrowed.
@@ -239,12 +239,12 @@ export function planRepay(
   if (view.debt <= 0n) {
     throw new IntentPreviewError(
       "debtOutOfRange",
-      // Zero debt against a band whose floor is above it: the reading a caller
+      // Zero debt against debtLimits whose floor is above it: the reading a caller
       // needs is that there is no loan here, not that one is mis-sized.
       {
         requested: toTokenAmount(view.sdk, U, view.debt),
-        minDebt: toTokenAmount(view.sdk, U, view.band.minDebt),
-        maxDebt: toTokenAmount(view.sdk, U, view.band.maxDebt),
+        minDebt: toTokenAmount(view.sdk, U, view.debtLimits.minDebt),
+        maxDebt: toTokenAmount(view.sdk, U, view.debtLimits.maxDebt),
       },
       "repay: the account owes nothing",
     );
@@ -258,7 +258,7 @@ export function planRepay(
   // collateral. That is what lets a caller send the debt plus a buffer and
   // still settle it in full when interest has accrued in the meantime.
   const repaid = min(view.price(intent.token, U, funding), view.debt);
-  assertDebtInBand(view.sdk, view.debt - repaid, view.band, view.underlying);
+  assertDebtLimits(view.sdk, view.debt - repaid, view.debtLimits, view.underlying);
 
   return [
     add(intent.token, funding, intent.value),
@@ -622,7 +622,7 @@ function withdrawShape(
   }
 
   const dD = proportionalDebt(view, WU);
-  assertDebtInBand(view.sdk, view.debt - dD, view.band, view.underlying);
+  assertDebtLimits(view.sdk, view.debt - dD, view.debtLimits, view.underlying);
 
   return { U, T, S, WU, dD, all: false };
 }
@@ -646,7 +646,7 @@ function leverageShape(
   }
 
   const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtInBand(view.sdk, target, view.band, view.underlying);
+  assertDebtLimits(view.sdk, target, view.debtLimits, view.underlying);
 
   return { U: view.underlying, delta: target - view.debt };
 }

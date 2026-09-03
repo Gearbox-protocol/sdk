@@ -1,10 +1,13 @@
 import type { Address } from "viem";
 import type {
+  BorrowLimitCause,
   Bps,
   MalformedPreviewError,
   Token,
   TokenAmount,
 } from "../../model/index.js";
+import type { OperationCheckError } from "./checks/index.js";
+import { toIssue } from "./legacy-issue.js";
 
 /**
  * Why a preview could not be produced.
@@ -14,7 +17,7 @@ import type {
  * prepare namespace reports for a request it can refuse before planning.
  */
 export type PreviewErrorReason =
-  /** The debt the request implies falls outside the facade's band. */
+  /** The debt the request implies falls outside the facade's `debtLimits`. */
   | "debtOutOfRange"
   /** The leverage asked for cannot be expressed as a plan at all. */
   | "leverageOutOfRange"
@@ -46,10 +49,7 @@ export type PreviewErrorReason =
   | "marketPaused"
   /** The facade is past its expiration date and takes no more multicalls. */
   | "marketExpired"
-  /**
-   * The pool cannot lend what the plan draws right now — its free liquidity,
-   * the manager's debt limit or the per-block cap stands in the way.
-   */
+  /** The pool cannot lend what the plan draws right now. */
   | "insufficientPoolLiquidity"
   /** The market takes no more quota for a token the plan wants to hold. */
   | "quotaLimitReached"
@@ -117,16 +117,15 @@ export interface PreviewErrorDetails {
   /** `expirationDate` is unix seconds, as the facade reports it. */
   marketExpired: { creditManager: Address; expirationDate: number };
   /**
-   * Both in the market's underlying. `binding` names which of the four ceilings
-   * ran out first, so a caller can say what would fix it — waiting for lenders
-   * and asking governance are opposite answers. `solutionAmount` is the largest
-   * position still openable, absent when even the minimum debt does not fit.
+   * Both in the market's underlying. `limit` names which one ran out; see
+   * {@link BorrowLimitCause}. `maxBorrowAmount` is the largest debt still
+   * takeable, omitted when even `minDebt` does not fit.
    */
   insufficientPoolLiquidity: {
     requested: TokenAmount;
     available: TokenAmount;
-    binding: BorrowLimitBinding;
-    solutionAmount?: TokenAmount;
+    limit: BorrowLimitCause;
+    maxBorrowAmount?: TokenAmount;
   };
   /**
    * `token` is the one whose quota is asked for; the amounts are in the
@@ -141,15 +140,16 @@ export interface PreviewErrorDetails {
   };
   forbiddenToken: { token: Token };
   /**
-   * `required` is the bar the factor was weighed against — the facade's own
-   * `1.0` for a check that asks whether the transaction lands, a form's higher
-   * bar for one that asks whether it is wise. `healthFactor` is the factor
-   * compared, which for a call that hands funds over is the safe-price one;
-   * `safePrices` says which, since a preview always reports main prices.
+   * `healthFactorThreshold` is the threshold the factor was weighed against — the facade's
+   * own `1.0` for a check that asks whether the transaction lands, a form's
+   * higher threshold for one that asks whether it is wise. `healthFactor` is
+   * the factor compared, which for a call that hands funds over is the
+   * safe-price one; `safePrices` says which, since a preview always reports
+   * main prices.
    */
   insufficientCollateral: {
     healthFactor: Bps;
-    required: Bps;
+    healthFactorThreshold: Bps;
     safePrices: boolean;
   };
   poolSunset: { pool: Address };
@@ -161,25 +161,6 @@ export interface PreviewErrorDetails {
    */
   malformedTransaction: MalformedPreviewError;
 }
-
-/**
- * Which ceiling ran out when a borrow could not be served.
- *
- * The names are the expressions, not the legacy labels, because the two do not
- * line up: the legacy `insufficientDebtLimit` was the manager's own headroom
- * (`managerDebtAvailable`), `insufficientPoolDebtLimit` was `poolDebtLimit`,
- * and `insufficientPoolLiquidity` was what the manager could still draw
- * (`poolAvailableLiquidity`).
- *
- * `borrowable()` weighs only three of these — the pool's free liquidity, the
- * manager's remaining allowance and the facade's per-block cap. `poolDebtLimit`
- * is read by the account-opening path alone, which is why it is not among them.
- */
-export type BorrowLimitBinding =
-  | "poolAvailableLiquidity"
-  | "poolDebtLimit"
-  | "managerDebtAvailable"
-  | "facadePerBlockCap";
 
 /**
  * The failure half every simulation shares.
@@ -227,17 +208,38 @@ export class IntentPreviewError<
     this.reason = reason;
     this.detail = detail;
   }
+
+  /**
+   * The same failure built from an error object, which is what the checks
+   * hand out.
+   */
+  static of(
+    error: OperationCheckError,
+    message?: string,
+  ): IntentPreviewError<PreviewErrorReason> {
+    const issue = toIssue(error);
+    return new IntentPreviewError(
+      issue.reason,
+      issue.detail,
+      message ?? error.message,
+    );
+  }
 }
 
 /**
- * Throws the issue a check found, with the sentence the engine logs for it.
+ * Throws the first error a check found, with the sentence the engine logs for
+ * it. An empty array is a pass.
  *
  * Returns normally when there is nothing to raise, so it cannot narrow a type
  * the way a bare `throw` does — a site that guards a value for the code below
  * it keeps throwing directly.
  */
-export function raise(issue: PreviewIssue | null, message: string): void {
-  if (issue) {
-    throw new IntentPreviewError(issue.reason, issue.detail, message);
+export function raise(
+  errors: readonly OperationCheckError[],
+  message: string,
+): void {
+  const [first] = errors;
+  if (first) {
+    throw IntentPreviewError.of(first, message);
   }
 }

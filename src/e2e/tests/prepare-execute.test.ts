@@ -1045,7 +1045,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
   /**
    * The refusals the engine reads off the live market rather than off its
-   * arguments: the underlying this manager was configured with, the debt band
+   * arguments: the underlying this manager was configured with, the debtLimits
    * it enforces, the balances the account actually holds. The reasons are
    * values, so nothing here sends or throws.
    */
@@ -1106,7 +1106,9 @@ describe("prepare → execute on a mainnet fork", () => {
         instant: "insufficientCollateral",
         delayed: "noDelayedRoute",
       });
-      expect(sim.error.healthFactor).toBeLessThan(sim.error.required);
+      expect(sim.error.healthFactor).toBeLessThan(
+        sim.error.healthFactorThreshold,
+      );
     });
 
     it("refuses to move out collateral the account does not hold", async () => {

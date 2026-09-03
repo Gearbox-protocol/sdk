@@ -1,9 +1,9 @@
-export * from "./checks.js";
+export * from "./checks/index.js";
+export * from "./helpers/index.js";
 // `IntentPreviewError` stays engine-internal (import it from `refusal.js`
 // directly): the public surface answers plain refusal objects, not thrown
 // classes.
 export {
-  type BorrowLimitBinding,
   type PreviewErrorDetails,
   type PreviewErrorReason,
   type PreviewIssue,

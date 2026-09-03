@@ -171,7 +171,11 @@ describe("checkOperation", () => {
     });
     expect(issues).toEqual({
       reason: "insufficientCollateral",
-      detail: { healthFactor: 10_000, required: 10_101, safePrices: false },
+      detail: {
+        healthFactor: 10_000,
+        healthFactorThreshold: 10_101,
+        safePrices: false,
+      },
     });
   });
 
@@ -206,7 +210,7 @@ describe("checkOperation", () => {
 
     expect(issues).toEqual({
       reason: "insufficientCollateral",
-      detail: { healthFactor: 9_000, required: 10_000, safePrices: true },
+      detail: { healthFactor: 9_000, healthFactorThreshold: 10_000, safePrices: true },
     });
   });
 
@@ -230,7 +234,7 @@ describe("checkOperation", () => {
       }),
     ).toEqual({
       reason: "insufficientCollateral",
-      detail: { healthFactor: 9_000, required: 10_000, safePrices: false },
+      detail: { healthFactor: 9_000, healthFactorThreshold: 10_000, safePrices: false },
     });
   });
 
@@ -247,7 +251,7 @@ describe("checkOperation", () => {
       }),
     ).toEqual({
       reason: "insufficientCollateral",
-      detail: { healthFactor: 9_000, required: 10_000, safePrices: true },
+      detail: { healthFactor: 9_000, healthFactorThreshold: 10_000, safePrices: true },
     });
 
     expect(
@@ -330,7 +334,7 @@ describe("checkOperation", () => {
     });
   });
 
-  it("refuses a debt outside the facade's band", () => {
+  it("refuses a debt outside the facade's debtLimits", () => {
     const issues = check(adjust({ totalDebt: und(10n ** 30n) }));
     expect(issues?.reason).toBe("debtOutOfRange");
   });
@@ -371,7 +375,7 @@ describe("checkOperation", () => {
     const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
     const paused = vi.spyOn(suite, "isPaused", "get").mockReturnValue(true);
 
-    // A paused market, a debt out of band and a factor under the bar at once:
+    // A paused market, a debt outside debtLimits and a factor under the bar at once:
     // the market's own state is the one a caller can do nothing about.
     expect(
       check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {

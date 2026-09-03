@@ -1,13 +1,20 @@
 import type { Address } from "viem";
 import type {
-  Bps,
+  DebtOutOfRangeError,
+  ForbiddenTokenError,
   IGearboxError,
-  MalformedPreviewError,
+  InsufficientCollateralError,
+  InsufficientPoolLiquidityError,
+  LeverageOutOfRangeError,
+  MalformedTransactionError,
+  MarketExpiredError,
+  PoolSunsetError,
+  QuotaCountExceededError,
+  QuotaLimitReachedError,
   Token,
   TokenAmount,
 } from "../../model/index.js";
 import type {
-  BorrowLimitBinding,
   PreviewErrorReason,
   PreviewIssue,
   RouteRefusals,
@@ -26,6 +33,10 @@ import type {
  * numbers sit. The engine keeps them one level down, in `detail`, because it
  * distributes them over `reason`; here they are stated outright, so it is
  * `error.maxDebt` rather than `error.detail.maxDebt`.
+ *
+ * The interfaces a validation check produces have moved to
+ * `model/errors/operation-errors.ts`, where the checks build them; what is left
+ * here is what only a preparation can answer with.
  *
  * There is deliberately no union of all of them: each `prepare` method names
  * exactly the codes its own flow can raise, see the signatures in
@@ -56,27 +67,6 @@ export type OpenFlowError =
   | InsufficientCollateralError
   | InsufficientSourceBalanceError
   | UnexpectedFailureError;
-
-/** The debt the request implies falls outside the facade's band. */
-export interface DebtOutOfRangeError extends IGearboxError {
-  code: "debtOutOfRange";
-  /** All three in the market's underlying. */
-  requested: TokenAmount;
-  minDebt: TokenAmount;
-  maxDebt: TokenAmount;
-}
-
-/** The leverage asked for cannot be expressed as a plan at all. */
-export interface LeverageOutOfRangeError extends IGearboxError {
-  code: "leverageOutOfRange";
-  /**
-   * Scaled by `LEVERAGE_DECIMALS` (`100n` = 1x), as the intent states it — not
-   * the read model's `Leverage`. Both are absent where the floor is not fixed:
-   * the deposit planner's is a function of the deposit.
-   **/
-  requested?: bigint;
-  min?: bigint;
-}
 
 /** Nothing on the account or in the wallet can fund what was asked. */
 export interface InsufficientSourceBalanceError extends IGearboxError {
@@ -153,108 +143,6 @@ export interface MarketPausedError extends IGearboxError {
   creditManager: Address;
 }
 
-/** The facade is past its expiration date and takes no more multicalls. */
-export interface MarketExpiredError extends IGearboxError {
-  code: "marketExpired";
-  creditManager: Address;
-  /** Unix seconds, as the facade reports it. */
-  expirationDate: number;
-}
-
-/**
- * The pool cannot lend what the plan draws right now — its free liquidity, the
- * manager's debt limit or the per-block cap stands in the way.
- **/
-export interface InsufficientPoolLiquidityError extends IGearboxError {
-  code: "insufficientPoolLiquidity";
-  /** Both in the market's underlying. */
-  requested: TokenAmount;
-  available: TokenAmount;
-  /**
-   * Which of the four ceilings ran out first, so a caller can say what would
-   * fix it — waiting for lenders and asking governance are opposite answers.
-   **/
-  binding: BorrowLimitBinding;
-  /**
-   * The largest position still openable, absent when even the minimum debt does
-   * not fit.
-   **/
-  solutionAmount?: TokenAmount;
-}
-
-/** The market takes no more quota for a token the plan wants to hold. */
-export interface QuotaLimitReachedError extends IGearboxError {
-  code: "quotaLimitReached";
-  /** The token whose quota is asked for. */
-  token: Token;
-  /**
-   * In the **underlying**, which is what a quota is measured in. `requested` is
-   * absent for a token the market opened no quota for at all — nothing was
-   * weighed against a limit.
-   **/
-  requested: TokenAmount | undefined;
-  available: TokenAmount;
-}
-
-/** The plan would increase the balance of a token the market forbids. */
-export interface ForbiddenTokenError extends IGearboxError {
-  code: "forbiddenToken";
-  token: Token;
-}
-
-/**
- * The account would end the transaction owing more than its collateral is worth
- * under liquidation thresholds, which the facade refuses to allow.
- **/
-export interface InsufficientCollateralError extends IGearboxError {
-  code: "insufficientCollateral";
-  /**
-   * The factor that was compared, which for a call that hands funds over is the
-   * safe-price one; `safePrices` says which, since a projection always reports
-   * main prices.
-   **/
-  healthFactor: Bps;
-  /**
-   * The bar it was weighed against — the facade's own `1.0` for a check that
-   * asks whether the transaction lands, a form's higher bar for one that asks
-   * whether it is wise.
-   **/
-  required: Bps;
-  safePrices: boolean;
-}
-
-/** The pool is winding down: it still pays out, but takes no more deposits. */
-export interface PoolSunsetError extends IGearboxError {
-  code: "poolSunset";
-  pool: Address;
-}
-
-/**
- * The account would end up with more quoted tokens than the facade enables at
- * once. A count, not an amount — unlike {@link QuotaLimitReachedError}.
- **/
-export interface QuotaCountExceededError extends IGearboxError {
-  code: "quotaCountExceeded";
-  count: number;
-  max: number;
-}
-
-/**
- * The transaction could not be replayed: it is malformed, and every field
- * derived from replayed balances is guesswork.
- **/
-export interface MalformedTransactionError extends IGearboxError {
-  code: "malformedTransaction";
-  /**
-   * The SDK's own preview warning code (the `MalformedPreviewError`
-   * discriminant). Named apart from `code`, which every error in the
-   * envelope spells the same way.
-   **/
-  previewCode: MalformedPreviewError["code"];
-  /** What the replay reported, which is narrower than {@link message}. */
-  detail: string;
-}
-
 /**
  * Opening asked for no target token and the market names none of its own, so
  * there is nothing to put the position into.
@@ -313,7 +201,8 @@ export interface WithRouteRefusals {
  * code and the amounts in its own words, see {@link IGearboxError.message}.
  **/
 const MESSAGES: Record<PreviewErrorReason, string> = {
-  debtOutOfRange: "The debt this request implies is outside the market's band.",
+  debtOutOfRange:
+    "The debt this request implies is outside the facade's debtLimits.",
   leverageOutOfRange: "The leverage asked for cannot be expressed as a plan.",
   insufficientSourceBalance:
     "Neither the account nor the wallet holds enough to fund this request.",
@@ -375,7 +264,7 @@ export interface RefusalErrors {
  * `code`, the detail is spread onto the error, and the sentence comes from
  * {@link MESSAGES}. A malformed transaction is spelled out rather than spread,
  * because its detail names a `code` and a `message` of its own and they are not
- * the envelope's.
+ * the envelope's, so it is kept whole under `warning`.
  *
  * Generic over the issue it is handed, so a call site that already knows the
  * reason gets that reason's error back rather than a union to narrow again.
@@ -387,8 +276,7 @@ export function toRefusalError<I extends PreviewIssue>(
     return {
       code: "malformedTransaction",
       message: MESSAGES.malformedTransaction,
-      previewCode: issue.detail.code,
-      detail: issue.detail.message,
+      warning: issue.detail,
     } as RefusalErrors[I["reason"]];
   }
   // Sound for every concrete reason above: each detail is exactly the fields

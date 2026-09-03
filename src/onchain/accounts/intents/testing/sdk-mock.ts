@@ -268,6 +268,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
 
   const quotas = {
     values: () => Object.values(args.quotas).map(fullQuota),
+    has: (token: Address) => quotaOf(token) !== undefined,
     get: (token: Address) => {
       const q = quotaOf(token);
       return q === undefined ? undefined : fullQuota(q);
@@ -314,6 +315,10 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
         hasActiveQuota: (token: Address) => {
           const q = quotaOf(token);
           return !!q?.isActive && q.limit > 0n;
+        },
+        quotaAvailable: (token: Address) => {
+          const q = quotas.get(token);
+          return q === undefined ? 0n : q.limit - q.totalQuoted;
         },
       },
       pool: {
@@ -374,6 +379,8 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     liquidationFees: () => MOCK_LIQUIDATION_FEES,
     totalLiquidationDiscount: CreditSuite.prototype.totalLiquidationDiscount,
     creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
+    isForbidden: CreditSuite.prototype.isForbidden,
+    maxBorrowAmount: CreditSuite.prototype.maxBorrowAmount,
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,

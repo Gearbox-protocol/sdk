@@ -296,7 +296,7 @@ describe("openStrategy — the same market, read before there is an account", ()
     });
   });
 
-  it("opens when the market has room, which the debt band still bounds", async () => {
+  it("opens when the market has room, which debtLimits still bounds", async () => {
     const result = await open();
 
     expect(result.ok).toBe(true);
@@ -334,7 +334,7 @@ describe("refusal details", () => {
     });
     expect(result.detail.requested.token.address).toBe(UND);
     expect(result.detail.requested.value).toBeGreaterThan(0n);
-    expect(result.detail.binding).toBe("facadePerBlockCap");
+    expect(result.detail.limit).toBe("debtPerBlockLimit");
   });
 
   it("a spent quota names the token, and the room in underlying", async () => {
@@ -410,7 +410,11 @@ describe("refusal details", () => {
       throw new Error("expected insufficientCollateral");
     }
     expect(result.detail.safePrices).toBe(true);
-    expect(result.detail.required).toBe(Number(PERCENTAGE_FACTOR));
-    expect(result.detail.healthFactor).toBeLessThan(result.detail.required);
+    expect(result.detail.healthFactorThreshold).toBe(
+      Number(PERCENTAGE_FACTOR),
+    );
+    expect(result.detail.healthFactor).toBeLessThan(
+      result.detail.healthFactorThreshold,
+    );
   });
 });

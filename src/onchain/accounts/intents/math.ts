@@ -3,11 +3,12 @@ import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import {
-  checkDebtInBand,
-  checkLeverageAtLeastOne,
-} from "../../validation/checks.js";
-import { IntentPreviewError, raise } from "../../validation/refusal.js";
-import { toToken } from "../../validation/token.js";
+  checkDebtLimits,
+  checkLeverage,
+  raise,
+  toToken,
+} from "../../validation/index.js";
+import { IntentPreviewError } from "../../validation/refusal.js";
 
 /**
  * The whole arithmetic behind every intent, in underlying units.
@@ -23,8 +24,8 @@ export interface Position {
   collateral: bigint;
 }
 
-/** Facade limits a non-zero debt must respect. */
-export interface DebtBand {
+/** Facade `debtLimits`: a non-zero debt must sit in `[minDebt, maxDebt]`. */
+export interface DebtLimits {
   minDebt: bigint;
   maxDebt: bigint;
 }
@@ -60,13 +61,13 @@ export function proportionalDebt(
  * Largest withdrawal (in underlying) that {@link proportionalDebt} can still
  * pay for: the repayment it implies leaves debt at or above `minDebt`, and
  * strictly less than the collateral goes — the last unit closes the account
- * rather than shrinks it. `0n` when the debt already sits below the band.
+ * rather than shrinks it. `0n` when the debt already sits below `minDebt`.
  *
  * Solves `floor(D0 · W / C0) ≤ D0 − minDebt` for `W`.
  */
 export function maxProportionalWithdrawal(
   position: Position,
-  band: DebtBand,
+  debtLimits: DebtLimits,
 ): bigint {
   const { debt, collateral } = position;
   if (collateral <= 0n) {
@@ -76,7 +77,7 @@ export function maxProportionalWithdrawal(
   if (debt === 0n) {
     return allButLast;
   }
-  const repayable = debt - band.minDebt;
+  const repayable = debt - debtLimits.minDebt;
   if (repayable < 0n) {
     return 0n;
   }
@@ -88,7 +89,7 @@ export function maxProportionalWithdrawal(
 /** Total leverage cannot drop below 1x — that would be negative debt. */
 export function assertLeverageAtLeastOne(leverage: bigint): void {
   raise(
-    checkLeverageAtLeastOne({ leverage, min: LEVERAGE_DECIMALS }),
+    checkLeverage({ leverage, min: LEVERAGE_DECIMALS }),
     `target leverage ${leverage} is below 1x`,
   );
 }
@@ -97,24 +98,24 @@ export function assertLeverageAtLeastOne(leverage: bigint): void {
  * Rejects a debt the facade would revert on: zero is always fine (no loan at
  * all), anything else has to sit inside `[minDebt, maxDebt]`.
  */
-export function assertDebtInBand(
+export function assertDebtLimits(
   sdk: OnchainSDK,
   debt: bigint,
-  band: DebtBand,
+  debtLimits: DebtLimits,
   underlying: Address,
 ): void {
   // An account being adjusted may end owing nothing; the facade only weighs a
   // loan that exists.
   raise(
-    checkDebtInBand({
+    checkDebtLimits({
       debt,
-      minDebt: band.minDebt,
-      maxDebt: band.maxDebt,
+      minDebt: debtLimits.minDebt,
+      maxDebt: debtLimits.maxDebt,
       underlying: toToken(sdk, underlying),
       allowZero: true,
     }),
-    debt > band.maxDebt
-      ? `debt ${debt} exceeds maxDebt ${band.maxDebt}`
-      : `debt ${debt} is below minDebt ${band.minDebt}`,
+    debt > debtLimits.maxDebt
+      ? `debt ${debt} exceeds maxDebt ${debtLimits.maxDebt}`
+      : `debt ${debt} is below minDebt ${debtLimits.minDebt}`,
   );
 }

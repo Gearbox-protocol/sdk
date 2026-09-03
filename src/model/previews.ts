@@ -1,8 +1,7 @@
 import type { Address, Hex } from "viem";
-import type { UnpriceableTokenError } from "../onchain/market/oracle/errors.js";
 import type { Curator } from "./curators.js";
 import type { DelayedIntent } from "./delayed-intents.js";
-import type { IGearboxError } from "./errors.js";
+import type { IGearboxError, UnpriceableTokenError } from "./errors/index.js";
 import type { BorrowRateBreakdown } from "./positions.js";
 import type {
   Bps,

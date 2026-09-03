@@ -9,7 +9,7 @@ import {
   assertCanBorrow,
   assertCollateralised,
   assertGrowthAllowed,
-  assertQuotaHeadroom,
+  assertQuotaAvailable,
 } from "./guards.js";
 import {
   type AccountCalculatorOperation,
@@ -105,8 +105,8 @@ export async function realize(
    * The floor: every routed leg counted at the amount it guarantees. This is
    * what the calls are built from — a repayment may only spend underlying the
    * route promises to have raised — and what the guards are answered on, since
-   * a floor that does not clear the facade's bar is a transaction that can
-   * revert.
+   * a floor that does not clear the facade's threshold is a transaction that
+   * can revert.
    */
   const ledger = new OperationLedger(start);
   /**
@@ -488,7 +488,7 @@ export async function realize(
     !cleared &&
     quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
   ) {
-    assertQuotaHeadroom(sdk, market, quotas.quotaIncrease);
+    assertQuotaAvailable(sdk, market, quotas.quotaIncrease);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 

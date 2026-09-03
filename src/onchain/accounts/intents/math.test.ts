@@ -5,14 +5,14 @@ import type { Token } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { IntentPreviewError } from "../../validation/refusal.js";
 import {
-  assertDebtInBand,
+  assertDebtLimits,
   assertLeverageAtLeastOne,
   debtForLeverage,
   maxProportionalWithdrawal,
   proportionalDebt,
 } from "./math.js";
 
-/** Stand-in underlying: the band's amounts are denominated in it. */
+/** Stand-in underlying: debtLimits amounts are denominated in it. */
 const UND = "0x0000000000000000000000000000000000000001" as Address;
 
 /** What the registry hands back for it, which the refusal inlines. */
@@ -24,30 +24,30 @@ const UND_TOKEN: Token = {
   decimals: 18,
 };
 
-/** The band check inlines the token itself, so it is given a registry. */
+/** The debtLimits check inlines the token itself, so it is given a registry. */
 const SDK = {
   chainId: 1,
   tokensMeta: { getToken: () => UND_TOKEN },
-} as unknown as Parameters<typeof assertDebtInBand>[0];
+} as unknown as Parameters<typeof assertDebtLimits>[0];
 
 /** The amount shape a refusal reports: the token inlined, no price attached. */
 const und = (value: bigint) => ({ token: UND_TOKEN, value, valueUsd: null });
 
 /** The detail of the refusal `debt` draws, for a debt that draws one. */
-function inBandDetail(debt: bigint): unknown {
+function debtLimitsDetail(debt: bigint): unknown {
   try {
-    assertDebtInBand(SDK, debt, BAND, UND);
+    assertDebtLimits(SDK, debt, DEBT_LIMITS, UND);
   } catch (e) {
     return (e as IntentPreviewError).detail;
   }
-  throw new Error(`assertDebtInBand accepted ${debt}`);
+  throw new Error(`assertDebtLimits accepted ${debt}`);
 }
 
 const X1 = LEVERAGE_DECIMALS;
 const X2 = 2n * LEVERAGE_DECIMALS;
 const X3 = 3n * LEVERAGE_DECIMALS;
 
-const BAND = { minDebt: 100n, maxDebt: 10_000n };
+const DEBT_LIMITS = { minDebt: 100n, maxDebt: 10_000n };
 
 describe("math — the three formulas behind every intent", () => {
   it("[INV-1] debtForLeverage: 1x means no debt, C·L = C + D", () => {
@@ -89,32 +89,32 @@ describe("math — the three formulas behind every intent", () => {
   });
 
   it("[INV-9] debt must be zero or inside [minDebt, maxDebt]", () => {
-    const inBand = (debt: bigint) => () =>
-      assertDebtInBand(SDK, debt, BAND, UND);
-    expect(inBand(0n)).not.toThrow();
-    expect(inBand(100n)).not.toThrow();
-    expect(inBand(10_000n)).not.toThrow();
-    expect(inBand(99n)).toThrowError(
+    const withinLimits = (debt: bigint) => () =>
+      assertDebtLimits(SDK, debt, DEBT_LIMITS, UND);
+    expect(withinLimits(0n)).not.toThrow();
+    expect(withinLimits(100n)).not.toThrow();
+    expect(withinLimits(10_000n)).not.toThrow();
+    expect(withinLimits(99n)).toThrowError(
       expect.objectContaining({ reason: "debtOutOfRange" }),
     );
-    expect(inBand(10_001n)).toThrowError(
+    expect(withinLimits(10_001n)).toThrowError(
       expect.objectContaining({ reason: "debtOutOfRange" }),
     );
   });
 
-  it("[INV-9] a debt outside the band reports the band it missed", () => {
+  it("[INV-9] a debt outside debtLimits reports the limits it missed", () => {
     // The whole point of the detail: a slider that overshot gets the ceiling
     // to clamp to without a second call to find out what it is.
-    expect(inBandDetail(10_001n)).toEqual({
+    expect(debtLimitsDetail(10_001n)).toEqual({
       requested: und(10_001n),
-      minDebt: und(BAND.minDebt),
-      maxDebt: und(BAND.maxDebt),
+      minDebt: und(DEBT_LIMITS.minDebt),
+      maxDebt: und(DEBT_LIMITS.maxDebt),
     });
     // Under the floor the same three numbers say which end was missed.
-    expect(inBandDetail(99n)).toEqual({
+    expect(debtLimitsDetail(99n)).toEqual({
       requested: und(99n),
-      minDebt: und(BAND.minDebt),
-      maxDebt: und(BAND.maxDebt),
+      minDebt: und(DEBT_LIMITS.minDebt),
+      maxDebt: und(DEBT_LIMITS.maxDebt),
     });
   });
 
@@ -122,12 +122,12 @@ describe("math — the three formulas behind every intent", () => {
     // 2x: 1000 collateral, 1000 debt, minDebt 100 → at most 900 of debt can go,
     // and W < C0 always (the last unit closes rather than withdraws)
     const twoX = { debt: 1_000n, collateral: 1_000n };
-    const w = maxProportionalWithdrawal(twoX, BAND);
+    const w = maxProportionalWithdrawal(twoX, DEBT_LIMITS);
     expect(twoX.debt - proportionalDebt(twoX, w)).toBeGreaterThanOrEqual(
-      BAND.minDebt,
+      DEBT_LIMITS.minDebt,
     );
     expect(twoX.debt - proportionalDebt(twoX, w + 1n)).toBeLessThan(
-      BAND.minDebt,
+      DEBT_LIMITS.minDebt,
     );
     expect(w).toBe(900n);
 
@@ -138,7 +138,7 @@ describe("math — the three formulas behind every intent", () => {
       maxProportionalWithdrawal(low, { minDebt: 50n, maxDebt: 10_000n }),
     ).toBe(509n);
 
-    // the band allows more than the collateral holds: clamped to all but the
+    // debtLimits allow more than the collateral holds: clamped to all but the
     // last unit (debt 1000 on 1000 collateral, minDebt 0)
     expect(
       maxProportionalWithdrawal(
@@ -146,23 +146,23 @@ describe("math — the three formulas behind every intent", () => {
         { minDebt: 0n, maxDebt: 10_000n },
       ),
     ).toBe(999n);
-    // no debt: the band does not bind, everything but the last unit
+    // no debt: debtLimits do not bind, everything but the last unit
     expect(
-      maxProportionalWithdrawal({ debt: 0n, collateral: 1_000n }, BAND),
+      maxProportionalWithdrawal({ debt: 0n, collateral: 1_000n }, DEBT_LIMITS),
     ).toBe(999n);
-    // already below minDebt: nothing can leave without breaking the band further
+    // already below minDebt: nothing can leave without breaking debtLimits further
     expect(
-      maxProportionalWithdrawal({ debt: 50n, collateral: 1_000n }, BAND),
+      maxProportionalWithdrawal({ debt: 50n, collateral: 1_000n }, DEBT_LIMITS),
     ).toBe(0n);
     // no collateral: nothing to withdraw
     expect(
-      maxProportionalWithdrawal({ debt: 1_000n, collateral: 0n }, BAND),
+      maxProportionalWithdrawal({ debt: 1_000n, collateral: 0n }, DEBT_LIMITS),
     ).toBe(0n);
   });
 
-  it("refuses a negative debt, which the old band check let through", () => {
+  it("refuses a negative debt, which the old debtLimits check let through", () => {
     // The previous rule was `debt > 0n && debt < minDebt`, so anything below
     // zero slipped past it. A withdrawal that over-repays can produce one.
-    expect(() => assertDebtInBand(SDK, -1n, BAND, UND)).toThrowError();
+    expect(() => assertDebtLimits(SDK, -1n, DEBT_LIMITS, UND)).toThrowError();
   });
 });

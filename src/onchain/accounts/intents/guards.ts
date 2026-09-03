@@ -9,9 +9,9 @@ import {
   checkMarketExpired,
   checkQuotaLimit,
   MIN_HEALTH_FACTOR_FACADE,
-} from "../../validation/checks.js";
-import { type BorrowLimitBinding, raise } from "../../validation/refusal.js";
-import { toToken } from "../../validation/token.js";
+  raise,
+  toToken,
+} from "../../validation/index.js";
 import { eq } from "./utils/common.js";
 import { isPhantomToken } from "./utils/pick-token.js";
 
@@ -50,60 +50,21 @@ export function assertMarketOperable(suite: CreditSuite): void {
   );
 }
 
-/**
- * What the pool will hand this manager in one transaction: the tightest of its
- * free liquidity, the manager's remaining debt limit and the per-block cap the
- * facade puts on a single borrow. A zero multiplier switches borrowing off
- * outright, which reads here as nothing being available.
- */
-export function borrowable(suite: CreditSuite): {
-  limit: bigint;
-  binding: BorrowLimitBinding;
-} {
-  const { pool } = suite.market.pool;
-  const { maxDebtPerBlockMultiplier, maxDebt } = suite.creditFacade;
-  if (maxDebtPerBlockMultiplier === 0) {
-    // Borrowing is switched off at the facade, so the cap is what stands in
-    // the way even though no amount was weighed.
-    return { limit: 0n, binding: "facadePerBlockCap" };
-  }
-  const available = pool.creditManagerDebtParams.get(
-    suite.creditManager.address,
-  )?.available;
-
-  // Ties keep the earlier term, as the previous `reduce` did.
-  const terms: Array<{ limit: bigint; binding: BorrowLimitBinding }> = [
-    { limit: pool.availableLiquidity, binding: "poolAvailableLiquidity" },
-    {
-      limit: maxDebt * BigInt(maxDebtPerBlockMultiplier),
-      binding: "facadePerBlockCap",
-    },
-    ...(available === undefined
-      ? []
-      : [{ limit: available, binding: "managerDebtAvailable" as const }]),
-  ];
-
-  return terms.reduce((a, b) => (b.limit < a.limit ? b : a));
-}
-
 /** The pool has to be able to lend what the plan means to draw. */
 export function assertCanBorrow(
   sdk: OnchainSDK,
   suite: CreditSuite,
   amount: bigint,
 ): void {
-  // The tightest ceiling is the one reported: `borrowable` already weighed them
-  // against each other, and the number a caller can act on is the smallest.
-  const { limit, binding } = borrowable(suite);
+  const { value, limit } = suite.maxBorrowAmount();
   raise(
     checkBorrowLimit({
       requested: amount,
-      available: limit,
-      binding,
-      // The same underlying `borrowable` counts in, read the same way.
+      available: value,
+      limit,
       underlying: toToken(sdk, suite.market.pool.underlying),
     }),
-    `borrow: ${amount} exceeds what the pool can lend now (${limit})`,
+    `borrow: ${amount} exceeds what the pool can lend now (${value})`,
   );
 }
 
@@ -127,7 +88,6 @@ export function assertGrowthAllowed(args: {
   after: readonly Asset[];
 }): void {
   const { sdk, suite, market, before, after } = args;
-  const forbidden = suite.forbiddenTokens;
   const underlying = market.pool.underlying;
 
   for (const { token, balance } of after) {
@@ -138,7 +98,7 @@ export function assertGrowthAllowed(args: {
     raise(
       checkForbiddenToken({
         token: toToken(sdk, token),
-        isForbidden: forbidden.some(f => eq(f, token)),
+        isForbidden: suite.isForbidden(token),
       }),
       `${token} is forbidden in this market and the plan buys more of it`,
     );
@@ -166,19 +126,20 @@ export function assertGrowthAllowed(args: {
  * and reverts if the collateral does not cover it, so a plan that lands the
  * account below water is refused here.
  *
- * The bar is the facade's own `1.0`, because this guard answers one question:
- * would the transaction revert. It is deliberately not `MIN_HF_LIMITED`, and
- * the three bars in this codebase are three different jobs:
+ * The threshold is the facade's own `1.0`, because this guard answers one
+ * question: would the transaction revert. It is deliberately not
+ * `MIN_HF_LIMITED`, and the three thresholds in this codebase are three
+ * different jobs:
  *
  * - here, `1.0` — what the facade enforces, so what a plan must clear to land;
  * - `maxWithdrawCollateral` sizes at `MIN_HF_LIMITED + 2` — a *sizing* helper
- *   leaving headroom, which is not the same as a validity check;
+ *   leaving a margin, which is not the same as a validity check;
  * - a form refuses at or below `MIN_HF_LIMITED` (`MIN_HEALTH_FACTOR_FORM`).
  *
  * Raising this one to `MIN_HF_LIMITED` was tried and reverted: it made
  * `maxWithdraw` hand back a ceiling this guard then refused, and it blocked
  * small top-ups of an account sitting in `[1.0, 1.01)` — the very operations
- * that rescue it. A form wanting the stricter bar has `validateHF`.
+ * that rescue it. A form wanting the stricter threshold has `validateHF`.
  *
  * Note that a position already underwater cannot be nursed back one step at a
  * time — the check is on where the transaction ends, not on whether it
@@ -194,14 +155,14 @@ export function assertCollateralised(
   healthFactorBps: number,
   safePrices: boolean,
 ): void {
-  const required = MIN_HEALTH_FACTOR_FACADE;
+  const healthFactorThreshold = MIN_HEALTH_FACTOR_FACADE;
   raise(
     checkCollateralised({
       healthFactor: healthFactorBps,
-      required,
+      healthFactorThreshold,
       safePrices,
     }),
-    `the account would end at a health factor of ${healthFactorBps}, below ${required}`,
+    `the account would end at a health factor of ${healthFactorBps}, below ${healthFactorThreshold}`,
   );
 }
 
@@ -209,21 +170,18 @@ export function assertCollateralised(
  * A quota can only be raised as far as the market still has room for: past the
  * token's limit the keeper takes nothing more, whoever is asking.
  */
-export function assertQuotaHeadroom(
+export function assertQuotaAvailable(
   sdk: OnchainSDK,
   market: MarketSuite,
   increases: readonly Asset[],
 ): void {
   const underlying = market.pool.underlying;
+  const { pqk } = market.pool;
   for (const { token, balance } of increases) {
-    if (balance <= 0n) {
+    if (balance <= 0n || !pqk.quotas.has(token)) {
       continue;
     }
-    const quota = market.pool.pqk.quotas.get(token);
-    if (!quota) {
-      continue;
-    }
-    const left = quota.limit - quota.totalQuoted;
+    const left = pqk.quotaAvailable(token);
     // A quota is denominated in the underlying, not in the token it is held
     // against, so `token` and the two amounts name different things.
     raise(

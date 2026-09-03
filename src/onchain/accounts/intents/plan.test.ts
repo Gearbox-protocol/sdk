@@ -49,7 +49,7 @@ function view(args: {
     rwaAsset: args.rwaAsset,
     debt: args.debt,
     collateral: totalValue - args.debt,
-    band: { minDebt: 1n, maxDebt: 1_000_000n },
+    debtLimits: { minDebt: 1n, maxDebt: 1_000_000n },
     balanceOf: token => args.balances[token] ?? 0n,
     price: (_from, _to, amount) => amount,
     fattest: exclude => {
@@ -250,7 +250,7 @@ describe("planRepay — funding in, debt down, position untouched", () => {
 
   it("[INV-9] leaving the debt below minDebt is unviable, as is paying nothing", () => {
     const v = view({ debt: 1_000n, balances: { [T]: 2_000n } });
-    v.band.minDebt = 700n;
+    v.debtLimits.minDebt = 700n;
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
       expect.objectContaining({ reason: "debtOutOfRange" }),
     );

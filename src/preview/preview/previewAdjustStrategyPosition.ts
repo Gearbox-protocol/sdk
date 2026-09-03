@@ -7,7 +7,6 @@ import {
   DUST_THRESHOLD,
   NO_VERSION,
   type PluginsMap,
-  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   MulticallOperation,

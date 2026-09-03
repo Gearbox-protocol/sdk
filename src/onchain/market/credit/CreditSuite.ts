@@ -15,7 +15,7 @@ import {
   getLegacyStrategyTarget,
   isSunsetStrategy,
 } from "../../chain/chains.js";
-import { MAX_UINT256, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
+import { PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
 import type {
@@ -23,7 +23,6 @@ import type {
   MultiCall,
   RawTx,
 } from "../../types/index.js";
-import { BigIntMath } from "../../utils/bigint-math.js";
 import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
@@ -50,13 +49,15 @@ import type {
   ICreditFacadeContract,
   ICreditManagerContract,
   LiquidationFees,
+  MaxBorrowAmount,
   PartialLiquidationParams,
 } from "./types.js";
 
 /**
  * Amount of underlying seeded into each pool at market creation to protect
- * from inflation attacks, in raw token units. A suite whose remaining borrow
- * capacity is at or below this is treated as having nothing left to lend.
+ * from inflation attacks, in raw token units. A suite whose
+ * {@link CreditSuite.maxBorrowAmount} is at or below this is treated as
+ * having nothing left to lend.
  **/
 const MIN_STRATEGY_BORROW_AMOUNT = 100_000n;
 
@@ -317,6 +318,47 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
+   * Whether the facade forbids a token, see {@link forbiddenTokens}. A
+   * forbidden token may be sold and may leave, but its balance must not grow.
+   */
+  public isForbidden(token: Address): boolean {
+    return this.forbiddenTokens.some(f => isAddressEqual(f, token));
+  }
+
+  /**
+   * Largest debt one new position can take from this credit manager right now,
+   * and which limit set that number.
+   *
+   * Minimum of:
+   * - the pool's available liquidity,
+   * - this manager's remaining debt allowance, and
+   * - the facade's per-account `maxDebt`.
+   * While `maxDebtPerBlockMultiplier` is `0` the facade
+   * takes no new debt at all, so the answer is `0`.
+   */
+  public maxBorrowAmount(): MaxBorrowAmount {
+    const { pool } = this.market.pool;
+    const { maxDebtPerBlockMultiplier, maxDebt } = this.creditFacade;
+    if (maxDebtPerBlockMultiplier === 0) {
+      return { value: 0n, limit: "debtPerBlockLimit" };
+    }
+    const available = pool.creditManagerDebtParams.get(
+      this.creditManager.address,
+    )?.available;
+
+    // Ties keep the earlier term.
+    const terms: MaxBorrowAmount[] = [
+      { value: pool.availableLiquidity, limit: "poolAvailableLiquidity" },
+      ...(available === undefined
+        ? []
+        : [{ value: available, limit: "managerDebtAvailable" as const }]),
+      { value: maxDebt, limit: "maxDebt" },
+    ];
+
+    return terms.reduce((a, b) => (b.value < a.value ? b : a));
+  }
+
+  /**
    * The single target collateral of this suite's strategy, or `undefined` when
    * none can be resolved.
    *
@@ -343,23 +385,6 @@ export class CreditSuite extends SDKConstruct {
       this.creditManager.collateralTokens.map(token =>
         this.#strategyCollateralProps(token),
       ),
-    );
-  }
-
-  /**
-   * Largest debt a single new position can take on right now: the tightest of
-   * this manager's remaining debt limit, the pool's free liquidity and the
-   * facade's per-account maximum.
-   */
-  public get maxBorrowAmount(): bigint {
-    const { pool } = this.market.pool;
-    const debtParams = pool.creditManagerDebtParams.get(
-      this.creditManager.address,
-    );
-    return BigIntMath.min(
-      debtParams?.available ?? MAX_UINT256,
-      pool.availableLiquidity,
-      this.creditFacade.maxDebt,
     );
   }
 
@@ -413,7 +438,10 @@ export class CreditSuite extends SDKConstruct {
    * or `undefined` when credit suite does not offer a strategy opportunity.
    */
   public strategyOpportunity(): StrategyOpportunity | undefined {
-    if (this.maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
+    // Same number the read model exposes below; 0 while borrowing is frozen
+    // (maxDebtPerBlockMultiplier == 0), which hides the strategy entirely.
+    const maxBorrowAmount = this.maxBorrowAmount().value;
+    if (maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
       return undefined;
     }
 
@@ -471,7 +499,7 @@ export class CreditSuite extends SDKConstruct {
       ),
       minDebt: oracle.toAmount(pool.underlying, this.creditFacade.minDebt),
       totalDebtLimit: oracle.toAmount(pool.underlying, debtParams?.limit ?? 0n),
-      maxBorrowAmount: oracle.toAmount(pool.underlying, this.maxBorrowAmount),
+      maxBorrowAmount: oracle.toAmount(pool.underlying, maxBorrowAmount),
       maxLeverage,
     };
   }

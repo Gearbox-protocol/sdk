@@ -1,4 +1,4 @@
-import type { IGearboxError } from "./errors.js";
+import type { IGearboxError } from "./errors/index.js";
 
 /**
  * The success half of every refusable answer: the data the method was asked

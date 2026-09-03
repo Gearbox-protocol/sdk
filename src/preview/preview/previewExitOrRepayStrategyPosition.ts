@@ -8,7 +8,6 @@ import {
   MAX_UINT256,
   NO_VERSION,
   type PluginsMap,
-  unpriceableTokenError,
 } from "../../onchain/index.js";
 import type {
   CloseCreditAccountOperation,

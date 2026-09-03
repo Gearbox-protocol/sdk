@@ -1,7 +1,7 @@
 import { getAddress, parseEther, parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
+import { unpriceableTokenError } from "../../../model/index.js";
 import { DUST_THRESHOLD, NATIVE_ADDRESS } from "../../constants/index.js";
-import { unpriceableTokenError } from "./errors.js";
 import { MockTokens, TestPriceOracle } from "./TestPriceOracle.mock.js";
 
 const { USDC, DAI, cbETH, WETH } = MockTokens;

@@ -11,7 +11,6 @@
 // literals) so the preview surface names every refusal it can answer with.
 export type { InvalidDelayedIntentError } from "../onchain/accounts/withdrawal-compressor/errors.js";
 export {
-  type BorrowLimitBinding,
   type PreviewErrorDetails,
   type PreviewErrorReason,
   type PreviewIssue,

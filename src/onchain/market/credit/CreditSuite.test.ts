@@ -1,4 +1,4 @@
-import { getAddress } from "viem";
+import { type Address, getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Curator, Token, UnderlyingToken } from "../../../model/index.js";
 import { CreditSuite } from "./CreditSuite.js";
@@ -182,5 +182,117 @@ describe("CreditSuite.creditOperationMarket", () => {
       name: "WETH",
       underlyingToken: UNDERLYING,
     });
+  });
+});
+
+const CM = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;
+
+/**
+ * `maxBorrowAmount` decides which limit a caller is told about, so each of its
+ * three terms has to be able to win, and the tie has to keep the earlier one.
+ *
+ * The method is borrowed onto a plain object rather than run on a constructed
+ * suite: it reads four fields, and a real suite needs a loaded market to exist.
+ */
+function maxBorrowOf(args: {
+  availableLiquidity: bigint;
+  maxDebt: bigint;
+  multiplier: number;
+  managerAvailable?: bigint;
+}) {
+  const suite = {
+    creditManager: { address: CM },
+    creditFacade: {
+      maxDebt: args.maxDebt,
+      maxDebtPerBlockMultiplier: args.multiplier,
+    },
+    market: {
+      pool: {
+        pool: {
+          availableLiquidity: args.availableLiquidity,
+          creditManagerDebtParams: {
+            get: () =>
+              args.managerAvailable === undefined
+                ? undefined
+                : { available: args.managerAvailable },
+          },
+        },
+      },
+    },
+  } as unknown as CreditSuite;
+  return CreditSuite.prototype.maxBorrowAmount.call(suite);
+}
+
+describe("CreditSuite.maxBorrowAmount", () => {
+  it("reports the pool's available liquidity when it is the tightest", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 100n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 500n,
+      }),
+    ).toEqual({ value: 100n, limit: "poolAvailableLiquidity" });
+  });
+
+  it("reports the facade's per-account maxDebt when it is the tightest", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 50n,
+        multiplier: 2,
+        managerAvailable: 500n,
+      }),
+    ).toEqual({ value: 50n, limit: "maxDebt" });
+  });
+
+  it("reports the manager's remaining allowance when it is the tightest", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 7n,
+      }),
+    ).toEqual({ value: 7n, limit: "managerDebtAvailable" });
+  });
+
+  it("keeps the earlier term when two limits tie", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 100n,
+        maxDebt: 100n,
+        multiplier: 1,
+        managerAvailable: 100n,
+      }),
+    ).toEqual({ value: 100n, limit: "poolAvailableLiquidity" });
+  });
+
+  it("omits the manager's allowance when the pool reports none for it", () => {
+    expect(
+      maxBorrowOf({ availableLiquidity: 1000n, maxDebt: 40n, multiplier: 1 }),
+    ).toEqual({ value: 40n, limit: "maxDebt" });
+  });
+
+  it("is zero when borrowing is switched off for the block", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 1000n,
+        multiplier: 0,
+        managerAvailable: 1000n,
+      }),
+    ).toEqual({ value: 0n, limit: "debtPerBlockLimit" });
+  });
+});
+
+describe("CreditSuite.strategyOpportunity", () => {
+  it("is absent while borrowing is frozen", () => {
+    const suite = {
+      maxBorrowAmount: () => ({ value: 0n, limit: "debtPerBlockLimit" }),
+    } as unknown as CreditSuite;
+    expect(
+      CreditSuite.prototype.strategyOpportunity.call(suite),
+    ).toBeUndefined();
   });
 });

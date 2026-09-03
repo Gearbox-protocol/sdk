@@ -1,4 +1,3 @@
-import { type Address, isAddressEqual } from "viem";
 import type {
   AccountHoldings,
   AccountMetrics,
@@ -19,11 +18,10 @@ import type {
 } from "../../onchain/index.js";
 
 import {
-  borrowable,
   checkBorrowLimit,
   checkCollateralised,
   checkCreditManagerPaused,
-  checkDebtInBand,
+  checkDebtLimits,
   checkForbiddenToken,
   checkFunding,
   checkMarketExpired,
@@ -35,8 +33,9 @@ import {
   checkQuotaLimit,
   toToken,
 } from "../../onchain/index.js";
+import { firstIssue } from "../../onchain/validation/legacy-issue.js";
 
-/** Omitting a bar switches its check off — there is no single right one. */
+/** Omitting a threshold switches its check off — there is no single right one. */
 export interface CheckOperationOptions {
   /** Lowest acceptable health factor at main prices, in bps. */
   minHealthFactor?: Bps;
@@ -49,8 +48,8 @@ export interface CheckOperationOptions {
   balances?: AddressMap<bigint>;
   /**
    * The factor the account stands at now. Given, an operation that raises it
-   * passes even from under the bar — the top-ups that rescue a position would
-   * otherwise be refused by the very check meant to protect it.
+   * passes even from under the required factor — the top-ups that rescue a
+   * position would otherwise be refused by the very check meant to protect it.
    */
   currentHealthFactor?: Bps;
 }
@@ -71,8 +70,8 @@ export function checkOperation(
   const { sdk, preview } = input;
 
   // Every check below reads fields this refusal declares untrustworthy.
-  const malformed = checkPreviewError(
-    "warning" in preview ? preview.warning : undefined,
+  const malformed = firstIssue(
+    checkPreviewError("warning" in preview ? preview.warning : undefined),
   );
   if (malformed) {
     return malformed;
@@ -95,7 +94,8 @@ export function checkOperation(
     case "CloseCreditAccount":
     case "RepayCreditAccount":
       // They carry a projection of the wound-down account, but the loan is
-      // gone (`totalDebt` is always 0), so the health-factor bars would no-op.
+      // gone (`totalDebt` is always 0), so the health-factor thresholds would
+      // no-op.
       // Only the market's own state can refuse one.
       return marketIssues(
         sdk.marketRegister.findCreditManager(preview.creditManager),
@@ -111,23 +111,29 @@ function poolIssues(
 ): PreviewIssue | null {
   const market = sdk.marketRegister.findByPool(preview.pool);
   return (
-    checkPoolPaused({
-      isPaused: market.pool.pool.isPaused,
-      pool: preview.pool,
-    }) ||
-    checkPoolSunset({
-      isSunset: market.sunset,
-      isDeposit,
-      pool: preview.pool,
-    }) ||
+    firstIssue(
+      checkPoolPaused({
+        isPaused: market.pool.pool.isPaused,
+        pool: preview.pool,
+      }),
+    ) ||
+    firstIssue(
+      checkPoolSunset({
+        isSunset: market.sunset,
+        isDeposit,
+        pool: preview.pool,
+      }),
+    ) ||
     // A payout is served out of what the pool actually holds.
     (isDeposit
       ? null
-      : checkPoolPayout({
-          requested: preview.tokenOut.value,
-          available: market.pool.pool.availableLiquidity,
-          underlying: preview.tokenOut.token,
-        })) ||
+      : firstIssue(
+          checkPoolPayout({
+            requested: preview.tokenOut.value,
+            available: market.pool.pool.availableLiquidity,
+            underlying: preview.tokenOut.token,
+          }),
+        )) ||
     fundingIssue(options, [preview.tokenIn])
   );
 }
@@ -136,12 +142,16 @@ function poolIssues(
 export function marketIssues(suite: CreditSuite): PreviewIssue | null {
   const creditManager = suite.creditManager.address;
   return (
-    checkCreditManagerPaused({ isPaused: suite.isPaused, creditManager }) ||
-    checkMarketExpired({
-      isExpired: suite.isExpired,
-      creditManager,
-      expirationDate: suite.creditFacade.expirationDate,
-    })
+    firstIssue(
+      checkCreditManagerPaused({ isPaused: suite.isPaused, creditManager }),
+    ) ||
+    firstIssue(
+      checkMarketExpired({
+        isExpired: suite.isExpired,
+        creditManager,
+        expirationDate: suite.creditFacade.expirationDate,
+      }),
+    )
   );
 }
 
@@ -161,13 +171,15 @@ function creditIssues(
     marketIssues(suite) ||
     // An account being opened has to carry a real loan; one being adjusted may
     // end owing nothing at all.
-    checkDebtInBand({
-      debt: preview.totalDebt.value,
-      minDebt: suite.creditFacade.minDebt,
-      maxDebt: suite.creditFacade.maxDebt,
-      underlying,
-      allowZero: !isOpening,
-    }) ||
+    firstIssue(
+      checkDebtLimits({
+        debt: preview.totalDebt.value,
+        minDebt: suite.creditFacade.minDebt,
+        maxDebt: suite.creditFacade.maxDebt,
+        underlying,
+        allowZero: !isOpening,
+      }),
+    ) ||
     borrowIssue(suite, preview, underlying) ||
     forbiddenIssue(suite, preview) ||
     quotaCountIssue(suite, preview) ||
@@ -186,7 +198,7 @@ function creditIssues(
 }
 
 /**
- * A bar that reads nothing but the projected account, so a parsed transaction
+ * A check that reads nothing but the projected account, so a parsed transaction
  * and a simulated one are held to it by the same code.
  *
  * These stay separate functions rather than one block because the order the
@@ -198,10 +210,12 @@ export function quotaCountIssue(
   suite: CreditSuite,
   account: Pick<AccountProjection, "quotas">,
 ): PreviewIssue | null {
-  return checkQuotaCount({
-    count: account.quotas.filter(q => q.value > 0n).length,
-    max: suite.creditManager.maxEnabledTokens,
-  });
+  return firstIssue(
+    checkQuotaCount({
+      count: account.quotas.filter(q => q.value > 0n).length,
+      max: suite.creditManager.maxEnabledTokens,
+    }),
+  );
 }
 
 /**
@@ -227,33 +241,33 @@ function borrowIssue(
   if (drawn <= 0n) {
     return null;
   }
-  // The tightest of the three ceilings, which is the only one a caller can act
-  // on — the same reading the engine takes.
-  const { limit, binding } = borrowable(suite);
-  return checkBorrowLimit({
-    requested: drawn,
-    available: limit,
-    binding,
-    underlying,
-  });
+  const { value, limit } = suite.maxBorrowAmount();
+  return firstIssue(
+    checkBorrowLimit({
+      requested: drawn,
+      available: value,
+      limit,
+      underlying,
+    }),
+  );
 }
 
 /**
  * An account's factors, in whichever branch of a routed leg the caller means to
  * be held to: `prepare` reports the outcome the router expects, `preview` the
- * floor its calldata guarantees. The bar is indifferent — it weighs the numbers
- * it is handed — and passing them one by one is what makes the choice visible
- * where it is made.
+ * floor its calldata guarantees. The check is indifferent — it weighs the
+ * numbers it is handed — and passing them one by one is what makes the choice
+ * visible where it is made.
  */
 export interface WeighedFactors
   extends Pick<AccountHoldings, "totalDebt">,
     Pick<AccountMetrics, "healthFactor" | "safeHealthFactor"> {}
 
 /**
- * The account against whichever bars the caller holds it to.
+ * The account against whichever threshold the caller holds it to.
  *
  * A loan-free account is nothing to weigh: the health factor reports its
- * zero-debt sentinel and no bar applies.
+ * zero-debt sentinel and no threshold applies.
  *
  * {@inheritDoc quotaCountIssue}
  */
@@ -268,26 +282,30 @@ export function collateralIssue(
   return (
     (minHealthFactor === undefined
       ? null
-      : checkCollateralised({
-          healthFactor: account.healthFactor,
-          required: minHealthFactor,
-          safePrices: false,
-          improvesFrom: currentHealthFactor,
-        })) ||
-    // The safe-price bar is only weighed when the caller names one: it is what
-    // the credit manager holds a call that hands funds over to, and a
+      : firstIssue(
+          checkCollateralised({
+            healthFactor: account.healthFactor,
+            healthFactorThreshold: minHealthFactor,
+            safePrices: false,
+            improvesFrom: currentHealthFactor,
+          }),
+        )) ||
+    // The safe-price threshold is only weighed when the caller names one: it
+    // is what the credit manager holds a call that hands funds over to, and a
     // transaction that hands nothing over is not judged at those prices.
     (minSafeHealthFactor === undefined
       ? null
-      : checkCollateralised({
-          healthFactor: account.safeHealthFactor,
-          required: minSafeHealthFactor,
-          safePrices: true,
-        }))
+      : firstIssue(
+          checkCollateralised({
+            healthFactor: account.safeHealthFactor,
+            healthFactorThreshold: minSafeHealthFactor,
+            safePrices: true,
+          }),
+        ))
   );
 }
 
-/** The two previews that carry a position for the bars to weigh. */
+/** The two previews that carry a position for the thresholds to weigh. */
 type CreditPreview =
   | OpenStrategyPositionPreview
   | AdjustStrategyPositionPreview;
@@ -302,11 +320,14 @@ function fundingIssue(
     return null;
   }
   for (const { token, value } of puts) {
-    const issue = checkFunding({
-      token,
-      required: value,
-      held: balances.get(token.address) ?? 0n,
-    });
+    const issue = firstIssue(
+      checkFunding({
+        token,
+        required: value,
+        held: balances.get(token.address) ?? 0n,
+        holderKind: "wallet",
+      }),
+    );
     if (issue) {
       return issue;
     }
@@ -322,16 +343,17 @@ function forbiddenIssue(
     preview.operation === "AdjustCreditAccount"
       ? preview.assetsChange
       : preview.estAssets;
-  const forbidden = suite.forbiddenTokens;
 
   for (const asset of obtained) {
     if (asset.value <= 0n) {
       continue;
     }
-    const issue = checkForbiddenToken({
-      token: asset.token,
-      isForbidden: forbidden.some(f => isAddressEqual(f, asset.token.address)),
-    });
+    const issue = firstIssue(
+      checkForbiddenToken({
+        token: asset.token,
+        isForbidden: suite.isForbidden(asset.token.address),
+      }),
+    );
     if (issue) {
       return issue;
     }
@@ -357,15 +379,15 @@ function quotaIssue(
     }
     // A token the market quotes nothing for has no ceiling to weigh against and
     // counts as no collateral — the same reading the engine's guard takes.
-    const quota = pqk.hasActiveQuota(q.token.address)
-      ? pqk.quotas.get(q.token.address)
-      : undefined;
-    const issue = checkQuotaLimit({
-      token: q.token,
-      requested: quota ? q.value : undefined,
-      available: (quota?.limit ?? 0n) - (quota?.totalQuoted ?? 0n),
-      underlying,
-    });
+    const quoted = pqk.hasActiveQuota(q.token.address);
+    const issue = firstIssue(
+      checkQuotaLimit({
+        token: q.token,
+        requested: quoted ? q.value : undefined,
+        available: quoted ? pqk.quotaAvailable(q.token.address) : 0n,
+        underlying,
+      }),
+    );
     if (issue) {
       return issue;
     }

@@ -14,6 +14,8 @@ import {
   type SafeValue,
   safeValue,
   type TokenAmount,
+  type UnpriceableTokenError,
+  unpriceableTokenError,
 } from "../../../model/index.js";
 import type { BaseContractArgs } from "../../base/BaseContract.js";
 import type {
@@ -46,7 +48,6 @@ import type {
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
 import { getRawPriceUpdates, PriceFeedRef } from "../pricefeeds/index.js";
-import { type UnpriceableTokenError, unpriceableTokenError } from "./errors.js";
 import PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 import type {
   IPriceOracleContract,

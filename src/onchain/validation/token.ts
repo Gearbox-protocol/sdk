@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import type { Token, TokenAmount } from "../../model/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { shortAddress } from "../utils/formatter.js";
-import { amountOf } from "./checks.js";
+import { amountOf } from "./helpers/index.js";
 
 /**
  * The token behind an address, for the refusal details that inline one.

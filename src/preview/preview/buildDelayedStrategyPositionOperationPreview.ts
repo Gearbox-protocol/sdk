@@ -13,7 +13,6 @@ import {
   type DelayedWithdrawalRequest,
   DUST_THRESHOLD,
   type OnchainSDK,
-  unpriceableTokenError,
 } from "../../onchain/index.js";
 import { BigIntMath } from "../../onchain/utils/bigint-math.js";
 import type { CreditAccountState } from "./CreditAccountState.js";

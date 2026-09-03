@@ -2,7 +2,10 @@ import type { Address } from "viem";
 import type {
   Bps,
   ChainId,
+  DebtOutOfRangeError,
   IGearboxError,
+  InsufficientPoolLiquidityError,
+  LeverageOutOfRangeError,
   PositionClaimableWithdrawal,
   PositionCollateral,
   SDKError,
@@ -40,9 +43,6 @@ import {
 import type { EnsureFreshChains } from "../types.js";
 import type {
   AccountFlowError,
-  DebtOutOfRangeError,
-  InsufficientPoolLiquidityError,
-  LeverageOutOfRangeError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -137,7 +137,7 @@ export class PrepareApi
 
   /**
    * The chain an async method reads, revalidated first so the state it is
-   * about to weigh is no older than the SDK's freshness bar.
+   * about to weigh is no older than the SDK's freshness threshold.
    **/
   async #chain(chainId: ChainId): Promise<OnchainSDK> {
     await this.#ensureFresh?.([this.sdk.chain(chainId).chainId]);

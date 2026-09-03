@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { IGearboxError } from "../../../model/errors.js";
+import type { IGearboxError } from "./base.js";
 
 /**
  * The oracle has no price for `token`. Preview callers attach this with

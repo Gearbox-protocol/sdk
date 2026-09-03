@@ -83,7 +83,11 @@ describe("checkSimulation", () => {
     expect(check({ healthFactor: 10_050 })).toBeNull();
     expect(
       check({ healthFactor: 10_050 }, { minHealthFactor: 10_101 })?.detail,
-    ).toEqual({ healthFactor: 10_050, required: 10_101, safePrices: false });
+    ).toEqual({
+      healthFactor: 10_050,
+      healthFactorThreshold: 10_101,
+      safePrices: false,
+    });
   });
 
   it("lets a rescue through and refuses an operation that does not improve", () => {
@@ -108,7 +112,11 @@ describe("checkSimulation", () => {
     expect(
       check({ safeHealthFactor: 10_000 }, { minSafeHealthFactor: 10_001 })
         ?.detail,
-    ).toEqual({ healthFactor: 10_000, required: 10_001, safePrices: true });
+    ).toEqual({
+      healthFactor: 10_000,
+      healthFactorThreshold: 10_001,
+      safePrices: true,
+    });
 
     expect(
       check({ safeHealthFactor: 10_001 }, { minSafeHealthFactor: 10_001 }),
