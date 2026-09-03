@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { CM } from "../testing/tokens.js";
 import { checkMarketExpired } from "./checkMarketExpired.js";
-import { CM } from "./testing/tokens.js";
 
 describe("checkMarketExpired", () => {
   it("passes a facade that has not expired", () => {

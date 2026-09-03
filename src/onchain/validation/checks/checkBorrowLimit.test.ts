@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { UND } from "../testing/tokens.js";
 import { checkBorrowLimit } from "./checkBorrowLimit.js";
-import { UND } from "./testing/tokens.js";
 
 describe("checkBorrowLimit", () => {
   const at = (requested: bigint, available: bigint) =>

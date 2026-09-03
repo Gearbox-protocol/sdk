@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { TOK } from "../testing/tokens.js";
 import {
   checkPreviewError,
   isMalformedPreviewError,
 } from "./checkPreviewError.js";
-import { TOK } from "./testing/tokens.js";
 
 const malformed = {
   code: "adapterCallOutsideBracket" as const,

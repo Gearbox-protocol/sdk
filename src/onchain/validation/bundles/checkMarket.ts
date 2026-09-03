@@ -1,12 +1,12 @@
 import type {
   CreditManagerPausedError,
   MarketExpiredError,
-} from "../../model/index.js";
-import type { CreditSuite } from "../market/credit/CreditSuite.js";
+} from "../../../model/index.js";
+import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import {
   checkCreditManagerPaused,
   checkMarketExpired,
-} from "./checks/index.js";
+} from "../checks/index.js";
 
 /** {@inheritDoc checkMarket} */
 export type MarketStateError = CreditManagerPausedError | MarketExpiredError;

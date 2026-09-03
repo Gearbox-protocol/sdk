@@ -2,18 +2,17 @@ import type {
   InsufficientBalanceError,
   MalformedTransactionError,
   OperationPreview,
-  PoolPositionOperationPreview,
-  TokenAmount,
 } from "../../model/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { AddressMap } from "../utils/AddressMap.js";
-import type { CreditOperationError } from "./checkCreditOperation.js";
-import { checkCreditOperation } from "./checkCreditOperation.js";
-import type { HealthFactorThresholds } from "./checkHealthFactors.js";
-import { checkMarket } from "./checkMarket.js";
-import type { PoolOperationError } from "./checkPoolOperation.js";
-import { checkPoolOperation } from "./checkPoolOperation.js";
-import { checkFunding, checkPreviewError } from "./checks/index.js";
+import type { CreditOperationError } from "./bundles/checkCreditOperation.js";
+import { checkCreditOperation } from "./bundles/checkCreditOperation.js";
+import { checkFundedFrom } from "./bundles/checkFundedFrom.js";
+import type { HealthFactorThresholds } from "./bundles/checkHealthFactors.js";
+import { checkMarket } from "./bundles/checkMarket.js";
+import type { PoolOperationError } from "./bundles/checkPoolOperation.js";
+import { checkPoolOperation } from "./bundles/checkPoolOperation.js";
+import { checkPreviewError } from "./checks/index.js";
 
 export interface CheckOperationOptions extends HealthFactorThresholds {
   /**
@@ -63,10 +62,20 @@ export function checkOperation(
   switch (preview.operation) {
     case "Deposit":
     case "Mint":
-      return poolErrors(sdk, preview, balances, true);
     case "Withdraw":
-    case "Redeem":
-      return poolErrors(sdk, preview, balances, false);
+    case "Redeem": {
+      const isDeposit =
+        preview.operation === "Deposit" || preview.operation === "Mint";
+      return [
+        ...checkPoolOperation({
+          sdk,
+          pool: preview.pool,
+          isDeposit,
+          tokenOut: preview.tokenOut,
+        }),
+        ...checkFundedFrom(balances, [preview.tokenIn]),
+      ];
+    }
     case "DelayedCreditAccountOperation":
       // A delayed operation is judged on the half that executes now.
       return checkOperation({ sdk, preview: preview.instantPreview }, options);
@@ -75,7 +84,7 @@ export function checkOperation(
     case "AdjustCreditAccount":
       return [
         ...checkCreditOperation({ sdk, preview, ...thresholds }),
-        ...fundedFrom(balances, preview.collateralAdded),
+        ...checkFundedFrom(balances, preview.collateralAdded),
       ];
     case "CloseCreditAccount":
     case "RepayCreditAccount":
@@ -86,39 +95,4 @@ export function checkOperation(
         sdk.marketRegister.findCreditManager(preview.creditManager),
       );
   }
-}
-
-function poolErrors(
-  sdk: OnchainSDK,
-  preview: PoolPositionOperationPreview,
-  balances: AddressMap<bigint> | undefined,
-  isDeposit: boolean,
-): OperationValidationError[] {
-  return [
-    ...checkPoolOperation({
-      sdk,
-      pool: preview.pool,
-      isDeposit,
-      tokenOut: preview.tokenOut,
-    }),
-    ...fundedFrom(balances, [preview.tokenIn]),
-  ];
-}
-
-/** The wallet's side of the operation, against the balances it was given. */
-function fundedFrom(
-  balances: AddressMap<bigint> | undefined,
-  puts: readonly TokenAmount[],
-): InsufficientBalanceError[] {
-  if (!balances) {
-    return [];
-  }
-  return puts.flatMap(({ token, value }) =>
-    checkFunding({
-      token,
-      required: value,
-      held: balances.get(token.address) ?? 0n,
-      holderKind: "wallet",
-    }),
-  );
 }

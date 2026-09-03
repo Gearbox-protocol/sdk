@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 import { insufficientBalance, noRecordedIntent } from "../../../model/index.js";
 import type { OnchainSDK } from "../../index.js";
+import { toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
-import { toTokenAmount } from "../../validation/token.js";
 import type {
   ClaimableWithdrawal,
   WithdrawalOutput,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { CM } from "../testing/tokens.js";
 import { checkCreditManagerPaused } from "./checkCreditManagerPaused.js";
-import { CM } from "./testing/tokens.js";
 
 describe("checkCreditManagerPaused", () => {
   it("passes an operable manager", () => {

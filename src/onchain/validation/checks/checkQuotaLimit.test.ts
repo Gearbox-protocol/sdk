@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { TOK, UND } from "../testing/tokens.js";
 import { checkQuotaLimit } from "./checkQuotaLimit.js";
-import { TOK, UND } from "./testing/tokens.js";
 
 describe("checkQuotaLimit", () => {
   it("allows an increase that exactly exhausts the available quota", () => {

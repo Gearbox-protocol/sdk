@@ -9,8 +9,8 @@ import {
 } from "../../../model/index.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
+import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
-import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   assertDebtLimits,

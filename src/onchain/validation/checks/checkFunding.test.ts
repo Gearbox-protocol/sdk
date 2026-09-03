@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { TOK } from "../testing/tokens.js";
 import { checkFunding } from "./checkFunding.js";
-import { TOK } from "./testing/tokens.js";
 
 describe("checkFunding", () => {
   it("accepts a balance that exactly covers the amount", () => {

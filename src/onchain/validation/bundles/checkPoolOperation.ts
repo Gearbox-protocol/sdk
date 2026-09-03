@@ -4,13 +4,13 @@ import type {
   PoolPausedError,
   PoolSunsetError,
   TokenAmount,
-} from "../../model/index.js";
-import type { OnchainSDK } from "../OnchainSDK.js";
+} from "../../../model/index.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
 import {
   checkPoolLiquidity,
   checkPoolPaused,
   checkPoolSunset,
-} from "./checks/index.js";
+} from "../checks/index.js";
 
 /** {@inheritDoc checkPoolOperation} */
 export type PoolOperationError =

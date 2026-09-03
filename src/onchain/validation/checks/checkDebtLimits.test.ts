@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { UND } from "../testing/tokens.js";
 import { checkDebtLimits } from "./checkDebtLimits.js";
-import { UND } from "./testing/tokens.js";
 
 describe("checkDebtLimits", () => {
   const limits = { minDebt: 100n, maxDebt: 10_000n, underlying: UND };

@@ -8,8 +8,8 @@ import {
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
+import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
-import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
   assertCanBorrow,

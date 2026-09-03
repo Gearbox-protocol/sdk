@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { Token } from "../../../../model/index.js";
+import type { Token } from "../../../model/index.js";
 
 /** The addresses and tokens the check tests weigh things in. */
 export const CM = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;

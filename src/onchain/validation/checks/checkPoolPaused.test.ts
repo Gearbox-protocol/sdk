@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { POOL } from "../testing/tokens.js";
 import { checkPoolPaused } from "./checkPoolPaused.js";
-import { POOL } from "./testing/tokens.js";
 
 describe("checkPoolPaused", () => {
   it("names the pool rather than a manager", () => {

@@ -1,9 +1,9 @@
 import type {
   AccountProjection,
   QuotaCountExceededError,
-} from "../../model/index.js";
-import type { CreditSuite } from "../market/credit/CreditSuite.js";
-import { checkQuotaCount } from "./checks/index.js";
+} from "../../../model/index.js";
+import type { CreditSuite } from "../../market/credit/CreditSuite.js";
+import { checkQuotaCount } from "../checks/index.js";
 
 /**
  * How many quoted tokens the account would end up holding, against the number

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { UND } from "../testing/tokens.js";
 import { checkPoolLiquidity } from "./checkPoolLiquidity.js";
-import { UND } from "./testing/tokens.js";
 
 describe("checkPoolLiquidity", () => {
   const at = (requested: bigint, available: bigint) =>

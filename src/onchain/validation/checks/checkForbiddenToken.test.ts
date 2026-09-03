@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { TOK } from "../testing/tokens.js";
 import { checkForbiddenToken } from "./checkForbiddenToken.js";
-import { TOK } from "./testing/tokens.js";
 
 describe("checkForbiddenToken", () => {
   it("names the token the market forbids", () => {

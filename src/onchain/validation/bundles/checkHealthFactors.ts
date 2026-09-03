@@ -3,8 +3,8 @@ import type {
   AccountMetrics,
   Bps,
   InsufficientCollateralError,
-} from "../../model/index.js";
-import { checkCollateralised } from "./checks/index.js";
+} from "../../../model/index.js";
+import { checkCollateralised } from "../checks/index.js";
 
 /**
  * The factors a caller holds an account to. Omitting a threshold switches its

@@ -7,15 +7,15 @@ import type {
 import type { OperationState } from "../accounts/intents/types.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { PoolSimulation } from "../pools/types.js";
-import { checkAccountQuotas } from "./checkAccountQuotas.js";
-import type { HealthFactorThresholds } from "./checkHealthFactors.js";
-import { checkHealthFactors } from "./checkHealthFactors.js";
-import type { MarketStateError } from "./checkMarket.js";
-import { checkMarket } from "./checkMarket.js";
-import type { PoolOperationError } from "./checkPoolOperation.js";
-import { checkPoolOperation } from "./checkPoolOperation.js";
+import { checkAccountQuotas } from "./bundles/checkAccountQuotas.js";
+import type { HealthFactorThresholds } from "./bundles/checkHealthFactors.js";
+import { checkHealthFactors } from "./bundles/checkHealthFactors.js";
+import type { MarketStateError } from "./bundles/checkMarket.js";
+import { checkMarket } from "./bundles/checkMarket.js";
+import type { PoolOperationError } from "./bundles/checkPoolOperation.js";
+import { checkPoolOperation } from "./bundles/checkPoolOperation.js";
 import { checkDebtLimits } from "./checks/index.js";
-import { toToken } from "./token.js";
+import { toToken } from "./helpers/index.js";
 
 /** A simulated credit operation, as the intents engine reports one. */
 export interface CreditSimulationInput {
