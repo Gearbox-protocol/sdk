@@ -4,6 +4,62 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — wallet-wide Merkl rewards
+
+`getMerklRewards` is gone. Rewards are read for the whole wallet at once, and
+the read reports what happened on each chain.
+
+### Summary of changes
+
+- **`getMerklRewards`, `GetMerklRewardsProps` and its `reportError` callback removed.** Use `getMerklRewardsMultichain`, which fans out over the chains a `MultichainSDK` carries and answers the read model's `DataResponse` envelope.
+- **A chain that could not be reached is now distinguishable from one with nothing to claim.** The old call resolved an empty list either way and only whispered the difference through `reportError`; the new one reports `status: "error"` in `meta.chains` for the first and `status: "success"` with no rows for the second.
+- **The Merkl transport no longer uses `axios`.** It is `fetch`, with a per-attempt timeout (10 s by default, `timeout` to change it) and a fallback to the Angle mirror on a non-2xx as well as on a transport failure.
+
+---
+
+### Read every chain at once instead of fanning out yourself
+
+**Before:**
+
+```typescript
+import { getMerklRewards, type MerklReward } from "@gearbox-protocol/sdk/rewards";
+
+const rewards: MerklReward[] = [];
+for (const chain of multichainSDK.chains.values()) {
+  rewards.push(
+    ...(await getMerklRewards({
+      sdk: chain,
+      account: wallet,
+      apiKey,
+      // the only way to learn a chain was down: it resolves `[]` regardless
+      reportError: error => report(chain.chainId, error),
+    })),
+  );
+}
+```
+
+**After:**
+
+```typescript
+import { getMerklRewardsMultichain } from "@gearbox-protocol/sdk/rewards";
+
+const { data, meta } = await getMerklRewardsMultichain({
+  sdk: multichainSDK,
+  wallet,
+  apiKey,
+});
+
+for (const chain of meta.chains) {
+  if (chain.status === "error") report(chain.chainId, chain.error);
+}
+```
+
+`chainIds` narrows the fan-out to a subset; omit it to ask every chain the
+handle carries. An id the handle has no chain for is dropped rather than
+reported — absence from `meta.chains` means the chain was never asked.
+
+---
+
 ## v14.x → v14.10
 
 > Despite being a minor bump, `v14.10.0` introduced consumer-visible breaking

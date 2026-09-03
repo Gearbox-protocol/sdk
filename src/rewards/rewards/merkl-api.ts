@@ -1,12 +1,6 @@
-import axios from "axios";
 import type { Address } from "viem";
-
-interface UserOptions {
-  params: {
-    user: string;
-    chainId: number;
-  };
-}
+import type { ChainId } from "../../model/index.js";
+import { MerklRequestFailedError } from "./errors.js";
 
 export interface MerkleXYZUserRewardsV4 {
   chain: MerkleXYZChain;
@@ -46,34 +40,65 @@ interface MerkleXYZChain {
   icon: string;
 }
 
-// https://api.merkl.xyz/v3/campaignsForMainParameter?chainId=1&mainParameter=0xE2037090f896A858E3168B978668F22026AC52e7
+/**
+ * Merkl's own host and the Angle mirror, tried in this order.
+ */
+export const MERKL_DOMAINS = [
+  "https://api.merkl.xyz",
+  "https://api-merkl.angle.money",
+] as const;
 
-export class MerkleXYZApi {
-  private constructor() {}
+export const MERKL_API_KEY_HEADER = "X-API-Key";
 
-  static defaultDomain = "https://api.merkl.xyz";
-  static angleDomain = "https://api-merkl.angle.money";
-  static apiKeyHeader = "X-API-Key";
+/**
+ * Per-attempt budget. Merkl has no timeout of its own, and a hung connection
+ * would otherwise stall its leg of a fan-out for as long as the socket lives.
+ */
+const ATTEMPT_TIMEOUT = 10_000;
 
-  static fetchWithFallback = async <T>(
-    getUrl: (domain: string) => string,
-    apiKey?: string,
-  ) => {
-    const headers = apiKey
-      ? { [MerkleXYZApi.apiKeyHeader]: apiKey }
-      : undefined;
+export interface FetchMerklUserRewardsProps {
+  chainId: ChainId;
+  /** Checksummed by the caller — Merkl keys its answer on the exact string. */
+  user: Address;
+  /** Raises Merkl's rate limit; the keyless path answers too. */
+  apiKey?: string;
+}
 
+/**
+ * The wallet's raw Merkl rewards on one chain.
+ *
+ * Rejects with {@link MerklRequestFailedError} when neither domain answers, so
+ * a caller can tell an unreachable Merkl from a wallet with nothing to claim.
+ * A non-2xx counts as no answer and moves to the next domain: it carries no
+ * rewards either way, and treating it as success would report emptiness that
+ * was never established.
+ */
+export async function fetchMerklUserRewards({
+  chainId,
+  user,
+  apiKey,
+}: FetchMerklUserRewardsProps): Promise<MerkleXYZUserRewardsV4Response> {
+  const path = `/v4/users/${user}/rewards?chainId=${chainId}`;
+  const headers = apiKey ? { [MERKL_API_KEY_HEADER]: apiKey } : undefined;
+  const attempts: Array<[domain: string, cause: unknown]> = [];
+
+  for (const domain of MERKL_DOMAINS) {
     try {
-      return await axios.get<T>(getUrl(MerkleXYZApi.defaultDomain), {
+      const response = await fetch(`${domain}${path}`, {
         headers,
+        // A fresh signal per attempt: one shared budget would let a slow
+        // primary eat the mirror's.
+        signal: AbortSignal.timeout(ATTEMPT_TIMEOUT),
       });
-    } catch {
-      return await axios.get<T>(getUrl(MerkleXYZApi.angleDomain), {
-        headers,
-      });
+      if (!response.ok) {
+        attempts.push([domain, new Error(`answered ${response.status}`)]);
+        continue;
+      }
+      return (await response.json()) as MerkleXYZUserRewardsV4Response;
+    } catch (error) {
+      attempts.push([domain, error]);
     }
-  };
+  }
 
-  static getUserRewardsUrl = (options: UserOptions) => (domain: string) =>
-    `${domain}/v4/users/${options.params.user}/rewards?chainId=${options.params.chainId}`;
+  throw new MerklRequestFailedError(chainId, path, attempts);
 }
