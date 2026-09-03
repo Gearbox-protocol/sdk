@@ -29,26 +29,6 @@ import type {
   WithdrawalMetadata,
 } from "./types.js";
 
-/**
- * Haircut on reported pool liquidity, so a withdrawal sized against the reported
- * figure is not defeated by rounding in the share conversion.
- */
-const LIQUIDITY_SAFETY_NUM = 99_999n;
-const LIQUIDITY_SAFETY_DENOM = 100_000n;
-
-/**
- * The most the pool can actually hand over right now, trimmed slightly so a
- * withdrawal sized against it does not fail on rounding.
- **/
-function withdrawableLiquidity(market: MarketSuite): Amount {
-  const { pool } = market;
-  return market.priceOracle.toAmount(
-    pool.underlying,
-    (pool.pool.availableLiquidity * LIQUIDITY_SAFETY_NUM) /
-      LIQUIDITY_SAFETY_DENOM,
-  );
-}
-
 export class PoolService extends SDKConstruct implements IPoolsService {
   /**
    * {@inheritDoc IPoolsService.getDepositTokensIn}
@@ -269,7 +249,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       ),
       tokenOut: toTokenAmount(tokenOut, amount),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity: withdrawableLiquidity(market),
+      availableLiquidity: this.#withdrawableLiquidity(market),
     };
   }
 
@@ -299,7 +279,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
           PERCENTAGE_FACTOR,
       ),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity: withdrawableLiquidity(market),
+      availableLiquidity: this.#withdrawableLiquidity(market),
     };
   }
 
@@ -734,5 +714,17 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       netValue: market.toUnderlyingAmount(pool.sharesToUnderlying(shares)),
       apy: { organicApy: rayToBps(pool.supplyRate) },
     };
+  }
+
+  /**
+   * The most the pool can actually hand over right now, trimmed slightly so a
+   * withdrawal sized against it does not fail on rounding.
+   **/
+  #withdrawableLiquidity(market: MarketSuite): Amount {
+    const { pool } = market;
+    return market.priceOracle.toAmount(
+      pool.underlying,
+      (pool.pool.availableLiquidity * 99_999n) / 100_000n,
+    );
   }
 }
