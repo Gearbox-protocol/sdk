@@ -6,7 +6,10 @@ import {
 import { checkCollateralised } from "./checkCollateralised.js";
 
 describe("checkCollateralised", () => {
-  const at = (healthFactor: number | undefined, healthFactorThreshold: number) =>
+  const at = (
+    healthFactor: number | undefined,
+    healthFactorThreshold: number,
+  ) =>
     checkCollateralised({
       healthFactor,
       healthFactorThreshold,

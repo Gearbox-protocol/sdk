@@ -5,19 +5,41 @@ alwaysApply: true
 
 # Re-route imports on refactor
 
-When moving a symbol (constant, type, function, class) to a new module:
+When moving a symbol (constant, type, function, class) to a new module, update
+every import site in this repo to the new location. Never leave a compatibility
+re-export behind.
 
-- Update every import site to the new location.
-- Search all workspace repos for consumers before deciding a re-export is needed.
-
-Never leave a compatibility re-export at the old location (`export { X }`, `export { X } from "./new.js"`, or `export * from` solely to preserve the old path). Stale re-exports create ambiguous barrel exports and hide the real module boundary.
+The old location is every path that made the symbol reachable: the declaring
+module, **every barrel that re-exported it**, and every `package.json` subpath
+whose barrel reached it. Deleting the declaring module is not enough — barrels
+are what consumers actually import, so each one drops the symbol too.
 
 ```typescript
-// ❌ BAD — symbol moved to token-types.ts, old module still re-exports it
-export { NON_STRATEGY_PHANTOM_TOKEN_TYPES };
+// ❌ BAD
+// src/base/token-types.ts — new location
+export const PHANTOM_TOKEN_TYPES = [...];
+// src/sdk/market/tokens.ts — old location shims the old path
+export { PHANTOM_TOKEN_TYPES } from "../../base/token-types.js";
+// src/sdk/router/strategies.ts — consumer never moved
+import { PHANTOM_TOKEN_TYPES } from "../market/tokens.js";
 
-// ✅ GOOD — consumers import from the new home
-import { NON_STRATEGY_PHANTOM_TOKEN_TYPES } from "../../base/token-types.js";
+// ✅ GOOD
+// src/base/token-types.ts — new location
+export const PHANTOM_TOKEN_TYPES = [...];
+// src/sdk/market/tokens.ts — old location no longer mentions the symbol
+export const getTokenType = ...;
+// src/sdk/router/strategies.ts — consumer imports from the new home
+import { PHANTOM_TOKEN_TYPES } from "../../base/token-types.js";
 ```
 
-If there are truly external consumers that cannot be updated in this change, ask the user instead of silently keeping the re-export.
+## A re-export that climbs out of its own directory is a red flag
+
+A module speaks for what it holds, and a barrel for the tree below it, so every
+`export ... from` specifier is `"./x.js"` or `"./sub/index.js"`. One starting
+with `../` publishes something the file does not own.
+
+## A moved symbol is public from exactly one path
+
+A published barrel is not exempt. Curated public surface is not a reason to keep
+a symbol reachable from its old entry: that barrel drops it, and consumers
+import from the entry that owns its new home.

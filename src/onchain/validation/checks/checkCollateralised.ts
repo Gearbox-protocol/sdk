@@ -23,7 +23,8 @@ export interface CollateralisedArgs {
 export function checkCollateralised(
   args: CollateralisedArgs,
 ): InsufficientCollateralError[] {
-  const { healthFactor, healthFactorThreshold, safePrices, improvesFrom } = args;
+  const { healthFactor, healthFactorThreshold, safePrices, improvesFrom } =
+    args;
   if (healthFactor === undefined) {
     return [
       insufficientCollateral({

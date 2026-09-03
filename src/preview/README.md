@@ -9,11 +9,10 @@ An **operation** is a transaction performed on behalf of a Gearbox protocol user
 - a **pool user** (liquidity provider) depositing into or redeeming from a pool, or
 - a **credit account user** (borrower) opening or adjusting a credit account.
 
-Given only `{ to, calldata, sender }`, this module answers three questions:
+Given only `{ to, calldata, sender }`, this module answers two questions:
 
 1. **What would this operation do?** (`previewOperation`)
 2. **Can the sender execute it, and what must they fix first?** (`checkPrerequisites`)
-3. **May it be signed at all?** (`checkOperation`)
 
 All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked in at attach time). The SDK must be created with the adapters plugin so that adapter contracts resolve during multicall classification.
 
@@ -46,27 +45,12 @@ The on-chain conditions the **sender can fix themselves** before retrying. The m
 
 [`checkPrerequisites`](./prerequisites/checkPrerequisites.ts) takes the same raw-calldata input as `previewOperation`, derives the prerequisites (e.g. token allowances) and verifies them all.
 
-Only **sender-actionable** conditions belong here (approve a token, top up a balance, register an RWA token, etc.). Non-actionable protocol/admin state (e.g. pool is paused) is not verified — that is [`checkOperation`](#checkoperation)'s job.
-
-### `checkOperation`
-
-Whether the operation may be signed at all: the protocol state that stops it outright rather than something the sender can fix. A paused market, a debt outside the facade's `debtLimits`, a quota with no room left, an account that would end under water.
-
-[`checkOperation`](./validate/checkOperation.ts) takes a preview rather than calldata — it needs the numbers, not the transaction — and is **synchronous**: the market is already attached, so no chain reads are involved. It reports the most fundamental error it found, or `null`. The error is an `IGearboxError` object (`code` plus the numbers behind it) — the same objects the intents engine puts on `{ ok: false, error }` and `prepare` returns.
-
-What it reports: `creditManagerPaused`, `poolPaused`, `marketExpired`, `debtOutOfRange`, `forbiddenToken`, `quotaLimitReached`, `insufficientCollateral`, `poolSunset`, `insufficientBalance` and `malformedTransaction`. It does not weigh borrow ceilings or leverage — those belong to building an operation, not to judging one that is already built.
-
-`checkSimulation` is its sibling for the other direction: the engine holds an account to the facade's `1.0` because its guards answer "would this revert", so a caller wanting a stricter threshold applies it over the numbers the engine already reported. It runs both health-factor thresholds and the quota count — the three things the engine does not weigh — plus the market's own state and the facade's `debtLimits`, so a change in the engine cannot pass silently. The forbidden-token, quota-limit and funding checks are deliberately absent: each needs the *delta* an operation applies, and `OperationState` reports only the state after it.
-
-Its options are `minHealthFactor`, `minSafeHealthFactor`, `currentHealthFactor` and `balances` (an `AddressMap`, given which the wallet's side is checked offline). The thresholds are options because there is no single right one: the facade enforces `1.0`, a form is wiser to ask for more, and whether to weigh the safe-price health factor at all is the caller's decision. An omitted threshold switches its check off. `currentHealthFactor` is the escape hatch that keeps a rescue possible: an operation that raises the factor passes even from under the threshold, because the top-ups that save a position are exactly the ones a flat threshold would stop.
-
-A malformed preview warning is reported as `malformedTransaction` and nothing else is: the remaining checks read fields it just declared guesswork. An `unpriceableToken` warning is not reported at all — the transaction is fine and only the evaluation was incomplete.
+Only **sender-actionable** conditions belong here (approve a token, top up a balance, register an RWA token, etc.). Non-actionable protocol/admin state (e.g. pool is paused) is `checkOperation` / `checkSimulation` on `@gearbox-protocol/sdk/onchain`.
 
 ## Intended usage
 
 ```ts
 import {
-  checkOperation,
   checkPrerequisites,
   previewOperation,
 } from "@gearbox-protocol/sdk/preview";
@@ -79,10 +63,7 @@ const preview = await previewOperation({ sdk, to, calldata, sender });
 //    previewOperation.
 const results = await checkPrerequisites({ sdk, to, calldata, sender });
 
-// 3. Check whether the protocol refuses the operation outright.
-const issues = checkOperation({ sdk, preview }, { minHealthFactor: 10_101 });
-
-// 4. For each unsatisfied result, the consumer inspects `kind` and `detail`
+// 3. For each unsatisfied result, the consumer inspects `kind` and `detail`
 //    (e.g. `detail.missing` for rwaOpenRequirements) and resolves it outside
 //    the SDK, then re-runs checkPrerequisites.
 ```

@@ -1,19 +1,3 @@
-/**
- * The vocabulary the errors this module hands out are written in. Published
- * here so a caller switching on `code` does not have to reach into
- * `@gearbox-protocol/sdk/onchain` for the names to do it with.
- * `IntentPreviewError` itself stays engine-internal: errors leave the SDK
- * as plain returned objects, not thrown classes.
- */
-
-// The error of `previewOperation`'s union that is raised outside
-// this module's own barrels, re-exported (a type alone) so the preview
-// surface names every error it can answer with.
-export type { InvalidDelayedIntentError } from "../onchain/accounts/withdrawal-compressor/errors.js";
-export {
-  type IntentValidationError,
-  raise,
-} from "../onchain/validation/raise.js";
 export * from "./parse/index.js";
 export * from "./prerequisites/index.js";
 export * from "./preview/index.js";
@@ -26,4 +10,3 @@ export {
 } from "./simulate/errors.js";
 export * from "./trace/index.js";
 export * from "./types.js";
-export * from "./validate/index.js";

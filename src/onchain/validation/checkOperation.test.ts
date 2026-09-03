@@ -8,22 +8,17 @@ import type {
   PoolPositionOperationPreview,
   TokenAmount,
 } from "../../model/index.js";
-import {
-  AddressMap,
-  json_parse,
-  OnchainSDK,
-  toToken,
-} from "../../onchain/index.js";
+import { AddressMap, json_parse, OnchainSDK, toToken } from "../index.js";
 import { checkOperation } from "./checkOperation.js";
 
 /**
- * The same offline fixture the preview tests run on: the client throws on any
- * RPC request, so a green run is also the proof that validating a parsed
+ * The same offline state dump the preview tests run on: the client throws on
+ * any RPC request, so a green run is also the proof that validating a parsed
  * transaction needs no chain reads.
  */
 const STATE_FIXTURE = resolve(
   import.meta.dirname,
-  "../__fixtures__/Mainnet-25475508-adjust-credit-account.json",
+  "../../preview/__fixtures__/Mainnet-25475508-adjust-credit-account.json",
 );
 
 const CREDIT_MANAGER: Address = "0x79C6C1ce5B12abCC3E407ce8C160eE1160250921";
@@ -118,15 +113,20 @@ const check = (
   options: Parameters<typeof checkOperation>[1] = {},
 ) => checkOperation({ sdk, preview }, options);
 
+/** The codes the check reported, in the order it reported them. */
+const codes = (
+  errors: ReturnType<typeof checkOperation>,
+): ReadonlyArray<string> => errors.map(e => e.code);
+
 describe("checkOperation", () => {
   it("finds nothing wrong with a healthy operation", () => {
-    expect(check(adjust())).toBeNull();
+    expect(check(adjust())).toEqual([]);
   });
 
   it("reports a malformed transaction alone, ahead of everything else", () => {
-    // The other checks read fields this refusal just called guesswork, so it
-    // is the only thing worth telling the caller.
-    const issues = check(
+    // The other checks read fields this error just called guesswork, so it is
+    // the only thing worth telling the caller.
+    const errors = check(
       adjust({
         warning: {
           code: "adapterCallOutsideBracket",
@@ -139,17 +139,19 @@ describe("checkOperation", () => {
       { minHealthFactor: 10_000 },
     );
 
-    expect(issues).toMatchObject({
-      code: "malformedTransaction",
-      warning: {
-        code: "adapterCallOutsideBracket",
-        message: "adapter call outside bracket",
-        adapter: CREDIT_MANAGER,
+    expect(errors).toMatchObject([
+      {
+        code: "malformedTransaction",
+        warning: {
+          code: "adapterCallOutsideBracket",
+          message: "adapter call outside bracket",
+          adapter: CREDIT_MANAGER,
+        },
       },
-    });
+    ]);
   });
 
-  it("lets an incomplete evaluation through — it is a caveat, not a refusal", () => {
+  it("lets an incomplete evaluation through — it is a caveat, not a verdict", () => {
     expect(
       check(
         adjust({
@@ -160,45 +162,49 @@ describe("checkOperation", () => {
           },
         }),
       ),
-    ).toBeNull();
+    ).toEqual([]);
   });
 
-  it("holds the account to the bar it was given, and to none when given none", () => {
-    expect(check(adjust({ estHealthFactor: 10_000 }))).toBeNull();
+  it("holds the account to the threshold it was given, and to none when given none", () => {
+    expect(check(adjust({ estHealthFactor: 10_000 }))).toEqual([]);
 
-    const issues = check(adjust({ estHealthFactor: 10_000 }), {
+    const errors = check(adjust({ estHealthFactor: 10_000 }), {
       minHealthFactor: 10_101,
     });
-    expect(issues).toMatchObject({
-      code: "insufficientCollateral",
-      healthFactor: 10_000,
-      healthFactorThreshold: 10_101,
-      safePrices: false,
-    });
+    expect(errors).toMatchObject([
+      {
+        code: "insufficientCollateral",
+        healthFactor: 10_000,
+        healthFactorThreshold: 10_101,
+        safePrices: false,
+      },
+    ]);
   });
 
-  it("lets a rescue through: an account under the bar being topped up", () => {
+  it("lets a rescue through: an account under the threshold being topped up", () => {
     // Broken today: the form passes it (the engine holds only the facade's 1.0)
-    // and the confirm screen refuses it, so a position cannot be rescued
-    // through the interface at all.
+    // and the confirm screen stops it, so a position cannot be rescued through
+    // the interface at all.
     expect(
       check(adjust({ estHealthFactor: 10_080 }), {
         minHealthFactor: 10_101,
         currentHealthFactor: 10_050,
       }),
-    ).toBeNull();
+    ).toEqual([]);
 
     expect(
-      check(adjust({ estHealthFactor: 10_080 }), {
-        minHealthFactor: 10_101,
-        currentHealthFactor: 10_090,
-      })?.code,
-    ).toBe("insufficientCollateral");
+      codes(
+        check(adjust({ estHealthFactor: 10_080 }), {
+          minHealthFactor: 10_101,
+          currentHealthFactor: 10_090,
+        }),
+      ),
+    ).toEqual(["insufficientCollateral"]);
   });
 
-  it("weighs the safe-price factor against its own bar", () => {
+  it("weighs the safe-price factor against its own threshold", () => {
     // Main prices clear 10_000, the safe ones do not: only the safe check fires.
-    const issues = check(
+    const errors = check(
       adjust({ estHealthFactor: 12_500, estSafeHealthFactor: 9_000 }),
       {
         minHealthFactor: 10_000,
@@ -206,38 +212,42 @@ describe("checkOperation", () => {
       },
     );
 
-    expect(issues).toMatchObject({
-      code: "insufficientCollateral",
-      healthFactor: 9_000,
-      healthFactorThreshold: 10_000,
-      safePrices: true,
-    });
+    expect(errors).toMatchObject([
+      {
+        code: "insufficientCollateral",
+        healthFactor: 9_000,
+        healthFactorThreshold: 10_000,
+        safePrices: true,
+      },
+    ]);
   });
 
   /**
-   * The safe-price bar is weighed only when the caller names one — it is what
-   * the credit manager holds a call handing funds over to, and a transaction
-   * that hands nothing over is not judged at those prices. Pinned along with
-   * the main bar still firing beside it.
+   * The safe-price threshold is weighed only when the caller names one — it is
+   * what the credit manager holds a call handing funds over to, and a
+   * transaction that hands nothing over is not judged at those prices. Pinned
+   * along with the main threshold still firing beside it.
    */
-  it("skips the safe-price bar, not the main one, when no safe bar is named", () => {
+  it("skips the safe-price threshold, not the main one, when no safe threshold is named", () => {
     expect(
       check(
         adjust({ estHealthFactor: 12_500, estSafeHealthFactor: 11_800 }),
         {},
       ),
-    ).toBeNull();
+    ).toEqual([]);
 
     expect(
       check(adjust({ estHealthFactor: 9_000, estSafeHealthFactor: 8_500 }), {
         minHealthFactor: 10_000,
       }),
-    ).toMatchObject({
-      code: "insufficientCollateral",
-      healthFactor: 9_000,
-      healthFactorThreshold: 10_000,
-      safePrices: false,
-    });
+    ).toMatchObject([
+      {
+        code: "insufficientCollateral",
+        healthFactor: 9_000,
+        healthFactorThreshold: 10_000,
+        safePrices: false,
+      },
+    ]);
   });
 
   /**
@@ -251,22 +261,24 @@ describe("checkOperation", () => {
         minHealthFactor: 10_000,
         minSafeHealthFactor: 10_000,
       }),
-    ).toMatchObject({
-      code: "insufficientCollateral",
-      healthFactor: 9_000,
-      healthFactorThreshold: 10_000,
-      safePrices: true,
-    });
+    ).toMatchObject([
+      {
+        code: "insufficientCollateral",
+        healthFactor: 9_000,
+        healthFactorThreshold: 10_000,
+        safePrices: true,
+      },
+    ]);
 
     expect(
       check(open(), {
         minHealthFactor: 10_101,
         minSafeHealthFactor: 10_001,
       }),
-    ).toBeNull();
+    ).toEqual([]);
   });
 
-  it("leaves a loan-free account alone at every bar", () => {
+  it("leaves a loan-free account alone at every threshold", () => {
     expect(
       check(
         adjust({
@@ -279,7 +291,7 @@ describe("checkOperation", () => {
           minSafeHealthFactor: 10_000,
         },
       ),
-    ).toBeNull();
+    ).toEqual([]);
   });
 
   /**
@@ -296,11 +308,12 @@ describe("checkOperation", () => {
         .mockReturnValue(available);
     };
 
-    it("refuses a draw the pool cannot cover", () => {
+    it("reports a draw the pool cannot cover", () => {
       const spy = withLiquidity(1n);
       try {
-        const issue = check(adjust({ totalDebtChange: und(10n ** 20n) }));
-        expect(issue?.code).toBe("insufficientPoolLiquidity");
+        expect(
+          codes(check(adjust({ totalDebtChange: und(10n ** 20n) }))),
+        ).toEqual(["insufficientPoolLiquidity"]);
       } finally {
         spy.mockRestore();
       }
@@ -309,7 +322,7 @@ describe("checkOperation", () => {
     it("weighs the whole debt of an account being opened", () => {
       const spy = withLiquidity(1n);
       try {
-        expect(check(open())?.code).toBe("insufficientPoolLiquidity");
+        expect(codes(check(open()))).toEqual(["insufficientPoolLiquidity"]);
       } finally {
         spy.mockRestore();
       }
@@ -321,7 +334,7 @@ describe("checkOperation", () => {
       change => {
         const spy = withLiquidity(0n);
         try {
-          expect(check(adjust({ totalDebtChange: und(change) }))).toBeNull();
+          expect(check(adjust({ totalDebtChange: und(change) }))).toEqual([]);
         } finally {
           spy.mockRestore();
         }
@@ -331,16 +344,17 @@ describe("checkOperation", () => {
     it("serves a draw the pool covers", () => {
       const spy = withLiquidity(10n ** 30n);
       try {
-        expect(check(adjust({ totalDebtChange: und(10n ** 18n) }))).toBeNull();
+        expect(check(adjust({ totalDebtChange: und(10n ** 18n) }))).toEqual([]);
       } finally {
         spy.mockRestore();
       }
     });
   });
 
-  it("refuses a debt outside the facade's debtLimits", () => {
-    const issues = check(adjust({ totalDebt: und(10n ** 30n) }));
-    expect(issues?.code).toBe("debtOutOfRange");
+  it("reports a debt outside the facade's debtLimits", () => {
+    expect(codes(check(adjust({ totalDebt: und(10n ** 30n) })))).toEqual([
+      "debtOutOfRange",
+    ]);
   });
 
   it("checks the wallet's side only when it is given balances", () => {
@@ -350,16 +364,19 @@ describe("checkOperation", () => {
       ],
     });
 
-    expect(check(preview)).toBeNull();
+    expect(check(preview)).toEqual([]);
 
-    const issues = check(preview, {
-      balances: new AddressMap<bigint>([[WETH, 1n]]),
-    });
-    expect(issues?.code).toBe("insufficientBalance");
+    expect(
+      codes(
+        check(preview, {
+          balances: new AddressMap<bigint>([[WETH, 1n]]),
+        }),
+      ),
+    ).toEqual(["insufficientBalance"]);
   });
 
   it("judges a delayed operation on the half that executes now", () => {
-    const issues = checkOperation({
+    const errors = checkOperation({
       sdk,
       preview: {
         operation: "DelayedCreditAccountOperation",
@@ -372,31 +389,40 @@ describe("checkOperation", () => {
       } as never,
     });
 
-    expect(issues?.code).toBe("debtOutOfRange");
+    expect(codes(errors)).toEqual(["debtOutOfRange"]);
   });
 
-  it("reports the most fundamental issue when several would fire", () => {
+  it("orders what it found, most fundamental first", () => {
     const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
     const paused = vi.spyOn(suite, "isPaused", "get").mockReturnValue(true);
 
-    // A paused market, a debt outside debtLimits and a factor under the bar at once:
-    // the market's own state is the one a caller can do nothing about.
+    // A paused market, a debt outside debtLimits and a factor under the
+    // threshold at once: the market's own state is the one a caller can do
+    // nothing about, so it leads.
     expect(
-      check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
-        minHealthFactor: 10_101,
-      })?.code,
-    ).toBe("creditManagerPaused");
+      codes(
+        check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
+          minHealthFactor: 10_101,
+        }),
+      ),
+    ).toEqual([
+      "creditManagerPaused",
+      "debtOutOfRange",
+      "insufficientCollateral",
+    ]);
 
     paused.mockRestore();
 
     expect(
-      check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
-        minHealthFactor: 10_101,
-      })?.code,
-    ).toBe("debtOutOfRange");
+      codes(
+        check(adjust({ totalDebt: und(10n ** 30n), estHealthFactor: 1 }), {
+          minHealthFactor: 10_101,
+        }),
+      ),
+    ).toEqual(["debtOutOfRange", "insufficientCollateral"]);
   });
 
-  it("refuses a token the market forbids the operation to obtain", () => {
+  it("reports a token the market forbids the operation to obtain", () => {
     const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
     const forbidden = vi
       .spyOn(suite, "forbiddenTokens", "get")
@@ -409,12 +435,15 @@ describe("checkOperation", () => {
         }),
       );
 
-    // Only a balance that grows is refused; the market tolerates one that shrinks.
-    expect(gained(1n)).toMatchObject({
-      code: "forbiddenToken",
-      token: expect.objectContaining({ address: WETH }),
-    });
-    expect(gained(0n)).toBeNull();
+    // Only a balance that grows is reported; the market tolerates one that
+    // shrinks.
+    expect(gained(1n)).toMatchObject([
+      {
+        code: "forbiddenToken",
+        token: expect.objectContaining({ address: WETH }),
+      },
+    ]);
+    expect(gained(0n)).toEqual([]);
     forbidden.mockRestore();
   });
 
@@ -435,31 +464,33 @@ describe("checkOperation", () => {
         }),
       );
 
-    expect(asking(room)).toBeNull();
-    expect(asking(room + 1n)?.code).toBe("quotaLimitReached");
+    expect(asking(room)).toEqual([]);
+    expect(codes(asking(room + 1n))).toEqual(["quotaLimitReached"]);
   });
 
   it("counts a token the market quotes nothing for as no collateral", () => {
     // The same reading the engine's guard takes: no ceiling was measured.
-    const issues = check(
-      adjust({
-        quotasChange: [
-          { token: toToken(sdk, WETH), value: 1n, valueUsd: null },
-        ],
-      }),
-    );
-
-    expect(issues).toMatchObject({
-      code: "quotaLimitReached",
-      requested: undefined,
-    });
+    expect(
+      check(
+        adjust({
+          quotasChange: [
+            { token: toToken(sdk, WETH), value: 1n, valueUsd: null },
+          ],
+        }),
+      ),
+    ).toMatchObject([
+      {
+        code: "quotaLimitReached",
+        requested: undefined,
+      },
+    ]);
   });
 
-  it("leaves a close alone: the bars do not weigh a wound-down account", () => {
+  it("leaves a close alone: the thresholds do not weigh a wound-down account", () => {
     // Close and repay now carry a projection, but the loan is gone, so the
-    // health-factor bars would no-op. Only the market's own state can refuse
-    // one, and this fixture's market is live.
-    const issues = checkOperation(
+    // health-factor thresholds would no-op. Only the market's own state can
+    // stop one, and this fixture's market is live.
+    const errors = checkOperation(
       {
         sdk,
         preview: {
@@ -474,7 +505,7 @@ describe("checkOperation", () => {
       { minHealthFactor: 10_101, minSafeHealthFactor: 10_000 },
     );
 
-    expect(issues).toBeNull();
+    expect(errors).toEqual([]);
   });
 });
 
@@ -521,24 +552,26 @@ describe("checkOperation — pool operations", () => {
     }) as PoolPositionOperationPreview;
 
   it("passes a deposit into a live pool", () => {
-    expect(checkOperation({ sdk, preview: deposit() })).toBeNull();
+    expect(checkOperation({ sdk, preview: deposit() })).toEqual([]);
   });
 
   it("checks what the wallet puts in when it is given balances", () => {
-    const issues = checkOperation(
+    const errors = checkOperation(
       { sdk, preview: deposit() },
       { balances: new AddressMap<bigint>([[WSTETH, 1n]]) },
     );
 
-    expect(issues).toMatchObject({
-      code: "insufficientBalance",
-      required: expect.objectContaining({ value: 10n ** 18n }),
-      held: expect.objectContaining({ value: 1n }),
-    });
+    expect(errors).toMatchObject([
+      {
+        code: "insufficientBalance",
+        required: expect.objectContaining({ value: 10n ** 18n }),
+        held: expect.objectContaining({ value: 1n }),
+      },
+    ]);
   });
 
   it("blocks a malformed pool transaction the same way", () => {
-    const issues = checkOperation({
+    const errors = checkOperation({
       sdk,
       preview: deposit({
         warning: {
@@ -550,18 +583,18 @@ describe("checkOperation — pool operations", () => {
       }),
     });
 
-    expect(issues?.code).toBe("malformedTransaction");
+    expect(codes(errors)).toEqual(["malformedTransaction"]);
   });
 
   it("lets a withdrawal out of a pool that takes no more deposits", () => {
     // Sunset is curated per chain; this fixture's pool is not on the list, so
     // the check stands down for both directions — what it must never do is
-    // refuse a withdrawal.
+    // stop a withdrawal.
     const withdraw = deposit({ operation: "Withdraw" });
-    expect(checkOperation({ sdk, preview: withdraw })).toBeNull();
+    expect(checkOperation({ sdk, preview: withdraw })).toEqual([]);
   });
 
-  it("refuses a withdrawal the pool exactly holds, and serves one below it", () => {
+  it("stops a withdrawal the pool exactly holds, and serves one below it", () => {
     const { availableLiquidity } =
       sdk.marketRegister.findByPool(POOL).pool.pool;
 
@@ -578,10 +611,10 @@ describe("checkOperation — pool operations", () => {
         }),
       });
 
-    expect(withdraw(availableLiquidity)?.code).toBe(
+    expect(codes(withdraw(availableLiquidity))).toEqual([
       "insufficientPoolLiquidity",
-    );
-    expect(withdraw(availableLiquidity - 1n)).toBeNull();
+    ]);
+    expect(withdraw(availableLiquidity - 1n)).toEqual([]);
   });
 
   it("does not weigh the pool's liquidity against a deposit", () => {
@@ -599,6 +632,6 @@ describe("checkOperation — pool operations", () => {
           },
         }),
       }),
-    ).toBeNull();
+    ).toEqual([]);
   });
 });
