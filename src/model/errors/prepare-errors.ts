@@ -54,7 +54,7 @@ export function unsupportedTokenPair(
 
 /**
  * The intent cannot settle with a delay: the source has no redemption config,
- * the chain has no compressor, or the payout is one the tail cannot serve.
+ * the chain has no compressor, or the tail cannot serve the token asked for.
  **/
 export interface NoDelayedRouteError extends IGearboxError {
   code: "noDelayedRoute";

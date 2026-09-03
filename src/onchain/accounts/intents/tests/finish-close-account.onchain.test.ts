@@ -146,7 +146,7 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
     expect(state.quotas).toEqual([]);
   });
 
-  it("nothing left to route: the claim alone settles and pays out", async () => {
+  it("nothing left to route: the claim alone settles and withdraws", async () => {
     const result = await run({
       redeemed: TVL_BEFORE,
       claimedToken: UND,

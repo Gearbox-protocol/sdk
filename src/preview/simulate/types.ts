@@ -38,7 +38,7 @@ export interface PoolOperationSimulationResult {
    *
    * Deposit/mint: shares minted (or zapper output); `withdrawFee` does not apply.
    *
-   * Withdraw/redeem: underlying paid out. On withdraw, the requested amount;
+   * Withdraw/redeem: underlying withdrawn. On withdraw, the requested amount;
    * on redeem, `previewRedeem` after `withdrawFee`.
    **/
   amountOut: bigint;

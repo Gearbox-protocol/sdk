@@ -273,8 +273,8 @@ describe("planRepay — funding in, debt down, position untouched", () => {
   });
 });
 
-describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
-  it("[INV-3] S=U, T=U: one identity leg, repay keeps the payout aside", () => {
+describe("planWithdraw — withdrawal leaves, debt shrinks in proportion", () => {
+  it("[INV-3] S=U, T=U: one identity leg, repay keeps the withdrawal aside", () => {
     const v = view({ debt: 1_000n, balances: { [U]: 2_000n } });
     expect(planWithdraw({ amount: 100n, to: WALLET }, v)).toEqual([
       { kind: "convert", from: U, to: U, amount: 200n },
@@ -293,7 +293,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
     ]);
   });
 
-  it("[INV-3] S=T, T=T2: independent debt and payout legs", () => {
+  it("[INV-3] S=T, T=T2: independent debt and withdrawal legs", () => {
     expect(
       planWithdraw(
         { amount: 100n, to: WALLET, sourceToken: T, tokenOut: T2 },
@@ -307,7 +307,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
     ]);
   });
 
-  it("[INV-5] S=T=payout: the payout leg is an identity", () => {
+  it("[INV-5] S=T=tokenOut: the withdrawal leg is an identity", () => {
     expect(
       planWithdraw(
         { amount: 100n, to: WALLET, sourceToken: T, tokenOut: T },
@@ -365,7 +365,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
     );
   });
 
-  it("[INV-3] the exit can be redeemed too: the whole source, no payout named", () => {
+  it("[INV-3] the exit can be redeemed too: the whole source, no withdrawal named", () => {
     expect(
       planWithdrawDelayed({ amount: 1_000n, to: WALLET, sourceToken: T }, twoX),
     ).toEqual([

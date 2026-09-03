@@ -319,7 +319,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   /**
    * An underlying-denominated amount, as the projection reports one. On these
    * markets the pool holds a compliance wrapper, and the figure has to name the
-   * asset behind it — the same token the wallet is paid out in.
+   * asset behind it — the same token the wallet receives.
    */
   const und = (value: unknown) => ({
     token: expect.objectContaining({ address: spec.withdrawToken }),

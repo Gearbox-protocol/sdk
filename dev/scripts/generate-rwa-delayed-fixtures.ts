@@ -779,7 +779,7 @@ async function claimWithResume({
   const operations: EncodableCreditAccountOperation[] = [];
   let repayAvailable: bigint;
   if (claimToken === cm.underlying) {
-    // Midas market: the claim pays out in the pool underlying (USDC), so
+    // Midas market: the claim settles in the pool underlying (USDC), so
     // the claim proceeds minus the reserved withdrawal repay debt directly,
     // without any router swap - same composition as the frontend
     repayAvailable = claimedAmount - withdrawInClaimToken;

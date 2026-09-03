@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { checkPoolPayout } from "./checkPoolPayout.js";
+import { checkPoolLiquidity } from "./checkPoolLiquidity.js";
 import { UND } from "./testing/tokens.js";
 
-describe("checkPoolPayout", () => {
+describe("checkPoolLiquidity", () => {
   const at = (requested: bigint, available: bigint) =>
-    checkPoolPayout({ requested, available, underlying: UND });
+    checkPoolLiquidity({ requested, available, underlying: UND });
 
-  it("refuses a payout the pool exactly holds", () => {
+  it("refuses a withdrawal the pool exactly holds", () => {
     // Not `checkBorrowLimit`'s operator: equality is already a refusal here,
     // which is the rule the legacy withdrawal validator enforced.
     expect(at(100n, 100n)).toEqual([
@@ -20,7 +20,7 @@ describe("checkPoolPayout", () => {
     ]);
   });
 
-  it("serves a payout the pool has room above", () => {
+  it("serves a withdrawal the pool has room above", () => {
     expect(at(99n, 100n)).toEqual([]);
   });
 });

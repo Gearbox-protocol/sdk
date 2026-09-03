@@ -72,7 +72,7 @@ calldata that performs it.
 | `withdraw`    | `withdrawCollateral`                   | `withdrawCollateral(token, amount, to)`                | `all` flag encodes `MAX_UINT256`, i.e. "whatever the balance turns out to be" |
 | `sweep`       | `withdrawCollateral` per balance       | same, with the `all` flag                              | RWA wrapper is unwrapped first — it cannot leave the account              |
 | `clearQuotas` | `changeQuota`                          | `updateQuota(token, MIN_INT96)` per quoted token        | drops every quota; used by plans that end the loan                        |
-| `request`     | `startDelayedWithdrawal`               | compressor-provided request calls                      | the phantom token stands in for the payout until it matures               |
+| `request`     | `startDelayedWithdrawal`               | compressor-provided request calls                      | the phantom token stands in for the claim until it matures               |
 | `claim`       | `claimDelayedWithdrawal`               | compressor-provided claim calls                        | burns the phantom, credits the outputs                                    |
 
 Balances are tracked in a running ledger, so each leg sees what the previous
@@ -186,7 +186,7 @@ on the error beside it — `error.maxDebt`, `error.token`.
 | `insufficientBalance`       | non-positive amount, nothing to sell, net value already eaten by the debt   | `required`, `held`, `holderKind` where known |
 | `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      | `token` |
 | `unsupportedTokenPair`      | no pool route for the requested pair, or the pathfinder found no path        | `from`, `to` where the market named one |
-| `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a payout the tail cannot serve | `token` |
+| `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a withdrawal the tail cannot serve | `token` |
 | `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        | `token`, `venues` |
 | `withdrawalInProgress`      | a redemption of the asset is already in flight                              | `inFlight` |
 | `noRecordedIntent`          | a claim naming no operation to resume                                       | — |
@@ -205,7 +205,7 @@ contradiction — the safe factor is reported there as `safeHealthFactor`.
 
 `WITHDRAW` and `ADJUST_LEVERAGE` sell a position asset, and some assets only
 redeem through their issuer — a Securitize dsToken, a Mellow share — which
-answers now and pays out days later. `intentRoutes` quotes both from one
+answers now and settles days later. `intentRoutes` quotes both from one
 request; a route the account cannot take comes back `undefined` with its error.
 The pathfinder reverts rather than answering when it finds no path, and that
 revert is read as `unsupportedTokenPair` — otherwise an asset no pool trades

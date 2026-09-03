@@ -128,7 +128,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
       token: POS,
       amountIn: SPEND,
     });
-    // Both land in the same place — the payout made, the debt down by dD —
+    // Both land in the same place — the withdrawal made, the debt down by dD —
     // which is what makes them a choice rather than two operations. They part
     // on when: only the instant route has repaid anything by the time its
     // transaction is done.
@@ -153,8 +153,8 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
     expect(routes.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
-  it("returns the instant route alone when only its payout token is servable", async () => {
-    // A payout in the source token is fine for a swap and beyond the tail.
+  it("returns the instant route alone when only its withdrawal token is servable", async () => {
+    // A withdrawal in the source token is fine for a swap and beyond the tail.
     const routes = expectRoutes(
       await run(withVenue(), withdraw({ tokenOut: POS })),
     );
@@ -180,7 +180,7 @@ describe("withdraw.routes — both halves of the choice, in one call", () => {
       await run(withVenue(), withdraw({ amount: TVL_BEFORE })),
     );
 
-    // The exit records itself rather than a payout: the tail is rebuilt from
+    // The exit records itself rather than a withdrawal: the tail is rebuilt from
     // the account it finds, so there is nothing to name in advance.
     expect(routes.delayed?.delayed.record).toEqual({
       type: "CLOSE_ACCOUNT",

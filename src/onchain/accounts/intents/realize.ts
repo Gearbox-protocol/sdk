@@ -152,7 +152,7 @@ export async function realize(
    * Whether anything leaves the account, which is what makes the credit manager
    * judge the closing collateral check at safe prices.
    */
-  let paysOut = false;
+  let withdrawsCollateral = false;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
   const assertHolds = (token: Address, amount: bigint, what: string): void => {
@@ -339,7 +339,7 @@ export async function realize(
       case "withdraw": {
         const amount = amountOf(step.amount);
         assertHolds(step.token, amount, "withdraw");
-        paysOut = true;
+        withdrawsCollateral = true;
         push(
           buildWithdrawCollateralOperation({
             token: step.token,
@@ -382,7 +382,7 @@ export async function realize(
         );
         // What the venue will hand over when the claim lands: the queued amount,
         // in the token this config redeems into. The phantom stands in for that
-        // payout one for one, so only the decimals have to be reconciled.
+        // claim one for one, so only the decimals have to be reconciled.
         const queued = preview.outputs.find(o => o.isDelayed);
         delayed = {
           record: step.record,
@@ -420,7 +420,7 @@ export async function realize(
         // The wrapper of an RWA market cannot leave the account, so it is
         // unwrapped before the walk rather than during it — that way the raw
         // asset is swept once, whatever the account already held of it.
-        paysOut = true;
+        withdrawsCollateral = true;
         const wrapped = ledger.balanceOf(underlying);
         if (rwaAsset && wrapped > 0n) {
           push(
@@ -435,7 +435,7 @@ export async function realize(
           );
         }
         for (const { token, balance } of ledger.snapshot().assets) {
-          const payout = buildWithdrawCollateralOperation({
+          const withdrawal = buildWithdrawCollateralOperation({
             token,
             amount: balance,
             to: step.to,
@@ -448,7 +448,10 @@ export async function realize(
           });
           // The call names no amount, so it takes whichever balance the branch
           // it is applied to arrived at, and leaves the token at zero either way.
-          push(payout, { ...payout, amount: expected.balanceOf(token) });
+          push(withdrawal, {
+            ...withdrawal,
+            amount: expected.balanceOf(token),
+          });
         }
         break;
       }
@@ -533,9 +536,9 @@ export async function realize(
   assertCollateralised(
     sdk.positions.healthFactor(
       { ...snapshot, assets, totalValue: floor.totalValue },
-      { safePrices: paysOut },
+      { safePrices: withdrawsCollateral },
     ),
-    paysOut,
+    withdrawsCollateral,
   );
 
   // After the guards, so a refusal never waits on a measurement it will not report.

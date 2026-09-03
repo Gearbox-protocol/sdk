@@ -120,7 +120,7 @@ describe("withdraw.start — everything out, account left open", () => {
     expect(state.quotas).toEqual([]);
   });
 
-  it("gives the router every token at once, and pays out in one", async () => {
+  it("gives the router every token at once, and withdraws in one", async () => {
     const result = await run([
       caToken(POS, TVL_BEFORE, QUOTA_BEFORE),
       caToken(POS2, 5000000000n, 0n),
@@ -282,7 +282,7 @@ describe("withdraw.start — everything out, account left open", () => {
   it("can be started as a redemption: the whole source, nothing named", async () => {
     // The account's only asset redeems through its issuer, so the router has
     // nothing to sell — the exit has to begin as a request. It takes all of
-    // POS and writes down only where the leftovers go; there is no payout to
+    // POS and writes down only where the leftovers go; there is no withdrawal to
     // record, because at claim time the exit is rebuilt from the account.
     const result = await runDelayed();
 

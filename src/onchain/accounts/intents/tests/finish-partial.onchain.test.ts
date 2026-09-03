@@ -20,7 +20,7 @@ import type { ClaimRemainder, FinishIntentResult } from "../types.js";
  * Tails of a claim that brought only part of what the request queued.
  *
  * Every redemption venue the engine was written for answers whole: one request,
- * one claim, one tail. A legacy Mellow multivault does not — it pays out what
+ * one claim, one tail. A legacy Mellow multivault does not — it hands over what
  * its subvaults hold liquid and re-queues the rest — so the claim credits an
  * instant output *and* a delayed one, and the operation is not over when the
  * tail has run.
@@ -32,9 +32,9 @@ import type { ClaimRemainder, FinishIntentResult } from "../types.js";
  */
 
 const PHANTOM = POS2;
-/** What the request redeemed: the payout plus the repayment it deferred. */
+/** What the request redeemed: the withdrawal plus the repayment it deferred. */
 const SPEND = 500_000_000n;
-/** Payout promised to the wallet, 1U. */
+/** Withdrawal promised to the wallet, 1U. */
 const W = 100_000_000n;
 /** Repayment the leading half deferred, 4U. */
 const DD = 400_000_000n;
@@ -108,7 +108,7 @@ function ok(result: FinishIntentResult) {
   return result;
 }
 
-function paidOut(result: ReturnType<typeof ok>, token: Address): bigint {
+function withdrawn(result: ReturnType<typeof ok>, token: Address): bigint {
   let sum = 0n;
   for (const op of result.operations) {
     if (op.type === "withdrawCollateral" && op.token === token) {
@@ -141,10 +141,10 @@ describe("withdraw tail — a claim that matured in part", () => {
       }),
     );
 
-    // Half of the redemption is here, so half of the payout and half of the
+    // Half of the redemption is here, so half of the withdrawal and half of the
     // repayment are made — the withdrawal keeps the leverage it was asked to
     // keep, instead of paying the wallet in full now and deleveraging later.
-    expect(paidOut(result, UND)).toBe(W / 2n);
+    expect(withdrawn(result, UND)).toBe(W / 2n);
     expect(result.state.totalDebt.value).toBe(DEBT - DD / 2n);
     // And the other half is still in flight, in the phantom the claim minted.
     expect(assetBalance(result.state.assets, PHANTOM)).toBe(SPEND / 2n);
@@ -189,7 +189,7 @@ describe("withdraw tail — a claim that matured in part", () => {
       }),
     );
 
-    expect(paidOut(first, UND) + paidOut(second, UND)).toBe(W);
+    expect(withdrawn(first, UND) + withdrawn(second, UND)).toBe(W);
     expect(second.state.totalDebt.value).toBe(DEBT - DD);
     expect(assetBalance(second.state.assets, PHANTOM)).toBe(0n);
     expect(second.remainder).toBeUndefined();
@@ -230,7 +230,7 @@ describe("withdraw tail — a claim that matured in part", () => {
     );
 
     expect(result.remainder).toBeUndefined();
-    expect(paidOut(result, UND)).toBe(W);
+    expect(withdrawn(result, UND)).toBe(W);
     expect(result.state.totalDebt.value).toBe(DEBT - DD);
   });
 });

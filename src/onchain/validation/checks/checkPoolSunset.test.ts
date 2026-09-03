@@ -3,7 +3,7 @@ import { checkPoolSunset } from "./checkPoolSunset.js";
 import { POOL } from "./testing/tokens.js";
 
 describe("checkPoolSunset", () => {
-  it("refuses a deposit into a sunset pool but lets the payout through", () => {
+  it("refuses a deposit into a sunset pool but lets the withdrawal through", () => {
     expect(
       checkPoolSunset({ isSunset: true, isDeposit: true, pool: POOL }),
     ).toEqual([

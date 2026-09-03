@@ -556,12 +556,12 @@ describe("checkOperation — pool operations", () => {
   it("lets a withdrawal out of a pool that takes no more deposits", () => {
     // Sunset is curated per chain; this fixture's pool is not on the list, so
     // the check stands down for both directions — what it must never do is
-    // refuse a payout.
+    // refuse a withdrawal.
     const withdraw = deposit({ operation: "Withdraw" });
     expect(checkOperation({ sdk, preview: withdraw })).toBeNull();
   });
 
-  it("refuses a payout the pool exactly holds, and serves one below it", () => {
+  it("refuses a withdrawal the pool exactly holds, and serves one below it", () => {
     const { availableLiquidity } =
       sdk.marketRegister.findByPool(POOL).pool.pool;
 

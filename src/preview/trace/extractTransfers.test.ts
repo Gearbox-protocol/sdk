@@ -367,7 +367,7 @@ describe("mocked events", () => {
     });
 
     it("transfers in a liquidation tx are not flagged as direct (in or out)", () => {
-      // The seized-collateral payout to the liquidator is an outbound transfer
+      // The seized collateral sent to the liquidator is an outbound transfer
       // outside any multicall range; it belongs to the liquidation, not a
       // borrower withdrawal, so it (and any inbound leg) must be suppressed.
       const logs = mockLogs(() => [

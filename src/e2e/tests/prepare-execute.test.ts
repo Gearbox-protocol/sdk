@@ -676,17 +676,17 @@ describe("prepare → execute on a mainnet fork", () => {
           slippage: S,
         }),
       );
-      // one route for the whole position, and the payout is the underlying it
+      // one route for the whole position, and the withdrawal is the underlying it
       // was sold into
       const swaps = sim.data.operations.filter(op => op.type === "swap");
       expect(swaps).toHaveLength(1);
       expect(swaps[0]?.from.map(a => a.token.toLowerCase())).toEqual([
         TARGET_TOKEN.toLowerCase(),
       ]);
-      const payouts = sim.data.operations.filter(
+      const withdrawals = sim.data.operations.filter(
         op => op.type === "withdrawCollateral",
       );
-      expect(payouts.map(op => op.token.toLowerCase())).toEqual([
+      expect(withdrawals.map(op => op.token.toLowerCase())).toEqual([
         underlying.toLowerCase(),
       ]);
       expect(preview.totalDebt.value).toBe(0n);
@@ -704,7 +704,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
       expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
       expect(after.tokens.filter(t => t.balance > 1n)).toEqual([]);
-      // the payout names no amount, so the wallet gets whatever is left once the
+      // the withdrawal names no amount, so the wallet gets whatever is left once the
       // loan is settled. The projection is a floor twice over — the route's
       // slippage and the interest the `full` repayment reserves — so the only
       // ceiling that holds is the position's own worth before it was sold
@@ -715,7 +715,7 @@ describe("prepare → execute on a mainnet fork", () => {
           functionName: "balanceOf",
           args: [borrower],
         })) - before;
-      expect(paid).toBeGreaterThanOrEqual(payouts[0]?.amount ?? 0n);
+      expect(paid).toBeGreaterThanOrEqual(withdrawals[0]?.amount ?? 0n);
       expect(paid).toBeLessThanOrEqual(totalValue);
     });
   });
@@ -1279,7 +1279,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // redeem is denominated in shares, so that side of it is exact
       expect(held - (await balance(shares))).toBe(burned);
       // the underlying is the loaded-block rate applied to those shares. The
-      // send lands a block later, and a share only ever grows, so the payout is
+      // send lands a block later, and a share only ever grows, so the withdrawal is
       // that figure or a hair above it — never below.
       const paid = (await balance(USDC)) - before;
       const promised = sim.data.state.tokenOut.value;

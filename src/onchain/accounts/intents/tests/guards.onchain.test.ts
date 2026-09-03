@@ -230,14 +230,14 @@ describe("collateral check — where the transaction has to end", () => {
 
   it("does not judge the underlying at its reserve feed", async () => {
     // 600 UND left is comfortable at the main price of 2, and the credit
-    // manager always prices the underlying at main even on a payout.
+    // manager always prices the underlying at main even on a withdrawal.
     const result = await withUnderlying(40000000000n, {
       reservePrices: { [UND]: toBN("1.5", 8) },
     });
     expect(result.ok).toBe(true);
   });
 
-  it("judges a non-underlying payout at the lower of the two feeds", async () => {
+  it("judges a non-underlying withdrawal at the lower of the two feeds", async () => {
     // POS at $2 main covers the debt; at $1 reserve it does not, so even a
     // wei leaving is refused.
     expectPreviewError(

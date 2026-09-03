@@ -296,7 +296,7 @@ async function fulfillMidasRedeemer(
     `midas: redeemer ${redeemer}, vault ${midasRedemptionVault}, tokenOut ${tokenOut}, mToken rate ${mTokenRate}`,
   );
 
-  // fund the vault's request redeemer with tokenOut so that it can pay out
+  // fund the vault's request redeemer with tokenOut so that it can settle
   // on request approval (additive to its current balance)
   const topUp = 1_000_000n * 10n ** BigInt(tokenOutDecimals);
   const requestRedeemerBalance = await anvil.readContract({

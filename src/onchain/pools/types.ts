@@ -170,8 +170,8 @@ export interface PoolSimulation {
    **/
   zapper?: Address;
   /**
-   * Withdrawals only: underlying the pool can actually pay out right now,
-   * shaved by a hair so a withdrawal sized against it does not fail on rounding.
+   * Withdrawals only: underlying the pool can actually hand over right now,
+   * trimmed slightly so a withdrawal sized against it does not fail on rounding.
    *
    * The conversion is a rate, not a promise that the pool is liquid enough, so
    * compare `tokenOut.value` against `availableLiquidity.value` to see if the

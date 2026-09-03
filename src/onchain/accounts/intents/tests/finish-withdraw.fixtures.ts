@@ -149,7 +149,7 @@ export function buildWithdrawFinishProps(args: {
 // never emit the changeQuota op the matrix expects. These cases claim through
 // `POS2` — 1:1 with `POS` and quotable — whose quota the leading half bought,
 // and keep their own baseline economics: 10A of position against 8U of debt,
-// with the 4.3 start having redeemed 5A (payout 1U plus repayment 4U).
+// with the 4.3 start having redeemed 5A (withdrawal 1U plus repayment 4U).
 
 const M4_LT = 9200n;
 /** Quota the matrix cases give a balance: balance * LT / PERCENTAGE_FACTOR. */
@@ -157,11 +157,11 @@ const m4QuotaOf = (balance: bigint) => (balance * M4_LT) / 10000n;
 
 /** Matrix baseline debt: 8U. */
 export const M4_DEBT = 800000000n;
-/** Matrix payout W: 1U. */
+/** Matrix withdrawal W: 1U. */
 export const M4_W = 100000000n;
 /** Proportional repayment `dD = D0 * W / C0` = 4U. */
 export const M4_DD = 400000000n;
-/** Payout plus repayment: 5U redeemed by the leading half. */
+/** Withdrawal plus repayment: 5U redeemed by the leading half. */
 export const M4_SPEND = M4_W + M4_DD;
 /** Quotable withdrawal phantom: `POS2`, 1:1 with `POS`. */
 export const M4_PHANTOM = POS2;
@@ -208,10 +208,10 @@ function m4PhantomQuotaResetOp(): ExpectedFlowOp {
 /**
  * Matrix 4.3 tail — the claim pays `UND` directly.
  *
- * MATRIX MISMATCH: the matrix pays out first — `claim →
+ * MATRIX MISMATCH: the matrix withdraws first — `claim →
  * withdrawCollateral(min(W, claim.amount)) → decreaseDebt(rest) →
- * changeQuota`. The engine repays before paying out (`repay(debtRepaid,
- * keep: W)` precedes the payout leg in `planFinishWithdraw`):
+ * changeQuota`. The engine repays before withdrawing (`repay(debtRepaid,
+ * keep: W)` precedes the withdrawal leg in `planFinishWithdraw`):
  * `claim → decreaseDebt(dD) → withdrawCollateral(W) → changeQuota`.
  * Amounts are identical; only the order differs.
  */
@@ -239,7 +239,7 @@ export const case_matrix_4_4_tail: MatrixWithdrawTailCase = {
   claimedToken: ANY,
   claimedAmount: M4_CLAIM_ANY,
   // The echoed swap output (10e18 "UND") never leaves the account beyond the
-  // 5U consumed by repayment and payout, so TVL reads inflated — a known
+  // 5U consumed by repayment and withdrawal, so TVL reads inflated — a known
   // artifact of the echo router on a non-1:1 pair.
   totalValue: M4_ECHO_TVL,
   ops: [
@@ -258,7 +258,7 @@ export const case_matrix_4_4_tail: MatrixWithdrawTailCase = {
 };
 
 /**
- * Matrix 4.5 tail — 4.3 on the RWA market: unwrap before the payout.
+ * Matrix 4.5 tail — 4.3 on the RWA market: unwrap before the withdrawal.
  *
  * MATRIX MISMATCH: same ordering divergence as 4.3 — the matrix expects
  * `claim → unwrapRwaCollateral → withdrawCollateral(RWA) → decreaseDebt →

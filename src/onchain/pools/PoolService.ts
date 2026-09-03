@@ -37,10 +37,10 @@ const LIQUIDITY_SAFETY_NUM = 99_999n;
 const LIQUIDITY_SAFETY_DENOM = 100_000n;
 
 /**
- * What the pool can actually pay out right now, shaved by a hair so a
+ * The most the pool can actually hand over right now, trimmed slightly so a
  * withdrawal sized against it does not fail on rounding.
  **/
-function payoutCeiling(market: MarketSuite): Amount {
+function withdrawableLiquidity(market: MarketSuite): Amount {
   const { pool } = market;
   return market.priceOracle.toAmount(
     pool.underlying,
@@ -269,7 +269,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       ),
       tokenOut: toTokenAmount(tokenOut, amount),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity: payoutCeiling(market),
+      availableLiquidity: withdrawableLiquidity(market),
     };
   }
 
@@ -299,7 +299,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
           PERCENTAGE_FACTOR,
       ),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity: payoutCeiling(market),
+      availableLiquidity: withdrawableLiquidity(market),
     };
   }
 

@@ -230,7 +230,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * while its health factor stays at `targetHF` — the ceiling a
    * withdraw-collateral form should offer. Thresholds, prices and quota
    * activity come from the account's market, valued the way the facade values
-   * a call that pays out; zero debt frees the whole balance.
+   * a call that withdraws collateral; zero debt frees the whole balance.
    *
    * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
    * account to.
@@ -260,8 +260,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * Sits apart from {@link startIntent} because it is a different trade route,
    * not a different intent: the request goes to the issuer instead of the
-   * router, and the proceeds — hence the repayment and the payout — arrive days
-   * later. Both routes of one intent are quoted together by
+   * router, and what it sells for — hence the repayment and the withdrawal —
+   * arrives days later. Both routes of one intent are quoted together by
    * {@link intentRoutes}; this is the one to call when the delayed route is the
    * only one of interest.
    *
@@ -421,7 +421,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * catch up.
    *
    * A claim that brought only part of what the request queued — a legacy Mellow
-   * multivault, which pays out what it holds liquid and re-queues the rest — is
+   * multivault, which hands over what it holds liquid and re-queues the rest — is
    * served in proportion, and what it did not settle comes back as `remainder`:
    * the withdrawal still in flight and the intent to finish it with.
    *

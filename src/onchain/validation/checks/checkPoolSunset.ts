@@ -8,7 +8,7 @@ export interface PoolSunsetArgs {
   pool: Address;
 }
 
-/** A pool winding down still pays out, so only what puts money in is refused. */
+/** A pool winding down still serves withdrawals, so only what puts money in is refused. */
 export function checkPoolSunset(args: PoolSunsetArgs): PoolSunsetError[] {
   return args.isSunset && args.isDeposit ? [poolSunset(args.pool)] : [];
 }

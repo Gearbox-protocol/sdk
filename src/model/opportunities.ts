@@ -50,7 +50,7 @@ export interface PointsProgram {
 }
 
 /**
- * Rewards paid out in a token, e.g. a liquidity mining program.
+ * Rewards in a token, e.g. a liquidity mining program.
  **/
 export interface TokenRewards {
   kind: "token";

@@ -152,7 +152,7 @@ describe("PrepareApi.withdraw", () => {
       ),
     );
 
-    // the fake burns 100 shares for the payout, off the 200 held
+    // the fake burns 100 shares for the withdrawal, off the 200 held
     expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
     expect(prepared.state.curator).toEqual(CURATOR);
   });

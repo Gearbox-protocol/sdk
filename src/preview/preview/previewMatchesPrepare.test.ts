@@ -598,7 +598,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
     expect(preview.estLeverage).toBeCloseTo(1.6, 2);
   });
 
-  it("withdrawing at fixed leverage: the payout and the repayment come out of the position", async () => {
+  it("withdrawing at fixed leverage: the withdrawal and the repayment come out of the position", async () => {
     const { projected, preview } = await roundTrip(
       {
         type: "WITHDRAW",

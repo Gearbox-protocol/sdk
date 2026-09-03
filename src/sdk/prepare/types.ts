@@ -191,7 +191,7 @@ export interface StrategyResult {
  **/
 export interface FinalizeResult extends StrategyResult {
   /**
-   * What the claim did not bring, when the venue paid out part of the matured
+   * What the claim did not bring, when the venue settled part of the matured
    * withdrawal and left the rest of it queued — only a legacy Mellow multivault
    * does. `undefined` everywhere else, which is the normal case: one request,
    * one claim, one tail.
@@ -357,7 +357,7 @@ export interface WithdrawStrategyParams extends PrepareOptions {
    * see {@link IOpportunitiesPrepare.withdrawStrategy}.
    **/
   amount: bigint;
-  /** Wallet receiving the payout. */
+  /** Token recipient. */
   to: Address;
   /**
    * Token the wallet receives. Defaults to the market underlying, force-unwrapped
@@ -830,7 +830,7 @@ export interface IOpportunitiesPrepare {
    * Reports `noRecordedIntent` when the claim names no operation to resume.
    *
    * A claim can settle only part of what was queued — a legacy Mellow
-   * multivault pays out what it holds liquid and re-queues the rest — and then
+   * multivault hands over what it holds liquid and re-queues the rest — and then
    * the result serves that share and `remainder` says what is left, see
    * {@link FinalizeResult.remainder}.
    **/

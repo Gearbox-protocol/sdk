@@ -7,7 +7,7 @@ export interface PoolPausedArgs {
   pool: Address;
 }
 
-/** A paused pool neither takes deposits nor pays out. */
+/** A paused pool neither takes deposits nor serves withdrawals. */
 export function checkPoolPaused(args: PoolPausedArgs): PoolPausedError[] {
   return args.isPaused ? [poolPaused(args.pool)] : [];
 }

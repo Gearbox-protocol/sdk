@@ -48,7 +48,7 @@ export interface TailPlan {
  * tail as it is projected the moment the request is made.
  *
  * A claim that brought only part of what was queued is served in proportion,
- * see {@link partialTail}: the intent's payout and its repayment are cut to the
+ * see {@link partialTail}: the intent's withdrawal and its repayment are cut to the
  * share that arrived, and the rest of both is handed to the next claim.
  */
 export function planTail(args: {
@@ -102,12 +102,12 @@ const whole = (steps: Step[]): TailPlan => ({ steps, remainder: undefined });
 /**
  * The tail of a claim that settled only part of the withdrawal it matured.
  *
- * Only a legacy Mellow multivault answers one this way — it pays out what its
+ * Only a legacy Mellow multivault answers one this way — it hands over what its
  * subvaults hold liquid and queues the rest — and the engine cannot finish an
  * intent it has been given a fraction of the funds for. So the fraction is what
- * it serves: the payout and the repayment are cut in the proportion that
+ * it serves: the withdrawal and the repayment are cut in the proportion that
  * arrived, which keeps the withdrawal at the fixed leverage it was asked for
- * instead of paying the wallet out first and deleveraging a claim later, and
+ * instead of paying the wallet first and deleveraging a claim later, and
  * the untouched half of each is carried to the next claim by the remainder.
  *
  * Two intents cannot be served in part at all. An exit sells the account whole,
@@ -186,7 +186,7 @@ function partialTail(args: {
  * How much of the redemption this claim was: what it credited, over that plus
  * what it left queued.
  *
- * The phantom stands for its payout one for one — the same reading the request
+ * The phantom stands for its claim one for one — the same reading the request
  * side takes when it names the claim it expects — so only the decimals of the
  * two have to be reconciled before they can be added up.
  */
@@ -214,7 +214,7 @@ function part(amount: bigint, share: { got: bigint; of: bigint }): bigint {
  *
  * A request is only half a withdrawal, so the state it lands in is not the
  * answer to "what does this do to my position": the debt is still there, the
- * payout has not been made, and the position sits in a phantom token. What the
+ * withdrawal has not been made, and the position sits in a phantom token. What the
  * caller means is the far side — and that side can be walked now, because the
  * request already fixes the claim it will be finished from.
  *
@@ -275,7 +275,7 @@ export async function projectTail(args: {
 
 /**
  * The matured withdrawal the tail will be built from, as the request implies
- * it: the phantom it created is burned and the venue's payout takes its place.
+ * it: the phantom it created is burned and the claim takes its place.
  * It carries no claim calls — those are read from the chain when the claim is
  * real, and nothing here is going to be sent.
  */

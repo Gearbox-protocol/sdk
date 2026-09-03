@@ -21,7 +21,7 @@ import {
   case_pos_pos,
   case_pos_pos2,
   case_pos_und,
-  case_rwa_payout,
+  case_rwa_pos_und,
   case_und_pos,
   case_und_und,
   DEBT_AFTER,
@@ -60,7 +60,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     expect(state.totalValue.value - state.totalDebt.value).toBe(DEBT_AFTER);
   });
 
-  it("S=U, T=POS: repay, route the payout, withdraw it", async () => {
+  it("S=U, T=POS: repay, route the withdrawal, withdraw it", async () => {
     const state = await expectCase(case_und_pos, [
       CA_OP_CALLS.decreaseDebt,
       MOCK_ROUTER_CALL,
@@ -71,7 +71,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     expect(assetBalance(state.assets, POS)).toBe(0n);
   });
 
-  it("S=POS, T=U: a single swap funds both the payout and the repayment", async () => {
+  it("S=POS, T=U: a single swap funds both the withdrawal and the repayment", async () => {
     const state = await expectCase(case_pos_und, [
       MOCK_ROUTER_CALL,
       CA_OP_CALLS.decreaseDebt,
@@ -83,7 +83,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     expect(assetBalance(state.assets, UND)).toBe(0n);
   });
 
-  it("S=T=POS: only the repayment is routed, the payout goes out as-is", async () => {
+  it("S=T=POS: only the repayment is routed, the withdrawal goes out as-is", async () => {
     const state = await expectCase(case_pos_pos, [
       MOCK_ROUTER_CALL,
       CA_OP_CALLS.decreaseDebt,
@@ -94,7 +94,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     expect(assetBalance(state.assets, POS)).toBe(TVL_AFTER);
   });
 
-  it("S=POS, T=POS2: two independent legs, payout shortfall does not touch debt", async () => {
+  it("S=POS, T=POS2: two independent legs, withdrawal shortfall does not touch debt", async () => {
     const state = await expectCase(case_pos_pos2, [
       MOCK_ROUTER_CALL,
       CA_OP_CALLS.decreaseDebt,
@@ -107,8 +107,8 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     expect(assetBalance(state.assets, POS2)).toBe(0n);
   });
 
-  it("RWA market: the underlying payout is force-unwrapped to the asset", async () => {
-    await expectCase(case_rwa_payout, [
+  it("RWA market: the underlying withdrawal is force-unwrapped to the asset", async () => {
+    await expectCase(case_rwa_pos_und, [
       MOCK_ROUTER_CALL,
       CA_OP_CALLS.decreaseDebt,
       MOCK_RWA_UNWRAP_CALL,
@@ -135,7 +135,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     });
   });
 
-  it("names the payout: a partial withdrawal cannot empty the balance", async () => {
+  it("names the withdrawal: a partial withdrawal cannot empty the balance", async () => {
     const result = await run(case_und_und);
     if (!result.ok)
       throw new Error(`expected a preview, got ${result.error.code}`);
@@ -152,7 +152,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
     expectPreviewError(result, "insufficientBalance");
   });
 
-  it("rejects a source that cannot cover payout plus repayment", async () => {
+  it("rejects a source that cannot cover withdrawal plus repayment", async () => {
     const result = await run({
       ...case_pos_und,
       tokens: [
@@ -179,7 +179,7 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
 });
 
 describe("withdraw.start — test-matrix rows 4.1/4.2 (10U/8U at 5x)", () => {
-  // MATRIX MISMATCH (see case_matrix_4_1): the engine repays before paying out.
+  // MATRIX MISMATCH (see case_matrix_4_1): the engine repays before withdrawing.
   it("matrix 4.1: swap → decreaseDebt → withdrawCollateral → changeQuota, leverage held at 5x", async () => {
     const state = await expectCase(case_matrix_4_1, [
       MOCK_ROUTER_CALL,
@@ -193,8 +193,8 @@ describe("withdraw.start — test-matrix rows 4.1/4.2 (10U/8U at 5x)", () => {
     expect(state.totalValue.value - state.totalDebt.value).toBe(M4_W);
   });
 
-  // MATRIX MISMATCH (see case_matrix_4_2): the engine repays before paying out.
-  it("matrix 4.2: same on an RWA market, payout unwrapped on the way out", async () => {
+  // MATRIX MISMATCH (see case_matrix_4_2): the engine repays before withdrawing.
+  it("matrix 4.2: same on an RWA market, withdrawal unwrapped on the way out", async () => {
     await expectCase(case_matrix_4_2, [
       MOCK_ROUTER_CALL,
       CA_OP_CALLS.decreaseDebt,

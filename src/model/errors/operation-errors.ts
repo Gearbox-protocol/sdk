@@ -40,7 +40,7 @@ export function creditManagerPaused(
 }
 
 /**
- * The pool is paused: it neither takes deposits nor pays out.
+ * The pool is paused: it neither takes deposits nor serves withdrawals.
  **/
 export interface PoolPausedError extends IGearboxError {
   code: "poolPaused";
@@ -80,7 +80,7 @@ export function marketExpired(
 }
 
 /**
- * The pool is winding down: it still pays out, but takes no more deposits.
+ * The pool is winding down: it still serves withdrawals, but takes no more deposits.
  **/
 export interface PoolSunsetError extends IGearboxError {
   code: "poolSunset";

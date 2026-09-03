@@ -173,7 +173,7 @@ export class MarketSuite extends SDKConstruct {
 
   /**
    * Prices a figure already denominated in this market's underlying — a debt,
-   * a TVL, a payout — as the read model reports one.
+   * a TVL, a withdrawal — as the read model reports one.
    *
    * The token it names is {@link underlyingToken}, so an amount coming out of a
    * preview or a simulation carries the same identity as the one on a

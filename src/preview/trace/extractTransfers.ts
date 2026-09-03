@@ -110,7 +110,7 @@ export function extractTransfers(
   const ranges = buildOperationRanges(logs, creditFacade, creditAccount);
 
   // A liquidation puts all of this account's token movement under protocol
-  // control -- notably the seized-collateral payout to the liquidator, which is
+  // control -- notably the seized collateral sent to the liquidator, which is
   // emitted outside the multicall range. Those transfers belong to the
   // LiquidateCreditAccount operation, not to borrower-initiated deposits or
   // withdrawals, so direct-transfer detection is suppressed for the whole tx

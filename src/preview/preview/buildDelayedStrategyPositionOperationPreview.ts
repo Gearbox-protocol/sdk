@@ -110,11 +110,11 @@ function applyClaim(
 /**
  * `WITHDRAW_COLLATERAL` operation tail:
  * after the claim, `withdrawAmount` of `withdrawToken` goes to the
- * user's wallet and the rest of the claim proceeds repay the debt.
+ * user's wallet and the rest of the claim repays the debt.
  *
  * Tokens involved (Securitize ACRED redemption as the example):
- * - claim token (`request.claimToken`) - the token the claim pays out;
- *   redeeming ACRED pays out USDC.
+ * - claim token (`request.claimToken`) - the token the claim settles in;
+ *   redeeming ACRED settles in USDC.
  * - withdraw token (`intent.withdrawToken`) - the token the user receives
  *   in the wallet. It can be the claim token itself (withdraw USDC) or a
  *   different token (withdraw RLUSD, bought with the claimed USDC).
@@ -131,7 +131,7 @@ function applyClaim(
  * 2. If the account holds less than `withdrawAmount` of `withdrawToken`,
  *    buy the missing part with the claim-token balance. This happens when
  *    the withdraw token differs from the claim token: e.g. withdrawing
- *    RLUSD from a claim that paid out USDC - RLUSD is bought with the
+ *    RLUSD from a claim that settled in USDC - RLUSD is bought with the
  *    claimed USDC. If even the whole claim balance cannot cover it, spend
  *    all of it and withdraw whatever it buys.
  * 3. Convert the claim tokens still left into the underlying and repay the

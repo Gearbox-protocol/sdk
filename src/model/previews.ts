@@ -183,7 +183,7 @@ export interface PoolPositionOperationPreview {
    * In case of deposit, underlying for direct deposit, zapper input for zapper-routed deposit.
    * In case of withdraw, pool shares (diesel token) for direct withdraw or zapper token out.
    *
-   * On withdraw, this is the amount of shares burend that covers both the requested payout
+   * On withdraw, this is the amount of shares burned that covers both the requested withdrawal
    * and the fee.
    *
    * On redeem this is the shares from calldata, fee-free.

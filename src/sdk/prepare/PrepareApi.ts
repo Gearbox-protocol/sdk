@@ -283,7 +283,7 @@ export class PrepareApi
 
       return sdkOk<LpResult>({
         operations: [],
-        // a withdrawal burns the shares its payout costs
+        // a withdrawal burns the shares it costs
         state: await lpState(chain, pool.pool, params.wallet, state, {
           burns: state.tokenIn.value,
         }),

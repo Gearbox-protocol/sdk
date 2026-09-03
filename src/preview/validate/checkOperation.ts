@@ -25,8 +25,8 @@ import {
   checkForbiddenToken,
   checkFunding,
   checkMarketExpired,
+  checkPoolLiquidity,
   checkPoolPaused,
-  checkPoolPayout,
   checkPoolSunset,
   checkPreviewError,
   checkQuotaCount,
@@ -127,11 +127,11 @@ function poolIssues(
         pool: preview.pool,
       }),
     ) ||
-    // A payout is served out of what the pool actually holds.
+    // A withdrawal is served out of what the pool actually holds.
     (isDeposit
       ? null
       : first(
-          checkPoolPayout({
+          checkPoolLiquidity({
             requested: preview.tokenOut.value,
             available: market.pool.pool.availableLiquidity,
             underlying: preview.tokenOut.token,

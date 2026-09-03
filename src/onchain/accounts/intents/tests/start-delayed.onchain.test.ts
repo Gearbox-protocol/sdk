@@ -90,7 +90,7 @@ function run(
 }
 
 describe("withdraw.startDelayed — request now, settle after the delay", () => {
-  it("redeems payout plus repayment, and records what the tail owes", async () => {
+  it("redeems withdrawal plus repayment, and records what the tail owes", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET },
       buildSdk(),
@@ -104,7 +104,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(result.operations[0]).toMatchObject({
       type: "startDelayedWithdrawal",
       token: POS,
-      // W of payout plus the proportional dD of debt, priced into the source.
+      // W of withdrawal plus the proportional dD of debt, priced into the source.
       amountIn: 2n * W,
       settlement: "delayed",
     });
@@ -127,7 +127,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     // proceeds do not exist yet.
     expect(result.delayed.afterRequest.totalDebt.value).toBe(DEBT_BEFORE);
     expect(result.delayed.afterRequest.totalValue.value).toBe(TVL_BEFORE);
-    // Where the intent ends, though, is with the payout made and the debt down
+    // Where the intent ends, though, is with the withdrawal made and the debt down
     // by the dD the tail repays out of the claim.
     expect(result.state.totalDebt.value).toBe(DEBT_BEFORE - W);
     expect(result.state.totalValue.value).toBe(TVL_BEFORE - 2n * W);
@@ -149,7 +149,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(result.delayed.afterRequest.priceImpact).toBeUndefined();
   });
 
-  it("holds the payout back when the source is the payout token", async () => {
+  it("holds the withdrawal back when the source is the withdrawal token", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET, sourceToken: UND },
       buildSdk({ [UND]: [queued] }),
@@ -160,7 +160,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     if (!result.ok) {
       throw new Error("expected ok delayed preview");
     }
-    // Only the debt is redeemed: the payout is already in the right token and
+    // Only the debt is redeemed: the withdrawal is already in the right token and
     // stays on the account until the tail hands it over.
     expect(result.operations[0]).toMatchObject({
       type: "startDelayedWithdrawal",
@@ -229,7 +229,7 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(assetBalance(result.state.assets, PHANTOM)).toBe(0n);
   });
 
-  it("refuses a payout the tail cannot serve", async () => {
+  it("refuses a withdrawal the tail cannot serve", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET, tokenOut: POS },
       buildSdk(),
@@ -317,7 +317,7 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
   const M43_SPEND = M43_W + M43_DD;
   const quotaOf = (balance: bigint) => (balance * 9200n) / 10000n;
 
-  it("requests payout plus repayment, and records what the tail owes", async () => {
+  it("requests withdrawal plus repayment, and records what the tail owes", async () => {
     const sdk = buildSdk();
     const service = new CreditAccountOperationsService(sdk);
     const result = await service.startDelayedIntent({
@@ -354,7 +354,7 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
     // phantom holds the value in flight.
     expect(result.delayed.afterRequest.totalValue.value).toBe(M43_BALANCE);
     expect(result.delayed.afterRequest.totalDebt.value).toBe(M43_DEBT);
-    // The matrix's end state: 1U of value paid out and 4U of debt repaid.
+    // The matrix's end state: 1U of value withdrawn and 4U of debt repaid.
     expectAdjustPreview(result, {
       totalValue: M43_BALANCE - M43_SPEND,
       totalDebt: M43_DEBT - M43_DD,
@@ -382,7 +382,7 @@ describe("withdraw.startDelayed — matrix 4.3 (10U/8U at 5x)", () => {
 
 /** Each error carries the numbers a form would otherwise re-derive. */
 describe("withdraw.startDelayed — what each error names", () => {
-  it("a payout the tail cannot serve names the token asked for", async () => {
+  it("a withdrawal the tail cannot serve names the token asked for", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET, tokenOut: POS },
       buildSdk(),
