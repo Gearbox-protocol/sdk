@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 import { formatUnits, getAddress, isAddress } from "viem";
-import type { ChainId, Token, TokenAmount } from "../../model/index.js";
-import type { OnchainSDK } from "../../onchain/index.js";
-import { AddressMap, toBigInt } from "../../onchain/index.js";
-import { BigIntMath } from "../../onchain/utils/bigint-math.js";
+import type { ChainId, Token, TokenAmount } from "../model/index.js";
+import type { OnchainSDK } from "../onchain/index.js";
+import { AddressMap, toBigInt } from "../onchain/index.js";
+import { BigIntMath } from "../onchain/utils/bigint-math.js";
 import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
 
 /**

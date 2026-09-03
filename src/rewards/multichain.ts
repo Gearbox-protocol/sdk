@@ -1,11 +1,8 @@
 import type { Address } from "viem";
 import { getAddress } from "viem";
-import type { ChainId, DataResponse } from "../../model/index.js";
-import type { PluginsMap } from "../../onchain/index.js";
-import {
-  MultichainConstruct,
-  type MultichainSDK,
-} from "../../onchain/index.js";
+import type { ChainId, DataResponse } from "../model/index.js";
+import type { PluginsMap } from "../onchain/index.js";
+import { MultichainConstruct, type MultichainSDK } from "../onchain/index.js";
 import { fetchMerklUserRewards } from "./merkl-api.js";
 import type { MerklReward } from "./toMerklRewards.js";
 import { toMerklRewards } from "./toMerklRewards.js";

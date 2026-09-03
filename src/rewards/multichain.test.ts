@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Token } from "../../model/index.js";
-import type { MultichainSDK, NetworkType } from "../../onchain/index.js";
-import { chains } from "../../onchain/index.js";
+import type { Token } from "../model/index.js";
+import type { MultichainSDK, NetworkType } from "../onchain/index.js";
+import { chains } from "../onchain/index.js";
 import { MerklRequestFailedError } from "./errors.js";
 import { MERKL_API_KEY_HEADER } from "./merkl-api.js";
 import { getMerklRewardsMultichain } from "./multichain.js";

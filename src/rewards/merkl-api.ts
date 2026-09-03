@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { ChainId } from "../../model/index.js";
+import type { ChainId } from "../model/index.js";
 import { MerklRequestFailedError } from "./errors.js";
 
 export interface MerkleXYZUserRewardsV4 {

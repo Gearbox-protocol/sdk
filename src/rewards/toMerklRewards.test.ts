@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
-import type { Token } from "../../model/index.js";
+import type { Token } from "../model/index.js";
 import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
 import type { MerklRewardsSdk } from "./toMerklRewards.js";
 import { toMerklRewards } from "./toMerklRewards.js";
