@@ -102,6 +102,10 @@ const HUMAN_READABLE_TITLES: Partial<Record<string, string>> = {
     "hgETH\u00A0→\u00A0rsETH",
   ["0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f".toLowerCase() as Address]:
     "mEDGE\u00A0→\u00A0USDC",
+  ["0xc71219dca5a671aa6268ab8fb35e570bd72f372b".toLowerCase() as Address]:
+    "liUSD-1w\u00A0→\u00A0iUSD",
+  ["0xdc8e2bc5a360988f0eb6b70d42d7bfb0f72c1976".toLowerCase() as Address]:
+    "rsETH\u00A0→\u00A0WETH",
 
   ETHPlus: "ETH+",
 };
@@ -131,7 +135,11 @@ export class TokenData {
     this.name = payload.name;
 
     this.decimals = payload.decimals;
-    this.icon = payload.icon ?? TokenData.getTokenIcon(payload.symbol);
+    // Withdrawal phantoms can share a symbol; their address title identifies the pair.
+    const iconSymbol =
+      HUMAN_READABLE_TITLES[address]?.replace("\u00A0→\u00A0", "_> ") ??
+      payload.symbol;
+    this.icon = payload.icon ?? TokenData.getTokenIcon(iconSymbol);
 
     this.isPhantom = payload.isPhantom ?? false;
   }
