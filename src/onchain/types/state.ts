@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type { WithdrawalsState } from "../accounts/withdrawal-compressor/types.js";
 import type { MarketData, TokensMetaState } from "../base/index.js";
 import type { NetworkType } from "../chain/chains.js";
@@ -66,6 +67,11 @@ export interface GearboxState<Plugins extends PluginsMap = {}> {
    * were loaded
    **/
   withdrawals?: WithdrawalsState;
+  /**
+   * Withdrawable-asset caches of historical compressors, keyed by compressor
+   * address. These are read only to describe outstanding phantom tokens.
+   */
+  legacyWithdrawals?: Record<Address, WithdrawalsState>;
   /**
    * Per-plugin serialised state.
    **/

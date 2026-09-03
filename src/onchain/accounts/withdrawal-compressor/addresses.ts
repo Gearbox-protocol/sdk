@@ -28,6 +28,21 @@ const WITHDRAWAL_COMPRESSORS: Partial<
 };
 
 /**
+ * Historical compressors whose configuration still describes outstanding
+ * withdrawal phantoms. New requests use the current compressor above.
+ */
+const LEGACY_WITHDRAWAL_COMPRESSORS: Partial<
+  Record<NetworkType, WithdrawalCompressorLocation[]>
+> = {
+  Mainnet: [
+    {
+      address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
+      version: 310,
+    },
+  ],
+};
+
+/**
  * Returns the withdrawal compressor deployment for the given network,
  * or `undefined` if none is configured.
  * @param network - Network type.
@@ -37,4 +52,11 @@ export function getWithdrawalCompressorAddress(
   network: NetworkType,
 ): WithdrawalCompressorLocation | undefined {
   return WITHDRAWAL_COMPRESSORS[network];
+}
+
+/** Returns historical compressors needed to describe existing phantoms. */
+export function getLegacyWithdrawalCompressorAddresses(
+  network: NetworkType,
+): WithdrawalCompressorLocation[] {
+  return LEGACY_WITHDRAWAL_COMPRESSORS[network] ?? [];
 }

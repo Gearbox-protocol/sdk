@@ -10,6 +10,7 @@ import {
 import type { HttpRpcClientOptions } from "viem/utils";
 import {
   CreditAccountsServiceV310,
+  createLegacyWithdrawalCompressors,
   createRedemptionLogger,
   createWithdrawalCompressor,
   type ICreditAccountsService,
@@ -259,6 +260,7 @@ export class OnchainSDK<
   #marketRegister?: MarketRegister;
   #priceFeeds?: PriceFeedRegister;
   readonly #withdrawalCompressor?: IWithdrawalCompressorContract;
+  readonly #legacyWithdrawalCompressors: IWithdrawalCompressorContract[];
   #redemptionLogger?: IRedemptionLoggerContract;
 
   /**
@@ -330,6 +332,7 @@ export class OnchainSDK<
     this.opportunities = new OpportunitiesService(this);
     this.positions = new PositionsService(this);
     this.#withdrawalCompressor = createWithdrawalCompressor(this);
+    this.#legacyWithdrawalCompressors = createLegacyWithdrawalCompressors(this);
   }
 
   /**
@@ -504,6 +507,9 @@ export class OnchainSDK<
               ),
             ]
           : []),
+        ...this.#legacyWithdrawalCompressors.map(compressor =>
+          compressor.getLoadWithdrawableAssetsMulticall(force),
+        ),
         // only covers tokens whose data was not loaded yet
         this.tokensMeta.getLoadTokenDataMulticall(),
       ],
@@ -513,21 +519,30 @@ export class OnchainSDK<
   }
 
   /**
-   * Rewrites redemption phantom display symbols from the withdrawal
-   * compressor's source/target mapping. No-op when the compressor is missing
-   * or its assets cache has not been loaded.
+   * Rewrites redemption phantom display symbols from active and historical
+   * compressor source/target mappings.
    **/
   #renameRedemptionPhantoms(): void {
-    const compressor = this.#withdrawalCompressor;
-    if (!compressor?.state) {
+    // Current deployments are last, so they override a historical mapping for
+    // the same phantom token.
+    const compressors = [
+      ...this.#legacyWithdrawalCompressors,
+      this.#withdrawalCompressor,
+    ].filter(
+      (compressor): compressor is IWithdrawalCompressorContract =>
+        !!compressor?.state,
+    );
+    if (compressors.length === 0) {
       return;
     }
     this.tokensMeta.renameRedemptionPhantoms(
-      compressor.getWithdrawableAssets().map(a => ({
-        phantom: a.withdrawalPhantomToken,
-        source: a.token,
-        target: a.underlying,
-      })),
+      compressors.flatMap(compressor =>
+        compressor.getWithdrawableAssets().map(a => ({
+          phantom: a.withdrawalPhantomToken,
+          source: a.token,
+          target: a.underlying,
+        })),
+      ),
     );
   }
 
@@ -573,6 +588,12 @@ export class OnchainSDK<
 
     if (state.withdrawals) {
       this.#withdrawalCompressor?.hydrate(state.withdrawals);
+    }
+    for (const compressor of this.#legacyWithdrawalCompressors) {
+      const legacyState = state.legacyWithdrawals?.[compressor.address];
+      if (legacyState) {
+        compressor.hydrate(legacyState);
+      }
     }
 
     // applied after markets, RWA and zappers, whose entries it augments
@@ -651,6 +672,11 @@ export class OnchainSDK<
       tokens: this.tokensMeta.state,
       rwa: this.#rwa.state,
       withdrawals: this.#withdrawalCompressor?.state,
+      legacyWithdrawals: Object.fromEntries(
+        this.#legacyWithdrawalCompressors.flatMap(compressor =>
+          compressor.state ? [[compressor.address, compressor.state]] : [],
+        ),
+      ),
       plugins: Object.fromEntries(
         TypedObjectUtils.entries(this.plugins).map(([name, plugin]) => [
           name,

@@ -103,6 +103,28 @@ describe("TokensMeta", () => {
 
       expect(tokens.symbol(PHANTOM)).toBe("mGLOBALrdUSDC");
     });
+
+    it("lets an active mapping override an older mapping for the same phantom", () => {
+      const tokens = tokensMeta(chains.Mainnet);
+      const legacySource = getAddress(
+        "0x0000000000000000000000000000000000000001",
+      );
+      const legacyTarget = getAddress(
+        "0x0000000000000000000000000000000000000002",
+      );
+      tokens.upsert(legacySource, meta(legacySource, "legacy"));
+      tokens.upsert(legacyTarget, meta(legacyTarget, "oldUSDC"));
+      tokens.upsert(SOURCE, meta(SOURCE, "current"));
+      tokens.upsert(TARGET, meta(TARGET, "USDC"));
+      tokens.upsert(PHANTOM, meta(PHANTOM, "wdtoken"));
+
+      tokens.renameRedemptionPhantoms([
+        { phantom: PHANTOM, source: legacySource, target: legacyTarget },
+        { phantom: PHANTOM, source: SOURCE, target: TARGET },
+      ]);
+
+      expect(tokens.symbol(PHANTOM)).toBe("current -> USDC");
+    });
   });
 
   describe("unwrapRWA", () => {
