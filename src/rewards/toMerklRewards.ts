@@ -1,12 +1,10 @@
 import type { Address } from "viem";
 import { formatUnits, getAddress, isAddress } from "viem";
-import type { ChainId, Token, TokenAmount } from "../../model/index.js";
-import { AddressMap, type OnchainSDK, toBigInt } from "../../onchain/index.js";
-import { BigIntMath } from "../../onchain/utils/bigint-math.js";
-import {
-  MerkleXYZApi,
-  type MerkleXYZUserRewardsV4Response,
-} from "./merkl-api.js";
+import type { ChainId, Token, TokenAmount } from "../model/index.js";
+import type { OnchainSDK } from "../onchain/index.js";
+import { AddressMap, toBigInt } from "../onchain/index.js";
+import { BigIntMath } from "../onchain/utils/bigint-math.js";
+import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
 
 /**
  * One claimable Merkl liquidity-mining reward, denominated and priced.
@@ -32,64 +30,23 @@ export interface MerklReward {
   readonly amount: TokenAmount;
 }
 
-type ReportHandler = (e: unknown, description?: string) => void;
-
 /**
- * What this read needs off a chain's SDK: which chain to ask Merkl about, the
- * pools a campaign can be keyed on, and the registry that names their tokens.
- *
- * Sliced rather than taking the whole {@link OnchainSDK} so a caller can hand
- * over a narrowed object — a test fixture included — without casting.
+ * What the mapping needs off a chain's SDK: which chain the rows belong to,
+ * the pools a campaign can be keyed on, and the registry that names their
+ * tokens. Nothing else, and nothing asynchronous.
  */
 export type MerklRewardsSdk = Pick<
   OnchainSDK,
   "chainId" | "marketRegister" | "tokensMeta"
 >;
 
-export interface GetMerklRewardsProps {
-  /**
-   * The chain's SDK, attached. Reading `marketRegister` before attach throws,
-   * which the slice above cannot express.
-   */
-  sdk: MerklRewardsSdk;
-  account: Address;
-  reportError?: ReportHandler;
-  /** Raises Merkl's rate limit; the keyless path answers too. */
-  apiKey?: string;
-}
-
 /**
- * The wallet's claimable Merkl rewards on one chain.
- *
- * Never rejects on a transport failure: the fetch is settled rather than
- * awaited, and a failure goes to `reportError` and yields an empty list. A
- * caller that must tell "this chain is down" from "this chain has no rewards"
- * has to watch that callback.
+ * Merkl's answer for one chain, turned into rows of the read model.
  */
-export async function getMerklRewards({
-  sdk,
-  account,
-  reportError,
-  apiKey,
-}: GetMerklRewardsProps): Promise<MerklReward[]> {
-  const [merkleXYZLMResponse] = await Promise.allSettled([
-    MerkleXYZApi.fetchWithFallback<MerkleXYZUserRewardsV4Response>(
-      MerkleXYZApi.getUserRewardsUrl({
-        params: {
-          chainId: sdk.chainId,
-          user: getAddress(account),
-        },
-      }),
-      apiKey,
-    ),
-  ]);
-
-  const merkleXYZLm = extractFulfilled(
-    merkleXYZLMResponse,
-    reportError,
-    "merkleXYZLm",
-  )?.data;
-
+export function toMerklRewards(
+  sdk: MerklRewardsSdk,
+  response: MerkleXYZUserRewardsV4Response,
+): MerklReward[] {
   // A v3.1 pool is its own ERC-4626 share token, so its address is the only
   // token a campaign can name. An `AddressMap` owns the casing: a campaign
   // names the pool in whatever case it was registered with, and lookups here
@@ -105,7 +62,7 @@ export async function getMerklRewards({
   // the results would round every one of them.
   const claimable = new Map<string, Claimable>();
 
-  for (const chainRewards of merkleXYZLm || []) {
+  for (const chainRewards of response) {
     for (const reward of chainRewards.rewards) {
       // Guarding is what makes the maps safe to use: they checksum a key
       // before looking it up, and `getAddress("")` throws rather than missing.
@@ -123,9 +80,12 @@ export async function getMerklRewards({
         const pool = poolByItsToken.get(poolTokenAddress);
         if (!pool) continue;
 
-        const total = toBigInt(reason.amount || 0);
-        const claimed = toBigInt(reason.claimed || 0);
-        const amount = BigIntMath.max(total - claimed, 0n);
+        // Skipped like any other unusable row rather than thrown on: a single
+        // malformed breakdown must not sink the chain, which the caller would
+        // then be told is unreachable.
+        const amounts = toAmounts(reason);
+        if (!amounts) continue;
+        const amount = BigIntMath.max(amounts.total - amounts.claimed, 0n);
         if (amount === 0n) continue;
 
         const key = `${pool}_${rewardTokenAddress}`;
@@ -152,6 +112,24 @@ export async function getMerklRewards({
   }
 
   return [...claimable.values()].map(toReward);
+}
+
+/**
+ * `toBigInt` throws on anything `BigInt()` cannot parse, and Merkl's amounts
+ * are free-form strings.
+ */
+function toAmounts(reason: {
+  amount: string;
+  claimed: string;
+}): { total: bigint; claimed: bigint } | undefined {
+  try {
+    return {
+      total: toBigInt(reason.amount || 0),
+      claimed: toBigInt(reason.claimed || 0),
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 /** One row while its breakdowns are still being summed. */
@@ -197,20 +175,4 @@ function toRewardToken(
       decimals: merkl.decimals || 18,
     }
   );
-}
-
-function extractFulfilled<T>(
-  r: PromiseSettledResult<T>,
-  reportError?: ReportHandler,
-  description?: string,
-): T | undefined {
-  if (r.status === "fulfilled") {
-    return r.value;
-  }
-  if (reportError) {
-    reportError(r.reason, description);
-  } else {
-    console.error(r.reason);
-  }
-  return undefined;
 }

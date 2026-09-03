@@ -4,6 +4,80 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — wallet-wide Merkl rewards
+
+`getMerklRewards` is gone. Rewards are read for the whole wallet at once, and
+the read reports what happened on each chain.
+
+### Summary of changes
+
+- **`getMerklRewards`, `GetMerklRewardsProps` and its `reportError` callback removed.** Use `getMerklRewardsMultichain`, which fans out over the chains a `MultichainSDK` carries and answers the read model's `DataResponse` envelope.
+- **A chain that could not be reached is now distinguishable from one with nothing to claim.** The old call resolved an empty list either way and only whispered the difference through `reportError`; the new one reports `status: "error"` in `meta.chains` for the first and `status: "success"` with no rows for the second.
+- **The Merkl transport no longer uses `axios`.** It is `fetch`, with a per-attempt timeout and a fallback to the Angle mirror on a non-2xx as well as on a transport failure.
+- **`axios` is no longer a peer dependency.** Nothing in the SDK imports it any more, so consumers need not install it on the SDK's behalf. It still arrives transitively through `@redstone-finance/utils`, which is a regular dependency.
+- **The APY/points types and `PoolPointsAPI` are removed** — everything the `./rewards` entry point exported besides the Merkl read. See below.
+
+---
+
+### Read every chain at once instead of fanning out yourself
+
+**Before:**
+
+```typescript
+import { getMerklRewards, type MerklReward } from "@gearbox-protocol/sdk/rewards";
+
+const rewards: MerklReward[] = [];
+for (const chain of multichainSDK.chains.values()) {
+  rewards.push(
+    ...(await getMerklRewards({
+      sdk: chain,
+      account: wallet,
+      apiKey,
+      // the only way to learn a chain was down: it resolves `[]` regardless
+      reportError: error => report(chain.chainId, error),
+    })),
+  );
+}
+```
+
+**After:**
+
+```typescript
+import { getMerklRewardsMultichain } from "@gearbox-protocol/sdk/rewards";
+
+const { data, meta } = await getMerklRewardsMultichain({
+  sdk: multichainSDK,
+  wallet,
+  apiKey,
+});
+
+for (const chain of meta.chains) {
+  if (chain.status === "error") report(chain.chainId, chain.error);
+}
+```
+
+`chainIds` narrows the fan-out to a subset; omit it to ask every chain the
+handle carries. An id the handle has no chain for is dropped rather than
+reported — absence from `meta.chains` means the chain was never asked.
+
+---
+
+### The APY and points surface is gone
+
+Removed from `@gearbox-protocol/sdk/rewards`, with no replacement in the SDK:
+
+- the output schema — `Output`, `DataResult`, `GearAPY`, `GearAPYDetails`, `TokenOutputDetails`, `PoolOutputDetails`, `Apy`, `ApyDetails`, `FarmInfo`, `DebtReward`, `ExtraCollateralAPY`, `ExternalApy`, `PoolExtraApy`, `PointsReward`, `PointsInfo`, `PoolPointsInfo`, `ExtraCollateralPointsInfo`
+- the points helper — `PoolPointsAPI` (`getTotalTokensOnProtocol`, `getPointsByPool`), `PoolPointsBase`, `getKeyForPoolPointsInfo`, `GetPointsByPoolProps`, `GetTotalTokensOnProtocolProps`, `TokenData`
+
+None of it was reachable from the SDK's own read model: these types described the JSON the
+separate APY service publishes, and the helper called that service's `/v1/getBalanceAt` route
+directly. A consumer that still needs them should own them — the shape belongs to whoever
+produces the payload, not to the SDK, and at least one consumer already keeps its own copy.
+
+`./rewards` now exports the Merkl read and nothing else.
+
+---
+
 ## v14.x → v14.10
 
 > Despite being a minor bump, `v14.10.0` introduced consumer-visible breaking
