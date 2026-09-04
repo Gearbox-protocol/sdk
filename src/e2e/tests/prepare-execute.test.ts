@@ -3,8 +3,10 @@ import {
   erc20Abi,
   type Hex,
   http,
+  isAddressEqual,
   parseEventLogs,
   parseUnits,
+  toFunctionSelector,
 } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
@@ -13,6 +15,7 @@ import { isSDKError } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
+  LEVERAGE_DECIMALS,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
@@ -21,6 +24,7 @@ import {
   sendRawTx,
 } from "../../onchain/index.js";
 import { checkPrerequisites } from "../../preview/index.js";
+import { previewOperation } from "../../preview/preview/previewOperation.js";
 import type { PrepareRequest } from "../../sdk/index.js";
 import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
@@ -1285,6 +1289,92 @@ describe("prepare → execute on a mainnet fork", () => {
       const promised = sim.data.state.tokenOut.value;
       expect(paid).toBeGreaterThanOrEqual(promised);
       expect(paid).toBeLessThanOrEqual(promised + promised / 1_000_000n + 1n);
+    });
+  });
+  // Last on purpose. The repay legs above pin their send block to the sim's
+  // timestamp, and `setNextBlockTimestamp` cannot wind the clock back, so any
+  // block mined before them costs three wei of accrual and breaks their
+  // exact-value assertions.
+  describe("openNewStrategy — the empty opening", () => {
+    // Neither is read when `empty` is set; both are required by the params.
+    const EMPTY_OPEN = {
+      empty: true,
+      collateral: [],
+      leverage: LEVERAGE_DECIMALS,
+    };
+
+    /** Opens the empty account on the synced state and returns its address. */
+    async function openEmpty(): Promise<Address> {
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, EMPTY_OPEN);
+      if (!sim.ok) throw new Error(`empty open sim failed: ${sim.error.code}`);
+      const tx = await execute().buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: borrower,
+        sim,
+        collateral: [],
+        ethAmount: 0n,
+      });
+      const receipt = await mined(
+        await sendRawTx(wallet, { tx, gas: GAS_LIMIT }),
+      );
+      const [log] = parseEventLogs({
+        abi: iCreditFacadeV310Abi,
+        logs: receipt.logs,
+        eventName: "OpenCreditAccount",
+      });
+      return log.args.creditAccount;
+    }
+
+    it("opens an account that owes nothing and holds nothing", async () => {
+      const creditAccount = await openEmpty();
+      const data = await account(creditAccount);
+
+      expect(data.debt).toBe(0n);
+      expect(data.totalValue).toBe(0n);
+      expect(data.healthFactor).toBe(MAX_UINT256);
+    });
+
+    it("encodes no increaseDebt call", async () => {
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, EMPTY_OPEN);
+      if (!sim.ok) throw new Error(sim.error.code);
+      const tx = await execute().buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: borrower,
+        sim,
+        collateral: [],
+        ethAmount: 0n,
+      });
+
+      expect(tx.callData).not.toContain(
+        toFunctionSelector("increaseDebt(uint256)").slice(2),
+      );
+    });
+
+    it("lists the empty account as a position", async () => {
+      const creditAccount = await openEmpty();
+      const { data } = await gearbox.positions.onchain.list({
+        wallet: borrower,
+      });
+      const row = data.find(
+        p =>
+          p.kind === "strategy" &&
+          isAddressEqual(p.creditAccount, creditAccount),
+      );
+
+      expect(row, "the empty account must be listed").toBeDefined();
+      if (row?.kind !== "strategy") throw new Error("unreachable");
+      expect(row.totalDebt.value).toBe(0n);
+      expect(row.totalValue.value).toBe(0n);
+      // `healthFactorBps` maps the contracts' no-debt sentinel to 0 bps. Every
+      // reader of this field guards on the debt for that reason.
+      expect(row.healthFactor).toBe(0);
+      expect(row.targetCollateral).not.toBeNull();
     });
   });
 });

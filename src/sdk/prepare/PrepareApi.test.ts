@@ -13,13 +13,17 @@ import {
   buildFixtureCreditAccount,
   buildMarketSdk,
   CREDIT_ACCOUNT,
+  CREDIT_FACADE,
   CREDIT_MANAGER,
   caToken,
   POS,
   POS2,
   UND,
 } from "../../onchain/accounts/intents/testing/market.js";
-import { MAX_UINT256 } from "../../onchain/constants/math.js";
+import {
+  LEVERAGE_DECIMALS,
+  MAX_UINT256,
+} from "../../onchain/constants/math.js";
 import type { MultichainSDK } from "../../onchain/index.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
 import { PrepareApi } from "./PrepareApi.js";
@@ -229,6 +233,78 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
     },
   };
 }
+
+describe("PrepareApi.openNewStrategy — the empty opening", () => {
+  const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
+  const EMPTY = { empty: true, collateral: [], leverage: LEVERAGE_DECIMALS };
+
+  function api(extras?: MarketSdkExtras) {
+    const sdk = buildMarketSdk({ minDebt: MIN_DEBT, ...extras });
+    return {
+      api: new PrepareApi({ chain: () => sdk } as unknown as MultichainSDK),
+      sdk,
+    };
+  }
+
+  it("reaches a state that owes nothing, holds nothing and routes nothing", async () => {
+    const result = await api().api.openNewStrategy(STRATEGY, EMPTY);
+
+    if (!result.ok) throw new Error(result.error.code);
+    const { state } = result.data;
+    expect(state.totalDebt.value).toBe(0n);
+    expect(state.totalValue.value).toBe(0n);
+    expect(state.averageAssets).toEqual([]);
+    expect(state.minAssets).toEqual([]);
+    expect(state.averageQuota).toEqual([]);
+    expect(state.minQuota).toEqual([]);
+    expect(state.calls).toEqual([]);
+  });
+
+  it("never asks the router, which has no answer for an empty basket", async () => {
+    const { api: prepare, sdk } = api();
+
+    await prepare.openNewStrategy(STRATEGY, EMPTY);
+
+    expect(
+      vi.mocked(
+        sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
+      ),
+    ).not.toHaveBeenCalled();
+  });
+
+  it("refuses when the flag and the collateral disagree", async () => {
+    const withCollateral = await api().api.openNewStrategy(STRATEGY, {
+      ...EMPTY,
+      collateral: [{ token: UND, balance: 20000000000n }],
+    });
+
+    expect(withCollateral.ok).toBe(false);
+    if (withCollateral.ok) throw new Error("unreachable");
+    expect(withCollateral.error.code).toBe("emptyOpenTakesNothing");
+  });
+
+  it("still refuses an ordinary opening that supplies nothing", async () => {
+    const result = await api().api.openNewStrategy(STRATEGY, {
+      collateral: [],
+      leverage: 300n,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("insufficientSourceBalance");
+  });
+
+  it("refuses a paused market, the one guard it does run", async () => {
+    const result = await api({ facadePaused: true }).api.openNewStrategy(
+      STRATEGY,
+      EMPTY,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("marketPaused");
+  });
+});
 
 describe("PrepareApi — strategy flows reach the engine", () => {
   it("openNewStrategy leverages the wallet's margin into the target", async () => {

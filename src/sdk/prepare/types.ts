@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type {
   Bps,
+  CreditOperationMarket,
   Curator,
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
@@ -29,8 +30,11 @@ import type {
 import type {
   AccountFlowError,
   DebtOutOfRangeError,
+  EmptyOpenTakesNothingError,
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
+  MarketExpiredError,
+  MarketPausedError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -391,6 +395,16 @@ export interface OpenStrategyParams extends PrepareOptions {
   targetToken?: Address;
   /** Collateral to leave unswapped; everything else is routed into the target. */
   leftoverBalances?: Asset[];
+  /**
+   * Open the account holding nothing: no collateral, no debt, no quotas, and no
+   * route quoted. A wallet holds one so a position can be put on it later.
+   *
+   * {@link collateral} must be empty — the flag and the arguments have to
+   * agree. {@link leverage} and {@link targetToken} are not read: with no
+   * collateral the debt is zero at any leverage, and there is nothing to route
+   * anywhere.
+   **/
+  empty?: boolean;
 }
 
 export interface LpParams {
@@ -531,6 +545,7 @@ export interface IOpportunitiesPrepare {
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
+      | EmptyOpenTakesNothingError
     >
   >;
 

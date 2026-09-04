@@ -8,6 +8,7 @@ import type {
 import type {
   CreditAccountNotFoundError,
   DebtOutOfRangeError,
+  EmptyOpenTakesNothingError,
   ForbiddenTokenError,
   InsufficientCollateralError,
   InsufficientPoolLiquidityError,
@@ -83,6 +84,7 @@ describe("every prepare method names exactly its own refusals", () => {
         | UnsupportedTokenPairError
         | InsufficientPoolLiquidityError
         | NoStrategyTargetCollateralError
+        | EmptyOpenTakesNothingError
       >
     >();
   });

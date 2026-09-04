@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import type {
   Bps,
   ChainId,
@@ -41,8 +41,11 @@ import type { EnsureFreshChains } from "../types.js";
 import type {
   AccountFlowError,
   DebtOutOfRangeError,
+  EmptyOpenTakesNothingError,
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
+  MarketExpiredError,
+  MarketPausedError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -56,6 +59,7 @@ import type {
 } from "./errors.js";
 import {
   creditAccountNotFound,
+  emptyOpenTakesNothing,
   noStrategyTargetCollateral,
   toRefusalError,
   unexpectedFailure,
@@ -363,11 +367,30 @@ export class PrepareApi
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
+      | EmptyOpenTakesNothingError
     >
   > {
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
+      if (params.empty) {
+        // The flag and the arguments have to agree: taking this branch on the
+        // flag alone would silently drop collateral the caller meant to spend,
+        // or an account it meant to reuse.
+        if (params.collateral.length > 0) {
+          return sdkErr(emptyOpenTakesNothing());
+        }
+        // Nothing is routed, so a market with no strategy target can still
+        // hand out an account.
+        return opened(
+          await service(sdk).openStrategyIntent({
+            sdk,
+            creditManager: strategy.creditManager,
+            empty: true,
+          }),
+          at,
+        );
+      }
       const targetToken =
         params.targetToken ??
         sdk.marketRegister.findCreditManager(strategy.creditManager)

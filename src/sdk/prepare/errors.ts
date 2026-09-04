@@ -277,6 +277,13 @@ export interface CreditAccountNotFoundError extends IGearboxError {
 }
 
 /**
+ * An empty opening was asked for with collateral to spend on it.
+ **/
+export interface EmptyOpenTakesNothingError extends IGearboxError {
+  code: "emptyOpenTakesNothing";
+}
+
+/**
  * The SDK could not answer at all: a read that failed, a chain it is not
  * connected to, a market or token address it knows nothing about, a contract
  * that reverted where nothing should, a bug of ours.
@@ -424,6 +431,16 @@ export function creditAccountNotFound(
     code: "creditAccountNotFound",
     message: `Credit account not found: ${creditAccount}.`,
     creditAccount,
+  };
+}
+
+/**
+ * {@inheritDoc EmptyOpenTakesNothingError}
+ **/
+export function emptyOpenTakesNothing(): EmptyOpenTakesNothingError {
+  return {
+    code: "emptyOpenTakesNothing",
+    message: "An empty opening takes no collateral.",
   };
 }
 

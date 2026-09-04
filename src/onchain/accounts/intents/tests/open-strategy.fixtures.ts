@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import type { Asset, OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
-import type { OpenStrategyProps } from "../open-strategy.js";
+import type { OpenStrategyFunded } from "../open-strategy.js";
 import {
   ANY,
   buildMarketSdk,
@@ -115,7 +115,7 @@ export function buildOpenStrategySdk(extras?: MarketSdkExtras): OnchainSDK {
 export function buildOpenStrategyProps(
   c: OpenStrategyCase,
   sdk: OnchainSDK,
-): OpenStrategyProps {
+): OpenStrategyFunded {
   return {
     sdk,
     creditManager: CREDIT_MANAGER,

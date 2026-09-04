@@ -400,7 +400,9 @@ export class CreditAccountsServiceV310
 
     const { creditFacade } = cmSuite;
     let calls = [
-      creditFacade.prepareIncreaseDebt(debt),
+      // A zero-debt open draws nothing, and `increaseDebt(0)` is a call the
+      // facade would run for no reason.
+      ...(debt > 0n ? [creditFacade.prepareIncreaseDebt(debt)] : []),
       ...creditFacade.prepareAddCollateral(collateral, permits),
       ...openPathCalls, // path from underlying to withdrawal token
       ...(tokenToWithdraw
