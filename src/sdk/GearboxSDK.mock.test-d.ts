@@ -19,6 +19,7 @@ const mockSDK = {
     positions: {
       list: notImplemented,
     },
+    charts: notImplemented,
   },
   opportunities: {
     list: notImplemented,
