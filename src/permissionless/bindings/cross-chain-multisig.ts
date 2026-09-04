@@ -9,14 +9,14 @@ import {
   zeroAddress,
 } from "viem";
 import { crossChainMultisigAbi } from "../../abi/310/crossChainMultisig.js";
-import type { RawTx } from "../../sdk/index.js";
+import type { RawTx } from "../../onchain/index.js";
 import {
   BaseContract,
   type ChainContractsRegister,
   json_stringify,
   type ParsedCall,
   type ParsedCallArgs,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 import type {
   Batch,
   CrossChainCall,
@@ -24,8 +24,8 @@ import type {
   Signature,
 } from "../core/proposal.js";
 import { Addresses } from "../deployment/addresses.js";
-import { normalizeSignature } from "../utils/index.js";
 import { CROSS_CHAIN_MULTISIG } from "../utils/literals.js";
+import { normalizeSignature } from "../utils/signature.js";
 import { InstanceManagerContract } from "./instance-manager.js";
 import { MarketConfiguratorFactoryContract } from "./market-configurator-factory.js";
 

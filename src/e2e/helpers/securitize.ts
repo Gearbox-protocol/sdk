@@ -21,9 +21,9 @@ import {
   type RWAOnDemandTokenMeta,
   type SecuritizeRegisterMessage,
   type SecuritizeRegisterVaultMessage,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 
-export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
+export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/RWA";
 export const RWA_MARKET_CONFIGURATOR: Address =
   "0x610627d8d01a413bdd9b0a0b60070da7dd1e54ad";
 export const RWA_FACTORY: Address =
@@ -120,14 +120,25 @@ async function seedDefaultPool(
   const wallet = await createInvestorWallet(anvil, sdk.chain);
   const depositor = wallet.account.address;
 
+  // Deposit USDC when the pool has a USDC zapper (e.g. dcUSDC pools),
+  // otherwise fall back to the first supported deposit token (e.g. RLUSD
+  // for dcRLUSD pools). 1M units of a stablecoin either way.
+  const poolService = new PoolService(sdk);
+  const tokensIn = poolService.getDepositTokensIn(pool);
+  const tokenIn =
+    tokensIn.find(t => t.toLowerCase() === USDC.toLowerCase()) ?? tokensIn[0];
+  if (!tokenIn) {
+    throw new Error(`No deposit tokens found for pool ${pool}`);
+  }
+  const amount = parseUnits("1000000", sdk.tokensMeta.decimals(tokenIn));
+
   await anvil.deal({
-    erc20: USDC,
+    erc20: tokenIn,
     account: depositor,
-    amount: POOL_LIQUIDITY_USDC,
+    amount,
   });
 
-  const poolService = new PoolService(sdk);
-  const depositMeta = poolService.getDepositMetadata(pool, USDC, pool);
+  const depositMeta = poolService.getDepositMetadata(pool, tokenIn, pool);
   if (depositMeta.type !== "rwa-default") {
     throw new Error(
       `Expected rwa-default deposit metadata for pool ${pool}, got ${depositMeta.type}`,
@@ -135,7 +146,7 @@ async function seedDefaultPool(
   }
 
   let hash = await wallet.writeContract({
-    address: USDC,
+    address: tokenIn,
     abi: erc20Abi,
     functionName: "approve",
     args: [depositMeta.approveTarget, MAX_UINT256],
@@ -143,7 +154,7 @@ async function seedDefaultPool(
   await sdk.client.waitForTransactionReceipt({ hash, pollingInterval: 100 });
 
   const depositCall = poolService.addLiquidity({
-    collateral: { token: USDC, balance: POOL_LIQUIDITY_USDC },
+    collateral: { token: tokenIn, balance: amount },
     pool,
     wallet: depositor,
     meta: depositMeta,
@@ -154,7 +165,6 @@ async function seedDefaultPool(
   }
 
   hash = await wallet.sendTransaction({
-    account: depositor,
     to: depositCall.tx.to,
     data: depositCall.tx.callData,
     value: BigInt(depositCall.tx.value ?? "0"),

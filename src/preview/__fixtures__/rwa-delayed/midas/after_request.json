@@ -1,0 +1,95 @@
+{
+  "creditAccount": "0x7E3B3406A7f420a1949C993D6e1d2114116c9C88",
+  "creditManager": "0x7161c4a5099d6bDCaC05c8baB893d2215bB7BE42",
+  "creditFacade": "0xdd7Af77550Fc3381DB8c025aA346F688a74f8bC1",
+  "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "owner": "0xD39D3eBcC8149eF92d54c71ae11D646a54EDE40d",
+  "expirationDate": 0,
+  "enabledTokensMask": {
+    "__type": "bigint",
+    "__value": "7"
+  },
+  "debt": {
+    "__type": "bigint",
+    "__value": "80000000000"
+  },
+  "accruedInterest": {
+    "__type": "bigint",
+    "__value": "163"
+  },
+  "accruedFees": {
+    "__type": "bigint",
+    "__value": "40"
+  },
+  "totalDebtUSD": {
+    "__type": "bigint",
+    "__value": "7999053700297"
+  },
+  "totalValueUSD": {
+    "__type": "bigint",
+    "__value": "9989881723991"
+  },
+  "twvUSD": {
+    "__type": "bigint",
+    "__value": "8990893012752"
+  },
+  "totalValue": {
+    "__type": "bigint",
+    "__value": "99910635669"
+  },
+  "healthFactor": {
+    "__type": "bigint",
+    "__value": "1123994581061278987"
+  },
+  "success": true,
+  "tokens": [
+    {
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "mask": {
+        "__type": "bigint",
+        "__value": "1"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "1"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "0"
+      },
+      "success": true
+    },
+    {
+      "token": "0x04E30f28e1769E971BE6dC8d53E812126665eaBB",
+      "mask": {
+        "__type": "bigint",
+        "__value": "2"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "9998817099"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "8998930000"
+      },
+      "success": true
+    },
+    {
+      "token": "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba",
+      "mask": {
+        "__type": "bigint",
+        "__value": "4"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "81036122796143921144868"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "90000010000"
+      },
+      "success": true
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { creditAccountCompressorAbi } from "../../abi/compressors/creditAccountCompressor.js";
-import type { IOnchainSDKPlugin } from "../../sdk/index.js";
+import type { IOnchainSDKPlugin } from "../../onchain/index.js";
 import {
   ADDRESS_0X0,
   AddressMap,
@@ -9,7 +9,7 @@ import {
   MAX_UINT256,
   TypedObjectUtils,
   VERSION_RANGE_310,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
 
 export interface AccountsCounterPluginState {
   /**

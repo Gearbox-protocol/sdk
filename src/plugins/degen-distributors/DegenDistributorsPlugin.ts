@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 
-import type { IOnchainSDKPlugin, MarketSuite } from "../../sdk/index.js";
-import { AddressMap, BasePlugin } from "../../sdk/index.js";
-import { MarketConfiguratorContract } from "../../sdk/market/MarketConfiguratorContract.js";
+import type { IOnchainSDKPlugin, MarketSuite } from "../../onchain/index.js";
+import { AddressMap, BasePlugin } from "../../onchain/index.js";
+import { MarketConfiguratorContract } from "../../onchain/market/MarketConfiguratorContract.js";
 import type { DegenDistributorsStateHuman } from "./types.js";
 
 export interface DegenDistributorsPluginState {

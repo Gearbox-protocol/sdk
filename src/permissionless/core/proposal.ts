@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { ParsedCall } from "../../sdk/index.js";
+import type { ParsedCall } from "../../onchain/index.js";
 
 export interface Signature {
   signer: Address;

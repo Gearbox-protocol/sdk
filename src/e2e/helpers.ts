@@ -14,7 +14,7 @@ import {
   type AnvilClient,
   createAnvilClient,
 } from "../dev/createAnvilClient.js";
-import { chains, type NetworkType, type OnchainSDK } from "../sdk/index.js";
+import { chains, type NetworkType, type OnchainSDK } from "../onchain/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
 import {
@@ -84,6 +84,9 @@ export function useFixture(options: UseFixtureOptions): void {
     });
 
     client = createAnvilClient({ transport: http(anvil.url) });
+    // Blocks otherwise take their timestamps from the wall clock, so interest
+    // accrual and gas drift with machine load. One second per block instead.
+    await client.setBlockTimestampInterval({ interval: 1 });
     snapshotId = (await client.snapshot()) as Hex;
   });
 

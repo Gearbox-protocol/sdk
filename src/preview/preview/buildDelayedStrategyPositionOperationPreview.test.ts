@@ -1,0 +1,677 @@
+import type { Address } from "viem";
+import { getAddress, parseEther, parseUnits } from "viem";
+import { describe, expect, it } from "vitest";
+import type { Curator } from "../../model/index.js";
+import { AssetsMap, type OnchainSDK } from "../../onchain/index.js";
+import { CreditSuite } from "../../onchain/market/credit/CreditSuite.js";
+import {
+  MockTokens,
+  TestPriceOracle,
+} from "../../onchain/market/oracle/TestPriceOracle.mock.js";
+import { PositionsService } from "../../onchain/positions/PositionsService.js";
+import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
+import { CreditAccountState } from "./CreditAccountState.js";
+import type { DetectedDelayedOperation } from "./detectDelayedOperation.js";
+
+const CREDIT_ACCOUNT = getAddress("0x82900e2Ab20B6F60C159F1A141A6f2d3D810C4fA");
+const CREDIT_MANAGER = getAddress("0x025512D771f778fad99aB30b7A7363E7C8DE078D");
+const CURATOR: Curator = {
+  address: getAddress("0x00000000000000000000000000000000000C0F16"),
+  name: undefined,
+  url: null,
+};
+// dcUSDC, the credit manager underlying (RWA vault share over USDC)
+const UNDERLYING = MockTokens.dcUSDC;
+const USDC = MockTokens.USDC;
+const PHANTOM = MockTokens.srpACRED_USDC;
+const WETH = MockTokens.WETH;
+const OWNER = getAddress("0xC32FEB4DBd127a1993478Ad6E5250710f838b908");
+const UNPRICEABLE = getAddress("0x1111111111111111111111111111111111111111");
+
+/**
+ * An underlying-denominated amount, as the projection reports one: USDC, the
+ * asset the dcUSDC share wraps one-for-one, not the share itself.
+ */
+const und = (value: unknown) => ({
+  token: expect.objectContaining({ address: USDC }),
+  value,
+});
+
+/**
+ * Market stub for the position metrics: USDC, the underlying and the phantom
+ * token at $1, WETH at $2000, no quota rates, no borrow rate. The tests only
+ * care that the metrics are present, not about their values.
+ */
+const metricsSdk = (() => {
+  const decimals: Record<Address, number> = {
+    [UNDERLYING]: 6,
+    [USDC]: 6,
+    [PHANTOM]: 6,
+    [WETH]: 18,
+    [UNPRICEABLE]: 18,
+  };
+  const lts: Record<Address, number> = {
+    [UNDERLYING]: 9800,
+    [USDC]: 9800,
+    [PHANTOM]: 9200,
+    [WETH]: 8500,
+  };
+  const tokenOf = (token: Address) => {
+    const addr = getAddress(token);
+    const d = decimals[addr];
+    if (d === undefined) {
+      return undefined;
+    }
+    return {
+      chainId: 1,
+      address: addr,
+      symbol: "TOKEN",
+      name: "TOKEN",
+      decimals: d,
+    };
+  };
+  const mustGetToken = (token: Address) => {
+    const meta = tokenOf(token);
+    if (!meta) {
+      throw new Error(`token ${token} not found`);
+    }
+    return meta;
+  };
+  const priceOracle = new TestPriceOracle({
+    [UNDERLYING]: { price: 1, reservePrice: 1 },
+    [USDC]: { price: 1, reservePrice: 1 },
+    [PHANTOM]: { price: 1, reservePrice: 1 },
+    [WETH]: { price: 2000, reservePrice: 2000 },
+    [UNPRICEABLE]: {},
+  });
+  const sdk = {
+    chainId: 1,
+    chain: { nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 } },
+    tokensMeta: {
+      get: (token: Address) => {
+        const d = decimals[getAddress(token)];
+        return d === undefined ? undefined : { decimals: d };
+      },
+      getToken: tokenOf,
+      mustGetToken,
+    },
+    marketRegister: {
+      findByCreditManager: () => {
+        const m = {
+          underlying: UNDERLYING,
+          // {@inheritDoc MarketSuite.toUnderlyingAmount} — an underlying-denominated
+          // figure names USDC, the asset the dcUSDC share wraps one-for-one
+          toUnderlyingAmount: (value: bigint) => ({
+            token: mustGetToken(USDC),
+            value,
+            valueUsd: null,
+          }),
+          pool: {
+            underlying: UNDERLYING,
+            pool: { baseInterestRate: 0n },
+            pqk: { quotaRate: () => 0, hasActiveQuota: () => false },
+          },
+          priceOracle,
+        };
+        return m;
+      },
+      findCreditManager: () => ({
+        name: "TOKEN / TOKEN",
+        strategyName: "TOKEN / TOKEN",
+        underlyingToken: {
+          ...mustGetToken(USDC),
+          wrappedAddress: UNDERLYING,
+        },
+        accountTargetCollateral: () => mustGetToken(PHANTOM),
+        accountStrategyName: () => "TOKEN / TOKEN",
+        market: { curator: CURATOR },
+        liquidationFees: () => ({
+          feeLiquidation: 150,
+          liquidationDiscount: 9700,
+        }),
+        totalLiquidationDiscount:
+          CreditSuite.prototype.totalLiquidationDiscount,
+        creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
+        creditManager: {
+          address: CREDIT_MANAGER,
+          feeInterest: 0,
+          liquidationThresholds: {
+            get: (token: Address) => lts[getAddress(token)],
+          },
+        },
+      }),
+    },
+  } as unknown as OnchainSDK;
+
+  // The real service over the stub, so the metrics under test are the ones
+  // shipped rather than a second implementation of the same formulas.
+  Object.assign(sdk, { positions: new PositionsService(sdk) });
+  return sdk;
+})();
+
+interface MakeAccountOptions {
+  balances?: AssetsMap;
+  debt?: bigint;
+  totalDebt?: bigint;
+  quotas?: AssetsMap;
+}
+
+function makeAccount(options: MakeAccountOptions = {}): CreditAccountState {
+  return new CreditAccountState({
+    creditAccount: CREDIT_ACCOUNT,
+    creditManager: CREDIT_MANAGER,
+    underlying: UNDERLYING,
+    balances: options.balances,
+    debt: options.debt,
+    totalDebt: options.totalDebt,
+    quotas: options.quotas,
+  });
+}
+
+function detected(
+  intent?: DetectedDelayedOperation["intent"],
+): DetectedDelayedOperation {
+  return {
+    request: { phantomToken: PHANTOM, claimToken: USDC },
+    intent,
+  };
+}
+
+function amt(token: Address, value: unknown) {
+  return expect.objectContaining({
+    token: expect.objectContaining({ address: token }),
+    value,
+  });
+}
+
+describe("buildDelayedStrategyPositionOperationPreview CLOSE_ACCOUNT", () => {
+  // Post-instant state of the step-1 close tx from tmp/rwa/step1.json:
+  // all ACRED redeemed into the phantom token, debt untouched
+  const account = makeAccount({
+    balances: new AssetsMap([
+      { token: UNDERLYING, balance: 88300811096n },
+      { token: PHANTOM, balance: 22070460800n },
+    ]),
+    debt: 88300811096n,
+    // + accruedInterest 5379 + accruedFees 2689
+    totalDebt: 88300819164n,
+    quotas: new AssetsMap([{ token: PHANTOM, balance: 20861060000n }]),
+  });
+  // Pre-transaction state: the closure preview reports no changes, so only
+  // the debt matters here
+  const before = makeAccount({
+    debt: 88300811096n,
+    totalDebt: 88300819164n,
+  });
+
+  it("previews an account closure with the leftover after full repayment", () => {
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview).toMatchObject({
+      operation: "CloseCreditAccount",
+      permanent: false,
+      creditManager: CREDIT_MANAGER,
+      creditAccount: CREDIT_ACCOUNT,
+      name: "TOKEN / TOKEN",
+      targetCollateral: expect.objectContaining({ address: PHANTOM }),
+      underlyingToken: expect.objectContaining({ address: USDC }),
+      // total value (underlying + claimed USDC at 1:1) minus total debt,
+      // denominated in the unwrapped underlying (1:1 with the vault share)
+      receivedAmount: amt(USDC, 88300811096n + 22070460800n - 88300819164n),
+      totalDebt: und(0n),
+      estAssets: [],
+      estTotalValue: und(0n),
+      estNetValue: und(0n),
+      estHealthFactor: 65535,
+      estLeverage: 0,
+      estTimeToLiquidation: null,
+      estLiquidationPrice: null,
+      warning: undefined,
+    });
+  });
+
+  it("floors receivedAmount at zero when the debt exceeds the total value", () => {
+    const indebted = account.clone();
+    indebted.totalDebt = 999_999_999_999_999n;
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      indebted,
+      before,
+      detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("CloseCreditAccount");
+    if (preview.operation === "CloseCreditAccount") {
+      expect(preview.receivedAmount).toMatchObject(amt(USDC, 0n));
+    }
+  });
+
+  it("does not mutate the input account state", () => {
+    buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({ type: "CLOSE_ACCOUNT", to: OWNER }),
+      USDC,
+      metricsSdk,
+    );
+    expect(account.balances.get(PHANTOM)).toBe(22070460800n);
+    expect(account.quotas.get(PHANTOM)).toBe(20861060000n);
+  });
+});
+
+describe("buildDelayedStrategyPositionOperationPreview DECREASE_LEVERAGE", () => {
+  it("claims and repays the debt with the claimed amount", () => {
+    // Post-instant state: everything was redeemed into the phantom token,
+    // the pre-transaction state (the diff base) held nothing
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
+      debt: 500n,
+      totalDebt: 600n,
+      quotas: new AssetsMap([{ token: PHANTOM, balance: 900n }]),
+    });
+    const before = makeAccount({ debt: 500n, totalDebt: 600n });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({ type: "DECREASE_LEVERAGE" }),
+      USDC,
+      metricsSdk,
+    );
+    // toMatchObject: the preview also carries position metrics
+    // (estHealthFactor, estBorrowRate, estTimeToLiquidation,
+    // estLiquidationPrice), which this test does not pin down
+    expect(preview).toMatchObject({
+      operation: "AdjustCreditAccount",
+      creditManager: CREDIT_MANAGER,
+      creditAccount: CREDIT_ACCOUNT,
+      name: "TOKEN / TOKEN",
+      targetCollateral: expect.objectContaining({ address: PHANTOM }),
+      underlyingToken: expect.objectContaining({ address: USDC }),
+      estLeverage: expect.any(Number),
+      collateralAdded: [],
+      collateralWithdrawn: [],
+      // 1000 claimed - 600 repaid
+      estTotalValue: und(400n),
+      totalDebt: und(0n),
+      totalDebtChange: und(-600n),
+      quotas: [],
+      // relative to the pre-transaction state: the transient phantom token
+      // (minted by the instant part, burned by the claim) nets out to nothing
+      quotasChange: [],
+      estAssets: [amt(UNDERLYING, 400n)],
+      assetsChange: [amt(UNDERLYING, 400n)],
+      warning: undefined,
+    });
+  });
+
+  it("caps the repayment at the total debt", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 100n }]),
+      debt: 1000n,
+      totalDebt: 1500n,
+    });
+    const before = makeAccount({ debt: 1000n, totalDebt: 1500n });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({ type: "DECREASE_LEVERAGE" }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      // 100 goes to the accrued interest and fees, which the principal sits
+      // behind: the loan shrinks by the payment, the principal by nothing
+      expect(preview.totalDebt.value).toBe(1400n);
+      expect(preview.totalDebtChange.value).toBe(-100n);
+      expect(preview.estAssets).toEqual([]);
+    }
+  });
+});
+
+describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () => {
+  it("withdraws the claim token and repays with the rest of the claim, capped by debtRepaid", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    const before = makeAccount({ debt: 500n, totalDebt: 600n });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: USDC,
+        withdrawAmount: 300n,
+        sourceToken: WETH,
+        debtRepaid: 600n,
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toMatchObject([amt(USDC, 300n)]);
+      // 700 remaining claim repays 600 total debt, 100 underlying is left
+      expect(preview.totalDebt.value).toBe(0n);
+      expect(preview.totalDebtChange.value).toBe(-600n);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 100n)]);
+    }
+  });
+
+  it("caps the repayment at debtRepaid and keeps the excess as underlying", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    const before = makeAccount({ debt: 500n, totalDebt: 600n });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: USDC,
+        withdrawAmount: 300n,
+        sourceToken: WETH,
+        // only 200 of the 700 remaining claim goes to debt
+        debtRepaid: 200n,
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toMatchObject([amt(USDC, 300n)]);
+      // 200 repays interest/fees (100) then principal (100)
+      expect(preview.totalDebt.value).toBe(400n);
+      expect(preview.totalDebtChange.value).toBe(-200n);
+      // 700 swept into underlying, 200 spent on the repayment
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 500n)]);
+    }
+  });
+
+  it("repays nothing when debtRepaid is zero (debt was repaid on start)", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 1000n }]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    const before = makeAccount({ debt: 500n, totalDebt: 600n });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: USDC,
+        withdrawAmount: 300n,
+        sourceToken: WETH,
+        debtRepaid: 0n,
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.totalDebt.value).toBe(600n);
+      expect(preview.totalDebtChange.value).toBe(0n);
+      expect(preview.estAssets).toMatchObject([amt(UNDERLYING, 700n)]);
+    }
+  });
+
+  it("caps the withdrawal at the running balance", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([{ token: PHANTOM, balance: 100n }]),
+    });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      makeAccount(),
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: USDC,
+        withdrawAmount: 500n,
+        sourceToken: WETH,
+        debtRepaid: 0n,
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      // only the claimed 100 is there to withdraw, nothing left to repay
+      expect(preview.collateralWithdrawn).toMatchObject([amt(USDC, 100n)]);
+      expect(preview.estAssets).toEqual([]);
+    }
+  });
+
+  it("funds a non-claim withdrawal token from claim proceeds at the oracle rate", () => {
+    // RLUSD-style scenario: the withdrawal token is not on the account,
+    // the claim funds both the withdrawal and the debt repayment
+    const account = makeAccount({
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: parseUnits("100000", 6) },
+      ]),
+      debt: parseUnits("50000", 6),
+      totalDebt: parseUnits("60000", 6),
+    });
+    const before = makeAccount({
+      debt: parseUnits("50000", 6),
+      totalDebt: parseUnits("60000", 6),
+    });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        // WETH is worth 2000 USDC: withdrawing 10 WETH costs 20_000 USDC
+        withdrawToken: WETH,
+        withdrawAmount: parseEther("10"),
+        sourceToken: WETH,
+        debtRepaid: parseUnits("60000", 6),
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toMatchObject([
+        amt(WETH, parseEther("10")),
+      ]);
+      // 100_000 claimed - 20_000 spent on the withdrawal = 80_000 swept
+      // into the underlying; 60_000 repays the total debt in full
+      expect(preview.totalDebt.value).toBe(0n);
+      expect(preview.totalDebtChange.value).toBe(-parseUnits("60000", 6));
+      expect(preview.estAssets).toMatchObject([
+        amt(UNDERLYING, parseUnits("20000", 6)),
+      ]);
+    }
+  });
+
+  it("withdraws a non-claim token from the existing balance first and sweeps the full claim", () => {
+    // ACRED-style scenario: the withdrawal token (the intent's sourceToken)
+    // is already on the account, the claim only repays debt
+    const account = makeAccount({
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: 1000n },
+        { token: WETH, balance: 50n },
+      ]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    // WETH was already on the account before the transaction
+    const before = makeAccount({
+      balances: new AssetsMap([{ token: WETH, balance: 50n }]),
+      debt: 500n,
+      totalDebt: 600n,
+    });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: WETH,
+        withdrawAmount: 30n,
+        sourceToken: WETH,
+        debtRepaid: 600n,
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toMatchObject([amt(WETH, 30n)]);
+      // full 1000 claim repays 600, 400 underlying + 20 WETH remain
+      expect(preview.totalDebt.value).toBe(0n);
+      expect(preview.estAssets).toEqual(
+        expect.arrayContaining([amt(UNDERLYING, 400n), amt(WETH, 20n)]),
+      );
+      // remaining WETH is 20 wei, which converts to 0 underlying at 18 decimals
+      expect(preview.estTotalValue.value).toBe(400n);
+    }
+  });
+
+  it("splits the withdrawal between the existing balance and claim proceeds", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: parseUnits("10000", 6) },
+        // covers only 3 of the 5 WETH to withdraw
+        { token: WETH, balance: parseEther("3") },
+      ]),
+      debt: parseUnits("4000", 6),
+      totalDebt: parseUnits("5000", 6),
+    });
+    const before = makeAccount({
+      balances: new AssetsMap([{ token: WETH, balance: parseEther("3") }]),
+      debt: parseUnits("4000", 6),
+      totalDebt: parseUnits("5000", 6),
+    });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({
+        type: "WITHDRAW_COLLATERAL",
+        to: OWNER,
+        withdrawToken: WETH,
+        withdrawAmount: parseEther("5"),
+        sourceToken: WETH,
+        debtRepaid: parseUnits("5000", 6),
+      }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.collateralWithdrawn).toMatchObject([
+        amt(WETH, parseEther("5")),
+      ]);
+      // 2 WETH shortfall costs 4000 of the 10_000 claim; the remaining
+      // 6000 sweeps into the underlying and repays the 5000 total debt
+      expect(preview.totalDebt.value).toBe(0n);
+      expect(preview.estAssets).toMatchObject([
+        amt(UNDERLYING, parseUnits("1000", 6)),
+      ]);
+    }
+  });
+});
+
+describe("buildDelayedStrategyPositionOperationPreview claim-only", () => {
+  const account = makeAccount({
+    balances: new AssetsMap([
+      { token: PHANTOM, balance: 1000n },
+      { token: UNDERLYING, balance: 200n },
+    ]),
+    debt: 500n,
+    totalDebt: 600n,
+    quotas: new AssetsMap([{ token: PHANTOM, balance: 900n }]),
+  });
+  // Pre-transaction state: the underlying was already there, the phantom
+  // token was minted by the instant part
+  const before = makeAccount({
+    balances: new AssetsMap([{ token: UNDERLYING, balance: 200n }]),
+    debt: 500n,
+    totalDebt: 600n,
+  });
+
+  const claimOnlyExpectation = {
+    operation: "AdjustCreditAccount",
+    creditManager: CREDIT_MANAGER,
+    creditAccount: CREDIT_ACCOUNT,
+    collateralAdded: [],
+    collateralWithdrawn: [],
+    estTotalValue: und(1200n),
+    totalDebt: und(600n),
+    totalDebtChange: und(0n),
+    quotas: [],
+    // the phantom token round trip nets out to nothing vs the pre-state
+    quotasChange: [],
+    estAssets: expect.arrayContaining([
+      amt(UNDERLYING, 200n),
+      amt(USDC, 1000n),
+    ]),
+    assetsChange: [amt(USDC, 1000n)],
+    warning: undefined,
+  };
+
+  it("applies only the claim step for resume intents with an unrecoverable swap target", () => {
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected({ type: "DEPOSIT" }),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview).toMatchObject(claimOnlyExpectation);
+  });
+
+  it("applies only the claim step when the intent is undefined (Mellow, legacy txs)", () => {
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      before,
+      detected(undefined),
+      USDC,
+      metricsSdk,
+    );
+    // toMatchObject: position metrics are present but not pinned down here
+    expect(preview).toMatchObject(claimOnlyExpectation);
+  });
+});
+
+describe("buildDelayedStrategyPositionOperationPreview unpriceable tokens", () => {
+  it("sets unpriceableToken and counts only priceable tokens", () => {
+    const account = makeAccount({
+      balances: new AssetsMap([
+        { token: PHANTOM, balance: 1000n },
+        // must exceed DUST_THRESHOLD to be priced at all
+        { token: UNPRICEABLE, balance: 50n },
+      ]),
+    });
+    const preview = buildDelayedStrategyPositionOperationPreview(
+      account,
+      makeAccount(),
+      detected(undefined),
+      USDC,
+      metricsSdk,
+    );
+    expect(preview.operation).toBe("AdjustCreditAccount");
+    if (preview.operation === "AdjustCreditAccount") {
+      expect(preview.estTotalValue.value).toBe(1000n);
+      expect(preview.warning).toEqual({
+        code: "unpriceableToken",
+        token: UNPRICEABLE,
+        message: expect.stringContaining(UNPRICEABLE),
+      });
+    }
+  });
+});

@@ -327,18 +327,15 @@ describe("fetchLogsWithPagination", () => {
     },
   ];
 
-  it.each(successCases)("$name", async ({
-    from,
-    to,
-    options,
-    fails,
-    calls,
-  }) => {
-    const mock = createMockCallRpc(fails);
-    const result = await fetchLogsWithPagination(mock.fn, from, to, options);
-    expect(mock.calls).toEqual(calls);
-    expect(result).toEqual(expectedLogs(calls, fails));
-  });
+  it.each(successCases)(
+    "$name",
+    async ({ from, to, options, fails, calls }) => {
+      const mock = createMockCallRpc(fails);
+      const result = await fetchLogsWithPagination(mock.fn, from, to, options);
+      expect(mock.calls).toEqual(calls);
+      expect(result).toEqual(expectedLogs(calls, fails));
+    },
+  );
 
   it("throws InvalidParamsRpcError when from > to", async () => {
     const mock = createMockCallRpc({});

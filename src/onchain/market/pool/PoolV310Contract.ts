@@ -1,0 +1,271 @@
+import type {
+  Address,
+  ContractEventName,
+  DecodeFunctionDataReturnType,
+  Log,
+} from "viem";
+import { iPoolV310Abi } from "../../../abi/310/generated.js";
+import { iPausableAbi } from "../../../abi/iPausable.js";
+import type { CreditManagerDebtParams, PoolState } from "../../base/index.js";
+import { BaseContract } from "../../base/index.js";
+import { RAY } from "../../constants/index.js";
+import { SdkRWADataNotLoadedError } from "../../core/errors.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
+import type { PoolStateHuman, RawTx } from "../../types/index.js";
+import {
+  AddressMap,
+  formatBN,
+  formatBNvalue,
+  percentFmt,
+} from "../../utils/index.js";
+import type { IRWAFactory } from "../rwa/types.js";
+import type { IPoolContract } from "./types.js";
+
+const abi = [...iPoolV310Abi, ...iPausableAbi] as const;
+type abi = typeof abi;
+
+// Augmenting contract class with interface of compressor data object so that
+// the abi-inferred `PoolState` fields are grafted onto the instance type
+// (they are populated at runtime via `Object.assign` in the constructor).
+export interface PoolV310Contract
+  extends Omit<PoolState, "baseParams" | "creditManagerDebtParams" | "name">,
+    BaseContract<abi> {}
+
+// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: typing for Object.assign
+export class PoolV310Contract
+  extends BaseContract<abi>
+  implements IPoolContract
+{
+  public readonly creditManagerDebtParams: AddressMap<CreditManagerDebtParams>;
+  #sdk: OnchainSDK;
+
+  constructor(sdk: OnchainSDK, data: PoolState) {
+    const { baseParams, creditManagerDebtParams, ...rest } = data;
+    super(sdk, {
+      ...data.baseParams,
+      name: `PoolV3(${data.name})`,
+      abi,
+    });
+    this.#sdk = sdk;
+    Object.assign(this, rest);
+    this.creditManagerDebtParams = new AddressMap(
+      creditManagerDebtParams.map(p => [p.creditManager, p]),
+    );
+    // Put diesel token into tokens meta
+    this.tokensMeta.upsert(data.baseParams.addr, {
+      addr: data.baseParams.addr,
+      decimals: data.decimals,
+      name: data.name,
+      symbol: data.symbol,
+    });
+  }
+
+  public get rwaFactory(): IRWAFactory | undefined {
+    const meta = this.#sdk.tokensMeta.mustGet(this.underlying);
+    if (this.#sdk.tokensMeta.isRWAUnderlying(meta)) {
+      if (!meta.rwaFactory) {
+        throw new SdkRWADataNotLoadedError(
+          this.underlying,
+          meta.symbol,
+          meta.contractType,
+        );
+      }
+      return this.#sdk.mustGetContract<IRWAFactory>(meta.rwaFactory);
+    }
+    return undefined;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.borrowed}
+   */
+  public get borrowed(): bigint {
+    return this.expectedLiquidity > this.availableLiquidity
+      ? this.expectedLiquidity - this.availableLiquidity
+      : 0n;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.totalAssets}
+   */
+  public get totalAssets(): bigint {
+    return (this.totalSupply * this.dieselRate) / RAY;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.getShareBalance}
+   */
+  public async getShareBalance(
+    wallet: Address,
+    blockNumber?: bigint,
+  ): Promise<bigint> {
+    return this.client.readContract({
+      address: this.address,
+      abi: this.abi,
+      functionName: "balanceOf",
+      args: [wallet],
+      blockNumber,
+    });
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.sharesToUnderlying}
+   */
+  public sharesToUnderlying(shares: bigint): bigint {
+    return this.dieselRate === 0n ? shares : (shares * this.dieselRate) / RAY;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.underlyingToShares}
+   */
+  public underlyingToShares(underlying: bigint, roundUp = false): bigint {
+    if (this.dieselRate === 0n) {
+      return underlying;
+    }
+    return roundUp
+      ? (underlying * RAY + this.dieselRate - 1n) / this.dieselRate
+      : (underlying * RAY) / this.dieselRate;
+  }
+
+  /**
+   * {@inheritDoc IPoolContract.unwrappedUnderlying}
+   */
+  public get unwrappedUnderlying(): Address {
+    return this.tokensMeta.unwrapRWA(this.underlying);
+  }
+
+  public override stateHuman(raw = true): PoolStateHuman {
+    return {
+      ...super.stateHuman(raw),
+      underlying: this.labelAddress(this.underlying),
+      symbol: this.symbol,
+      name: this.name,
+      decimals: this.decimals,
+      availableLiquidity: formatBNvalue(
+        this.availableLiquidity,
+        this.decimals,
+        2,
+        raw,
+      ),
+      expectedLiquidity: formatBNvalue(
+        this.expectedLiquidity,
+        this.decimals,
+        2,
+        raw,
+      ),
+      totalBorrowed: formatBNvalue(this.totalBorrowed, this.decimals, 2, raw),
+      totalDebtLimit: formatBNvalue(this.totalDebtLimit, this.decimals, 2, raw),
+      creditManagerDebtParams: Object.fromEntries(
+        this.creditManagerDebtParams
+          .values()
+          .map(({ creditManager, borrowed, limit, available }) => [
+            this.labelAddress(creditManager),
+            {
+              borrowed: formatBNvalue(borrowed, this.decimals, 2, raw),
+              limit: formatBNvalue(limit, this.decimals, 2, raw),
+              availableToBorrow: formatBNvalue(
+                available,
+                this.decimals,
+                2,
+                raw,
+              ),
+            },
+          ]),
+      ),
+      totalSupply: formatBNvalue(this.totalSupply, this.decimals, 2, raw),
+      supplyRate: `${formatBNvalue(this.supplyRate, 25, 2, raw)}%`,
+      baseInterestIndex: `${formatBNvalue(this.totalSupply, 25, 2, raw)}%`,
+      baseInterestRate: `${formatBNvalue(this.totalSupply, 25, 2, raw)}%`,
+      withdrawFee: percentFmt(this.withdrawFee),
+      lastBaseInterestUpdate: this.lastBaseInterestUpdate.toString(),
+      baseInterestIndexLU: this.lastBaseInterestUpdate.toString(),
+      isPaused: this.isPaused,
+    };
+  }
+
+  public override processLog(
+    log: Log<
+      bigint,
+      number,
+      false,
+      undefined,
+      undefined,
+      abi,
+      ContractEventName<abi>
+    >,
+  ): void {
+    switch (log.eventName) {
+      case "Paused":
+        this.isPaused = true;
+        break;
+      case "Unpaused":
+        this.isPaused = false;
+        break;
+      case "AddCreditManager":
+      case "Approval":
+      case "Borrow":
+      case "Deposit":
+      case "IncurUncoveredLoss":
+      case "Refer":
+      case "Repay":
+      case "SetCreditManagerDebtLimit":
+      case "SetInterestRateModel":
+      case "SetPoolQuotaKeeper":
+      case "SetTotalDebtLimit":
+      case "SetWithdrawFee":
+      case "Transfer":
+      case "Withdraw":
+        this.dirty = true;
+        break;
+    }
+  }
+
+  /**
+   * Deposits underlying assets into the pool on behalf of a user with a
+   * referral code.
+   */
+  public depositWithReferral(
+    amount: bigint,
+    onBehalfOf: Address,
+    referralCode: bigint,
+  ): RawTx {
+    return this.createRawTx({
+      functionName: "depositWithReferral",
+      args: [amount, onBehalfOf, referralCode],
+    });
+  }
+
+  /**
+   * Redeems pool shares from the owner and sends the underlying assets to
+   * the receiver.
+   */
+  public redeem(amount: bigint, owner: Address, receiver: Address): RawTx {
+    return this.createRawTx({
+      functionName: "redeem",
+      args: [amount, owner, receiver],
+    });
+  }
+
+  /**
+   * Burns as many of the owner's shares as it takes to send `assets` of the
+   * underlying to the receiver.
+   */
+  public withdraw(assets: bigint, receiver: Address, owner: Address): RawTx {
+    return this.createRawTx({
+      functionName: "withdraw",
+      args: [assets, receiver, owner],
+    });
+  }
+
+  protected override stringifyFunctionParams(
+    params: DecodeFunctionDataReturnType<abi>,
+  ): string[] {
+    switch (params.functionName) {
+      case "deposit": {
+        const [amount, onBehalfOf] = params.args;
+        return [formatBN(amount, this.decimals), this.labelAddress(onBehalfOf)];
+      }
+      default:
+        return super.stringifyFunctionParams(params);
+    }
+  }
+}

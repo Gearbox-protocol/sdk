@@ -1,7 +1,6 @@
 import {
   type Address,
   createTestClient,
-  encodeFunctionData,
   erc20Abi,
   type Hex,
   http,
@@ -16,8 +15,8 @@ import {
   OnchainSDK,
   PoolService,
   type PoolServiceCallResult,
-} from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+} from "../../onchain/index.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
@@ -77,8 +76,6 @@ describe("pool deposit and withdraw", () => {
         gateways: REDSTONE_GATEWAYS,
       },
     });
-    await sdk.tokensMeta.loadTokenData();
-    await sdk.marketRegister.loadZappers();
   });
 
   it("should deposit and withdraw directly from pool", async () => {
@@ -143,7 +140,7 @@ describe("pool deposit and withdraw", () => {
     expect(depositCall).toBeDefined();
 
     const encoded = encodePoolCall(depositCall!);
-    hash = await wallet.sendTransaction(encoded);
+    hash = await wallet.sendTransaction({ ...encoded, gas: GAS_LIMIT });
     const depositReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -171,16 +168,22 @@ describe("pool deposit and withdraw", () => {
     expect(withdrawalMeta.zapper).toBeUndefined();
     expect(withdrawalMeta.approveTarget).toBeUndefined();
 
+    // `amount` is the underlying to receive; a direct withdrawal pays it out
+    // exactly and burns whatever shares that costs.
+    const withdrawAmount = parseUnits("50", 6);
     const withdrawCall = poolService.removeLiquidity({
       pool: USDC_POOL,
-      amount: sharesReceived,
+      amount: withdrawAmount,
       wallet: account,
       permit: undefined,
       meta: withdrawalMeta,
     });
 
     const withdrawEncoded = encodePoolCall(withdrawCall);
-    hash = await wallet.sendTransaction(withdrawEncoded);
+    hash = await wallet.sendTransaction({
+      ...withdrawEncoded,
+      gas: GAS_LIMIT,
+    });
     const withdrawReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -191,10 +194,9 @@ describe("pool deposit and withdraw", () => {
       USDC,
       USDC_POOL,
     ]);
-    expect(afterWithdraw).toEqual({
-      [USDC_POOL]: 0n,
-      [USDC]: 199999999n,
-    });
+    expect(afterWithdraw[USDC]).toBe(afterDeposit[USDC] + withdrawAmount);
+    expect(afterWithdraw[USDC_POOL]).toBeLessThan(sharesReceived);
+    expect(afterWithdraw[USDC_POOL]).toBeGreaterThan(0n);
   });
 
   // TODO: currently there's no zappers except for migration zappers, which are not returned by sdk
@@ -282,6 +284,7 @@ describe("pool deposit and withdraw", () => {
       to: encoded.to,
       data: encoded.data,
       value: encoded.value,
+      gas: GAS_LIMIT,
     });
     const depositReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
@@ -309,9 +312,14 @@ describe("pool deposit and withdraw", () => {
     );
     expect(withdrawalMeta.zapper).toBeUndefined();
 
+    const beforeWithdraw = await getBalances(sdk.client, account, [
+      WETH,
+      KPK_WETH_POOL,
+    ]);
+    const withdrawAmount = parseUnits("0.5", 18);
     const withdrawCall = poolService.removeLiquidity({
       pool: KPK_WETH_POOL,
-      amount: sharesReceived,
+      amount: withdrawAmount,
       wallet: account,
       permit: undefined,
       meta: withdrawalMeta,
@@ -322,7 +330,7 @@ describe("pool deposit and withdraw", () => {
       to: withdrawEncoded.to,
       data: withdrawEncoded.data,
       value: withdrawEncoded.value,
-      gas: 2_000_000n,
+      gas: GAS_LIMIT,
     });
     const withdrawReceipt = await sdk.client.waitForTransactionReceipt({
       hash,
@@ -334,7 +342,7 @@ describe("pool deposit and withdraw", () => {
       WETH,
       KPK_WETH_POOL,
     ]);
-    expect(afterWithdraw[KPK_WETH_POOL]).toBe(0n);
-    expect(afterWithdraw[WETH]).toBeGreaterThan(0n);
+    expect(afterWithdraw[WETH]).toBe(beforeWithdraw[WETH] + withdrawAmount);
+    expect(afterWithdraw[KPK_WETH_POOL]).toBeLessThan(sharesReceived);
   });
 });

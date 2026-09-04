@@ -1,7 +1,11 @@
 import type { Address } from "viem";
 
-import type { CreditAccountData, ILogger, OnchainSDK } from "../sdk/index.js";
-import { isDust, PERCENTAGE_FACTOR, WAD } from "../sdk/index.js";
+import type {
+  CreditAccountData,
+  ILogger,
+  OnchainSDK,
+} from "../onchain/index.js";
+import { isDust, PERCENTAGE_FACTOR, WAD } from "../onchain/index.js";
 
 /**
  * Given credit accounts, calculates new liquidation thresholds that needs to be set to drop account health factor a bit to make it eligible for partial liquidation

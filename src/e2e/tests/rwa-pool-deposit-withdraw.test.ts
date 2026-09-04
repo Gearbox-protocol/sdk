@@ -21,7 +21,8 @@ import {
   type PoolServiceCallResult,
   type RWADefaultTokenMeta,
   type RWAOnDemandTokenMeta,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
+import { GAS_LIMIT } from "../constants.js";
 
 const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/Securitize";
 
@@ -91,8 +92,6 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
       rwaFactories: [RWA_FACTORY],
       ignoreUpdateablePrices: true,
     });
-    await sdk.tokensMeta.loadTokenData();
-    await sdk.marketRegister.loadZappers();
     await anvil.setBalance({
       address: ANVIL_ACCOUNT.address,
       value: parseEther("1000"),
@@ -170,7 +169,7 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
       }
 
       const encoded = encodePoolCall(depositCall);
-      hash = await wallet.sendTransaction(encoded);
+      hash = await wallet.sendTransaction({ ...encoded, gas: GAS_LIMIT });
       const depositReceipt = await sdk.client.waitForTransactionReceipt({
         hash,
         pollingInterval: 100,
@@ -215,16 +214,22 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
         pollingInterval: 100,
       });
 
+      // `amount` is the underlying to receive; the zapper redeems the shares it
+      // converts to at the pool's current rate.
+      const withdrawAmount = parseUnits("50", 6);
       const withdrawCall = poolService.removeLiquidity({
         pool: DEFAULT_POOL,
-        amount: sharesReceived,
+        amount: withdrawAmount,
         wallet: account,
         permit: undefined,
         meta: withdrawalMeta,
       });
 
       const withdrawEncoded = encodePoolCall(withdrawCall);
-      hash = await wallet.sendTransaction(withdrawEncoded);
+      hash = await wallet.sendTransaction({
+        ...withdrawEncoded,
+        gas: GAS_LIMIT,
+      });
       const withdrawReceipt = await sdk.client.waitForTransactionReceipt({
         hash,
         pollingInterval: 100,
@@ -235,7 +240,8 @@ describe.skipIf(!!process.env.CI)("RWA pool deposit and withdraw", () => {
         tokenIn,
         DEFAULT_POOL,
       ]);
-      expect(afterWithdraw[DEFAULT_POOL]).toBe(0n);
+      expect(afterWithdraw[tokenIn]).toBeGreaterThan(afterDeposit[tokenIn]);
+      expect(afterWithdraw[DEFAULT_POOL]).toBeLessThan(sharesReceived);
     });
   });
 

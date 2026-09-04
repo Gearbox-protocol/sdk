@@ -1,0 +1,57 @@
+import type { Address } from "viem";
+import type { OperationPreviewError } from "../../model/index.js";
+import type { OnchainSDK, PluginsMap } from "../../onchain/index.js";
+import type { InnerOperation } from "../parse/index.js";
+import type { PreviewOperationOptions } from "../types.js";
+import { CreditAccountState } from "./CreditAccountState.js";
+import {
+  makeReplayState,
+  type ReplayState,
+  replayInnerOperations,
+} from "./replayInnerOperations.js";
+
+/**
+ * Parsed operation on an existing credit account whose multicall can be
+ * replayed: the facade `closeCreditAccount` entry point and
+ * plain/bot/RWA multicalls all fit structurally.
+ */
+export interface ReplayableOperation {
+  creditAccount: Address;
+  multicall: InnerOperation[];
+}
+
+/**
+ * Result of {@link replayMulticall}: the account's pre-state and the replayed
+ * (minimal guaranteed) post-state.
+ */
+export interface ReplayMulticallResult {
+  /**
+   * Account state before the operation, dust-filtered
+   */
+  before: CreditAccountState;
+  /**
+   * Post-operation state and per-multicall bookkeeping, mutated by the
+   * replay in facade execution order
+   */
+  after: ReplayState;
+  warning?: OperationPreviewError;
+}
+
+/**
+ * Replays the operation's multicall over the account's pre-resolved
+ * pre-state (`options.creditAccount`) via {@link replayInnerOperations}.
+ */
+export function replayMulticall<P extends PluginsMap>(
+  sdk: OnchainSDK<P>,
+  operation: ReplayableOperation,
+  options: PreviewOperationOptions<true>,
+): ReplayMulticallResult {
+  const before = CreditAccountState.fromCreditAccountData(
+    options.creditAccount,
+  );
+  const after = makeReplayState(before.clone());
+
+  const warning = replayInnerOperations(sdk, operation.multicall, after);
+
+  return { before, after, warning };
+}

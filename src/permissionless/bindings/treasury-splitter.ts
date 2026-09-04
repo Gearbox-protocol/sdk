@@ -8,8 +8,8 @@ import {
   type Transport,
 } from "viem";
 import { ITreasurySplitterAbi } from "../../abi/310/iTreasurySplitter.js";
-import type { ParsedCallArgs, RawTx } from "../../sdk/index.js";
-import { BaseContract, json_stringify } from "../../sdk/index.js";
+import type { ParsedCallArgs, RawTx } from "../../onchain/index.js";
+import { BaseContract, json_stringify } from "../../onchain/index.js";
 
 const abi = ITreasurySplitterAbi;
 

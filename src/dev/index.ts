@@ -1,7 +1,6 @@
 export * from "./AccountOpener.js";
 export * from "./abi.js";
 export * from "./calcLiquidatableLTs.js";
-export * from "./claimDSToken.js";
 export * from "./claimFromFaucet.js";
 export * from "./create2.js";
 export * from "./createAnvilClient.js";
@@ -10,17 +9,22 @@ export * from "./EthCallSpy.js";
 export * from "./isOutOfSyncError.js";
 export * from "./isRateLimitError.js";
 export * from "./isTransientError.js";
+export * from "./kycUtils.js";
 export {
   isRangeError,
   type LogSplitterTransportOptions,
   logSplitterTransport,
 } from "./logSplitterTransport.js";
 export * from "./ltUtils.js";
+export * from "./midasUtils.js";
 export * from "./migrateFaucet.js";
 export * from "./mint/index.js";
 export * from "./providers.js";
 export * from "./RevolverTransport.js";
 export * from "./replaceStorage.js";
 export * from "./resilientTransport.js";
+export * from "./securitizeUtils.js";
 export * from "./transports.js";
 export * from "./types.js";
+export * from "./verifyTestnet.js";
+export * from "./withdrawalUtils.js";

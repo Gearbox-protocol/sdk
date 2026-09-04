@@ -4,8 +4,8 @@ import {
   iCreditConfiguratorV310Abi,
   iCreditManagerV310Abi,
 } from "../abi/310/generated.js";
-import type { CreditSuiteState, ILogger } from "../sdk/index.js";
-import { hexEq, isV310, TypedObjectUtils } from "../sdk/index.js";
+import type { CreditSuiteState, ILogger } from "../onchain/index.js";
+import { hexEq, isV310, TypedObjectUtils } from "../onchain/index.js";
 import { iaclTraitAbi, iOwnableAbi } from "./abi.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 

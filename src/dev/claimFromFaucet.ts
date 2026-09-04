@@ -10,7 +10,7 @@ import type {
   WalletClient,
 } from "viem";
 import { readContract } from "viem/actions";
-import { formatBN, type ILogger, type OnchainSDK } from "../sdk/index.js";
+import { formatBN, type ILogger, type OnchainSDK } from "../onchain/index.js";
 import { faucetAbi } from "./abi.js";
 
 interface TokenClaim {

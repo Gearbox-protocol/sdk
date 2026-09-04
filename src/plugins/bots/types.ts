@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { BaseContractStateHuman } from "../../sdk/index.js";
+import type { BaseContractStateHuman } from "../../onchain/index.js";
 import type { PartialLiquidationBotV310Params } from "./PartialLiquidationBotV310Contract.js";
 
 export interface BotParameters {

@@ -22,7 +22,7 @@ function mockFetchThrow(error: Error): typeof fetch {
 function mockFetchSlow(): typeof fetch {
   return vi.fn<typeof fetch>().mockImplementation(
     (_input, init) =>
-      new Promise<Response>((resolve, reject) => {
+      new Promise<Response>((_resolve, reject) => {
         const signal = init?.signal;
         if (signal?.aborted) {
           reject(signal.reason);
@@ -84,16 +84,15 @@ const httpCases: Array<{
   },
 ];
 
-it.each(httpCases)("isTransientError - $name", async ({
-  status,
-  body,
-  headers,
-}) => {
-  const client = makeClient(mockFetchResponse(status, body, headers));
-  await expect(callSymbol(client)).rejects.toSatisfy((e: Error) =>
-    isTransientError(e),
-  );
-});
+it.each(httpCases)(
+  "isTransientError - $name",
+  async ({ status, body, headers }) => {
+    const client = makeClient(mockFetchResponse(status, body, headers));
+    await expect(callSymbol(client)).rejects.toSatisfy((e: Error) =>
+      isTransientError(e),
+    );
+  },
+);
 
 // --- Timeout case ---
 

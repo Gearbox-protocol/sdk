@@ -1,0 +1,251 @@
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import { MissingSerializedParamsError } from "../../../base/index.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { AssetsMap } from "../../../utils/index.js";
+import { formatBN } from "../../../utils/index.js";
+import { iUniswapV3AdapterAbi } from "../abi/adapters/index.js";
+import { iUniswapV3Abi } from "../abi/targetContractAbi.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
+
+const abi = iUniswapV3AdapterAbi;
+type abi = typeof abi;
+
+const protocolAbi = iUniswapV3Abi;
+type protocolAbi = typeof protocolAbi;
+
+export class UniswapV3AdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #supportedPools?: {
+    token0: Address;
+    token1: Address;
+    fee: number;
+  }[];
+
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
+
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          {
+            type: "tuple[]",
+            name: "supportedPools",
+            components: [
+              { type: "address", name: "token0" },
+              { type: "address", name: "token1" },
+              { type: "uint24", name: "fee" },
+            ],
+          },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#supportedPools = decoded[2].map(pool => ({
+        token0: pool.token0,
+        token1: pool.token1,
+        fee: pool.fee,
+      }));
+    }
+  }
+
+  get supportedPools(): {
+    token0: Address;
+    token1: Address;
+    fee: number;
+  }[] {
+    if (!this.#supportedPools)
+      throw new MissingSerializedParamsError("supportedPools");
+    return this.#supportedPools;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      supportedPools: this.#supportedPools?.map(p => ({
+        token0: this.labelAddress(p.token0),
+        token1: this.labelAddress(p.token1),
+        fee: p.fee,
+      })),
+    };
+  }
+
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): void {
+    switch (decoded.functionName) {
+      case "exactDiffInputSingle": {
+        const [params] = decoded.args;
+        this.setLeftover(balances, params.tokenIn, params.leftoverAmount);
+        break;
+      }
+      case "exactDiffInput": {
+        const [params] = decoded.args;
+        const tokenIn =
+          `0x${params.path.replace("0x", "").slice(0, 40)}` as Address;
+        this.setLeftover(balances, tokenIn, params.leftoverAmount);
+        break;
+      }
+      default:
+        super.applyBalanceChanges(balances, decoded);
+    }
+  }
+
+  protected override stringifyFunctionParams(
+    params: DecodeFunctionDataReturnType<abi>,
+  ): string[] {
+    switch (params.functionName) {
+      case "exactInputSingle": {
+        const [{ tokenIn, tokenOut, fee, amountIn, amountOutMinimum }] =
+          params.args;
+        const tokenInSym = this.tokensMeta.symbol(tokenIn);
+        const tokenOutSym = this.tokensMeta.symbol(tokenOut);
+
+        const amountInStr = this.tokensMeta.formatBN(tokenIn, amountIn);
+        const amountOutMinimumStr = this.tokensMeta.formatBN(
+          tokenOut,
+          amountOutMinimum,
+        );
+
+        return [
+          `(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`,
+        ];
+      }
+      case "exactDiffInputSingle": {
+        const [{ tokenIn, tokenOut, fee, leftoverAmount, rateMinRAY }] =
+          params.args;
+        const tokenInSym = this.tokensMeta.symbol(tokenIn);
+        const tokenOutSym = this.tokensMeta.symbol(tokenOut);
+
+        const leftoverAmountStr = this.tokensMeta.formatBN(
+          tokenIn,
+          leftoverAmount,
+        );
+        const rateStr = formatBN(rateMinRAY, 27);
+        return [
+          `(leftoverAmount: ${leftoverAmountStr}, rate: ${rateStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`,
+        ];
+      }
+      case "exactInput": {
+        const [{ amountIn, amountOutMinimum, path }] = params.args;
+
+        const pathStr = this.trackInputPath(path);
+        const token = `0x${path.replace("0x", "").slice(0, 40)}` as Address;
+        const amountInStr = this.tokensMeta.formatBN(token, amountIn);
+
+        const amountOutMinimumStr = this.tokensMeta.formatBN(
+          `0x${path.slice(-40, path.length)}`,
+          amountOutMinimum,
+        );
+
+        return [
+          `(amountIn: ${amountInStr}, amountOutMinimum: ${amountOutMinimumStr},  path: ${pathStr}`,
+        ];
+      }
+      case "exactDiffInput": {
+        const [{ leftoverAmount, rateMinRAY, path }] = params.args;
+
+        const leftoverAmountStr = this.tokensMeta.formatBN(
+          `0x${path.replace("0x", "").slice(0, 40)}`,
+          leftoverAmount,
+        );
+
+        const pathStr = this.trackInputPath(path);
+
+        return [
+          `(leftoverAmount: ${leftoverAmountStr}, rate: ${formatBN(
+            rateMinRAY,
+            27,
+          )},  path: ${pathStr}`,
+        ];
+      }
+      case "exactOutput": {
+        const [{ amountInMaximum, amountOut, path }] = params.args;
+
+        const pathStr = this.trackOutputPath(path);
+        const amountInMaximumStr = this.tokensMeta.formatBN(
+          `0x${path.slice(-40, path.length)}`,
+          amountInMaximum,
+        );
+
+        const amountOutStr = this.tokensMeta.formatBN(
+          `0x${path.replace("0x", "").slice(0, 40)}`,
+          amountOut,
+        );
+
+        return [
+          `(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${pathStr}`,
+        ];
+      }
+      case "exactOutputSingle": {
+        const [{ tokenIn, tokenOut, fee, amountOut, amountInMaximum }] =
+          params.args;
+
+        const tokenInSym = this.tokensMeta.symbol(tokenIn);
+        const tokenOutSym = this.tokensMeta.symbol(tokenOut);
+
+        const amountInMaximumStr = this.tokensMeta.formatBN(
+          tokenIn,
+          amountInMaximum,
+        );
+        const amountOutStr = this.tokensMeta.formatBN(tokenOut, amountOut);
+
+        return [
+          `(amountInMaximum: ${amountInMaximumStr}, amountOut: ${amountOutStr},  path: ${tokenInSym} ==(fee: ${fee})==> ${tokenOutSym})`,
+        ];
+      }
+
+      default:
+        return super.stringifyFunctionParams(params);
+    }
+  }
+
+  private trackInputPath(path: string): string {
+    let result = "";
+    let pointer = path.startsWith("0x") ? 2 : 0;
+    while (pointer <= path.length - 40) {
+      const from = `0x${path.slice(
+        pointer,
+        pointer + 40,
+      )}`.toLowerCase() as Address;
+      result += this.tokensMeta.symbol(from) || from;
+      pointer += 40;
+
+      if (pointer > path.length - 6) return result;
+
+      const fee = parseInt(path.slice(pointer, pointer + 6), 16);
+
+      pointer += 6;
+      result += ` ==(fee: ${fee})==> `;
+    }
+
+    return result;
+  }
+
+  private trackOutputPath(path: string): string {
+    let result = "";
+    let pointer = path.length;
+    while (pointer >= 40) {
+      pointer -= 40;
+      const from = `0x${path.slice(pointer, pointer + 40)}` as Address;
+      result += this.tokensMeta.symbol(from) || from;
+
+      if (pointer < 6) return result;
+      pointer -= 6;
+      const fee = parseInt(path.slice(pointer, pointer + 6), 16);
+
+      result += ` ==(fee: ${fee})==> `;
+    }
+
+    return result;
+  }
+}

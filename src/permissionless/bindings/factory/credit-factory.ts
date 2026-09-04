@@ -5,7 +5,7 @@ import {
   adapterConstructorAbi,
   parseAdapterAction,
   parseAdapterDeployParams,
-} from "../../../plugins/adapters/index.js";
+} from "../../../onchain/index.js";
 import type {
   DeployParams,
   SetExpirationDateParams,

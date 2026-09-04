@@ -1,5 +1,5 @@
 import { decodeAbiParameters } from "viem";
-import type { BaseParams } from "../../sdk/index.js";
+import type { BaseParams } from "../../onchain/index.js";
 import type { BotParameters } from "./types.js";
 
 export default function deserializePartialLiquidationBotParams(

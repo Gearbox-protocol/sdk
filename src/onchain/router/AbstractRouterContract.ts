@@ -1,0 +1,212 @@
+import type { Abi, Address } from "viem";
+
+import {
+  type Asset,
+  BaseContract,
+  type BaseContractArgs,
+} from "../base/index.js";
+import { PERCENTAGE_FACTOR } from "../constants/math.js";
+import type { OnchainSDK } from "../OnchainSDK.js";
+import { AddressSet, AssetsMap, formatBN, isDust } from "../utils/index.js";
+import { limitLeftover } from "./helpers.js";
+import type { RouterCASlice, RouterCMSlice } from "./types.js";
+
+export interface ExpectedAndLeftoverOptions {
+  balances?: Leftovers;
+  keepAssets?: Address[];
+  debtOnly?: boolean;
+}
+
+export interface Leftovers {
+  expectedBalances: AssetsMap;
+  leftoverBalances: AssetsMap;
+  tokensToClaim: AssetsMap;
+}
+
+/**
+ * @internal
+ * Base class for router contract wrappers.
+ *
+ * Provides helpers that classify credit-account token balances into
+ * "expected" (to be swapped) and "leftover" (to be kept) categories,
+ * which concrete router implementations use when building optimised
+ * multi-call swap paths.
+ *
+ * @typeParam abi - ABI type of the underlying router contract.
+ **/
+export abstract class AbstractRouterContract<
+  abi extends Abi | readonly unknown[],
+> extends BaseContract<abi> {
+  /**
+   * Reference to the parent SDK instance.
+   **/
+  public readonly sdk: OnchainSDK;
+
+  constructor(sdk: OnchainSDK, args: BaseContractArgs<abi>) {
+    super(sdk, args);
+    this.sdk = sdk;
+  }
+
+  protected getExpectedAndLeftover(
+    ca: RouterCASlice,
+    cm: RouterCMSlice,
+    options: ExpectedAndLeftoverOptions = {},
+  ): Leftovers {
+    const b = options.balances
+      ? options.balances
+      : this.getDefaultExpectedAndLeftover(
+          ca,
+          options.keepAssets,
+          options.debtOnly,
+        );
+    const { leftoverBalances, expectedBalances, tokensToClaim } = b;
+
+    const expected = new AssetsMap();
+    const leftover = new AssetsMap();
+
+    for (const token of cm.collateralTokens) {
+      // When we pass expected balances explicitly, we need to mimic router behaviour by filtering out leftover tokens
+      // for example, we can have stETH balance of 2, because 1 transforms to 2 because of rebasing
+      // https://github.com/Gearbox-protocol/router-v3/blob/c230a3aa568bb432e50463cfddc877fec8940cf5/contracts/RouterV3.sol#L222
+      const actual = expectedBalances.get(token) || 0n;
+      expected.upsert(token, actual > 10n ? actual : 0n);
+      leftover.upsert(
+        token,
+        limitLeftover(leftoverBalances.get(token) || 1n, token) ?? 1n,
+      );
+    }
+
+    return {
+      expectedBalances: expected,
+      leftoverBalances: leftover,
+      tokensToClaim,
+    };
+  }
+
+  protected getDefaultExpectedAndLeftover(
+    ca: RouterCASlice,
+    keepAssets?: Address[],
+    debtOnly?: boolean,
+  ): Leftovers {
+    const expectedBalances = new AssetsMap();
+    const leftoverBalances = new AssetsMap();
+    const keepAssetsSet = new AddressSet(keepAssets);
+
+    if (debtOnly) {
+      const result = this.getLeftoversAfterBuyingDebt(ca, keepAssetsSet);
+      if (result) {
+        return result;
+      } else {
+        this.logger?.warn("no token found to cover debt");
+      }
+    }
+
+    for (const { token, balance, mask } of ca.tokens) {
+      const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
+      expectedBalances.upsert(token, balance);
+      // filter out dust, we don't want to swap it
+      // also: gearbox liquidator does not need to swap disabled tokens. third-party liquidators might want to do it
+      if (
+        keepAssetsSet.has(token) ||
+        !isEnabled ||
+        isDust({
+          sdk: this.sdk,
+          token,
+          balance,
+          creditManager: ca.creditManager,
+        })
+      ) {
+        leftoverBalances.upsert(
+          token,
+          limitLeftover(balance, token) ?? balance,
+        );
+      }
+    }
+
+    return {
+      expectedBalances,
+      leftoverBalances,
+      tokensToClaim: new AssetsMap(),
+    };
+  }
+
+  /**
+   * Tries to sell just enough of the most valuable token to cover debt.
+   * @param ca
+   * @param keepAssets
+   * @returns
+   */
+  protected getLeftoversAfterBuyingDebt(
+    ca: RouterCASlice,
+    keepAssets: AddressSet,
+  ): Leftovers | undefined {
+    const { priceOracle } = this.sdk.marketRegister.findByCreditManager(
+      ca.creditManager,
+    );
+
+    const expectedBalances = new AssetsMap();
+    const leftoverBalances = new AssetsMap();
+    const usdBalances: Asset[] = [];
+
+    for (const { token, balance, mask } of ca.tokens) {
+      const isEnabled = (mask & ca.enabledTokensMask) !== 0n;
+      expectedBalances.upsert(token, balance);
+      leftoverBalances.upsert(token, limitLeftover(balance, token) ?? balance);
+      if (isEnabled && !keepAssets.has(token)) {
+        usdBalances.push({
+          token,
+          balance: priceOracle.safeConvertToUSD(token, balance).value,
+        });
+      }
+    }
+
+    usdBalances.sort((a, b) => {
+      if (a.balance > b.balance) return -1;
+      if (a.balance < b.balance) return 1;
+      return 0;
+    });
+
+    if (usdBalances.length === 0) {
+      return undefined;
+    }
+
+    // found token with highest balance in USD which is not in keepAssets and is enabled
+    const highestToken = usdBalances[0];
+    const lt = this.sdk.marketRegister
+      .findCreditManager(ca.creditManager)
+      .creditManager.liquidationThresholds.mustGet(highestToken.token);
+    const requiredDebtUSD = (ca.totalDebtUSD * PERCENTAGE_FACTOR) / BigInt(lt);
+
+    if (highestToken.balance < requiredDebtUSD) {
+      return undefined;
+    }
+    const tokenAmount = priceOracle.safeConvertFromUSD(
+      highestToken.token,
+      requiredDebtUSD,
+    ).value;
+    if (tokenAmount === 0n) {
+      return undefined;
+    }
+    let leftoverBalance = leftoverBalances.get(highestToken.token) ?? 0n;
+    leftoverBalance -= tokenAmount;
+    if (leftoverBalance < 0n) {
+      return undefined;
+    }
+    leftoverBalances.upsert(highestToken.token, leftoverBalance);
+    const tokenAmountStr = this.sdk.tokensMeta.formatBN(
+      highestToken.token,
+      tokenAmount,
+      { symbol: true },
+    );
+    const totalDebtUSDStr = formatBN(ca.totalDebtUSD, 8);
+    this.logger?.debug(
+      `will sell ${tokenAmountStr} (LT=${lt}) to cover debt of ${totalDebtUSDStr} USD`,
+    );
+
+    return {
+      expectedBalances,
+      leftoverBalances,
+      tokensToClaim: new AssetsMap(),
+    };
+  }
+}

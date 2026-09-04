@@ -1,0 +1,450 @@
+import type {
+  Abi,
+  Address,
+  ContractFunctionName,
+  EncodeFunctionDataParameters,
+  Hex,
+} from "viem";
+import {
+  decodeFunctionData,
+  encodeFunctionData,
+  getAddress,
+  parseAbi,
+} from "viem";
+import { describe, expect, it } from "vitest";
+
+import {
+  iCreditFacadeMulticallV310Abi,
+  iCreditFacadeV310Abi,
+} from "../../../abi/310/generated.js";
+import { iPausableAbi } from "../../../abi/iPausable.js";
+import type { PermitResult } from "../../base/index.js";
+import { BaseContract } from "../../base/index.js";
+import { MIN_INT96 } from "../../constants/index.js";
+import type { MultiCall } from "../../types/index.js";
+import type { CreditFacadeV310Contract } from "./CreditFacadeV310Contract.js";
+import {
+  TEST_FACADE_ADDRESS as FACADE_ADDR,
+  makeTestFacade,
+  testContractsRegister as register,
+  TEST_UNDERLYING_ADDRESS as TOKEN_ADDR,
+} from "./CreditFacadeV310Contract.mock.js";
+
+const ADAPTER_ADDR = getAddress("0xADAD000000000000000000000000000000000001");
+const CREDIT_ACCOUNT = getAddress("0xCCA0000000000000000000000000000000000001");
+const UNKNOWN_ADDR = getAddress("0xDEAD000000000000000000000000000000000000");
+const ON_BEHALF_OF = getAddress("0x1111111111111111111111111111111111111111");
+const LIQUIDATOR = getAddress("0x2222222222222222222222222222222222222222");
+
+const facadeAbi = [
+  ...iCreditFacadeV310Abi,
+  ...iCreditFacadeMulticallV310Abi,
+  ...iPausableAbi,
+] as const;
+
+const adapterAbi = parseAbi([
+  "function swap(address tokenIn, address tokenOut, uint256 amountIn)",
+]);
+
+function encodeInnerCall<
+  const abi extends Abi | readonly unknown[],
+  functionName extends ContractFunctionName<abi>,
+>(
+  target: Address,
+  parameters: EncodeFunctionDataParameters<abi, functionName>,
+): { target: Address; callData: Hex } {
+  return {
+    target,
+    callData: encodeFunctionData(parameters as EncodeFunctionDataParameters),
+  };
+}
+
+const FACADE_NAME = "CreditFacadeV310(TestCM)";
+
+// `PermitResult` types both signature halves as `Address`, but the facade
+// expects bytes32
+const PERMIT_R = `0x${"11".repeat(32)}` as Address;
+const PERMIT_S = `0x${"22".repeat(32)}` as Address;
+
+function decodeMulticall(call: MultiCall) {
+  return decodeFunctionData({
+    abi: iCreditFacadeMulticallV310Abi,
+    data: call.callData,
+  });
+}
+
+function makePermit(token: Address): PermitResult {
+  return {
+    token,
+    owner: ON_BEHALF_OF,
+    spender: FACADE_ADDR,
+    value: 1n,
+    deadline: 1234n,
+    nonce: 0n,
+    v: 27,
+    r: PERMIT_R,
+    s: PERMIT_S,
+  };
+}
+
+interface FacadeAndAdapter {
+  facade: CreditFacadeV310Contract;
+  adapter: BaseContract<typeof adapterAbi>;
+}
+
+function makeFacadeAndAdapter(): FacadeAndAdapter {
+  const facade = makeTestFacade();
+
+  const adapter = new BaseContract(
+    { register },
+    {
+      abi: adapterAbi,
+      addr: ADAPTER_ADDR,
+      name: "UniswapV3Adapter",
+      version: 310,
+      contractType: "AD_UNISWAP_V3",
+    },
+  );
+
+  return { facade, adapter };
+}
+
+function facadeCall(
+  functionName: string,
+  calldata: Hex,
+  rawArgs: Record<string, unknown>,
+) {
+  return {
+    chainId: 1,
+    target: FACADE_ADDR,
+    contractType: "CF",
+    label: FACADE_NAME,
+    version: 310,
+    functionName,
+    calldata,
+    rawArgs,
+  };
+}
+
+function adapterCall(
+  functionName: string,
+  calldata: Hex,
+  rawArgs: Record<string, unknown>,
+) {
+  return {
+    chainId: 1,
+    target: ADAPTER_ADDR,
+    contractType: "AD_UNISWAP_V3",
+    label: "UniswapV3Adapter",
+    version: 310,
+    functionName,
+    calldata,
+    rawArgs,
+  };
+}
+
+describe("parseFunctionDataV2", () => {
+  it("multicall with known inner calls returns ParsedCallV2[] in rawArgs.calls", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const innerCalls = [
+      encodeInnerCall(FACADE_ADDR, {
+        abi: facadeAbi,
+        functionName: "addCollateral",
+        args: [TOKEN_ADDR, 1000n],
+      }),
+      encodeInnerCall(ADAPTER_ADDR, {
+        abi: adapterAbi,
+        functionName: "swap",
+        args: [TOKEN_ADDR, CREDIT_ACCOUNT, 500n],
+      }),
+    ];
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "multicall",
+      args: [CREDIT_ACCOUNT, innerCalls],
+    });
+
+    expect(facade.parseFunctionDataV2(calldata)).toEqual(
+      facadeCall("multicall(address,(address,bytes)[])", calldata, {
+        creditAccount: CREDIT_ACCOUNT,
+        calls: [
+          facadeCall("addCollateral(address,uint256)", innerCalls[0].callData, {
+            token: TOKEN_ADDR,
+            amount: 1000n,
+          }),
+          adapterCall("swap(address,address,uint256)", innerCalls[1].callData, {
+            tokenIn: TOKEN_ADDR,
+            tokenOut: CREDIT_ACCOUNT,
+            amountIn: 500n,
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("openCreditAccount parses multicall inner calls", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const innerCalls = [
+      encodeInnerCall(FACADE_ADDR, {
+        abi: facadeAbi,
+        functionName: "increaseDebt",
+        args: [5000n],
+      }),
+    ];
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "openCreditAccount",
+      args: [ON_BEHALF_OF, innerCalls, 0n],
+    });
+
+    expect(facade.parseFunctionDataV2(calldata)).toEqual(
+      facadeCall(
+        "openCreditAccount(address,(address,bytes)[],uint256)",
+        calldata,
+        {
+          onBehalfOf: ON_BEHALF_OF,
+          calls: [
+            facadeCall("increaseDebt(uint256)", innerCalls[0].callData, {
+              amount: 5000n,
+            }),
+          ],
+          referralCode: 0n,
+        },
+      ),
+    );
+  });
+
+  it("closeCreditAccount parses multicall inner calls", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const innerCalls = [
+      encodeInnerCall(FACADE_ADDR, {
+        abi: facadeAbi,
+        functionName: "addCollateral",
+        args: [TOKEN_ADDR, 200n],
+      }),
+    ];
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "closeCreditAccount",
+      args: [CREDIT_ACCOUNT, innerCalls],
+    });
+
+    expect(facade.parseFunctionDataV2(calldata)).toEqual(
+      facadeCall("closeCreditAccount(address,(address,bytes)[])", calldata, {
+        creditAccount: CREDIT_ACCOUNT,
+        calls: [
+          facadeCall("addCollateral(address,uint256)", innerCalls[0].callData, {
+            token: TOKEN_ADDR,
+            amount: 200n,
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("liquidateCreditAccount parses multicall inner calls", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const innerCalls = [
+      encodeInnerCall(ADAPTER_ADDR, {
+        abi: adapterAbi,
+        functionName: "swap",
+        args: [TOKEN_ADDR, CREDIT_ACCOUNT, 1000n],
+      }),
+    ];
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "liquidateCreditAccount",
+      args: [CREDIT_ACCOUNT, LIQUIDATOR, innerCalls],
+    });
+
+    expect(facade.parseFunctionDataV2(calldata)).toEqual(
+      facadeCall(
+        "liquidateCreditAccount(address,address,(address,bytes)[])",
+        calldata,
+        {
+          creditAccount: CREDIT_ACCOUNT,
+          to: LIQUIDATOR,
+          calls: [
+            adapterCall(
+              "swap(address,address,uint256)",
+              innerCalls[0].callData,
+              {
+                tokenIn: TOKEN_ADDR,
+                tokenOut: CREDIT_ACCOUNT,
+                amountIn: 1000n,
+              },
+            ),
+          ],
+        },
+      ),
+    );
+  });
+
+  it("unknown inner call with strict=false returns fallback in array", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const unknownCalldata =
+      "0xdeadbeef0000000000000000000000000000000000000000000000000000000000000001" as Hex;
+
+    const innerCalls = [
+      encodeInnerCall(FACADE_ADDR, {
+        abi: facadeAbi,
+        functionName: "addCollateral",
+        args: [TOKEN_ADDR, 100n],
+      }),
+      { target: UNKNOWN_ADDR, callData: unknownCalldata },
+    ];
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "multicall",
+      args: [CREDIT_ACCOUNT, innerCalls],
+    });
+
+    expect(facade.parseFunctionDataV2(calldata)).toEqual(
+      facadeCall("multicall(address,(address,bytes)[])", calldata, {
+        creditAccount: CREDIT_ACCOUNT,
+        calls: [
+          facadeCall("addCollateral(address,uint256)", innerCalls[0].callData, {
+            token: TOKEN_ADDR,
+            amount: 100n,
+          }),
+          {
+            chainId: 1,
+            target: UNKNOWN_ADDR,
+            contractType: "",
+            label: UNKNOWN_ADDR,
+            version: 0,
+            functionName: "unknown function 0xdeadbeef",
+            calldata: unknownCalldata,
+            rawArgs: {
+              _data:
+                "0x0000000000000000000000000000000000000000000000000000000000000001",
+            },
+          },
+        ],
+      }),
+    );
+  });
+
+  it("unknown inner call with strict=true throws", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const innerCalls = [
+      {
+        target: UNKNOWN_ADDR,
+        callData:
+          "0xdeadbeef0000000000000000000000000000000000000000000000000000000000000001" as Hex,
+      },
+    ];
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "multicall",
+      args: [CREDIT_ACCOUNT, innerCalls],
+    });
+
+    expect(() => facade.parseFunctionDataV2(calldata, true)).toThrow();
+  });
+
+  it("non-multicall function falls through to default parsing", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calldata = encodeFunctionData({
+      abi: facadeAbi,
+      functionName: "addCollateral",
+      args: [TOKEN_ADDR, 999n],
+    });
+
+    expect(facade.parseFunctionDataV2(calldata)).toEqual(
+      facadeCall("addCollateral(address,uint256)", calldata, {
+        token: TOKEN_ADDR,
+        amount: 999n,
+      }),
+    );
+  });
+});
+
+describe("prepareAddCollateral", () => {
+  it("uses addCollateralWithPermit only for tokens with a permit", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calls = facade.prepareAddCollateral(
+      [
+        { token: TOKEN_ADDR, balance: 100n },
+        { token: ADAPTER_ADDR, balance: 200n },
+      ],
+      { [TOKEN_ADDR]: makePermit(TOKEN_ADDR) },
+    );
+
+    expect(decodeMulticall(calls[0])).toMatchObject({
+      functionName: "addCollateralWithPermit",
+      args: [TOKEN_ADDR, 100n, 1234n, 27, PERMIT_R, PERMIT_S],
+    });
+    expect(decodeMulticall(calls[1])).toMatchObject({
+      functionName: "addCollateral",
+      args: [ADAPTER_ADDR, 200n],
+    });
+  });
+});
+
+describe("prepareUpdateQuotas", () => {
+  it("resolves min quota per token and falls back to zero", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calls = facade.prepareUpdateQuotas({
+      averageQuota: [
+        { token: TOKEN_ADDR, balance: 1000n },
+        { token: ADAPTER_ADDR, balance: 2000n },
+        { token: UNKNOWN_ADDR, balance: 3000n },
+      ],
+      minQuota: [
+        { token: TOKEN_ADDR, balance: 900n },
+        // non-positive min is treated as absent
+        { token: ADAPTER_ADDR, balance: 0n },
+      ],
+    });
+
+    expect(calls.map(c => decodeMulticall(c).args)).toEqual([
+      [TOKEN_ADDR, 1000n, 900n],
+      [ADAPTER_ADDR, 2000n, 0n],
+      [UNKNOWN_ADDR, 3000n, 0n],
+    ]);
+  });
+
+  it("matches min quota tokens case-insensitively", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const [call] = facade.prepareUpdateQuotas({
+      averageQuota: [{ token: TOKEN_ADDR, balance: 1000n }],
+      minQuota: [{ token: TOKEN_ADDR.toLowerCase() as Address, balance: 700n }],
+    });
+
+    expect(decodeMulticall(call).args).toEqual([TOKEN_ADDR, 1000n, 700n]);
+  });
+});
+
+describe("prepareDisableQuotas", () => {
+  it("skips tokens without a quota", () => {
+    const { facade } = makeFacadeAndAdapter();
+
+    const calls = facade.prepareDisableQuotas([
+      { token: TOKEN_ADDR, quota: 5n },
+      { token: ADAPTER_ADDR, quota: 0n },
+    ]);
+
+    expect(calls).toHaveLength(1);
+    expect(decodeMulticall(calls[0])).toMatchObject({
+      functionName: "updateQuota",
+      args: [TOKEN_ADDR, MIN_INT96, 0n],
+    });
+  });
+});

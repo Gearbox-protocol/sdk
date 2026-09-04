@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
-import { OnchainSDK } from "../../sdk/index.js";
+import { OnchainSDK } from "../../onchain/index.js";
 import { ANVIL_URL } from "../constants.js";
 import { REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 

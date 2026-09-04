@@ -1,4 +1,4 @@
-import { type ChildProcess, spawn } from "node:child_process";
+import { type ChildProcess, execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -79,6 +79,87 @@ export function anvilCachePath(
   );
 }
 
+interface SdkPackageJson {
+  foundryVersion?: string;
+}
+
+interface AnvilVersions {
+  expected: string;
+  installed: string;
+}
+
+let cachedAnvilVersions: AnvilVersions | undefined;
+let warnedAnvilMismatch = false;
+
+function normalizeVersion(version: string): string {
+  return version.trim().replace(/^v/i, "");
+}
+
+function expectedFoundryVersion(): string {
+  const pkgPath = join(import.meta.dirname, "../../package.json");
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as SdkPackageJson;
+  if (!pkg.foundryVersion) {
+    throw new Error(`foundryVersion is missing from ${pkgPath}`);
+  }
+  return normalizeVersion(pkg.foundryVersion);
+}
+
+function installedAnvilVersion(): string {
+  let output: string;
+  try {
+    output = execFileSync("anvil", ["--version"], { encoding: "utf8" });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to run \`anvil --version\`: ${detail}`);
+  }
+  const match = output.match(/anvil Version:\s*v?(\d+\.\d+\.\d+)/i);
+  if (!match) {
+    throw new Error(`Could not parse anvil version from:\n${output}`);
+  }
+  return match[1];
+}
+
+function anvilMismatchMessage(installed: string, expected: string): string {
+  return [
+    "============================================================",
+    `ANVIL VERSION MISMATCH: installed ${installed}, expected ${expected}`,
+    "Fixtures may be silently rejected and e2e tests will crawl.",
+    `Fix: foundryup -i ${expected}`,
+    "============================================================",
+  ].join("\n");
+}
+
+/**
+ * Compares the installed anvil against `foundryVersion` in package.json.
+ * Test runs warn; fixture generation throws — a mismatched fixture poisons
+ * the cache for everyone.
+ */
+function checkAnvilVersion(strict: boolean): void {
+  if (!cachedAnvilVersions) {
+    cachedAnvilVersions = {
+      expected: expectedFoundryVersion(),
+      installed: installedAnvilVersion(),
+    };
+  }
+  const { expected, installed } = cachedAnvilVersions;
+  if (installed === expected) {
+    return;
+  }
+  const message = anvilMismatchMessage(installed, expected);
+  if (strict) {
+    throw new Error(message);
+  }
+  if (!warnedAnvilMismatch) {
+    warnedAnvilMismatch = true;
+    console.warn(message);
+    if (process.env.CI) {
+      console.warn(
+        `::warning::Anvil version mismatch: installed ${installed}, expected ${expected}. Fixtures may be silently rejected and e2e tests will crawl. Fix: foundryup -i ${expected}`,
+      );
+    }
+  }
+}
+
 /**
  * Spawns anvil with the given args and resolves once it's listening.
  */
@@ -152,6 +233,8 @@ function spawnAnvil(
  * needed for the initial block header fetch that anvil performs on startup.
  */
 export function startAnvil(options: StartAnvilOptions): Promise<AnvilInstance> {
+  checkAnvilVersion(false);
+
   const {
     cacheFilePath,
     forkUrl,
@@ -194,6 +277,8 @@ export function startAnvil(options: StartAnvilOptions): Promise<AnvilInstance> {
 export function startAnvilFork(
   options: StartAnvilForkOptions,
 ): Promise<AnvilInstance> {
+  checkAnvilVersion(true);
+
   const { forkUrl, forkBlockNumber, port = 8546, timeout = 480_000 } = options;
 
   return spawnAnvil(

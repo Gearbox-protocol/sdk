@@ -21,21 +21,21 @@ import {
   creditManagerParamsAbi,
 } from "../../abi/310/configure/creditSuiteParams.js";
 import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
-import type { ParsedCallArgs, RawTx } from "../../sdk/index.js";
-import { BaseContract, json_stringify } from "../../sdk/index.js";
+import type { ParsedCallArgs, RawTx } from "../../onchain/index.js";
+import { BaseContract, json_stringify } from "../../onchain/index.js";
 import {
   parseIrmDeployParams,
   parseLossPolicyDeployParams,
   parseRateKeeperDeployParams,
 } from "../plugins/index.js";
 import { handleSalt } from "../utils/create2.js";
-import { convertPercent } from "../utils/index.js";
+import { convertPercent } from "../utils/format.js";
+import { AddressProviderContract } from "./address-provider.js";
 import { CreditFactory } from "./factory/credit-factory.js";
 import { LossPolicyFactory } from "./factory/loss-policy-factory.js";
 import { PoolFactory } from "./factory/pool-factory.js";
 import { PriceOracleFactory } from "./factory/price-oracle-factory.js";
 import { RateKeeperFactory } from "./factory/rate-keeper-factory.js";
-import { AddressProviderContract } from "./index.js";
 import type {
   AddAssetParams,
   AllowTokenParams,

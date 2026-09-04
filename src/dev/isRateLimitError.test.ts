@@ -82,21 +82,19 @@ const cases: Array<{
   },
 ];
 
-it.each(cases)("isRateLimitError - $name", async ({
-  status,
-  body,
-  headers,
-  retryAfterMs,
-}) => {
-  const client = makeClient(status, body, headers);
-  await expect(callSymbol(client)).rejects.toSatisfy((e: Error) => {
-    const [isRateLimit, ms] = isRateLimitError(e);
-    if (retryAfterMs !== undefined) {
-      expect(ms).toBe(retryAfterMs);
-    }
-    return isRateLimit;
-  });
-});
+it.each(cases)(
+  "isRateLimitError - $name",
+  async ({ status, body, headers, retryAfterMs }) => {
+    const client = makeClient(status, body, headers);
+    await expect(callSymbol(client)).rejects.toSatisfy((e: Error) => {
+      const [isRateLimit, ms] = isRateLimitError(e);
+      if (retryAfterMs !== undefined) {
+        expect(ms).toBe(retryAfterMs);
+      }
+      return isRateLimit;
+    });
+  },
+);
 
 it("isRateLimitError - returns false for non-rate-limit RPC error", async () => {
   const client = makeClient(

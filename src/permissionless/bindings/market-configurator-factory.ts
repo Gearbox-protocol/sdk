@@ -1,7 +1,7 @@
 import type { Address, Chain, PublicClient, Transport } from "viem";
 import { iMarketConfiguratorFactoryAbi } from "../../abi/310/iMarketConfiguratorFactory.js";
-import type { RawTx } from "../../sdk/index.js";
-import { BaseContract } from "../../sdk/index.js";
+import type { RawTx } from "../../onchain/index.js";
+import { BaseContract } from "../../onchain/index.js";
 
 const abi = iMarketConfiguratorFactoryAbi;
 

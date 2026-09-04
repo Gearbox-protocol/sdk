@@ -1,6 +1,6 @@
 import type { Address, Chain, Hex, PublicClient, Transport } from "viem";
 import { iTimeLockAbi } from "../../../abi/governance/iTimeLock.js";
-import { BaseContract } from "../../../sdk/index.js";
+import { BaseContract } from "../../../onchain/index.js";
 import type { QueuedAndExecutedTransaction } from "./types.js";
 
 export class TimeLockContract extends BaseContract<typeof iTimeLockAbi> {

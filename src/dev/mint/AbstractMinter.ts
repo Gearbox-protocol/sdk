@@ -1,6 +1,6 @@
 import { type Address, parseEther } from "viem";
 import { ierc20Abi } from "../../abi/iERC20.js";
-import { type OnchainSDK, SDKConstruct } from "../../sdk/index.js";
+import { type OnchainSDK, SDKConstruct } from "../../onchain/index.js";
 import { iOwnableAbi } from "../abi.js";
 import type { AnvilClient } from "../createAnvilClient.js";
 import type { IMinter } from "./types.js";

@@ -1,0 +1,44 @@
+{
+  "claimable": [
+    {
+      "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+      "withdrawalPhantomToken": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+      "withdrawalTokenSpent": {
+        "__type": "bigint",
+        "__value": "9998816822"
+      },
+      "outputs": [
+        {
+          "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "isDelayed": false,
+          "amount": {
+            "__type": "bigint",
+            "__value": "9998816822"
+          }
+        }
+      ],
+      "claimCalls": [
+        {
+          "target": "0x6A589123A24E2792311AbCF4C84ABA2Fb9CC5ef2",
+          "callData": "0x318d9e5d00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b4dad8f54e60dcfb5583f0852a9e12484f91135a"
+        }
+      ],
+      "intent": {
+        "type": "WITHDRAW_COLLATERAL",
+        "to": "0xD39D3eBcC8149eF92d54c71ae11D646a54EDE40d",
+        "withdrawToken": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "withdrawAmount": {
+          "__type": "bigint",
+          "__value": "2000000000"
+        },
+        "sourceToken": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+        "debtRepaid": {
+          "__type": "bigint",
+          "__value": "8000000000"
+        },
+        "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D"
+      }
+    }
+  ],
+  "pending": []
+}

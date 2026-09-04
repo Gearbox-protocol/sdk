@@ -1,7 +1,7 @@
 import type { Chain, Transport } from "viem";
 import { createPublicClient, defineChain, http } from "viem";
 
-import { detectNetwork, getChain } from "../sdk/index.js";
+import { detectNetwork, getChain } from "../onchain/index.js";
 
 /**
  * Helper to create chain with different chainId (for anvil forks)

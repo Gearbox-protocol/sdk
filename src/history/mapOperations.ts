@@ -1,21 +1,19 @@
-import type { AdapterOperation } from "../plugins/adapters/index.js";
 import type {
+  AdapterOperation,
   AddCollateralOp,
-  DecreaseDebtOp,
-  IncreaseDebtOp,
-  InnerOperation,
-  UpdateQuotaOp,
-  WithdrawCollateralOp,
-} from "./inner-operations.js";
-import type {
   CloseCreditAccountOperation,
   CreditAccountOperation,
+  DecreaseDebtOp,
   DirectTokenTransferOperation,
-  FacadeOperationMetadata,
+  HistoryFacadeMetadata,
+  IncreaseDebtOp,
+  InnerOperation,
   LiquidateCreditAccountOperation,
   MulticallOperation,
   OpenCreditAccountOperation,
   PartialLiquidationOperation,
+  UpdateQuotaOp,
+  WithdrawCollateralOp,
 } from "./types.js";
 
 /**
@@ -24,21 +22,21 @@ import type {
  *
  */
 export interface OperationVisitor<TInner, TOuter> {
-  Execute(op: AdapterOperation, ctx: FacadeOperationMetadata): TInner;
+  Execute(op: AdapterOperation, ctx: HistoryFacadeMetadata): TInner;
   IncreaseBorrowedAmount(
     op: IncreaseDebtOp,
-    ctx: FacadeOperationMetadata,
+    ctx: HistoryFacadeMetadata,
   ): TInner;
   DecreaseBorrowedAmount(
     op: DecreaseDebtOp,
-    ctx: FacadeOperationMetadata,
+    ctx: HistoryFacadeMetadata,
   ): TInner;
-  AddCollateral(op: AddCollateralOp, ctx: FacadeOperationMetadata): TInner;
+  AddCollateral(op: AddCollateralOp, ctx: HistoryFacadeMetadata): TInner;
   WithdrawCollateral(
     op: WithdrawCollateralOp,
-    ctx: FacadeOperationMetadata,
+    ctx: HistoryFacadeMetadata,
   ): TInner;
-  UpdateQuota(op: UpdateQuotaOp, ctx: FacadeOperationMetadata): TInner;
+  UpdateQuota(op: UpdateQuotaOp, ctx: HistoryFacadeMetadata): TInner;
 
   DirectTokenTransfer(op: DirectTokenTransferOperation): TOuter;
   MultiCall(op: MulticallOperation, multicall: TInner[]): TOuter;
@@ -68,7 +66,7 @@ function mapInnerOperation<TInner>(
     | "WithdrawCollateral"
     | "UpdateQuota"
   >,
-  ctx: FacadeOperationMetadata,
+  ctx: HistoryFacadeMetadata,
 ): TInner {
   switch (op.operation) {
     case "Execute":
@@ -83,6 +81,13 @@ function mapInnerOperation<TInner>(
       return visitor.WithdrawCollateral(op, ctx);
     case "UpdateQuota":
       return visitor.UpdateQuota(op, ctx);
+    // The history classifier never emits other InnerOperation variants
+    // (e.g. StoreExpectedBalances/CompareBalances, which it drops), so this
+    // guards against silently returning undefined if that ever changes.
+    default:
+      throw new Error(
+        `unexpected inner operation: ${(op as InnerOperation).operation}`,
+      );
   }
 }
 

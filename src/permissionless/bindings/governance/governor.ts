@@ -13,12 +13,16 @@ import {
 } from "viem";
 import { formatAbiItem } from "viem/utils";
 import { governorAbi } from "../../../abi/governance/governor.js";
-import type { ParsedCall, ParsedCallArgs, RawTx } from "../../../sdk/index.js";
+import type {
+  ParsedCall,
+  ParsedCallArgs,
+  RawTx,
+} from "../../../onchain/index.js";
 import {
   BaseContract,
   formatTimestamp,
   json_stringify,
-} from "../../../sdk/index.js";
+} from "../../../onchain/index.js";
 import { Addresses } from "../../deployment/addresses.js";
 import { BytecodeRepositoryContract } from "../bytecode-repository.js";
 import { MarketConfiguratorContract } from "../market-configurator.js";

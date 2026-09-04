@@ -1,0 +1,95 @@
+import {
+  type Address,
+  type DecodeFunctionDataReturnType,
+  decodeAbiParameters,
+} from "viem";
+import type { ParsedCallV2 } from "../../../base/index.js";
+import { MissingSerializedParamsError } from "../../../base/index.js";
+import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { AssetsMap } from "../../../utils/index.js";
+import { iwstEthv1AdapterAbi } from "../abi/adapters/index.js";
+import { iwstETHAbi } from "../abi/targetContractAbi.js";
+import type {
+  LegacyAdapterOperation,
+  Transfers,
+} from "../legacyAdapterOperations.js";
+import { swapFromTransfers } from "../transferHelpers.js";
+import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
+import { AbstractAdapterContract } from "./AbstractAdapter.js";
+
+const abi = iwstEthv1AdapterAbi;
+type abi = typeof abi;
+
+const protocolAbi = iwstETHAbi;
+type protocolAbi = typeof protocolAbi;
+
+export class WstETHV1AdapterContract extends AbstractAdapterContract<
+  abi,
+  protocolAbi
+> {
+  #stETH?: Address;
+
+  constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
+    super(sdk, { ...args, abi, protocolAbi });
+
+    if (args.baseParams.serializedParams) {
+      const decoded = decodeAbiParameters(
+        [
+          { type: "address", name: "creditManager" },
+          { type: "address", name: "targetContract" },
+          { type: "address", name: "stETH" },
+        ],
+        args.baseParams.serializedParams,
+      );
+
+      this.#stETH = decoded[2];
+    }
+  }
+
+  get stETH(): Address {
+    if (!this.#stETH) throw new MissingSerializedParamsError("stETH");
+    return this.#stETH;
+  }
+
+  public override stateHuman(raw?: boolean) {
+    return {
+      ...super.stateHuman(raw),
+      stETH: this.#stETH ? this.labelAddress(this.#stETH) : undefined,
+    };
+  }
+
+  /** @see https://github.com/Gearbox-protocol/charts_server/blob/master/core/operation_type.go#L264-L275 */
+  public override classifyLegacyOperation(
+    parsed: ParsedCallV2,
+    transfers: Transfers,
+  ): LegacyAdapterOperation {
+    if (parsed.functionName.startsWith("wrap")) {
+      return { operation: "WstETHWrap", ...swapFromTransfers(transfers) };
+    }
+    if (parsed.functionName.startsWith("unwrap")) {
+      return { operation: "WstETHUnwrap", ...swapFromTransfers(transfers) };
+    }
+    return super.classifyLegacyOperation(parsed, transfers);
+  }
+
+  protected override applyBalanceChanges(
+    balances: AssetsMap,
+    decoded: DecodeFunctionDataReturnType<abi>,
+  ): void {
+    switch (decoded.functionName) {
+      case "wrapDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.stETH, leftoverAmount);
+        break;
+      }
+      // wstETH is the adapter's target contract
+      case "unwrapDiff": {
+        const [leftoverAmount] = decoded.args;
+        this.setLeftover(balances, this.targetContract, leftoverAmount);
+        break;
+      }
+      default:
+        super.applyBalanceChanges(balances, decoded);
+    }
+  }
+}

@@ -1,0 +1,96 @@
+import {
+  isSDKError,
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+} from "../../model/index.js";
+import {
+  CreditFacadeV310Contract,
+  isRWAFactory,
+  type PluginsMap,
+  PoolV310Contract,
+  ZapperContract,
+} from "../../onchain/index.js";
+import type { PreviewOperationInput } from "../types.js";
+import type {
+  UnsupportedPoolFunctionError,
+  UnsupportedTargetError,
+  UnsupportedZapperFunctionError,
+} from "./errors.js";
+import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";
+import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
+import { parseRWAFactoryOperationCalldata } from "./parseRWAFactoryOperationCalldata.js";
+import type { Operation } from "./types.js";
+import type { PoolOperation } from "./types-pools.js";
+
+/**
+ * Decodes raw operation calldata into an {@link Operation}.
+ *
+ * Support parsing of pool operations (including via zappers),
+ * credit facade operations and RWA factory operations.
+ */
+export function parseOperationCalldata<P extends PluginsMap>(
+  input: PreviewOperationInput<P>,
+): SDKReturn<
+  Operation,
+  | UnsupportedTargetError
+  | UnsupportedPoolFunctionError
+  | UnsupportedZapperFunctionError
+> {
+  const { sdk, to, calldata, value, sender } = input;
+  const contract = sdk.getContract(to);
+
+  if (contract instanceof PoolV310Contract) {
+    return parsePoolOperationCalldata(sdk, contract, calldata);
+  }
+
+  if (contract instanceof ZapperContract) {
+    const answer = contract.parseOperation(calldata, value);
+    if (isSDKError(answer)) {
+      return answer;
+    }
+    const parsed = answer.data;
+    if (parsed.operation === "Deposit") {
+      const op: PoolOperation = {
+        operation: "Deposit",
+        pool: parsed.pool,
+        receiver: parsed.receiver,
+        assets: parsed.assets,
+        underlying: parsed.underlying,
+        tokenIn: contract.tokenIn.addr,
+        tokenOut: contract.tokenOut.addr,
+        zapper: parsed.zapper,
+        referralCode: parsed.referralCode,
+      };
+      return sdkOk(op);
+    }
+    const op: PoolOperation = {
+      operation: "Redeem",
+      pool: parsed.pool,
+      receiver: parsed.receiver,
+      // The zapper burns the caller's share tokens, so the share owner is the
+      // transaction sender.
+      owner: sender,
+      shares: parsed.shares,
+      underlying: parsed.underlying,
+      tokenIn: contract.tokenOut.addr,
+      tokenOut: contract.tokenIn.addr,
+      zapper: parsed.zapper,
+    };
+    return sdkOk(op);
+  }
+
+  if (contract instanceof CreditFacadeV310Contract) {
+    return sdkOk(parseFacadeOperationCalldata(sdk, contract, calldata));
+  }
+
+  if (contract && isRWAFactory(contract)) {
+    return sdkOk(parseRWAFactoryOperationCalldata(sdk, contract, calldata));
+  }
+
+  return sdkErr({
+    code: "unsupportedTarget",
+    message: `unsupported transaction target: ${to}`,
+    target: to,
+  } satisfies UnsupportedTargetError);
+}

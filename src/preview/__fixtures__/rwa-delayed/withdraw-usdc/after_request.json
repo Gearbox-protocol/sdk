@@ -1,0 +1,96 @@
+{
+  "creditAccount": "0xdE4B908BE5ca3CFc4885277C6967F01217621259",
+  "creditManager": "0x025512D771f778fad99aB30b7A7363E7C8DE078D",
+  "creditFacade": "0xA36f204ae8a3Ea2E02425960C627771FB180B315",
+  "underlying": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+  "owner": "0xE1004Aa6A4f03431F6763117b179E8671e422959",
+  "expirationDate": 0,
+  "enabledTokensMask": {
+    "__type": "bigint",
+    "__value": "13"
+  },
+  "debt": {
+    "__type": "bigint",
+    "__value": "80000000000"
+  },
+  "accruedInterest": {
+    "__type": "bigint",
+    "__value": "1220"
+  },
+  "accruedFees": {
+    "__type": "bigint",
+    "__value": "609"
+  },
+  "totalDebtUSD": {
+    "__type": "bigint",
+    "__value": "7999053862878"
+  },
+  "totalValueUSD": {
+    "__type": "bigint",
+    "__value": "9999881698470"
+  },
+  "twvUSD": {
+    "__type": "bigint",
+    "__value": "8999893014712"
+  },
+  "totalValue": {
+    "__type": "bigint",
+    "__value": "100010647244"
+  },
+  "healthFactor": {
+    "__type": "bigint",
+    "__value": "1125119691527355902"
+  },
+  "success": true,
+  "tokens": [
+    {
+      "token": "0x50A9C808cd114E8fEA72f03aE2B1A8825677D56D",
+      "mask": {
+        "__type": "bigint",
+        "__value": "1"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "1"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "0"
+      },
+      "success": true
+    },
+    {
+      "token": "0x17418038ecF73BA4026c4f428547BF099706F27B",
+      "mask": {
+        "__type": "bigint",
+        "__value": "4"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "81439493"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "90000010000"
+      },
+      "success": true
+    },
+    {
+      "token": "0xe4a38b653B2580C9D72a50F190Ddd6E2d2D2a412",
+      "mask": {
+        "__type": "bigint",
+        "__value": "8"
+      },
+      "balance": {
+        "__type": "bigint",
+        "__value": "9998816822"
+      },
+      "quota": {
+        "__type": "bigint",
+        "__value": "8998930000"
+      },
+      "success": true
+    }
+  ],
+  "investor": "0xD39D3eBcC8149eF92d54c71ae11D646a54EDE40d"
+}

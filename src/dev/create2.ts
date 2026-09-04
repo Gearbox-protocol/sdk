@@ -23,8 +23,8 @@ import {
 } from "viem";
 import { getCode, sendTransaction } from "viem/actions";
 
-import type { ILogger, OnchainSDK } from "../sdk/index.js";
-import { Construct } from "../sdk/index.js";
+import type { ILogger, OnchainSDK } from "../onchain/index.js";
+import { Construct } from "../onchain/index.js";
 
 export const PUBLIC_CREATE2_FACTORY: Address =
   "0x4e59b44847b379578588920ca78fbf26c0b4956c";

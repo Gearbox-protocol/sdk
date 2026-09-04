@@ -1,9 +1,6 @@
 import type { Hex } from "viem";
 import { mapOperations, type OperationVisitor } from "./mapOperations.js";
-import type {
-  CreditAccountOperation,
-  FacadeOperationMetadata,
-} from "./types.js";
+import type { CreditAccountOperation, HistoryFacadeMetadata } from "./types.js";
 
 export interface LegacyApiOperation {
   operation: string;
@@ -21,10 +18,7 @@ export interface LegacyVisitorParams {
   sessionId: string;
 }
 
-function commonFields(
-  op: FacadeOperationMetadata,
-  params: LegacyVisitorParams,
-) {
+function commonFields(op: HistoryFacadeMetadata, params: LegacyVisitorParams) {
   return {
     timestamp: op.timestamp,
     sessionId: params.sessionId,
@@ -33,7 +27,7 @@ function commonFields(
 }
 
 function innerCommonFields(
-  ctx: FacadeOperationMetadata,
+  ctx: HistoryFacadeMetadata,
   params: LegacyVisitorParams,
 ) {
   return {
@@ -56,7 +50,11 @@ export function createLegacyVisitor(
         blockNum: ctx.blockNumber,
         timestamp: ctx.timestamp,
         sessionId: params.sessionId,
-        protocol: op.protocol,
+        // `protocol` may be absent (migrator adapter, unknown adapter in
+        // non-strict mode, or undecodable calldata). The deprecated charts
+        // output still needs an address, so fall back to the on-chain adapter
+        // address, which is the closest meaningful value.
+        protocol: op.protocol?.contract ?? op.adapter,
       };
     },
     IncreaseBorrowedAmount(op, ctx) {

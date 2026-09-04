@@ -19,8 +19,8 @@ import {
   sendRawTx,
   TypedObjectUtils,
   WAD,
-} from "../../sdk/index.js";
-import { ANVIL_URL } from "../constants.js";
+} from "../../onchain/index.js";
+import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
 import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
@@ -101,7 +101,7 @@ describe("partially liquidate credit account", () => {
       account: lowered,
       to: liquidator,
     });
-    const hash = await sendRawTx(wallet, { tx, gas: 5_000_000n });
+    const hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
     const receipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,

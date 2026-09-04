@@ -8,18 +8,20 @@ import {
 } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
-import { claimDSToken, registerInvestor } from "../../dev/claimDSToken.js";
 import {
   type AnvilClient,
   createAnvilClient,
 } from "../../dev/createAnvilClient.js";
+import { registerSecuritizeInvestor } from "../../dev/kycUtils.js";
+import { claimDSToken } from "../../dev/securitizeUtils.js";
 import {
   chains,
   MAX_UINT256,
   OnchainSDK,
   RWA_FACTORY_SECURITIZE,
   sendRawTx,
-} from "../../sdk/index.js";
+} from "../../onchain/index.js";
+import { GAS_LIMIT } from "../constants.js";
 import {
   createInvestorWallet,
   RWA_FACTORY,
@@ -83,207 +85,211 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
       rwaFactories: [RWA_FACTORY],
       ignoreUpdateablePrices: true,
     });
-    await sdk.tokensMeta.loadTokenData();
-    await sdk.marketRegister.loadZappers();
     await seedSecuritizePoolLiquidity(sdk, anvil, DEFAULT_POOL);
     await seedSecuritizePoolLiquidity(sdk, anvil, ON_DEMAND_POOL);
   }, 240_000);
 
-  it.each(
-    CREDIT_MANAGERS,
-  )("borrowing via securitize factory: $label", async info => {
-    const { creditManager, dsToken, label, pool } = info;
+  it.each(CREDIT_MANAGERS)(
+    "borrowing via securitize factory: $label",
+    async info => {
+      const { creditManager, dsToken, label, pool } = info;
 
-    const wallet = await createInvestorWallet(anvil, sdk.chain);
-    const investor = wallet.account.address;
+      const wallet = await createInvestorWallet(anvil, sdk.chain);
+      const investor = wallet.account.address;
 
-    const market = sdk.marketRegister.findByPool(pool);
-    const usdAmount = 60_000n * 10n ** 8n;
-    const dsAmount = market.priceOracle.convertFromUSD(dsToken, usdAmount);
+      const market = sdk.marketRegister.findByPool(pool);
+      const usdAmount = 60_000n * 10n ** 8n;
+      const dsAmount = market.priceOracle.convertFromUSD(dsToken, usdAmount);
 
-    await claimDSToken({
-      anvil: anvil as unknown as AnvilClient,
-      claimer: investor,
-      adminPrivateKey,
-      token: dsToken,
-      usdAmount: "60000",
-      marketConfigurators: [RWA_MARKET_CONFIGURATOR],
-      rwaFactories: [RWA_FACTORY],
-    });
+      await claimDSToken({
+        anvil: anvil as unknown as AnvilClient,
+        investor: investor,
+        adminPrivateKey,
+        token: dsToken,
+        usdAmount: "60000",
+        marketConfigurators: [RWA_MARKET_CONFIGURATOR],
+        rwaFactories: [RWA_FACTORY],
+      });
 
-    const approvalTarget = await sdk.accounts.getApprovalAddress({
-      creditManager,
-      borrower: investor,
-    });
-    let hash = await wallet.writeContract({
-      address: dsToken,
-      abi: erc20Abi,
-      functionName: "approve",
-      args: [approvalTarget, MAX_UINT256],
-    });
-    await sdk.client.waitForTransactionReceipt({
-      hash,
-      pollingInterval: 100,
-    });
+      const approvalTarget = await sdk.accounts.getApprovalAddress({
+        creditManager,
+        borrower: investor,
+      });
+      let hash = await wallet.writeContract({
+        address: dsToken,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [approvalTarget, MAX_UINT256],
+      });
+      await sdk.client.waitForTransactionReceipt({
+        hash,
+        pollingInterval: 100,
+      });
 
-    const requirements = await sdk.accounts.getOpenAccountRequirements(
-      investor,
-      creditManager,
-      { tokenOutAddress: dsToken },
-    );
-    if (!requirements) {
-      throw new Error(
-        `getOpenAccountRequirements returned undefined for ${label}`,
+      const requirements = await sdk.accounts.getOpenAccountRequirements(
+        investor,
+        creditManager,
+        { tokenOutAddress: dsToken },
       );
-    }
-    const signaturesToCache = await signRegisterVaultMessages(
-      wallet,
-      requirements.requiredSignatures,
-    );
-
-    const debt = parseUnits("50000", 6);
-    const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
-      debt,
-      creditManager,
-    );
-    if (!unwrapCalls) {
-      throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
-    }
-
-    const { tx } = await sdk.accounts.openCA({
-      creditManager,
-      collateral: [{ token: dsToken, balance: dsAmount }],
-      debt,
-      calls: unwrapCalls,
-      withdrawToken: USDC,
-      averageQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
-      minQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
-      to: investor,
-      ethAmount: 0n,
-      permits: {},
-      referralCode: 0n,
-      rwaOptions: {
-        type: RWA_FACTORY_SECURITIZE,
-        tokensToRegister: [dsToken],
-        signaturesToCache,
-      },
-    });
-    hash = await sendRawTx(wallet, { tx });
-    const receipt = await sdk.client.waitForTransactionReceipt({
-      hash,
-      pollingInterval: 100,
-    });
-    expect(receipt.status, `borrowing flow failed for ${label}`).toBe(
-      "success",
-    );
-
-    const logs = parseEventLogs({
-      abi: iCreditFacadeV310Abi,
-      logs: receipt.logs,
-      eventName: "OpenCreditAccount",
-    });
-    expect(logs.length, `OpenCreditAccount not emitted for ${label}`).toBe(1);
-  }, 300_000);
-
-  it.each(
-    CREDIT_MANAGERS,
-  )("leverage via securitize factory: $label", async info => {
-    const { creditManager, dsToken, label } = info;
-    const cm = sdk.marketRegister.findCreditManager(creditManager);
-
-    const wallet = await createInvestorWallet(anvil, sdk.chain);
-    const investor = wallet.account.address;
-
-    await registerInvestor({
-      anvil: anvil as unknown as AnvilClient,
-      claimer: investor,
-      adminPrivateKey,
-      token: dsToken,
-    });
-
-    const usdcAmount = parseUnits("10000", 6);
-    await anvil.deal({
-      erc20: USDC,
-      account: investor,
-      amount: usdcAmount,
-    });
-
-    const approvalTarget = await sdk.accounts.getApprovalAddress({
-      creditManager,
-      borrower: investor,
-    });
-    let hash = await wallet.writeContract({
-      address: USDC,
-      abi: erc20Abi,
-      functionName: "approve",
-      args: [approvalTarget, MAX_UINT256],
-    });
-    await sdk.client.waitForTransactionReceipt({
-      hash,
-      pollingInterval: 100,
-    });
-
-    const requirements = await sdk.accounts.getOpenAccountRequirements(
-      investor,
-      creditManager,
-      { tokenOutAddress: dsToken },
-    );
-    if (!requirements) {
-      throw new Error(
-        `getOpenAccountRequirements returned undefined for ${label}`,
+      if (!requirements) {
+        throw new Error(
+          `getOpenAccountRequirements returned undefined for ${label}`,
+        );
+      }
+      const signaturesToCache = await signRegisterVaultMessages(
+        wallet,
+        requirements.requiredSignatures,
       );
-    }
-    const signaturesToCache = await signRegisterVaultMessages(
-      wallet,
-      requirements.requiredSignatures,
-    );
 
-    const debt = parseUnits("50000", 6);
-    const unwrapCalls = await sdk.accounts.getRWAUnwrapCalls(
-      debt,
-      creditManager,
-    );
-    if (!unwrapCalls) {
-      throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
-    }
+      const debt = parseUnits("50000", 6);
+      const unwrapCalls = await sdk.accounts.assembleRWAUnwrapCalls(
+        debt,
+        creditManager,
+      );
+      if (!unwrapCalls) {
+        throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
+      }
 
-    const strategy = await sdk.routerFor(cm).findOpenStrategyPath({
-      creditManager: cm.creditManager,
-      expectedBalances: [{ token: USDC, balance: usdcAmount + debt }],
-      leftoverBalances: [{ token: USDC, balance: 1n }],
-      slippage: 50,
-      target: dsToken,
-    });
+      const tx = await sdk.accounts.openCA({
+        creditManager,
+        collateral: [{ token: dsToken, balance: dsAmount }],
+        debt,
+        calls: unwrapCalls,
+        withdrawToken: USDC,
+        averageQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
+        minQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
+        to: investor,
+        ethAmount: 0n,
+        permits: {},
+        referralCode: 0n,
+        rwaOptions: {
+          type: RWA_FACTORY_SECURITIZE,
+          tokensToRegister: [dsToken],
+          signaturesToCache,
+        },
+      });
+      hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
+      const receipt = await sdk.client.waitForTransactionReceipt({
+        hash,
+        pollingInterval: 100,
+      });
+      expect(receipt.status, `borrowing flow failed for ${label}`).toBe(
+        "success",
+      );
 
-    const { tx } = await sdk.accounts.openCA({
-      creditManager,
-      collateral: [{ token: USDC, balance: usdcAmount }],
-      debt,
-      calls: [...unwrapCalls, ...strategy.calls],
-      averageQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
-      minQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
-      to: investor,
-      ethAmount: 0n,
-      permits: {},
-      referralCode: 0n,
-      rwaOptions: {
-        type: RWA_FACTORY_SECURITIZE,
-        tokensToRegister: [dsToken],
-        signaturesToCache,
-      },
-    });
-    hash = await sendRawTx(wallet, { tx });
-    const receipt = await sdk.client.waitForTransactionReceipt({
-      hash,
-      pollingInterval: 100,
-    });
-    expect(receipt.status, `leverage flow failed for ${label}`).toBe("success");
+      const logs = parseEventLogs({
+        abi: iCreditFacadeV310Abi,
+        logs: receipt.logs,
+        eventName: "OpenCreditAccount",
+      });
+      expect(logs.length, `OpenCreditAccount not emitted for ${label}`).toBe(1);
+    },
+    300_000,
+  );
 
-    const logs = parseEventLogs({
-      abi: iCreditFacadeV310Abi,
-      logs: receipt.logs,
-      eventName: "OpenCreditAccount",
-    });
-    expect(logs.length, `OpenCreditAccount not emitted for ${label}`).toBe(1);
-  }, 300_000);
+  it.each(CREDIT_MANAGERS)(
+    "leverage via securitize factory: $label",
+    async info => {
+      const { creditManager, dsToken, label } = info;
+      const cm = sdk.marketRegister.findCreditManager(creditManager);
+
+      const wallet = await createInvestorWallet(anvil, sdk.chain);
+      const investor = wallet.account.address;
+
+      await registerSecuritizeInvestor({
+        anvil: anvil as unknown as AnvilClient,
+        investor: investor,
+        adminPrivateKey,
+        token: dsToken,
+      });
+
+      const usdcAmount = parseUnits("10000", 6);
+      await anvil.deal({
+        erc20: USDC,
+        account: investor,
+        amount: usdcAmount,
+      });
+
+      const approvalTarget = await sdk.accounts.getApprovalAddress({
+        creditManager,
+        borrower: investor,
+      });
+      let hash = await wallet.writeContract({
+        address: USDC,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [approvalTarget, MAX_UINT256],
+      });
+      await sdk.client.waitForTransactionReceipt({
+        hash,
+        pollingInterval: 100,
+      });
+
+      const requirements = await sdk.accounts.getOpenAccountRequirements(
+        investor,
+        creditManager,
+        { tokenOutAddress: dsToken },
+      );
+      if (!requirements) {
+        throw new Error(
+          `getOpenAccountRequirements returned undefined for ${label}`,
+        );
+      }
+      const signaturesToCache = await signRegisterVaultMessages(
+        wallet,
+        requirements.requiredSignatures,
+      );
+
+      const debt = parseUnits("50000", 6);
+      const unwrapCalls = await sdk.accounts.assembleRWAUnwrapCalls(
+        debt,
+        creditManager,
+      );
+      if (!unwrapCalls) {
+        throw new Error(`getRWAUnwrapCalls returned undefined for ${label}`);
+      }
+
+      const strategy = await sdk.routerFor(cm).findOpenStrategyPath({
+        creditManager: cm.creditManager,
+        expectedBalances: [{ token: USDC, balance: usdcAmount + debt }],
+        leftoverBalances: [{ token: USDC, balance: 1n }],
+        slippage: 50,
+        target: dsToken,
+      });
+
+      const tx = await sdk.accounts.openCA({
+        creditManager,
+        collateral: [{ token: USDC, balance: usdcAmount }],
+        debt,
+        calls: [...unwrapCalls, ...strategy.calls],
+        averageQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
+        minQuota: [{ token: dsToken, balance: parseUnits("55000", 6) }],
+        to: investor,
+        ethAmount: 0n,
+        permits: {},
+        referralCode: 0n,
+        rwaOptions: {
+          type: RWA_FACTORY_SECURITIZE,
+          tokensToRegister: [dsToken],
+          signaturesToCache,
+        },
+      });
+      hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
+      const receipt = await sdk.client.waitForTransactionReceipt({
+        hash,
+        pollingInterval: 100,
+      });
+      expect(receipt.status, `leverage flow failed for ${label}`).toBe(
+        "success",
+      );
+
+      const logs = parseEventLogs({
+        abi: iCreditFacadeV310Abi,
+        logs: receipt.logs,
+        eventName: "OpenCreditAccount",
+      });
+      expect(logs.length, `OpenCreditAccount not emitted for ${label}`).toBe(1);
+    },
+    300_000,
+  );
 });
