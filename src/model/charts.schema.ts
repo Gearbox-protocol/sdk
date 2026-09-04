@@ -14,6 +14,7 @@ import {
   CHART_UNAVAILABLE_CODES,
   POOL_OPPORTUNITY_CHART_METRICS,
   POOL_POSITION_CHART_METRICS,
+  PROTOCOL_CHART_METRICS,
   STRATEGY_OPPORTUNITY_CHART_METRICS,
   STRATEGY_POSITION_CHART_METRICS,
 } from "./charts.js";
@@ -64,13 +65,19 @@ export const strategyPositionChartMetricSchema = z.enum(
 );
 
 /**
- * {@link ChartMetric}, every metric either kind of subject can chart.
+ * {@link ProtocolChartMetric}
+ **/
+export const protocolChartMetricSchema = z.enum(PROTOCOL_CHART_METRICS);
+
+/**
+ * {@link ChartMetric}, every metric any subject can chart.
  **/
 export const chartMetricSchema = z.union([
   poolOpportunityChartMetricSchema,
   strategyOpportunityChartMetricSchema,
   poolPositionChartMetricSchema,
   strategyPositionChartMetricSchema,
+  protocolChartMetricSchema,
 ]);
 
 /**

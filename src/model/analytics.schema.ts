@@ -2,9 +2,15 @@ import { type Address, isAddress } from "viem";
 import { z } from "zod/v4";
 import { ZodAddress } from "../onchain/utils/zod.js";
 import type {
+  AnalyticsChartQuery,
   AnalyticsPosition,
   AnalyticsPositionListOptions,
 } from "./analytics.js";
+import type { ProtocolChartMetric } from "./charts.js";
+import {
+  chartRangeSchema,
+  protocolChartMetricSchema,
+} from "./charts.schema.js";
 import { isFilterSet } from "./filters.js";
 import { encodeFlag, filterable } from "./filters.schema.js";
 import { liquidationPositionSchema } from "./liquidations.schema.js";
@@ -149,3 +155,69 @@ export const analyticsPositionPageSchema = z.object({
   offset: z.number().int().nonnegative(),
   limit: z.number().int().positive().max(ANALYTICS_POSITIONS_MAX_LIMIT),
 });
+
+/**
+ * {@link AnalyticsChartQuery}
+ *
+ * The metric list is narrowed to {@link ProtocolChartMetric} here rather than
+ * on the route, so asking the protocol chart for an opportunity metric is
+ * rejected by the one codec both sides share instead of by a check only the
+ * backend runs.
+ **/
+export const analyticsChartQueryOptionsSchema = z.object({
+  metrics: z
+    .array(protocolChartMetricSchema)
+    .readonly()
+    .refine(metrics => metrics.length > 0, {
+      error: "a chart read needs at least one metric",
+    })
+    .refine(metrics => new Set(metrics).size === metrics.length, {
+      error: "a chart read needs distinct metrics",
+    }),
+  range: chartRangeSchema,
+  chainIds: z.array(chainIdSchema).optional(),
+});
+
+/**
+ * {@link AnalyticsChartQuery} as URL query parameters: the metrics comma-joined
+ * like every other chart read, and the chains comma-joined like every other
+ * analytics read.
+ **/
+export const analyticsChartQueryParamsSchema = z.object({
+  metrics: z.string().regex(/^\w+(,\w+)*$/),
+  range: chartRangeSchema,
+  chainIds: z
+    .string()
+    .regex(/^$|^\d+(,\d+)*$/)
+    .optional(),
+});
+
+/**
+ * Codec for a protocol-wide chart query. It is shared by the SDK client and
+ * backend controller so both sides interpret every parameter identically.
+ **/
+export const analyticsChartQuerySchema = z.codec(
+  analyticsChartQueryParamsSchema,
+  analyticsChartQueryOptionsSchema,
+  {
+    decode: (params): AnalyticsChartQuery => ({
+      // members are checked by `analyticsChartQueryOptionsSchema`, which the
+      // codec applies to this result; the split can only produce strings
+      metrics: params.metrics.split(",") as ProtocolChartMetric[],
+      range: params.range,
+      ...(params.chainIds === undefined
+        ? {}
+        : {
+            chainIds:
+              params.chainIds === ""
+                ? []
+                : params.chainIds.split(",").map(Number),
+          }),
+    }),
+    encode: (query): z.input<typeof analyticsChartQueryParamsSchema> => ({
+      metrics: query.metrics.join(","),
+      range: query.range,
+      chainIds: query.chainIds?.join(","),
+    }),
+  },
+);
