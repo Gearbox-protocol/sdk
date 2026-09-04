@@ -5,11 +5,10 @@ import type {
   InsufficientBalanceError,
   UnexpectedFailureError,
 } from "../../../model/index.js";
-import { unexpectedFailure } from "../../../model/index.js";
+import { insufficientBalance, unexpectedFailure } from "../../../model/index.js";
 import { NATIVE_ADDRESS } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { checkFunding } from "../checks/checkFunding.js";
-import { toToken } from "../helpers/index.js";
+import { amountOf, toToken } from "../helpers/index.js";
 
 export interface CheckWalletBalanceInput {
   sdk: OnchainSDK;
@@ -34,13 +33,18 @@ export async function checkWalletBalance(
           args: [holder],
           blockNumber,
         });
-    return checkFunding({
-      token: toToken(sdk, token),
-      required,
-      held,
-      holderKind: "wallet",
-      holder,
-    });
+    if (required <= held) {
+      return [];
+    }
+    const meta = toToken(sdk, token);
+    return [
+      insufficientBalance({
+        required: amountOf(meta, required),
+        held: amountOf(meta, held),
+        holderKind: "wallet",
+        holder,
+      }),
+    ];
   } catch (cause) {
     const { symbol } = toToken(sdk, token);
     return [unexpectedFailure(cause, `read the ${symbol} balance`)];

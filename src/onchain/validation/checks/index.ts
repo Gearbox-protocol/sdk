@@ -3,7 +3,6 @@ export * from "./checkCollateralised.js";
 export * from "./checkCreditManagerPaused.js";
 export * from "./checkDebtLimits.js";
 export * from "./checkForbiddenToken.js";
-export * from "./checkFunding.js";
 export * from "./checkLeverage.js";
 export * from "./checkMarketExpired.js";
 export * from "./checkPoolLiquidity.js";
