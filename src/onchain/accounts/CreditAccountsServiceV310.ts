@@ -424,7 +424,7 @@ export class CreditAccountsServiceV310
     calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
     calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
-      ? cmSuite.multicallTx(reopenCreditAccount, calls)
+      ? cmSuite.multicallTx(reopenCreditAccount, calls, rwaOptions)
       : cmSuite.openCreditAccountTx(to, calls, referralCode, rwaOptions);
     tx.value = ethAmount.toString(10);
 

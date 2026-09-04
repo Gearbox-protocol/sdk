@@ -102,8 +102,8 @@ openCreditAccount(wallet, calls, 0)
   calls = the price updates the market demands, and nothing else
 ```
 
-`collateral` must be empty; `leverage` and `targetToken` are not read: with no
-collateral the debt is zero at any leverage, and there is nothing to route
+`collateral`, `leverage`, `targetToken` and `creditAccount` are not read: with
+no collateral the debt is zero at any leverage, and there is nothing to route
 anywhere. A market with no strategy target can still hand out an account.
 
 Taken as an early branch in `buildOpenStrategyState` rather than threaded
@@ -117,3 +117,28 @@ The account it leaves behind reports `debt` and `totalValue` of zero and stores
 report as `MAX_UINT16` (65535). `positions.list` returns it — the compressor is
 queried with `includeZeroDebt` unless a filter says otherwise. A caller's own
 list may still hide it: `PositionFilter.isZeroDebt` is what drops such rows.
+
+## Reusing a pre-opened account
+
+`params.creditAccount` puts the position on an account that already exists —
+one held by an [empty opening](#the-empty-opening) — instead of creating one. The projection is identical either way; only the transaction differs.
+
+```text
+state.creditAccount ─▶ openCA.reopenCreditAccount ─▶ multicall(account, calls)
+              absent ─▶                              openCreditAccount(wallet, calls, ref)
+```
+
+The account it was simulated against rides back on the result rather than being
+asked of the caller again at `buildTx`, so the transaction cannot be built
+against an account the numbers were not computed for.
+
+**The account must carry no debt and no quotas**, and `openNewStrategy` refuses
+with `creditAccountNotEmpty` when it does. `averageQuota` / `minQuota` are
+absolute levels encoded as `updateQuota` deltas from zero, so an account already
+holding quotas would be sized against the wrong starting point. Balances on it
+are simply routed with the rest.
+
+Growing a position that already exists is `depositStrategy`, not this.
+
+An account on a different credit manager, or one the SDK cannot find, refuses
+with `creditAccountNotFound`.

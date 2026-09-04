@@ -23,7 +23,10 @@ import {
   getQuotasForUpdate,
 } from "./utils/index.js";
 
-/** Stand-in account address: nothing exists on chain until the tx lands. */
+/**
+ * Stand-in account address, used when the opening creates its own account:
+ * nothing exists on chain until the tx lands.
+ */
 const NO_ACCOUNT = "0x0000000000000000000000000000000000000000" as Address;
 
 /**
@@ -51,6 +54,13 @@ export interface OpenStrategyFunded {
   quotaReserve: number | undefined;
   /** Balances to leave unswapped; everything else is routed into the target. */
   leftoverBalances?: Asset[];
+  /**
+   * Existing credit account to put the position on, instead of opening one.
+   *
+   * Must carry no debt and no quotas. Growing a position that already exists
+   * is what the `DEPOSIT` intent is for.
+   **/
+  creditAccount?: CreditAccountSlice;
   empty?: false;
 }
 
@@ -87,6 +97,15 @@ export interface OpenStrategyState
   minQuota: Asset[];
   /** Router path; feeds `openCA.calls`. */
   calls: MultiCall[];
+  /**
+   * The account this opening was simulated against and must be executed on,
+   * when it reuses one; `undefined` for an opening that creates its own.
+   *
+   * Carried here rather than asked of the caller again at `buildTx`, so the
+   * transaction cannot be built against an account the numbers were not
+   * computed for.
+   **/
+  creditAccount?: Address;
 }
 
 /**
@@ -116,6 +135,7 @@ export async function buildOpenStrategyState(
     slippage = 0,
     quotaReserve,
     leftoverBalances = [],
+    creditAccount: existing,
   } = props;
 
   assertLeverageAtLeastOne(leverage);
@@ -142,8 +162,8 @@ export async function buildOpenStrategyState(
   const debt = debtForLeverage(margin, leverage);
 
   // Synthetic slice so the router helper can be reused even though no account
-  // exists yet.
-  const account: CreditAccountSlice = {
+  // exists yet. A reused one is handed over as it stands.
+  const account: CreditAccountSlice = existing ?? {
     creditAccount: NO_ACCOUNT,
     creditManager: creditManager.toLowerCase() as Address,
     creditFacade: suite.creditFacade.address.toLowerCase() as Address,
@@ -233,6 +253,7 @@ export async function buildOpenStrategyState(
     averageQuota,
     minQuota,
     calls: [...leg.calls],
+    creditAccount: existing?.creditAccount,
   };
 }
 

@@ -40,6 +40,8 @@ import {
 import type { EnsureFreshChains } from "../types.js";
 import type {
   AccountFlowError,
+  CreditAccountNotEmptyError,
+  CreditAccountNotFoundError,
   DebtOutOfRangeError,
   EmptyOpenTakesNothingError,
   InsufficientPoolLiquidityError,
@@ -58,6 +60,7 @@ import type {
   WithRouteRefusals,
 } from "./errors.js";
 import {
+  creditAccountNotEmpty,
   creditAccountNotFound,
   emptyOpenTakesNothing,
   noStrategyTargetCollateral,
@@ -368,6 +371,8 @@ export class PrepareApi
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
       | EmptyOpenTakesNothingError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
     >
   > {
     try {
@@ -377,7 +382,7 @@ export class PrepareApi
         // The flag and the arguments have to agree: taking this branch on the
         // flag alone would silently drop collateral the caller meant to spend,
         // or an account it meant to reuse.
-        if (params.collateral.length > 0) {
+        if (params.collateral.length > 0 || params.creditAccount) {
           return sdkErr(emptyOpenTakesNothing());
         }
         // Nothing is routed, so a market with no strategy target can still
@@ -398,6 +403,22 @@ export class PrepareApi
       if (!targetToken) {
         return sdkErr(noStrategyTargetCollateral(strategy.creditManager));
       }
+      let creditAccount: CreditAccountSlice | undefined;
+      if (params.creditAccount) {
+        const reused = await slice(sdk, params.creditAccount);
+        if (
+          !reused ||
+          !isAddressEqual(reused.creditManager, strategy.creditManager)
+        ) {
+          return sdkErr(creditAccountNotFound(params.creditAccount));
+        }
+        // Empty means no debt and no quotas; whatever balances sit on the
+        // account are the opening's to route.
+        if (reused.totalDebt > 0n || reused.tokens.some(t => t.quota > 0n)) {
+          return sdkErr(creditAccountNotEmpty(params.creditAccount));
+        }
+        creditAccount = reused;
+      }
       return opened(
         await service(sdk).openStrategyIntent({
           sdk,
@@ -408,6 +429,7 @@ export class PrepareApi
           leftoverBalances: params.leftoverBalances,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
+          creditAccount,
         }),
         at,
       );

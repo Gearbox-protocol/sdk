@@ -5,13 +5,16 @@ import { toBN } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   ANY,
+  CREDIT_ACCOUNT,
   CREDIT_FACADE,
+  CREDIT_MANAGER,
   MAX_DEBT,
   POS,
   UND,
   UND_DECIMALS,
 } from "../testing/market.js";
 import { MOCK_ROUTER_CALL } from "../testing/sdk-mock.js";
+import type { CreditAccountSlice } from "../types.js";
 import {
   buildOpenStrategyProps,
   buildOpenStrategySdk,
@@ -206,5 +209,56 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       valueUsd: null,
     });
     expect(refusal.detail.requested.value).toBeLessThan(MARGIN_UND);
+  });
+});
+
+describe("openStrategy on a pre-opened empty account", () => {
+  const EMPTY_ACCOUNT: CreditAccountSlice = {
+    creditAccount: CREDIT_ACCOUNT,
+    creditManager: CREDIT_MANAGER,
+    creditFacade: CREDIT_FACADE,
+    underlying: UND,
+    enabledTokensMask: 0n,
+    totalDebtUSD: 0n,
+    totalDebt: 0n,
+    tokens: [],
+  };
+
+  function runReused(sdk: OnchainSDK = buildOpenStrategySdk()) {
+    const service = new CreditAccountOperationsService(sdk);
+    return {
+      sdk,
+      result: service.openStrategyIntent({
+        ...buildOpenStrategyProps(case_underlying_3x, sdk),
+        creditAccount: EMPTY_ACCOUNT,
+      }),
+    };
+  }
+
+  it("reaches the same state, and names the account it will run on", async () => {
+    const plain = await run(case_underlying_3x).result;
+    const reused = await runReused().result;
+    if (!plain.ok || !reused.ok) throw new Error("expected two states");
+
+    expect(reused.state.creditAccount).toBe(CREDIT_ACCOUNT);
+    expect({ ...reused.state, creditAccount: undefined }).toEqual({
+      ...plain.state,
+      creditAccount: undefined,
+    });
+  });
+
+  it("routes the same basket, because the path is quoted for the manager and never for the account", async () => {
+    const { sdk } = runReused();
+    await runReused(sdk).result;
+    const findOpen = vi.mocked(
+      sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
+    );
+
+    expect(findOpen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        expectedBalances: case_underlying_3x.expectedRouterBalances,
+        target: case_underlying_3x.targetToken,
+      }),
+    );
   });
 });

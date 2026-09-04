@@ -29,6 +29,8 @@ import type {
 } from "../../onchain/index.js";
 import type {
   AccountFlowError,
+  CreditAccountNotEmptyError,
+  CreditAccountNotFoundError,
   DebtOutOfRangeError,
   EmptyOpenTakesNothingError,
   InsufficientPoolLiquidityError,
@@ -396,13 +398,24 @@ export interface OpenStrategyParams extends PrepareOptions {
   /** Collateral to leave unswapped; everything else is routed into the target. */
   leftoverBalances?: Asset[];
   /**
-   * Open the account holding nothing: no collateral, no debt, no quotas, and no
-   * route quoted. A wallet holds one so a position can be put on it later.
+   * Existing credit account to open the position on, instead of creating one.
    *
-   * {@link collateral} must be empty — the flag and the arguments have to
-   * agree. {@link leverage} and {@link targetToken} are not read: with no
-   * collateral the debt is zero at any leverage, and there is nothing to route
-   * anywhere.
+   * Must belong to `strategy.creditManager` and carry no debt and no quotas —
+   * an account pre-opened by an {@link empty} opening.
+   * The projection is identical either way; only the transaction differs, and
+   * `execute.buildTx` reads which one to build off the result's own
+   * `state.creditAccount`.
+   **/
+  creditAccount?: Address;
+  /**
+   * Open the account holding nothing: no collateral, no debt, no quotas, and no
+   * route quoted. A wallet holds one so a position can be put on it later, by
+   * an opening that names it as {@link creditAccount}.
+   *
+   * {@link collateral} must be empty and {@link creditAccount} unset — the flag
+   * and the arguments have to agree. {@link leverage} and {@link targetToken}
+   * are not read: with no collateral the debt is zero at any leverage, and
+   * there is nothing to route anywhere.
    **/
   empty?: boolean;
 }
@@ -546,6 +559,8 @@ export interface IOpportunitiesPrepare {
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
       | EmptyOpenTakesNothingError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
     >
   >;
 

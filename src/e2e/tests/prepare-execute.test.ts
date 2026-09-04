@@ -1376,5 +1376,108 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(row.healthFactor).toBe(0);
       expect(row.targetCollateral).not.toBeNull();
     });
+    it("reuses the empty account for the opening, with no second account opened", async () => {
+      const creditAccount = await openEmpty();
+      await fund();
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, {
+        ...OPEN_PARAMS,
+        creditAccount,
+      });
+      if (!sim.ok) throw new Error(`reuse sim failed: ${sim.error.code}`);
+      // The slice lowercases every address it carries, so the state names the
+      // same account in a different case.
+      expect(sim.data.state.creditAccount?.toLowerCase()).toBe(
+        creditAccount.toLowerCase(),
+      );
+
+      const tx = await execute().buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: borrower,
+        sim,
+        collateral: OPEN_PARAMS.collateral,
+        ethAmount: 0n,
+      });
+      const receipt = await mined(
+        await sendRawTx(wallet, { tx, gas: GAS_LIMIT }),
+      );
+      const opened = parseEventLogs({
+        abi: iCreditFacadeV310Abi,
+        logs: receipt.logs,
+        eventName: "OpenCreditAccount",
+      });
+      const data = await account(creditAccount);
+
+      expect(opened).toEqual([]);
+      expect(data.debt).toBe(sim.data.state.totalDebt.value);
+    });
+
+    it("decodes the reuse as an adjust, since the facade call is a multicall", async () => {
+      const creditAccount = await openEmpty();
+      await fund();
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, {
+        ...OPEN_PARAMS,
+        creditAccount,
+      });
+      if (!sim.ok) throw new Error(sim.error.code);
+      const tx = await execute().buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: borrower,
+        sim,
+        collateral: OPEN_PARAMS.collateral,
+        ethAmount: 0n,
+      });
+
+      const preview = await previewOperation({
+        sdk: chain,
+        to: tx.to,
+        calldata: tx.callData,
+        sender: borrower,
+      });
+      expect(isSDKError(preview), "the reuse must parse").toBe(false);
+      if (isSDKError(preview)) throw new Error("unreachable");
+      // What a caller's confirm screen will be handed: the transaction really
+      // is a deposit into an account that already exists.
+      expect(preview.data.operation).toBe("AdjustCreditAccount");
+    });
+
+    it("refuses to reuse an account that already holds a position", async () => {
+      const creditAccount = await openEmpty();
+      await fund();
+      await sync();
+      const first = await prepare().openNewStrategy(OPEN_KEY, {
+        ...OPEN_PARAMS,
+        creditAccount,
+      });
+      if (!first.ok) throw new Error(first.error.code);
+      await mined(
+        await sendRawTx(wallet, {
+          tx: await execute().buildTx({
+            kind: "open",
+            chainId: CHAIN_ID,
+            creditManager: CREDIT_MANAGER,
+            wallet: borrower,
+            sim: first,
+            collateral: OPEN_PARAMS.collateral,
+            ethAmount: 0n,
+          }),
+          gas: GAS_LIMIT,
+        }),
+      );
+      await sync();
+      const again = await prepare().openNewStrategy(OPEN_KEY, {
+        ...OPEN_PARAMS,
+        creditAccount,
+      });
+
+      expect(again.ok).toBe(false);
+      if (again.ok) throw new Error("unreachable");
+      expect(again.error.code).toBe("creditAccountNotEmpty");
+    });
   });
 });

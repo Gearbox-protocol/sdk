@@ -272,15 +272,21 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("refuses when the flag and the collateral disagree", async () => {
+  it("refuses when the flag and the arguments disagree", async () => {
     const withCollateral = await api().api.openNewStrategy(STRATEGY, {
       ...EMPTY,
       collateral: [{ token: UND, balance: 20000000000n }],
     });
+    const withAccount = await api().api.openNewStrategy(STRATEGY, {
+      ...EMPTY,
+      creditAccount: CREDIT_ACCOUNT,
+    });
 
     expect(withCollateral.ok).toBe(false);
-    if (withCollateral.ok) throw new Error("unreachable");
+    expect(withAccount.ok).toBe(false);
+    if (withCollateral.ok || withAccount.ok) throw new Error("unreachable");
     expect(withCollateral.error.code).toBe("emptyOpenTakesNothing");
+    expect(withAccount.error.code).toBe("emptyOpenTakesNothing");
   });
 
   it("still refuses an ordinary opening that supplies nothing", async () => {
@@ -303,6 +309,78 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
     expect(result.error.code).toBe("marketPaused");
+  });
+});
+
+describe("PrepareApi.openNewStrategy on a pre-opened account", () => {
+  /** An account carrying whatever the case names, in the fixture market. */
+  function apiWith(account: {
+    totalDebt: bigint;
+    tokens: ReturnType<typeof caToken>[];
+  }) {
+    const sdk = buildMarketSdk({
+      minDebt: MIN_DEBT,
+      creditAccounts: [buildFixtureCreditAccount(account)],
+    });
+    return new PrepareApi({ chain: () => sdk } as unknown as MultichainSDK);
+  }
+
+  const OPEN = {
+    collateral: [{ token: UND, balance: 20000000000n }],
+    leverage: 300n,
+    creditAccount: CREDIT_ACCOUNT,
+  };
+  const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
+
+  it("takes an account with no debt and no quotas", async () => {
+    const api = apiWith({ totalDebt: 0n, tokens: [] });
+
+    const result = await api.openNewStrategy(STRATEGY, OPEN);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error.code);
+    expect(result.data.state.creditAccount).toBe(CREDIT_ACCOUNT);
+  });
+
+  it("does not mind balances sitting on it", async () => {
+    const api = apiWith({ totalDebt: 0n, tokens: [caToken(POS, TVL)] });
+
+    const result = await api.openNewStrategy(STRATEGY, OPEN);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it("refuses one that still carries a quota", async () => {
+    const api = apiWith({ totalDebt: 0n, tokens: [caToken(POS, TVL, QUOTA)] });
+
+    const result = await api.openNewStrategy(STRATEGY, OPEN);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditAccountNotEmpty");
+  });
+
+  it("refuses one that still owes", async () => {
+    const api = apiWith({ totalDebt: DEBT, tokens: [] });
+
+    const result = await api.openNewStrategy(STRATEGY, OPEN);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditAccountNotEmpty");
+  });
+
+  it("refuses an account this market does not hold", async () => {
+    const sdk = buildMarketSdk({ minDebt: MIN_DEBT, creditAccounts: [] });
+    const api = new PrepareApi({
+      chain: () => sdk,
+    } as unknown as MultichainSDK);
+
+    const result = await api.openNewStrategy(STRATEGY, OPEN);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditAccountNotFound");
   });
 });
 
