@@ -14,11 +14,11 @@ import {
 } from "../../dev/createAnvilClient.js";
 import { registerSecuritizeInvestor } from "../../dev/kycUtils.js";
 import { claimDSToken } from "../../dev/securitizeUtils.js";
+import { RWA_FACTORY_SECURITIZE } from "../../model/index.js";
 import {
   chains,
   MAX_UINT256,
   OnchainSDK,
-  RWA_FACTORY_SECURITIZE,
   sendRawTx,
 } from "../../onchain/index.js";
 import { GAS_LIMIT } from "../constants.js";

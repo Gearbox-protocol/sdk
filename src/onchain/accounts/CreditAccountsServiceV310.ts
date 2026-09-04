@@ -3,6 +3,7 @@ import { encodeFunctionData } from "viem";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
+import type { RWAOpenAccountRequirements } from "../../model/index.js";
 import type {
   Asset,
   CreditAccountData,
@@ -21,10 +22,7 @@ import {
   type PrepareUpdateQuotasProps,
   type PriceUpdate,
 } from "../market/index.js";
-import type {
-  GetOpenAccountRequirementsProps,
-  RWAOpenAccountRequirements,
-} from "../market/rwa/index.js";
+import type { GetOpenAccountRequirementsProps } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";

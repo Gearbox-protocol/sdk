@@ -1,30 +1,30 @@
+import type { Address } from "viem";
 import type {
-  InsufficientBalanceError,
   MalformedTransactionError,
   OperationPreview,
 } from "../../model/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import type { AddressMap } from "../utils/AddressMap.js";
+import { checkCollateralFunding } from "./bundles/checkCollateralFunding.js";
 import type { CreditOperationError } from "./bundles/checkCreditOperation.js";
 import { checkCreditOperation } from "./bundles/checkCreditOperation.js";
-import { checkFundedFrom } from "./bundles/checkFundedFrom.js";
 import type { HealthFactorThresholds } from "./bundles/checkHealthFactors.js";
 import { checkMarket } from "./bundles/checkMarket.js";
+import { checkPoolFunding } from "./bundles/checkPoolFunding.js";
 import type { PoolOperationError } from "./bundles/checkPoolOperation.js";
 import { checkPoolOperation } from "./bundles/checkPoolOperation.js";
+import type { WalletFundingError } from "./bundles/checkWallet.js";
 import { checkPreviewError } from "./checks/index.js";
 
 export interface CheckOperationOptions extends HealthFactorThresholds {
-  /**
-   * Balances the operation is funded from, by token. Given, the wallet's side
-   * is checked offline; omitted, funding is left to `checkPrerequisites`.
-   */
-  balances?: AddressMap<bigint>;
+  /** Block to read at; defaults to latest. Only set for testnet forks. */
+  blockNumber?: bigint;
 }
 
 export interface CheckOperationInput {
   sdk: OnchainSDK;
   preview: OperationPreview;
+  /** The wallet that signs. Its allowances, balances and RWA standing are read on-chain. */
+  sender: Address;
 }
 
 /** {@inheritDoc checkOperation} */
@@ -32,23 +32,22 @@ export type OperationValidationError =
   | MalformedTransactionError
   | CreditOperationError
   | PoolOperationError
-  | InsufficientBalanceError;
+  | WalletFundingError;
 
 /**
- * Whether a parsed operation may be signed at all — the protocol state that
- * `checkPrerequisites` leaves out, since that one covers only what the sender
- * can fix themselves.
+ * Whether a parsed operation may be signed by `sender`: protocol state first,
+ * then what the wallet has to approve, hold or sign.
  *
- * Synchronous: the preview carries the numbers and the market is attached.
  * The array is in check order, most fundamental first, so a caller with room
- * for one verdict reports the first entry.
+ * for one verdict reports the first entry. Approve and sign errors are picked
+ * out by `code`, not by position.
  */
-export function checkOperation(
+export async function checkOperation(
   input: CheckOperationInput,
   options: CheckOperationOptions = {},
-): OperationValidationError[] {
-  const { sdk, preview } = input;
-  const { balances, ...thresholds } = options;
+): Promise<OperationValidationError[]> {
+  const { sdk, preview, sender } = input;
+  const { blockNumber, ...thresholds } = options;
 
   // Every check below reads fields this error declares untrustworthy, so it is
   // reported alone.
@@ -59,6 +58,7 @@ export function checkOperation(
     return malformed;
   }
 
+  const wallet = { sdk, sender, blockNumber };
   switch (preview.operation) {
     case "Deposit":
     case "Mint":
@@ -73,24 +73,32 @@ export function checkOperation(
           isDeposit,
           tokenOut: preview.tokenOut,
         }),
-        ...checkFundedFrom(balances, [preview.tokenIn]),
+        ...(await checkPoolFunding({ ...wallet, preview })),
       ];
     }
     case "DelayedCreditAccountOperation":
-      // A delayed operation is judged on the half that executes now.
-      return checkOperation({ sdk, preview: preview.instantPreview }, options);
+      return checkOperation(
+        { sdk, preview: preview.instantPreview, sender },
+        options,
+      );
     case "OpenCreditAccount":
     case "RWAOpenCreditAccount":
     case "AdjustCreditAccount":
+      return checkCreditOperation({
+        sdk,
+        preview,
+        sender,
+        blockNumber,
+        ...thresholds,
+      });
+    case "RepayCreditAccount":
       return [
-        ...checkCreditOperation({ sdk, preview, ...thresholds }),
-        ...checkFundedFrom(balances, preview.collateralAdded),
+        ...checkMarket(
+          sdk.marketRegister.findCreditManager(preview.creditManager),
+        ),
+        ...(await checkCollateralFunding({ ...wallet, preview })),
       ];
     case "CloseCreditAccount":
-    case "RepayCreditAccount":
-      // They carry a projection of the wound-down account, but the loan is
-      // gone (`totalDebt` is always 0), so the health-factor thresholds would
-      // no-op. Only the market's own state can stop one.
       return checkMarket(
         sdk.marketRegister.findCreditManager(preview.creditManager),
       );

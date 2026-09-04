@@ -63,8 +63,7 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   const snap = account.toSnapshot(netValue + account.totalDebt);
   const targetAsset = inferTargetAsset(operation.multicall, account.balances);
 
-  return {
-    operation: operation.operation,
+  const projection = {
     // The state itself comes from the builder the intents engine reports its
     // own projections from, so an opening this module reads back and the one
     // `prepare.openNewStrategy` planned are described in one voice — `est` on
@@ -87,6 +86,18 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
       oracle.toTokenAmount(a.token, a.balance),
     ),
     warning,
+  };
+
+  if (operation.operation === "RWAOpenCreditAccount") {
+    return {
+      ...projection,
+      operation: "RWAOpenCreditAccount",
+      rwaArgs: operation.args,
+    };
+  }
+  return {
+    ...projection,
+    operation: "OpenCreditAccount",
   };
 }
 

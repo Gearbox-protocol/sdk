@@ -2,6 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 import type {
   Bps,
   CreditOperationMarket,
+  RWAOperationArgs,
   StrategyOpportunity,
   StrategyOpportunityDetail,
   Timestamp,
@@ -33,7 +34,7 @@ import {
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
 } from "../math.js";
-import type { IRWAFactory, RWAOperationArgs } from "../rwa/types.js";
+import type { IRWAFactory } from "../rwa/types.js";
 import { strategyName as formatStrategyName } from "../strategyName.js";
 import {
   dominantCollateral,

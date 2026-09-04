@@ -95,8 +95,8 @@ export function amountsInOut(
  * zapper's `previewDeposit`/`previewRedeem`) to convert the calldata-known
  * amount into its counterpart. It works on every network the SDK supports.
  *
- * It does not execute the calldata, so it ignores balance/allowance
- * prerequisites (preview reads succeed regardless).
+ * It does not execute the calldata, so it ignores whether the wallet holds
+ * or has approved the tokens (preview reads succeed regardless).
  */
 export async function simulatePoolOperation(
   input: SimulationInput<PoolOperation>,

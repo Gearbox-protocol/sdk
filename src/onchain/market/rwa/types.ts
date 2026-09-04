@@ -4,41 +4,31 @@ import type {
 } from "abitype";
 import type { Address, ContractFunctionParameters } from "viem";
 import type { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
+import {
+  RWA_FACTORY_SECURITIZE,
+  type RWAFactoryType,
+  type RWAMissingOpenAccountRequirements,
+  type RWAOpenAccountRequirements,
+  type RWAOperationArgs,
+} from "../../../model/index.js";
 import type { IBaseContract, Unarray } from "../../base/index.js";
 import type { MultiCall, RawTx } from "../../types/index.js";
 import type {
   SecuritizeInvestorData,
-  SecuritizeMissingOpenAccountRequirements,
-  SecuritizeOpenAccountRequirements,
-  SecuritizeOperationArgs,
   SecuritizeRWAFactoryStateHuman,
 } from "./securitize/index.js";
-import { RWA_FACTORY_SECURITIZE } from "./securitize/index.js";
-
-/**
- * Discriminated union of all known RWA factory contract type strings.
- **/
-export const RWA_FACTORY_TYPES = [RWA_FACTORY_SECURITIZE] as const;
-
-/**
- * String literal union of known RWA factory types.
- **/
-export type RWAFactoryType = (typeof RWA_FACTORY_TYPES)[number];
 
 /**
  * @internal
  *
  * Type-level registry mapping each {@link RWAFactoryType} to its associated
- * data types. Adding a new RWA factory requires a single new entry here;
- * all derived types update automatically.
+ * compressor / contract-state types. Adding a new RWA factory requires a
+ * single new entry here; all derived types update automatically.
  **/
 interface RWAFactoryTypeMap {
   [RWA_FACTORY_SECURITIZE]: {
     investorData: SecuritizeInvestorData;
-    openAccountRequirements: SecuritizeOpenAccountRequirements;
-    missingOpenAccountRequirements: SecuritizeMissingOpenAccountRequirements;
     stateHuman: SecuritizeRWAFactoryStateHuman;
-    operationArgs: SecuritizeOperationArgs;
   };
 }
 
@@ -48,30 +38,6 @@ interface RWAFactoryTypeMap {
  **/
 export type RWAInvestorData<T extends RWAFactoryType = RWAFactoryType> =
   RWAFactoryTypeMap[T]["investorData"];
-
-/**
- * Open-account requirements for a RWA factory, defaults to union of all factory types
- * Can be discriminated by type
- **/
-export type RWAOpenAccountRequirements<
-  T extends RWAFactoryType = RWAFactoryType,
-> = RWAFactoryTypeMap[T]["openAccountRequirements"];
-
-/**
- * Subset of {@link RWAOpenAccountRequirements} that is still unfulfilled,
- * defaults to union of all factory types.
- * Can be discriminated by type
- **/
-export type RWAMissingOpenAccountRequirements<
-  T extends RWAFactoryType = RWAFactoryType,
-> = RWAFactoryTypeMap[T]["missingOpenAccountRequirements"];
-
-/**
- * Open credit account/Multicall extra params type for a RWA factory, defaults to union of all factory types
- * Can be discriminated by type
- **/
-export type RWAOperationArgs<T extends RWAFactoryType = RWAFactoryType> =
-  RWAFactoryTypeMap[T]["operationArgs"];
 
 /**
  * Raw return type of `RWACompressor.getRWAMarketsData`.

@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { RWAOperationArgs } from "../../onchain/index.js";
+import type { RWAOperationArgs } from "../../model/index.js";
 import type { InnerOperation } from "./types-facades.js";
 
 /**

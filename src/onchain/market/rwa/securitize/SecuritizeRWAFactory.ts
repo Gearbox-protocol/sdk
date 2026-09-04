@@ -4,6 +4,13 @@ import {
   decodeAbiParameters,
 } from "viem";
 import { iSecuritizeRWAFactoryAbi } from "../../../../abi/rwa/iSecuritizeRWAFactory.js";
+import {
+  RWA_FACTORY_SECURITIZE,
+  SECURITIZE_REGISTER_VAULT_TYPES,
+  type SecuritizeMissingOpenAccountRequirements,
+  type SecuritizeOpenAccountRequirements,
+  type SecuritizeOperationArgs,
+} from "../../../../model/index.js";
 import { BaseContract } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
@@ -15,16 +22,11 @@ import type {
   RWACompressorInvestorData,
   RWAFactoryData,
 } from "../types.js";
-import { RWA_FACTORY_SECURITIZE } from "./constants.js";
 import { SecuritizeDegenNFT } from "./SecuritizeDegenNFT.js";
-import {
-  type DStokenData,
-  SECURITIZE_REGISTER_VAULT_TYPES,
-  type SecuritizeInvestorData,
-  type SecuritizeMissingOpenAccountRequirements,
-  type SecuritizeOpenAccountRequirements,
-  type SecuritizeOperationArgs,
-  type SecuritizeRWAFactoryStateHuman,
+import type {
+  DStokenData,
+  SecuritizeInvestorData,
+  SecuritizeRWAFactoryStateHuman,
 } from "./types.js";
 
 const abi = iSecuritizeRWAFactoryAbi;

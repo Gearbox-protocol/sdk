@@ -7,8 +7,8 @@ import type {
 import type { ILogger } from "../onchain/types/logger.js";
 
 /**
- * Raw-calldata operation input shared by `parseOperationCalldata`,
- * `previewOperation` and `checkPrerequisites`.
+ * Raw-calldata operation input shared by `parseOperationCalldata` and
+ * `previewOperation`.
  */
 export interface PreviewOperationInput<P extends PluginsMap = PluginsMap> {
   /**
@@ -46,7 +46,7 @@ interface PreviewOperationOptionsBase {
 }
 
 /**
- * Options shared by the preview, simulation and prerequisite-check flows.
+ * Options shared by the preview and simulation flows.
  * Each flow uses the subset it needs and ignores the rest.
  *
  * `WithAccount = true` marks options whose credit account state has already

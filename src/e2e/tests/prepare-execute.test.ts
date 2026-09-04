@@ -13,6 +13,7 @@ import { isSDKError } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
+  checkOperation,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
@@ -20,7 +21,7 @@ import {
   type RawTx,
   sendRawTx,
 } from "../../onchain/index.js";
-import { checkPrerequisites } from "../../preview/index.js";
+import { previewOperation } from "../../preview/index.js";
 import type { PrepareRequest } from "../../sdk/index.js";
 import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
@@ -131,18 +132,22 @@ describe("prepare → execute on a mainnet fork", () => {
 
   async function send(request: PrepareRequest): Promise<RawTx> {
     const tx = await execute().buildTx(request);
-    const prerequisites = await checkPrerequisites({
+    const preview = await previewOperation({
       sdk: chain,
       to: tx.to,
       calldata: tx.callData,
       sender: borrower,
       value: BigInt(tx.value),
     });
-    expect(isSDKError(prerequisites), "prerequisites must parse").toBe(false);
-    if (isSDKError(prerequisites)) throw new Error("unreachable");
+    expect(isSDKError(preview), "preview must parse").toBe(false);
+    if (isSDKError(preview)) throw new Error("unreachable");
     expect(
-      prerequisites.data.filter(p => p.satisfied !== true),
-      "prerequisites the send still needs",
+      await checkOperation({
+        sdk: chain,
+        preview: preview.data,
+        sender: borrower,
+      }),
+      "the send still needs",
     ).toEqual([]);
     await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
     return tx;
@@ -299,7 +304,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(before.totalValue).toBeGreaterThanOrEqual(floor);
     });
 
-    it("without the allowance, checkPrerequisites reports it and the send reverts before any block", async () => {
+    it("without the allowance, checkOperation reports it and the send reverts before any block", async () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await sync();
       const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
@@ -314,19 +319,20 @@ describe("prepare → execute on a mainnet fork", () => {
         ethAmount: 0n,
       });
 
-      const prerequisites = await checkPrerequisites({
+      const preview = await previewOperation({
         sdk: chain,
         to: tx.to,
         calldata: tx.callData,
         sender: borrower,
       });
-      expect(isSDKError(prerequisites), "prerequisites must parse").toBe(false);
-      if (isSDKError(prerequisites)) throw new Error("unreachable");
-      expect(
-        prerequisites.data.some(
-          p => p.kind === "allowance" && p.satisfied === false,
-        ),
-      ).toBe(true);
+      expect(isSDKError(preview), "preview must parse").toBe(false);
+      if (isSDKError(preview)) throw new Error("unreachable");
+      const errors = await checkOperation({
+        sdk: chain,
+        preview: preview.data,
+        sender: borrower,
+      });
+      expect(errors.some(e => e.code === "insufficientAllowance")).toBe(true);
       await expect(sendRawTx(wallet, { tx })).rejects.toThrow();
     });
   });

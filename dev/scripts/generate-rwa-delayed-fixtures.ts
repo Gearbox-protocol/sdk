@@ -101,7 +101,11 @@ import {
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
 } from "../../src/e2e/helpers/securitize.js";
-import type { DelayedIntent } from "../../src/model/index.js";
+import {
+  type DelayedIntent,
+  RWA_FACTORY_SECURITIZE,
+  type SecuritizeOperationArgs,
+} from "../../src/model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
@@ -116,8 +120,6 @@ import {
   OnchainSDK,
   PERCENTAGE_FACTOR,
   type RawTx,
-  RWA_FACTORY_SECURITIZE,
-  type SecuritizeOperationArgs,
   sendRawTx,
 } from "../../src/onchain/index.js";
 

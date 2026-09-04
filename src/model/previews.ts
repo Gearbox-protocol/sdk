@@ -12,6 +12,7 @@ import type {
   TokenAmount,
   UnderlyingToken,
 } from "./primitives.js";
+import type { RWAOperationArgs } from "./rwa.js";
 
 /**
  * ERC4626 pool operation kind, as surfaced on a {@link PoolPositionOperationPreview}.
@@ -167,6 +168,17 @@ export interface PoolPositionOperationPreview {
    * Pool address
    */
   pool: Address;
+  /**
+   * Call target when the operation is zapper-routed. The wallet approves this
+   * instead of the pool. Absent on a direct pool call.
+   */
+  zapper?: Address;
+  /**
+   * Whose share balance {@link netValue} describes and whose shares burn on a
+   * withdrawal or redeem (the calldata's `owner` there, its `receiver` on a
+   * deposit or mint).
+   */
+  holder: Address;
   /**
    * Human-readable pool name
    */
@@ -505,12 +517,9 @@ export interface AccountStateChange {
 }
 
 /**
- * What an account-opening transaction that already exists would do — the
- * counterpart of `prepare.openNewStrategy`, read off calldata rather than
- * planned into it.
+ * Fields every account opening shares.
  **/
-export interface OpenStrategyPositionPreview extends EstimatedProjection {
-  operation: "OpenCreditAccount" | "RWAOpenCreditAccount";
+interface OpenStrategyPositionProjection extends EstimatedProjection {
   /**
    * Collateral token this position is a strategy in: the first quoted token,
    * with its balance taken from `estAssets` — so, like them, the floor the
@@ -533,6 +542,39 @@ export interface OpenStrategyPositionPreview extends EstimatedProjection {
    */
   warning?: OperationPreviewError;
 }
+
+/**
+ * What a facade account-opening transaction that already exists would do —
+ * the counterpart of `prepare.openNewStrategy` on a non-RWA market, read off
+ * calldata rather than planned into it.
+ **/
+export interface OpenNonRWAStrategyPositionPreview
+  extends OpenStrategyPositionProjection {
+  operation: "OpenCreditAccount";
+}
+
+/**
+ * What an RWA-factory account-opening transaction that already exists would
+ * do — the counterpart of `prepare.openNewStrategy` on an RWA market.
+ **/
+export interface OpenRWAStrategyPositionPreview
+  extends OpenStrategyPositionProjection {
+  operation: "RWAOpenCreditAccount";
+  /**
+   * Registration args the factory received (Securitize: `tokensToRegister`,
+   * `signaturesToCache`).
+   */
+  rwaArgs: RWAOperationArgs;
+}
+
+/**
+ * What an account-opening transaction that already exists would do — the
+ * counterpart of `prepare.openNewStrategy`, read off calldata rather than
+ * planned into it.
+ **/
+export type OpenStrategyPositionPreview =
+  | OpenNonRWAStrategyPositionPreview
+  | OpenRWAStrategyPositionPreview;
 
 /**
  * What a transaction on an existing account would do — the counterpart of the

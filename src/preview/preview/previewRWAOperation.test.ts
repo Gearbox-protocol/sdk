@@ -2,9 +2,13 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { type Address, custom, encodeFunctionData, zeroAddress } from "viem";
 import { beforeAll, expect, it } from "vitest";
-import { iCreditFacadeMulticallV310Abi } from "../../abi/310/generated.js";
+import {
+  iCreditFacadeMulticallV310Abi,
+  iCreditFacadeV310Abi,
+} from "../../abi/310/generated.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
 import { iSecuritizeRWAFactoryAbi } from "../../abi/rwa/iSecuritizeRWAFactory.js";
+import { RWA_FACTORY_SECURITIZE } from "../../model/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -24,7 +28,7 @@ const FIXTURE = resolve(
 
 const SENDER: Address = "0xf13df765f3047850Cede5aA9fDF20a12A75f7F70";
 // Securitize RWA factory and one of its credit managers, hardcoded from the
-// fixture (see checkPrerequisites.test.ts which targets the same market).
+// fixture.
 const FACTORY: Address = "0xc6f7B95f6fb8394541D9Ac8B0Abc94Bf6E84F703";
 const CREDIT_MANAGER: Address = "0x025512D771f778fad99aB30b7A7363E7C8DE078D";
 // ERC4626 wrap/unwrap adapter of the credit manager, its vault is the market
@@ -125,6 +129,11 @@ it("previews RWA account opening with an unwrap call", async () => {
   expect(preview).toMatchObject({
     operation: "RWAOpenCreditAccount",
     creditManager: CREDIT_MANAGER,
+    rwaArgs: {
+      type: RWA_FACTORY_SECURITIZE,
+      tokensToRegister: [],
+      signaturesToCache: [],
+    },
     underlyingToken: expect.objectContaining({ address: USDC }),
     totalDebt: {
       token: expect.objectContaining({ address: USDC }),
@@ -226,4 +235,34 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
       { token: expect.objectContaining({ address: VAULT }), value: -shares },
     ],
   });
+});
+
+it("a facade opening has operation OpenCreditAccount and no rwaArgs", async () => {
+  const calldata = encodeFunctionData({
+    abi: iCreditFacadeV310Abi,
+    functionName: "openCreditAccount",
+    args: [
+      SENDER,
+      [
+        facadeCall("increaseDebt", [50_000_000_000n]),
+        facadeCall("addCollateral", [DS_TOKEN, 55_000_000_000n]),
+        facadeCall("updateQuota", [DS_TOKEN, 55_000_000_000n, 0n]),
+      ],
+      0n,
+    ],
+  });
+
+  const answer = await previewOperation({
+    sdk,
+    to: creditFacade,
+    calldata,
+    sender: SENDER,
+    value: 0n,
+  });
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
+
+  expect(answer.data.operation).toBe("OpenCreditAccount");
+  expect(answer.data).not.toHaveProperty("rwaArgs");
 });

@@ -31,6 +31,7 @@ const input: PreviewOperationInput = {
 const previewData: OperationPreview = {
   operation: "Deposit",
   pool: TO,
+  holder: SENDER,
   name: "Test Pool",
   underlyingToken: {
     chainId: 1,

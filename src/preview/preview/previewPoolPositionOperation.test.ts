@@ -209,6 +209,8 @@ describe("previewPoolPositionOperation", () => {
       data: {
         operation: "Deposit",
         curator: CURATOR,
+        holder: RECEIVER,
+        zapper: undefined,
         netValue: {
           value: 11n,
           token: expect.objectContaining({ address: UNDERLYING }),
@@ -242,6 +244,8 @@ describe("previewPoolPositionOperation", () => {
       data: {
         operation: "Withdraw",
         curator: CURATOR,
+        holder: OWNER,
+        zapper: undefined,
         netValue: { value: 10n },
       },
     });
@@ -272,6 +276,8 @@ describe("previewPoolPositionOperation", () => {
     expect(answer.ok).toBe(true);
     if (!answer.ok) return;
     expect(answer.data.curator).toEqual(CURATOR);
+    expect(answer.data.holder).toBe(RECEIVER);
+    expect(answer.data.zapper).toBe(ZAPPER);
     expect(answer.data.netValue).toEqual({
       token: market.underlyingToken,
       value: 11n,

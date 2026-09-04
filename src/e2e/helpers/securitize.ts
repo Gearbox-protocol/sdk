@@ -12,6 +12,10 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import type { AnvilClient } from "../../dev/createAnvilClient.js";
+import type {
+  SecuritizeRegisterMessage,
+  SecuritizeRegisterVaultMessage,
+} from "../../model/index.js";
 import {
   MAX_UINT256,
   type OnchainSDK,
@@ -19,8 +23,6 @@ import {
   RWA_UNDERLYING_DEFAULT,
   RWA_UNDERLYING_ON_DEMAND,
   type RWAOnDemandTokenMeta,
-  type SecuritizeRegisterMessage,
-  type SecuritizeRegisterVaultMessage,
 } from "../../onchain/index.js";
 
 export const RWA_RPC_URL = "https://anvil.gearbox.foundation/rpc/RWA";

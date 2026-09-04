@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   AdjustStrategyPositionPreview,
   DebtOutOfRangeError,
@@ -7,11 +8,13 @@ import type {
   OpenStrategyPositionPreview,
   QuotaCountExceededError,
   QuotaLimitReachedError,
+  RWAOpenRequirementsError,
 } from "../../../model/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { checkDebtLimits } from "../checks/index.js";
 import { toToken } from "../helpers/index.js";
 import { checkAccountQuotas } from "./checkAccountQuotas.js";
+import { checkCollateralFunding } from "./checkCollateralFunding.js";
 import { checkDraw } from "./checkDraw.js";
 import type { HealthFactorThresholds } from "./checkHealthFactors.js";
 import { checkHealthFactors } from "./checkHealthFactors.js";
@@ -19,6 +22,8 @@ import type { MarketStateError } from "./checkMarket.js";
 import { checkMarket } from "./checkMarket.js";
 import { checkObtained } from "./checkObtained.js";
 import { checkQuotasAsked } from "./checkQuotasAsked.js";
+import { checkRWAOpening } from "./checkRWAOpening.js";
+import type { WalletFundingError } from "./checkWallet.js";
 
 /** {@inheritDoc checkCreditOperation} */
 export type CreditOperationError =
@@ -28,7 +33,9 @@ export type CreditOperationError =
   | ForbiddenTokenError
   | QuotaCountExceededError
   | QuotaLimitReachedError
-  | InsufficientCollateralError;
+  | InsufficientCollateralError
+  | WalletFundingError
+  | RWAOpenRequirementsError;
 
 /** The two previews that carry a position for the thresholds to weigh. */
 export type CreditOperationPreview =
@@ -38,19 +45,23 @@ export type CreditOperationPreview =
 export interface CreditOperationArgs extends HealthFactorThresholds {
   sdk: OnchainSDK;
   preview: CreditOperationPreview;
+  /** The wallet that signs. Its balances, allowances and RWA standing are read on-chain. */
+  sender: Address;
+  blockNumber?: bigint;
 }
 
 /**
- * What the protocol stops a credit operation for, read off the preview alone.
+ * What the protocol stops a credit operation for, then what the wallet still
+ * has to hold, approve or sign.
  *
  * The array is in check order, most fundamental first: the market's own state,
  * then what the facade would revert on, then what the operation asks the
- * market for, and last the account it leaves behind.
+ * market for, then the account it leaves behind, and last the wallet's side.
  */
-export function checkCreditOperation(
+export async function checkCreditOperation(
   args: CreditOperationArgs,
-): CreditOperationError[] {
-  const { sdk, preview, ...thresholds } = args;
+): Promise<CreditOperationError[]> {
+  const { sdk, preview, sender, blockNumber, ...thresholds } = args;
   const suite = sdk.marketRegister.findCreditManager(preview.creditManager);
   const market = suite.market;
   const underlying = toToken(sdk, market.pool.underlying);
@@ -58,7 +69,7 @@ export function checkCreditOperation(
     preview.operation === "OpenCreditAccount" ||
     preview.operation === "RWAOpenCreditAccount";
 
-  return [
+  const protocol: CreditOperationError[] = [
     ...checkMarket(suite),
     // An account being opened has to carry a real loan; one being adjusted may
     // end owing nothing at all.
@@ -83,4 +94,12 @@ export function checkCreditOperation(
       thresholds,
     ),
   ];
+
+  const [funding, rwa] = await Promise.all([
+    checkCollateralFunding({ sdk, preview, sender, blockNumber }),
+    preview.operation === "RWAOpenCreditAccount"
+      ? checkRWAOpening({ sdk, preview, sender })
+      : [],
+  ]);
+  return [...protocol, ...funding, ...rwa];
 }

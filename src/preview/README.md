@@ -1,6 +1,6 @@
 # Preview
 
-Tools for **previewing a Gearbox operation before it is sent on-chain**: turn raw transaction calldata into an operation-specific, human-displayable preview, and check the conditions the sender must satisfy for it to succeed.
+Tools for **previewing a Gearbox operation before it is sent on-chain**: turn raw transaction calldata into an operation-specific, human-displayable preview.
 
 ## Concepts
 
@@ -9,10 +9,7 @@ An **operation** is a transaction performed on behalf of a Gearbox protocol user
 - a **pool user** (liquidity provider) depositing into or redeeming from a pool, or
 - a **credit account user** (borrower) opening or adjusting a credit account.
 
-Given only `{ to, calldata, sender }`, this module answers two questions:
-
-1. **What would this operation do?** (`previewOperation`)
-2. **Can the sender execute it, and what must they fix first?** (`checkPrerequisites`)
+Given only `{ to, calldata, sender }`, this module answers **what would this operation do?** (`previewOperation`).
 
 All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked in at attach time). The SDK must be created with the adapters plugin so that adapter contracts resolve during multicall classification.
 
@@ -22,8 +19,8 @@ All reads use the already-attached `OnchainSDK` (chain, RPC and block are baked 
 
 [`previewOperation`](./preview/previewOperation.ts) is the async entry point. It decodes the raw calldata internally (see [`parse`](#internals)) and assembles an operation-specific preview:
 
-- **Pool operations** (ERC4626 deposit/withdraw, direct or zapper-routed) produce a [`PoolPositionOperationPreview`](../model/previews.ts): the tokens going in and out.
-- **Credit account opening** (`OpenCreditAccount` and `RWAOpenCreditAccount`) produces a [`OpenStrategyPositionPreview`](../model/previews.ts): `collateralAdded`, `estNetValue`, `totalDebt`, `quotas`, etc.
+- **Pool operations** (ERC4626 deposit/withdraw, direct or zapper-routed) produce a [`PoolPositionOperationPreview`](../model/previews.ts): the tokens going in and out, plus `holder` (whose share balance `netValue` describes) and, when routed, `zapper` (the call target the wallet approves).
+- **Credit account opening** (`OpenCreditAccount` and `RWAOpenCreditAccount`) produces a [`OpenStrategyPositionPreview`](../model/previews.ts): `collateralAdded`, `estNetValue`, `totalDebt`, `quotas`, etc. An RWA-factory opening is a [`OpenRWAStrategyPositionPreview`](../model/previews.ts) and carries `rwaArgs` (the registration args decoded from calldata); a facade opening is a [`OpenNonRWAStrategyPositionPreview`](../model/previews.ts).
 - **Credit account adjustment** (`multicall`/`botMulticall` on the facade/RWA factory) produces a [`AdjustStrategyPositionPreview`](../model/previews.ts): `collateralAdded`, `totalDebtChange`, `quotasChange`, etc.
 - **Credit account closure/repayment** produces a [`ExitStrategyPositionPreview`](../model/previews.ts) (collateral swapped into underlying, debt repaid, underlying withdrawn) or a [`RepayStrategyPositionPreview`](../model/previews.ts) (debt covered from the wallet, collateral returned in-kind). The facade `closeCreditAccount` entry point closes the account permanently (`permanent: true`); a plain multicall that fully repays the debt returns `permanent: false`.
 - **Any other operation** throws an [`UnsupportedOperationError`](./preview/errors.ts).
@@ -39,31 +36,10 @@ When the operation decodes but cannot be fully previewed, the preview is still r
 
 All fields are computed best-effort in either case: fields driven by explicit facade calls (`collateralAdded`, `totalDebt`, `quotas`) are exact, while fields derived from replayed balances (e.g. `estAssets`, `assetsChange`, `targetCollateral` balance) or oracle prices (`estNetValue`, `estTotalValue`) may be unreliable. When both categories apply, the malformed warning is reported (it takes precedence).
 
-### `prerequisites`
-
-The on-chain conditions the **sender can fix themselves** before retrying. The module is limited to **checking**: acting on an unsatisfied result (sending an approve transaction, signing messages, rebuilding calldata) is up to the consumer and out of the SDK's scope.
-
-[`checkPrerequisites`](./prerequisites/checkPrerequisites.ts) takes the same raw-calldata input as `previewOperation`, derives the prerequisites (e.g. token allowances) and verifies them all.
-
-Only **sender-actionable** conditions belong here (approve a token, top up a balance, register an RWA token, etc.). Non-actionable protocol/admin state (e.g. pool is paused) is `checkOperation` / `checkSimulation` on `@gearbox-protocol/sdk/onchain`.
-
 ## Intended usage
 
 ```ts
-import {
-  checkPrerequisites,
-  previewOperation,
-} from "@gearbox-protocol/sdk/preview";
+import { previewOperation } from "@gearbox-protocol/sdk/preview";
 
-// 1. Preview the operation (pool operation or credit account opening).
 const preview = await previewOperation({ sdk, to, calldata, sender });
-
-// 2. When/if necessary, check sender-actionable prerequisites
-//    (allowances, balances, RWA requirements). Takes the same input as
-//    previewOperation.
-const results = await checkPrerequisites({ sdk, to, calldata, sender });
-
-// 3. For each unsatisfied result, the consumer inspects `kind` and `detail`
-//    (e.g. `detail.missing` for rwaOpenRequirements) and resolves it outside
-//    the SDK, then re-runs checkPrerequisites.
 ```

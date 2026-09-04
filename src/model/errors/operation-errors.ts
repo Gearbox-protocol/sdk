@@ -1,6 +1,10 @@
 import type { Address } from "viem";
 import type { MalformedPreviewError } from "../previews.js";
 import type { Bps, Token, TokenAmount } from "../primitives.js";
+import type {
+  RWAMissingOpenAccountRequirements,
+  RWAOpenAccountRequirements,
+} from "../rwa.js";
 import type { IGearboxError } from "./base.js";
 
 /**
@@ -318,6 +322,56 @@ export function insufficientBalance(
       required === undefined || held === undefined
         ? "There is not enough to fund this operation."
         : `${required.value} of ${required.token.symbol} is needed and ${held.value} is held.`,
+    ...args,
+  };
+}
+
+/**
+ * `owner` has not approved `spender` for what the operation pulls.
+ **/
+export interface InsufficientAllowanceError extends IGearboxError {
+  code: "insufficientAllowance";
+  owner: Address;
+  spender: Address;
+  /** The token rides inside, as on {@link InsufficientBalanceError}. */
+  required: TokenAmount;
+  /** What is approved today. */
+  allowed: TokenAmount;
+}
+
+/** {@inheritDoc InsufficientAllowanceError} */
+export function insufficientAllowance(
+  args: Omit<InsufficientAllowanceError, "code" | "message">,
+): InsufficientAllowanceError {
+  return {
+    code: "insufficientAllowance",
+    message: `${args.required.value} of ${args.required.token.symbol} must be approved to ${args.spender}, ${args.allowed.value} is.`,
+    ...args,
+  };
+}
+
+/**
+ * The RWA factory still wants something from the borrower before this token
+ * can be opened on.
+ **/
+export interface RWAOpenRequirementsError extends IGearboxError {
+  code: "rwaOpenRequirementsNotMet";
+  token: Token;
+  creditManager: Address;
+  factory: Address;
+  /** Always present on the error. */
+  requirements: RWAOpenAccountRequirements;
+  /** Absent when only issuer-side registration is pending. */
+  missing?: RWAMissingOpenAccountRequirements;
+}
+
+/** {@inheritDoc RWAOpenRequirementsError} */
+export function rwaOpenRequirementsNotMet(
+  args: Omit<RWAOpenRequirementsError, "code" | "message">,
+): RWAOpenRequirementsError {
+  return {
+    code: "rwaOpenRequirementsNotMet",
+    message: `The RWA factory still wants something from the borrower before ${args.token.symbol} can be opened on.`,
     ...args,
   };
 }

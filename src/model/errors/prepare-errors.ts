@@ -178,8 +178,8 @@ export function creditAccountNotFound(
  *
  * The one code that is not a verdict on the request — everything above says
  * "this cannot be done", this one says "we do not know". It exists so that a
- * prepare method always answers: what used to escape as an exception arrives
- * here instead, whole, under `cause`.
+ * prepare method or a check always answers: what used to escape as an
+ * exception arrives here instead, whole, under `cause`.
  **/
 export interface UnexpectedFailureError extends IGearboxError {
   code: "unexpectedFailure";
@@ -193,11 +193,14 @@ export interface UnexpectedFailureError extends IGearboxError {
  * Takes what was thrown, whatever that is: a `throw` is not obliged to raise an
  * `Error`, and `cause` promises one.
  **/
-export function unexpectedFailure(thrown: unknown): UnexpectedFailureError {
+export function unexpectedFailure(
+  thrown: unknown,
+  action = "prepare this operation",
+): UnexpectedFailureError {
   const cause = thrown instanceof Error ? thrown : new Error(String(thrown));
   return {
     code: "unexpectedFailure",
-    message: `The SDK could not prepare this operation: ${cause.message}`,
+    message: `The SDK could not ${action}: ${cause.message}`,
     cause,
   };
 }

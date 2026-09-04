@@ -1,5 +1,10 @@
 import type { Address, Hex } from "viem";
 import {
+  RWA_FACTORY_SECURITIZE,
+  type RWAOperationArgs,
+  type SecuritizeRegisterMessage,
+} from "../../model/index.js";
+import {
   AbstractAdapterContract,
   CreditFacadeV310Contract,
   type CreditSuite,
@@ -8,9 +13,6 @@ import {
   isRWAFactory,
   type OnchainSDK,
   type ParsedCallV2,
-  RWA_FACTORY_SECURITIZE,
-  type RWAOperationArgs,
-  type SecuritizeRegisterMessage,
 } from "../../onchain/index.js";
 import { classifyInnerOperations } from "./classifyInnerOperations.js";
 import type { RWAOperation, RWAOperationMetadata } from "./types-rwa.js";
@@ -44,8 +46,7 @@ export function parseRWAFactoryOperationCalldata(
  * Securitize branch of {@link parseRWAFactoryOperationCalldata}
  *
  * In the template flow `tokensToRegister`/`signaturesToCache` are empty; the
- * real values come from the factory's open-account requirements (see
- * `checkPrerequisites`).
+ * real values come from the factory's open-account requirements.
  */
 function parseSecuritizeOperationCalldata(
   sdk: OnchainSDK,

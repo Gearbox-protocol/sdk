@@ -58,6 +58,8 @@ export async function previewPoolPositionOperation<P extends PluginsMap>(
   return sdkOk({
     operation: operation.operation,
     pool: operation.pool,
+    zapper: operation.zapper,
+    holder,
     name: sdk.tokensMeta.mustGetToken(operation.pool).name,
     underlyingToken: market.underlyingToken,
     shareRate: pool.dieselRate,
