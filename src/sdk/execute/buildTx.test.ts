@@ -269,6 +269,13 @@ describe("buildTx — pool", () => {
 
 describe("buildTx — open", () => {
   const state = {
+    executionConstraints: {
+      checkCollateral: true,
+      useSafePrices: true,
+      revertOnForbiddenTokens: true,
+      minHealthFactor: 10000,
+      constraints: [],
+    },
     creditManager: CREDIT_MANAGER,
     name: "Test CM",
     underlyingToken: UNDERLYING_TOKEN,

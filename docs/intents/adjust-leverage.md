@@ -104,7 +104,7 @@ to keep counting as collateral.
 | the account holds what the sell leg spends| `insufficientSourceBalance`    |
 | `T` quotable and not forbidden           | `quotaLimitReached`, `forbiddenToken` |
 | market quota headroom for the increase   | `quotaLimitReached`            |
-| HF of the projected state (main prices — nothing leaves) | `insufficientCollateral` |
+| HF of floor balances (pricing derived from calls) | `insufficientCollateral` |
 
 Levering up is the flow that most often lands on `insufficientCollateral`: the
 new debt is counted in full while the bought token counts only under its

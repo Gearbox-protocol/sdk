@@ -33,7 +33,7 @@ flowchart TD
   growth{"any balance grown that must not?"}
   quota["quota update: cleared by the plan,<br/>or sized to the projected balances"]
   head{"quota headroom left in the market?"}
-  hf{"projected health factor >= 1.0?<br/>safe prices when funds leave"}
+  hf{"floor collateral meets the facade threshold?<br/>pricing derived from ordered calls"}
   ok["ok: operations + state + calls"]
   no["ok: false, reason"]
 
@@ -108,9 +108,11 @@ debt including accrued interest and fees, `L` total leverage scaled by
 | `A_max`: largest `A` with `HF` at or above `MIN_HF_LIMITED + 2` once `A` of one token leaves — the same `HF` above, at safe prices, solved for that balance | `maxWithdrawCollateral` | `calcMaxWithdrawCollateral` |
 
 Prices come from the market oracle, RWA-aware (a wrapper and its asset convert
-1:1 up to decimals). A call that hands funds over is judged at **safe prices** —
-the lower of a token's main and reserve feed — because that is what the credit
-manager does. Both factors are reported either way: `healthFactor` at main
+1:1 up to decimals). Withdrawal and an adapter returning `true` require **safe
+prices**, even without a wallet payout. Retaining an enabled forbidden token
+also requires safe prices if the facade permits its balance to remain. Safe
+prices use the lower main/reserve answer, missing reserves contribute zero,
+and the underlying always uses main prices. Both factors are reported: `healthFactor` at main
 prices, `safeHealthFactor` beside it, since which one decides a transaction is a
 property of the call that ends up being sent.
 
@@ -199,9 +201,14 @@ One table, two spellings of it: `PrepareApi` is the only place that converts.
 | `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `required`, `safePrices` |
 
 `insufficientCollateral`'s `healthFactor` is the factor the check compared: safe
-prices for a call that hands funds over, main prices otherwise. `safePrices` says
+prices when required by the complete call body. `safePrices` says
 which, so it differing from the projection's `healthFactor` is not a
 contradiction — the safe factor is reported there as `safeHealthFactor`.
+
+Executable results also carry `executionConstraints`; refusals retain the same
+report when evaluation reached the assembled calls. An early input or routing
+failure has no complete report. See [execution constraints](./execution-constraints.md)
+for the upfront limits API and the developer review checklist.
 
 ## Two routes for the flows that sell
 

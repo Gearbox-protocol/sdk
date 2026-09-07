@@ -54,12 +54,11 @@ export function maxWithdrawCollateral(
     return target.balance;
   }
 
-  // A slice assembled for a `prepare` call carries no mask, and that means
-  // "unknown" rather than "everything disabled".
-  const masked = creditAccount.enabledTokensMask !== 0n;
+  // The enabled mask is authoritative; the underlying is always counted.
   const counts = (t: CreditAccountSlice["tokens"][number]): boolean =>
     t.balance > DUST_THRESHOLD &&
-    (!masked || (t.mask & creditAccount.enabledTokensMask) !== 0n);
+    (eq(t.token, underlying) ||
+      (t.mask & creditAccount.enabledTokensMask) !== 0n);
 
   /** What a holding backs, in the check's units: USD × PERCENTAGE_FACTOR. */
   const weigh = (t: CreditAccountSlice["tokens"][number]): bigint => {
@@ -101,6 +100,7 @@ export function maxWithdrawCollateral(
   if (required <= otherMoney) {
     return target.balance;
   }
+  if (!counts(target)) return 0n;
   const shortfall = required - otherMoney;
 
   // A quoted holding backs at most its quota, so a quota short of the

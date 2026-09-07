@@ -49,6 +49,18 @@ export interface CalcHealthFactorProps {
    * Whether each token's quota is currently active. Missing keys are inactive.
    **/
   activeQuotas: Record<Address, boolean>;
+  /**
+   * Executable checks read the oracle strictly instead of using display maps
+   * which omit failed feeds. Keeping the reader here reuses the same arithmetic
+   * while allowing a required invalid feed to propagate its actual failure.
+   */
+  readPrice?: (token: Address, forCollateral: boolean) => bigint;
+  /**
+   * Contract-style lazy check: stop once this HF is backed. The returned factor
+   * is then a sufficient lower bound, not the displayed whole-account metric.
+   * Assets must be ordered as collateralHints / quoted tokens, underlying last.
+   */
+  stopAt?: Bps;
 }
 
 /**
@@ -86,6 +98,7 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     token: Address,
     forCollateral: boolean,
   ): bigint | undefined => {
+    if (props.readPrice) return props.readPrice(token, forCollateral);
     const main = pricesByToken.get(token);
     if (!safePrices || !forCollateral || isAddressEqual(token, underlying)) {
       return main;
@@ -113,30 +126,49 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     return (amount * price) / scale;
   };
 
-  const assetMoney = snapshot.assets.reduce((acc, { token, balance }) => {
-    if (balance <= DUST_THRESHOLD) {
-      return acc;
+  // Debt is priced first on-chain. A zero debt returns above without reading
+  // collateral feeds; an invalid reserve on an irrelevant token cannot block it.
+  const borrowedMoney = convertToUSD(underlying, snapshot.totalDebt) ?? 0n;
+  // Keep existing display precision; executable checks round each weighted
+  // token to whole oracle USD units before comparing the Solidity target.
+  const rounding = props.stopAt === undefined ? 1n : PERCENTAGE_FACTOR;
+  let assetMoney = 0n;
+  for (const { token, balance } of snapshot.assets) {
+    if (balance <= (props.readPrice ? 0n : DUST_THRESHOLD)) {
+      if (
+        props.stopAt !== undefined &&
+        assetMoney >= (borrowedMoney * BigInt(props.stopAt)) / rounding
+      )
+        return props.stopAt;
+      continue;
     }
 
     const lt = BigInt(lts.get(token) ?? 0);
-    const tokenLtWeighted = (convertToUSD(token, balance, true) ?? 0n) * lt;
+    // Solidity rounds each token's weighted USD value before summing. Keeping
+    // fractional USD across tokens could incorrectly pass a boundary check.
+    const tokenLtWeighted =
+      ((convertToUSD(token, balance, true) ?? 0n) * lt) / rounding;
 
     const quota = snapshot.quotas.find(q => isAddressEqual(q.token, token));
     const quotaBalance =
       quota && (active.get(token) ?? false) ? quota.balance : 0n;
     const quotaWeighted =
-      (convertToUSD(underlying, quotaBalance) ?? 0n) * PERCENTAGE_FACTOR;
+      ((convertToUSD(underlying, quotaBalance) ?? 0n) * PERCENTAGE_FACTOR) /
+      rounding;
 
     // a token with no quota entry at all is not a quoted token
     const money = quota
       ? BigIntMath.min(quotaWeighted, tokenLtWeighted)
       : tokenLtWeighted;
 
-    return acc + money;
-  }, 0n);
-
-  const borrowedMoney = convertToUSD(underlying, snapshot.totalDebt) ?? 0n;
-  const hf = borrowedMoney > 0n ? assetMoney / borrowedMoney : 0n;
+    assetMoney += money;
+    if (
+      props.stopAt !== undefined &&
+      assetMoney >= (borrowedMoney * BigInt(props.stopAt)) / rounding
+    )
+      return props.stopAt;
+  }
+  const hf = borrowedMoney > 0n ? (assetMoney * rounding) / borrowedMoney : 0n;
 
   return Number(hf);
 }

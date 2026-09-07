@@ -15,7 +15,7 @@ import {
   UND,
 } from "../testing/delayed.js";
 import type { ExpectedFlowOp } from "../testing/expect.js";
-import { POS2 } from "../testing/market.js";
+import { buildFixtureCreditAccount, caToken, POS2 } from "../testing/market.js";
 import { MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -250,31 +250,14 @@ export const case_matrix_7_3_tail: MatrixDecreaseTailCase = {
  * matured claim.
  */
 export function buildMatrixDecreaseTailProps(c: MatrixDecreaseTailCase) {
-  const creditAccount: CreditAccountSlice = {
-    creditAccount: CREDIT_ACCOUNT,
-    creditManager: CREDIT_MANAGER,
-    creditFacade: CREDIT_FACADE,
-    underlying: UND,
-    enabledTokensMask: 0n,
-    totalDebtUSD: 0n,
+  // The retained position is already quota-backed and enabled on-chain.
+  const creditAccount = buildFixtureCreditAccount({
     totalDebt: M7_DEBT,
     tokens: [
-      {
-        token: POS,
-        balance: M7_POS_LEFT,
-        quota: m7QuotaOf(M7_POS_LEFT),
-        mask: 0n,
-        success: true,
-      },
-      {
-        token: M7_PHANTOM,
-        balance: M7_DD,
-        quota: m7QuotaOf(M7_DD),
-        mask: 0n,
-        success: true,
-      },
+      caToken(POS, M7_POS_LEFT, m7QuotaOf(M7_POS_LEFT)),
+      caToken(M7_PHANTOM, M7_DD, m7QuotaOf(M7_DD)),
     ],
-  };
+  });
 
   const intent: DelayedDecreaseLeverageIntent = {
     type: "DECREASE_LEVERAGE",

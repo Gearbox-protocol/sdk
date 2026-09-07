@@ -19,6 +19,7 @@ import {
   POS2,
   UND,
 } from "../../onchain/accounts/intents/testing/market.js";
+import { MOCK_CLAIM_CALL } from "../../onchain/accounts/intents/testing/sdk-mock.js";
 import { MAX_UINT256 } from "../../onchain/constants/math.js";
 import type { MultichainSDK } from "../../onchain/index.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
@@ -231,6 +232,45 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
 }
 
 describe("PrepareApi — strategy flows reach the engine", () => {
+  it("exposes independent preliminary limits beside the legacy maximums", async () => {
+    const { api, position, strategy } = buildStrategyApi();
+    const collateral = await api.withdrawCollateralLimits(position, POS);
+    expect(collateral.max).toBe(await api.maxWithdrawCollateral(position, POS));
+    expect(collateral).toMatchObject({ token: POS, complete: false });
+    const withdrawal = await api.withdrawStrategyLimits(position);
+    const legacy = await api.maxWithdraw(position);
+    expect(withdrawal).toMatchObject({
+      token: UND,
+      max: legacy.partial,
+      exit: legacy.exit,
+      complete: false,
+    });
+    expect(
+      api.leverageLimits(strategy, [{ token: UND, balance: DEBT }]),
+    ).toMatchObject({
+      complete: false,
+      constraints: expect.arrayContaining([
+        expect.objectContaining({ id: "poolLiquidity" }),
+        expect.objectContaining({ id: "route", status: "unresolved" }),
+      ]),
+    });
+  });
+
+  it("preserves final execution requirements on a prepared collateral withdrawal", async () => {
+    const { api, position } = buildStrategyApi();
+    const result = plan(
+      await api.withdrawCollateral(position, {
+        token: POS,
+        amount: 100n,
+        to: WALLET,
+      }),
+    );
+    expect(result.executionConstraints).toMatchObject({
+      checkCollateral: true,
+      useSafePrices: true,
+      revertOnForbiddenTokens: true,
+    });
+  });
   it("openNewStrategy leverages the wallet's margin into the target", async () => {
     const { api, strategy } = buildStrategyApi();
 
@@ -618,7 +658,10 @@ describe("PrepareApi — the two-transaction route", () => {
     sourceToken: amount(POS, 0n).token,
     withdrawalPhantomToken: amount(POS2, 10000000000n),
     outputs: [{ ...amount(UND, 10000000000n), isDelayed: false }],
-    claimCall: { to: POS, callData: "0x" },
+    claimCall: {
+      to: MOCK_CLAIM_CALL.target,
+      callData: MOCK_CLAIM_CALL.callData,
+    },
     intent,
   });
 

@@ -17,7 +17,12 @@ import {
   UND,
 } from "../testing/delayed.js";
 import type { ExpectedFlowOp } from "../testing/expect.js";
-import { POS2, WALLET } from "../testing/market.js";
+import {
+  buildFixtureCreditAccount,
+  caToken,
+  POS2,
+  WALLET,
+} from "../testing/market.js";
 import { MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
 import type { CreditAccountSlice } from "../types.js";
 
@@ -327,31 +332,14 @@ export const case_matrix_4_6_tail: MatrixWithdrawTailCase = {
  * 5A of position and 5A of phantom — plus the matured claim.
  */
 export function buildMatrixWithdrawTailProps(c: MatrixWithdrawTailCase) {
-  const creditAccount: CreditAccountSlice = {
-    creditAccount: CREDIT_ACCOUNT,
-    creditManager: CREDIT_MANAGER,
-    creditFacade: CREDIT_FACADE,
-    underlying: UND,
-    enabledTokensMask: 0n,
-    totalDebtUSD: 0n,
+  // Final checks must still count the quota-backed position left after claim.
+  const creditAccount = buildFixtureCreditAccount({
     totalDebt: M4_DEBT,
     tokens: [
-      {
-        token: POS,
-        balance: M4_SPEND,
-        quota: m4QuotaOf(M4_SPEND),
-        mask: 0n,
-        success: true,
-      },
-      {
-        token: M4_PHANTOM,
-        balance: M4_SPEND,
-        quota: m4QuotaOf(M4_SPEND),
-        mask: 0n,
-        success: true,
-      },
+      caToken(POS, M4_SPEND, m4QuotaOf(M4_SPEND)),
+      caToken(M4_PHANTOM, M4_SPEND, m4QuotaOf(M4_SPEND)),
     ],
-  };
+  });
 
   const intent: DelayedWithdrawCollateralIntent = {
     type: "WITHDRAW_COLLATERAL",

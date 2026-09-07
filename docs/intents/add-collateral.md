@@ -32,7 +32,7 @@ flowchart TD
   grow{"token quotable and not forbidden?"}
   q["updateQuota(token, +) sized to the new balance<br/>quota = balanceᵤ · LT · (1 + reserve)"]
   head{"market quota headroom?"}
-  hf{"HF >= 1.0? — main prices, nothing leaves"}
+  hf{"HF >= 1.0? — pricing derived from calls"}
   out["state: TVL up, debt flat, leverage down"]
 
   in --> pos

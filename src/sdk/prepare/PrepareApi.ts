@@ -12,6 +12,16 @@ import type {
 } from "../../model/index.js";
 import { sdkErr, sdkOk } from "../../model/index.js";
 import type {
+  AmountLimitReport,
+  LeverageLimitReport,
+  StrategyWithdrawLimitReport,
+} from "../../onchain/accounts/intents/limits.js";
+import {
+  leverageLimits,
+  withdrawCollateralLimits,
+  withdrawStrategyLimits,
+} from "../../onchain/accounts/intents/limits.js";
+import type {
   Asset,
   ClaimableWithdrawal,
   CreditAccountSlice,
@@ -37,6 +47,7 @@ import {
   toCreditAccountSlice,
   toToken,
 } from "../../onchain/index.js";
+import { MIN_HF_LIMITED } from "../../onchain/validation/checks.js";
 import type { EnsureFreshChains } from "../types.js";
 import type {
   AccountFlowError,
@@ -464,6 +475,16 @@ export class PrepareApi
     return service(sdk).maxWithdraw({ creditAccount, sdk });
   }
 
+  public async withdrawStrategyLimits(
+    position: PositionInput,
+  ): Promise<StrategyWithdrawLimitReport> {
+    const sdk = await this.#chain(position.chainId);
+    return withdrawStrategyLimits({
+      sdk,
+      creditAccount: await this.#account(sdk, position),
+    });
+  }
+
   /**
    * {@inheritDoc IOpportunitiesPrepare.repayStrategy}
    **/
@@ -576,6 +597,19 @@ export class PrepareApi
     });
   }
 
+  public leverageLimits(
+    strategy: StrategyInput,
+    collateral: readonly Asset[],
+    targetHF?: Bps,
+  ): LeverageLimitReport {
+    return leverageLimits({
+      sdk: this.sdk.chain(strategy.chainId),
+      creditManager: strategy.creditManager,
+      collateral,
+      targetHF,
+    });
+  }
+
   /**
    * {@inheritDoc IOpportunitiesPrepare.withdrawableCollaterals}
    **/
@@ -603,6 +637,21 @@ export class PrepareApi
       sdk,
       token,
       targetHF,
+    });
+  }
+
+  public async withdrawCollateralLimits(
+    position: PositionInput,
+    token: Address,
+    targetHF = MIN_HF_LIMITED,
+  ): Promise<AmountLimitReport> {
+    const sdk = await this.#chain(position.chainId);
+    // Match the legacy form ceiling's two-basis-point rounding buffer.
+    return withdrawCollateralLimits({
+      sdk,
+      creditAccount: await this.#account(sdk, position),
+      token,
+      targetHF: targetHF + 2n,
     });
   }
 
@@ -819,8 +868,8 @@ function planned<E extends IGearboxError>(
   if (!result.ok) {
     return refusal<E>(result);
   }
-  const { operations, state, calls } = result;
-  return sdkOk({ operations, state, calls, ...at });
+  const { operations, state, calls, executionConstraints } = result;
+  return sdkOk({ operations, state, calls, executionConstraints, ...at });
 }
 
 /**
@@ -836,8 +885,15 @@ function finalized<E extends IGearboxError>(
   if (!result.ok) {
     return refusal<E>(result);
   }
-  const { operations, state, calls, remainder } = result;
-  return sdkOk({ operations, state, calls, remainder, ...at });
+  const { operations, state, calls, remainder, executionConstraints } = result;
+  return sdkOk({
+    operations,
+    state,
+    calls,
+    remainder,
+    executionConstraints,
+    ...at,
+  });
 }
 
 /**
@@ -872,12 +928,14 @@ function routed<E extends IGearboxError & WithRouteRefusals>(
       operations: instant.operations,
       state: instant.state,
       calls: instant.calls,
+      executionConstraints: instant.executionConstraints,
       ...at,
     },
     delayed: delayed && {
       operations: delayed.operations,
       state: delayed.state,
       calls: delayed.calls,
+      executionConstraints: delayed.executionConstraints,
       delayed: delayed.delayed,
       ...at,
     },

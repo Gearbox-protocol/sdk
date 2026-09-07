@@ -34,6 +34,9 @@ const mockSDK = {
     totals: notImplemented,
     charts: notImplemented,
     prepare: {
+      withdrawStrategyLimits: notImplemented,
+      withdrawCollateralLimits: notImplemented,
+      leverageLimits: notImplemented,
       deposit: notImplemented,
       withdraw: notImplemented,
       redeem: notImplemented,

@@ -1,10 +1,11 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import type {
   Bps,
   MalformedPreviewError,
   Token,
   TokenAmount,
 } from "../../model/index.js";
+import type { ExecutionConstraintReport } from "../accounts/intents/execution-constraints.js";
 
 /**
  * Why a preview could not be produced.
@@ -14,6 +15,8 @@ import type {
  * prepare namespace reports for a request it can refuse before planning.
  */
 export type PreviewErrorReason =
+  | "executionRequirementsUnavailable"
+  | "invalidPriceFeed"
   /** The debt the request implies falls outside the facade's band. */
   | "debtOutOfRange"
   /** The leverage asked for cannot be expressed as a plan at all. */
@@ -82,6 +85,13 @@ export type PreviewErrorReason =
  * which hold the numbers.
  */
 export interface PreviewErrorDetails {
+  executionRequirementsUnavailable: {
+    callIndex: number;
+    target: Address;
+    selector: Hex;
+    message: string;
+  };
+  invalidPriceFeed: { token: Address; feed: "main" | "reserve" };
   /** All three in the market's underlying. */
   debtOutOfRange: {
     requested: TokenAmount;
@@ -139,7 +149,10 @@ export interface PreviewErrorDetails {
     requested: TokenAmount | undefined;
     available: TokenAmount;
   };
-  forbiddenToken: { token: Token };
+  forbiddenToken: {
+    token: Token;
+    violation?: "quotaIncrease" | "enabled" | "balanceIncrease";
+  };
   /**
    * `required` is the bar the factor was weighed against — the facade's own
    * `1.0` for a check that asks whether the transaction lands, a form's higher
@@ -198,16 +211,25 @@ export type PreviewIssue = {
  * The failure half every simulation shares: an issue, plus the `ok: false`
  * that tells it apart from a preview.
  */
-export type PreviewRefusal = { ok: false } & PreviewIssue;
+export type PreviewRefusal = {
+  ok: false;
+  executionConstraints?: ExecutionConstraintReport;
+} & PreviewIssue;
 
 /** Builds the refusal a caller sees. */
 export function refuse<R extends PreviewErrorReason>(
   reason: R,
   detail: PreviewErrorDetails[R],
+  executionConstraints?: ExecutionConstraintReport,
 ): PreviewRefusal {
   // Sound for every concrete `R`, which is all this is called with; the
   // compiler cannot correlate the two while `R` is open.
-  return { ok: false, reason, detail } as PreviewRefusal;
+  return {
+    ok: false,
+    reason,
+    detail,
+    ...(executionConstraints ? { executionConstraints } : {}),
+  } as PreviewRefusal;
 }
 
 /**
@@ -220,12 +242,19 @@ export class IntentPreviewError<
 > extends Error {
   readonly reason: R;
   readonly detail: PreviewErrorDetails[R];
+  readonly executionConstraints?: ExecutionConstraintReport;
 
-  constructor(reason: R, detail: PreviewErrorDetails[R], message?: string) {
+  constructor(
+    reason: R,
+    detail: PreviewErrorDetails[R],
+    message?: string,
+    executionConstraints?: ExecutionConstraintReport,
+  ) {
     super(message ?? reason);
     this.name = "IntentPreviewError";
     this.reason = reason;
     this.detail = detail;
+    this.executionConstraints = executionConstraints;
   }
 }
 

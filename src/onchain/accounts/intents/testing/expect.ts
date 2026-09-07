@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import { expect } from "vitest";
 import type { TokenAmount } from "../../../../model/index.js";
+import { MAX_UINT256 } from "../../../constants/index.js";
 import type { MultiCall } from "../../../index.js";
 import type { AccountCalculatorOperation } from "../operations.js";
 import type {
@@ -8,7 +9,7 @@ import type {
   IntentPreviewResult,
   OperationState,
 } from "../types.js";
-import { CREDIT_MANAGER } from "./market.js";
+import { CREDIT_FACADE, CREDIT_MANAGER } from "./market.js";
 import {
   CA_OP_CALLS,
   MOCK_CLAIM_CALL,
@@ -16,6 +17,7 @@ import {
   MOCK_ROUTER_CALL,
   MOCK_RWA_UNWRAP_CALL,
   MOCK_RWA_WRAP_CALL,
+  mockFacade,
 } from "./sdk-mock.js";
 
 /**
@@ -29,7 +31,51 @@ type CallsOptional<T> = T extends { calls: MultiCall[] }
 
 export type ExpectedFlowOp = CallsOptional<AccountCalculatorOperation>;
 
-function expectedCalls(expected: ExpectedFlowOp): MultiCall[] {
+function expectedCalls(
+  expected: ExpectedFlowOp,
+  actual?: AccountCalculatorOperation,
+): MultiCall[] {
+  // Facade methods affect replayed debt, quota and token masks. Assert every
+  // argument against the expected operation, not a selector-only sentinel.
+  if (expected.calls?.some(call => Object.values(CA_OP_CALLS).includes(call))) {
+    const facade = mockFacade(CREDIT_FACADE);
+    switch (expected.type) {
+      case "addCollateral":
+        return facade.prepareAddCollateral(
+          [{ token: expected.token, balance: expected.amount }],
+          {},
+        );
+      case "increaseDebt":
+        return [facade.prepareIncreaseDebt(expected.amount)];
+      case "decreaseDebt":
+        return [
+          facade.prepareChangeDebt(
+            (expected.full ?? (actual?.type === "decreaseDebt" && actual.full))
+              ? MAX_UINT256
+              : expected.amount,
+            true,
+          ),
+        ];
+      case "withdrawCollateral":
+        return [
+          facade.prepareWithdrawCollateral(
+            expected.token,
+            (expected.all ??
+              (actual?.type === "withdrawCollateral" && actual.all))
+              ? MAX_UINT256
+              : expected.amount,
+            expected.to,
+          ),
+        ];
+      case "changeQuota": {
+        const assets = [...expected.quotaIncrease, ...expected.quotaDecrease];
+        return facade.prepareUpdateQuotas({
+          averageQuota: assets,
+          minQuota: assets,
+        });
+      }
+    }
+  }
   return expected.calls ?? [];
 }
 
@@ -94,7 +140,7 @@ function matchOp(
         expected.quotaDecrease,
       );
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "startDelayedWithdrawal":
@@ -108,7 +154,7 @@ function matchOp(
         expected.settlement,
       );
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "claimDelayedWithdrawal":
@@ -126,7 +172,7 @@ function matchOp(
       ).toBe(expected.withdrawalTokenSpent);
       expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "swap":
@@ -139,7 +185,7 @@ function matchOp(
         expected.amountOut,
       );
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "decreaseDebt":
@@ -148,7 +194,7 @@ function matchOp(
       }
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "increaseDebt":
@@ -157,7 +203,7 @@ function matchOp(
       }
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "addCollateral":
@@ -168,7 +214,7 @@ function matchOp(
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.value, `op[${index}].value`).toBe(expected.value);
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "withdrawCollateral":
@@ -179,7 +225,7 @@ function matchOp(
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.to, `op[${index}].to`).toBe(expected.to);
       expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
+        expectedCalls(expected, actual),
       );
       break;
     case "unwrapRwaCollateral":
@@ -236,6 +282,23 @@ export function expectCallsArrayExact(
   expected: MultiCall[],
   label = "calls",
 ): void {
+  // A legacy changeQuota sentinel denotes one operation, which can now encode
+  // several consecutive updateQuota calls. Exact arguments are checked on the
+  // operation by matchOp; this legacy list checks facade target and call order.
+  if (expected.some(call => Object.values(CA_OP_CALLS).includes(call))) {
+    const quota = CA_OP_CALLS.changeQuota;
+    calls = calls.filter(
+      (call, index) =>
+        !(
+          index > 0 &&
+          call.target === quota.target &&
+          call.callData.slice(0, 10) === quota.callData.slice(0, 10) &&
+          calls[index - 1]?.target === quota.target &&
+          calls[index - 1]?.callData.slice(0, 10) ===
+            quota.callData.slice(0, 10)
+        ),
+    );
+  }
   expect(calls.length, `${label}.length`).toBe(expected.length);
   for (let i = 0; i < expected.length; i++) {
     const actual = calls[i];
@@ -245,7 +308,13 @@ export function expectCallsArrayExact(
       return;
     }
     expect(actual.target, `${label}[${i}].target`).toBe(exp.target);
-    expect(actual.callData, `${label}[${i}].callData`).toBe(exp.callData);
+    if (Object.values(CA_OP_CALLS).includes(exp)) {
+      expect(actual.callData.slice(0, 10), `${label}[${i}].selector`).toBe(
+        exp.callData.slice(0, 10),
+      );
+    } else {
+      expect(actual.callData, `${label}[${i}].callData`).toBe(exp.callData);
+    }
   }
 }
 

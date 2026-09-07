@@ -102,7 +102,7 @@ call.
 | -------------------------------------------- | -------------------------- |
 | the account holds what the wrap spends (RWA funding only) | `insufficientSourceBalance`|
 | nothing forbidden or unquotable grew         | `forbiddenToken`, `quotaLimitReached` |
-| HF of the projected state (main prices — nothing leaves) | `insufficientCollateral` |
+| HF of floor balances (pricing derived from calls) | `insufficientCollateral` |
 
 A repayment only improves the health factor, so the last check is a formality —
 except on an account already underwater, where it is the reason a rescue in one

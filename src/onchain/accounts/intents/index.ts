@@ -56,7 +56,12 @@ import type {
 } from "./types.js";
 import { accountView } from "./view.js";
 
+export type {
+  ExecutionConstraint,
+  ExecutionConstraintReport,
+} from "./execution-constraints.js";
 export type { LeverageBand } from "./leverage-band.js";
+export * from "./limits.js";
 export type {
   OpenStrategyProps,
   OpenStrategyState,
@@ -266,8 +271,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * `preview` is where the intent ends — the account once the redemption has
    * matured, been claimed and the tail has run — because that is what the
    * caller asked for; the half-way state the request itself lands in is
-   * `delayed.afterRequest`. Both are validated, so a request whose tail could
-   * not be completed is refused instead of started.
+   * `delayed.afterRequest`. Execution constraints validate the current request.
+   * The future tail is an oracle estimate; its actual calls are checked when
+   * the matured claim is prepared.
    *
    * @param props - Intent plus account slice, quota reserve and slippage
    * @returns The request transaction, the state it ends in and what it recorded
@@ -442,8 +448,15 @@ export class CreditAccountOperationsService extends SDKConstruct {
     if (!result.ok) {
       return result;
     }
-    const { operations, state, calls } = result;
-    return { ok: true, operations, state, calls, remainder };
+    const { operations, state, calls, executionConstraints } = result;
+    return {
+      ok: true,
+      operations,
+      state,
+      calls,
+      remainder,
+      executionConstraints,
+    };
   }
 
   /**
@@ -479,13 +492,21 @@ export class CreditAccountOperationsService extends SDKConstruct {
           props.creditAccount.creditManager,
         ),
       );
-      const { operations, state, calls, delayed } = await realize(plan(), {
-        creditAccount: props.creditAccount,
-        sdk: props.sdk,
-        slippage: props.slippage ?? 0,
-        quotaReserve: props.quotaReserve,
-      });
-      return { ok: true, operations, state, calls, delayed };
+      const { operations, state, calls, delayed, executionConstraints } =
+        await realize(plan(), {
+          creditAccount: props.creditAccount,
+          sdk: props.sdk,
+          slippage: props.slippage ?? 0,
+          quotaReserve: props.quotaReserve,
+        });
+      return {
+        ok: true,
+        operations,
+        state,
+        calls,
+        delayed,
+        executionConstraints,
+      };
     } catch (e) {
       return asFailure(e);
     }
@@ -507,14 +528,14 @@ function plain(result: Previewed): IntentPreviewResult {
   if (!result.ok) {
     return result;
   }
-  const { operations, state, calls } = result;
-  return { ok: true, operations, state, calls };
+  const { operations, state, calls, executionConstraints } = result;
+  return { ok: true, operations, state, calls, executionConstraints };
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */
 function asFailure(e: unknown): PreviewRefusal {
   if (e instanceof IntentPreviewError) {
-    return refuse(e.reason, e.detail);
+    return refuse(e.reason, e.detail, e.executionConstraints);
   }
   if (isUnroutable(e)) {
     // The revert names no pair: the leg that asked for one is frames away.

@@ -15,6 +15,7 @@ import {
   expectAdjustPreview,
   withOnchainOpCalls,
 } from "../testing/expect.js";
+import { buildFixtureCreditAccount, caToken } from "../testing/market.js";
 import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
 import type { ResumableIntent } from "../types.js";
 
@@ -99,15 +100,8 @@ const claimedUnderlying: TailCase = {
   postClaimTotalValue: 5000000000000n,
   postClaimDebt: 4000000000000n,
   // 98000 ANY @ $1 vs UND @ $2 = 49000e8 UND; + claimed 1000e8 = 50000e8 TV.
-  baseAssets: [
-    {
-      token: ANY,
-      balance: 98000000000000000000000n,
-      quota: 0n,
-      mask: 0n,
-      success: true,
-    },
-  ],
+  // Existing collateral must already have its quota: claiming UND buys none.
+  baseAssets: [caToken(ANY, 98000000000000000000000n, 4508000000000n)],
   tailOps: [
     {
       type: "claimDelayedWithdrawal",
@@ -123,13 +117,15 @@ const claimedUnderlying: TailCase = {
 function runFinish(c: TailCase, type: (typeof CLAIM_ONLY_INTENTS)[number]) {
   const sdk = buildTailSdk(c);
   const service = new CreditAccountOperationsService(sdk);
-  return service.finishIntent(
-    buildFinishProps({
-      intent: { type } as ResumableIntent,
-      case: c,
-      sdk,
-    }),
-  );
+  const props = buildFinishProps({
+    intent: { type } as ResumableIntent,
+    case: c,
+    sdk,
+  });
+  return service.finishIntent({
+    ...props,
+    creditAccount: buildFixtureCreditAccount(props.creditAccount),
+  });
 }
 
 describe.each(CLAIM_ONLY_INTENTS)("%s tail — claim then quota", type => {

@@ -270,6 +270,7 @@ export async function projectTail(args: {
     slippage: 0,
     quotaReserve,
     paths: createOraclePaths({ sdk, creditAccount: next }),
+    estimateOnly: true,
   });
   return { state, operations };
 }
