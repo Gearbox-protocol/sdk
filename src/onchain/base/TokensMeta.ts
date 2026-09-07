@@ -45,7 +45,7 @@ export interface FormatBNOptions {
 
 /**
  * Source, target, and phantom token of a delayed redemption, used to rewrite
- * the phantom's display symbol as `"source -> target"`.
+ * the phantom's display symbol as `"target redemption from source"`.
  **/
 export interface RedemptionPhantomRename {
   /**
@@ -131,7 +131,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
    * Returns the display symbol for a token.
    *
    * This is not always the on-chain ERC-20 `symbol()`: curated pretty names
-   * and redemption phantom tokens (`"source -> target"`) replace it.
+   * and redemption phantom tokens (`"target redemption from source"`) replace it.
    *
    * @param token - Token address.
    * @throws If the token is not in the registry.
@@ -259,7 +259,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
 
   /**
    * Rewrites display symbols of redemption phantom tokens to
-   * `"${source} -> ${target}"`.
+   * `"${target} redemption from ${source}"`.
    *
    * @param renames - Phantom / source / target address triples.
    **/
@@ -271,7 +271,7 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       }
       this.upsert(phantom, {
         ...meta,
-        symbol: `${this.symbol(source)} -> ${this.symbol(target)}`,
+        symbol: `${this.symbol(target)} redemption from ${this.symbol(source)}`,
       });
     }
   }

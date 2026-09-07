@@ -136,7 +136,7 @@ export interface Token {
    * Ticker symbol.
    *
    * Display ticker, not necessarily the on-chain ERC-20 `symbol()`. The SDK
-   * may rewrite it (curated pretty names, `"source -> target"` for redemption
+   * may rewrite it (curated pretty names, `"target redemption from source"` for redemption
    * phantom tokens).
    *
    * @example `"USDC"`

@@ -44,7 +44,7 @@ export const NON_STRATEGY_PHANTOM_TOKEN_TYPES = [
  * Token metadata stored in {@link TokensMeta}.
  *
  * `symbol` is a display ticker. The SDK may rewrite it (curated pretty names,
- * `"source -> target"` for redemption phantom tokens) and it is not guaranteed
+ * `"target redemption from source"` for redemption phantom tokens) and it is not guaranteed
  * to match the ERC-20 `symbol()` on chain.
  */
 export interface SimpleTokenMeta extends TokenData {
