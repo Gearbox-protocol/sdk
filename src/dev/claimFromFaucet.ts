@@ -11,7 +11,7 @@ import type {
 } from "viem";
 import { readContract } from "viem/actions";
 import { formatBN, type ILogger, type OnchainSDK } from "../onchain/index.js";
-import { faucetAbi } from "./abi.js";
+import { iFaucetAbi } from "./abi.js";
 
 interface TokenClaim {
   token: Address;
@@ -56,7 +56,7 @@ export async function claimFromFaucet(
 
   let amnt = "default amount";
   let args: AbiParametersToPrimitiveTypes<
-    ExtractAbiFunction<typeof faucetAbi, "claim">["inputs"]
+    ExtractAbiFunction<typeof iFaucetAbi, "claim">["inputs"]
   >;
   if (Array.isArray(amount)) {
     args = [amount];
@@ -78,7 +78,7 @@ export async function claimFromFaucet(
   } else if (typeof amount === "function") {
     const minAmountUSD = await readContract(publicClient, {
       address: faucet,
-      abi: faucetAbi,
+      abi: iFaucetAbi,
       functionName: "minAmountUSD",
     });
     logger?.debug(`faucet min amount USD: ${minAmountUSD}`);
@@ -100,7 +100,7 @@ export async function claimFromFaucet(
   const gas = await publicClient.estimateContractGas({
     account: claimer,
     address: faucet,
-    abi: faucetAbi,
+    abi: iFaucetAbi,
     functionName: "claim",
     args,
   });
@@ -108,7 +108,7 @@ export async function claimFromFaucet(
   const { request } = await publicClient.simulateContract({
     account: claimer,
     address: faucet,
-    abi: faucetAbi,
+    abi: iFaucetAbi,
     functionName: "claim",
     args,
     chain: wallet.chain,
