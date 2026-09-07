@@ -25,7 +25,7 @@ import {
   MOCK_CLOSE_CALL,
   MOCK_REQUEST_CALL,
   MOCK_RWA_UNWRAP_CALL,
-  mockFacade,
+  makeMockFacade,
 } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
 import { DEBT_BEFORE, QUOTA_BEFORE, TVL_BEFORE } from "./withdraw.fixtures.js";
@@ -308,7 +308,7 @@ describe("withdraw.start — everything out, account left open", () => {
     ];
     expect(result.calls).toEqual([
       MOCK_REQUEST_CALL,
-      ...mockFacade(CREDIT_FACADE).prepareUpdateQuotas({
+      ...makeMockFacade(CREDIT_FACADE).prepareUpdateQuotas({
         averageQuota: quotaAssets,
         minQuota: quotaAssets,
       }),

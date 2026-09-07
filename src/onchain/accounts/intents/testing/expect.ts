@@ -17,7 +17,7 @@ import {
   MOCK_ROUTER_CALL,
   MOCK_RWA_UNWRAP_CALL,
   MOCK_RWA_WRAP_CALL,
-  mockFacade,
+  makeMockFacade,
 } from "./sdk-mock.js";
 
 /**
@@ -38,7 +38,7 @@ function expectedCalls(
   // Facade methods affect replayed debt, quota and token masks. Assert every
   // argument against the expected operation, not a selector-only sentinel.
   if (expected.calls?.some(call => Object.values(CA_OP_CALLS).includes(call))) {
-    const facade = mockFacade(CREDIT_FACADE);
+    const facade = makeMockFacade(CREDIT_FACADE);
     switch (expected.type) {
       case "addCollateral":
         return facade.prepareAddCollateral(

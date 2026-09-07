@@ -131,12 +131,12 @@ export const MOCK_REQUEST_CALL: MultiCall = {
 };
 
 /** Real facade encoders, retargeted to the fixture facade without any RPC. */
-export function mockFacade(address: Address) {
+export function makeMockFacade(address: Address) {
   const facade = makeTestFacade();
   return Object.assign(facade, { address });
 }
 
-const representativeFacade = mockFacade(
+const representativeFacade = makeMockFacade(
   "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 );
 
@@ -403,7 +403,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const strategyName = strategyTargetCollateral
     ? `${tokenOf(strategyTargetCollateral).symbol} / ${underlyingToken.symbol}`
     : undefined;
-  const facade = mockFacade(args.creditFacade);
+  const facade = makeMockFacade(args.creditFacade);
   const creditManagerSuite = {
     name: "TestCreditManager",
     strategyName,
