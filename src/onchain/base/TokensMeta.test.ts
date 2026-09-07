@@ -42,6 +42,56 @@ function tokensMeta(chain: typeof chains.Mainnet | typeof mainnet): TokensMeta {
 
 describe("TokensMeta", () => {
   describe("upsert pretty names", () => {
+    it.each([
+      [
+        "0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20",
+        "wdwstETH",
+        "wstETH redemption from cp0xLRT",
+      ],
+      [
+        "0x6252467c2fefb61cb55180282943139baeea36c5",
+        "wdwstETH",
+        "wstETH redemption from rstETH",
+      ],
+      [
+        "0xd412ca00d177eba2843348f9c50dd17bfce32c40",
+        "wdwstETH",
+        "wstETH redemption from pzETH",
+      ],
+      [
+        "0x26c98674e623647f11909791593fa3b6e9406c67",
+        "wdwstETH",
+        "wstETH redemption from steak7LRT",
+      ],
+      [
+        "0x9fb930eacadad079683a4758424a53b9b3692775",
+        "wdwstETH",
+        "wstETH redemption from Re7LRT",
+      ],
+      [
+        "0xd7f1a4e3aba92a9d20987c752bd4a6cc759d7738",
+        "wdrsETH",
+        "rsETH redemption from hgETH",
+      ],
+      [
+        "0xc71219dca5a671aa6268ab8fb35e570bd72f372b",
+        "wdiUSD",
+        "iUSD redemption from liUSD-1w",
+      ],
+    ])(
+      "names legacy phantom %s without compressor metadata",
+      (address, raw, expected) => {
+        const token = getAddress(address);
+        const tokens = tokensMeta(chains.Mainnet);
+        tokens.upsert(token, meta(token, raw));
+        expect(tokens.symbol(token)).toBe(expected);
+        expect(tokens.mustGet(token).name).toBe(raw);
+        const otherChain = tokensMeta(mainnet);
+        otherChain.upsert(token, meta(token, raw));
+        expect(otherChain.symbol(token)).toBe(raw);
+      },
+    );
+
     it("replaces the on-chain ticker with a curated pretty name", () => {
       const tokens = tokensMeta(chains.Mainnet);
       tokens.upsert(BEEFY_WBTC, meta(BEEFY_WBTC, "mooBeefyWBTC"));
@@ -56,7 +106,7 @@ describe("TokensMeta", () => {
   });
 
   describe("renameRedemptionPhantoms", () => {
-    it("rewrites a redemption phantom symbol to source -> target", () => {
+    it("rewrites a redemption phantom symbol with its target denomination first", () => {
       const tokens = tokensMeta(chains.Mainnet);
       tokens.upsert(SOURCE, meta(SOURCE, "mGLOBAL"));
       tokens.upsert(TARGET, meta(TARGET, "USDC"));
@@ -71,7 +121,7 @@ describe("TokensMeta", () => {
         { phantom: PHANTOM, source: SOURCE, target: TARGET },
       ]);
 
-      expect(tokens.symbol(PHANTOM)).toBe("mGLOBAL -> USDC");
+      expect(tokens.symbol(PHANTOM)).toBe("USDC redemption from mGLOBAL");
       expect(tokens.mustGet(PHANTOM).name).toBe("mGLOBALrdUSDC");
     });
 

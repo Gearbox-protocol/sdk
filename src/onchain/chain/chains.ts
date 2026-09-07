@@ -258,6 +258,21 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       tokenPrettyNames: AddressMap.fromRecord<string>({
+        // Legacy withdrawal phantoms absent from the active compressor mapping.
+        "0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20":
+          "wstETH redemption from cp0xLRT",
+        "0x6252467c2fefb61cb55180282943139baeea36c5":
+          "wstETH redemption from rstETH",
+        "0xd412ca00d177eba2843348f9c50dd17bfce32c40":
+          "wstETH redemption from pzETH",
+        "0x26c98674e623647f11909791593fa3b6e9406c67":
+          "wstETH redemption from steak7LRT",
+        "0x9fb930eacadad079683a4758424a53b9b3692775":
+          "wstETH redemption from Re7LRT",
+        "0xd7f1a4e3aba92a9d20987c752bd4a6cc759d7738":
+          "rsETH redemption from hgETH",
+        "0xc71219dca5a671aa6268ab8fb35e570bd72f372b":
+          "iUSD redemption from liUSD-1w",
         "0x924d24c238db7ecae2aa3a19430239ed684bde4a":
           "Beefy WBTC/cbBTC/hemiBTC",
         "0x403cc0d2694ec2639101f32b146b90d766461ce9": "Beefy wstETH/tETH",
