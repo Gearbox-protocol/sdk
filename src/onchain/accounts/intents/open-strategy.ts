@@ -4,16 +4,9 @@ import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/refusal.js";
-import { assembleOpenAccountCalls } from "../assemble-open-account-calls.js";
-import {
-  assertExecutionConstraints,
-  captureConstraint,
-  type ExecutionConstraint,
-  type ExecutionConstraintReport,
-  evaluateExecutionConstraints,
-} from "./execution-constraints.js";
 import {
   assertCanBorrow,
+  assertCollateralised,
   assertGrowthAllowed,
   assertMarketOperable,
   assertQuotaHeadroom,
@@ -77,8 +70,6 @@ export interface OpenStrategyState
   minQuota: Asset[];
   /** Router path; feeds `openCA.calls`. */
   calls: MultiCall[];
-  /** Execution checks against the slippage floor and the complete open body. */
-  executionConstraints: ExecutionConstraintReport;
 }
 
 /**
@@ -143,10 +134,7 @@ export async function buildOpenStrategyState(
     tokens: [],
   };
   assertDebtInBand(sdk, debt, suite.creditFacade, underlying);
-  const constraints: ExecutionConstraint[] = [];
-  captureConstraint(constraints, "poolLiquidity", () =>
-    assertCanBorrow(sdk, suite, debt),
-  );
+  assertCanBorrow(sdk, suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
   const expectedBalances = mergeExpectedBalances(collateral, underlying, debt);
@@ -181,47 +169,8 @@ export async function buildOpenStrategyState(
   const minQuota = quotasFor(minAssets);
   // The expected branch is the one the account is opened on, so it is the one
   // the market has to have room for.
-  captureConstraint(constraints, "quota", () =>
-    assertGrowthAllowed({
-      sdk,
-      market,
-      before: [],
-      after: averageAssets,
-    }),
-  );
-  captureConstraint(constraints, "quota", () =>
-    assertQuotaHeadroom(sdk, market, averageQuota),
-  );
-
-  // Opening signs the floor, while updateQuota requests the expected quota.
-  // Classify the full body shared with openCA: borrowing, collateral and quota
-  // calls matter even when the router leg itself does not require safe prices.
-  const executionConstraints = evaluateExecutionConstraints({
-    sdk,
-    creditAccount: account,
-    entryPoint: "openCreditAccount",
-    calls: assembleOpenAccountCalls(suite.creditFacade, {
-      debt,
-      collateral,
-      permits: {},
-      calls: [...leg.calls],
-      minQuota,
-      averageQuota,
-      to: NO_ACCOUNT,
-    }),
-    snapshot: {
-      creditManager,
-      assets: minAssets,
-      quotas: averageQuota,
-      totalDebt: debt,
-      totalValue: minAssets.reduce(
-        (sum, asset) => sum + convert(asset.token, underlying, asset.balance),
-        0n,
-      ),
-    },
-    constraints,
-  });
-  assertExecutionConstraints(executionConstraints);
+  assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
+  assertQuotaHeadroom(sdk, market, averageQuota);
 
   // The expected branch is what the account is weighed as: the floor is what
   // the transaction is signed against, but it is not where the position lands.
@@ -242,6 +191,7 @@ export async function buildOpenStrategyState(
   } = sdk.positions.projection(snapshot, {
     availableLiquidityChange: -debt,
   });
+  assertCollateralised(projection.healthFactor, false);
 
   const priceImpact = await collectPriceImpact(leg.probe ? [leg.probe] : [], {
     totalValue: margin + debt,
@@ -262,7 +212,6 @@ export async function buildOpenStrategyState(
     averageQuota,
     minQuota,
     calls: [...leg.calls],
-    executionConstraints,
   };
 }
 

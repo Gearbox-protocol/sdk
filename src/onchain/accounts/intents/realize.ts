@@ -6,14 +6,8 @@ import { IntentPreviewError } from "../../validation/refusal.js";
 import { toToken, toTokenAmount } from "../../validation/token.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
-  assertExecutionConstraints,
-  captureConstraint,
-  type ExecutionConstraint,
-  type ExecutionConstraintReport,
-  evaluateExecutionConstraints,
-} from "./execution-constraints.js";
-import {
   assertCanBorrow,
+  assertCollateralised,
   assertGrowthAllowed,
   assertQuotaHeadroom,
 } from "./guards.js";
@@ -63,15 +57,12 @@ export interface RealizeProps {
    * `createOraclePaths` instead.
    */
   paths?: RouterPaths;
-  /** Only the oracle-only future redemption estimate opts out: it has no executable route yet. */
-  estimateOnly?: boolean;
 }
 
 export interface Realized {
   operations: AccountCalculatorOperation[];
   state: OperationState;
   calls: MultiCall[];
-  executionConstraints?: ExecutionConstraintReport;
   /** Set when the plan started a redemption, i.e. it needs a tail. */
   delayed: DelayedStart | undefined;
 }
@@ -151,7 +142,11 @@ export async function realize(
    * at the end — and settles them at none, whatever the balances turn out to be.
    */
   let cleared: QuotaUpdateState | undefined;
-  const constraints: ExecutionConstraint[] = [];
+  /**
+   * Whether anything leaves the account, which is what makes the credit manager
+   * judge the closing collateral check at safe prices.
+   */
+  let paysOut = false;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
   const assertHolds = (token: Address, amount: bigint, what: string): void => {
@@ -183,9 +178,7 @@ export async function realize(
         break;
 
       case "borrow":
-        captureConstraint(constraints, "poolLiquidity", () =>
-          assertCanBorrow(sdk, suite, step.amount),
-        );
+        assertCanBorrow(sdk, suite, step.amount);
         push(
           buildIncreaseDebtOperation({
             amount: step.amount,
@@ -338,6 +331,7 @@ export async function realize(
       case "withdraw": {
         const amount = amountOf(step.amount);
         assertHolds(step.token, amount, "withdraw");
+        paysOut = true;
         push(
           buildWithdrawCollateralOperation({
             token: step.token,
@@ -419,6 +413,7 @@ export async function realize(
         // The wrapper of an RWA market cannot leave the account, so it is
         // unwrapped before the walk rather than during it — that way the raw
         // asset is swept once, whatever the account already held of it.
+        paysOut = true;
         const wrapped = ledger.balanceOf(underlying);
         if (rwaAsset && wrapped > 0n) {
           push(
@@ -464,14 +459,13 @@ export async function realize(
   // rather than the floor: a token the route is expected to deliver is one the
   // facade will see, whether or not the floor admits it could arrive empty.
   const projected = expected.snapshot();
-  captureConstraint(constraints, "quota", () =>
-    assertGrowthAllowed({
-      sdk,
-      market,
-      before: creditAccount.tokens,
-      after: projected.assets,
-    }),
-  );
+  assertGrowthAllowed({
+    sdk,
+    suite,
+    market,
+    before: creditAccount.tokens,
+    after: projected.assets,
+  });
   // Sized off the floor, like every other amount a call names: a quota bought
   // for a balance the route only expects to raise is a fee paid on collateral
   // that may not arrive. Quotas the plan already settled are not sized again —
@@ -494,9 +488,7 @@ export async function realize(
     !cleared &&
     quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
   ) {
-    captureConstraint(constraints, "quota", () =>
-      assertQuotaHeadroom(sdk, market, quotas.quotaIncrease),
-    );
+    assertQuotaHeadroom(sdk, market, quotas.quotaIncrease);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
@@ -526,20 +518,18 @@ export async function realize(
   const projection = sdk.positions.projection(snapshot, {
     availableLiquidityChange: creditAccount.totalDebt - debt,
   });
-  // The facade decides pricing from the complete ordered call body. A swap can
-  // require safe prices even when nothing is paid to the wallet. Validate the
-  // enforced floor; keep expected balances exclusively for displayed metrics.
-  const calls = callsOf(operations);
-  const executionConstraints = props.estimateOnly
-    ? undefined
-    : evaluateExecutionConstraints({
-        sdk,
-        creditAccount,
-        calls,
-        snapshot: { ...snapshot, assets, totalValue: floor.totalValue },
-        constraints,
-      });
-  if (executionConstraints) assertExecutionConstraints(executionConstraints);
+  // The guard answers "would this revert", and a revert is decided by what the
+  // route actually delivers — so it is weighed on the floor, the only outcome
+  // the transaction can be signed against. A call that hands funds over is
+  // checked against safe prices on-chain, so the factor that decides it is not
+  // the one reported either.
+  assertCollateralised(
+    sdk.positions.healthFactor(
+      { ...snapshot, assets, totalValue: floor.totalValue },
+      { safePrices: paysOut },
+    ),
+    paysOut,
+  );
 
   // After the guards, so a refusal never waits on a measurement it will not report.
   const priceImpact = await collectPriceImpact(probes, {
@@ -561,8 +551,7 @@ export async function realize(
   return {
     operations,
     state,
-    calls,
-    executionConstraints,
+    calls: callsOf(operations),
     delayed: delayed && { ...delayed, afterRequest: state },
   };
 }

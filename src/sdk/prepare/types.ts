@@ -1,23 +1,4 @@
 import type { Address } from "viem";
-import type { ExecutionConstraintReport } from "../../onchain/accounts/intents/execution-constraints.js";
-import type {
-  AmountLimitReport,
-  LeverageLimitReport,
-  StrategyWithdrawLimitReport,
-} from "../../onchain/accounts/intents/limits.js";
-
-export type {
-  ExecutionConstraint,
-  ExecutionConstraintReport,
-} from "../../onchain/accounts/intents/execution-constraints.js";
-export type {
-  AmountLimitReport,
-  LeverageLimitReport,
-  LimitConstraint,
-  LimitConstraintId,
-  StrategyWithdrawLimitReport,
-} from "../../onchain/accounts/intents/limits.js";
-
 import type {
   Bps,
   Curator,
@@ -140,8 +121,6 @@ export interface LpResult {
  * What an operation on an existing credit account comes to.
  **/
 export interface StrategyResult {
-  /** Final multicall requirements, separate from the main-price account projection. */
-  executionConstraints?: ExecutionConstraintReport;
   /**
    * The logical steps, each carrying the amounts it was computed from.
    * Useful for showing the user what will happen, and for pinning behaviour
@@ -640,10 +619,6 @@ export interface IOpportunitiesPrepare {
    * the SDK does not hold.
    **/
   maxWithdraw(position: PositionInput): Promise<WithdrawCeilings>;
-  /** Preliminary partial withdrawal caps in underlying units, plus a separate exit estimate. */
-  withdrawStrategyLimits(
-    position: PositionInput,
-  ): Promise<StrategyWithdrawLimitReport>;
 
   /**
    * Paying debt down with funds from the wallet: collateral stays where it is,
@@ -756,12 +731,6 @@ export interface IOpportunitiesPrepare {
     collateral: readonly Asset[],
     targetHF?: Bps,
   ): LeverageBand | undefined;
-  /** Independent opening caps in native leverage units; routing remains unresolved. */
-  leverageLimits(
-    strategy: StrategyInput,
-    collateral: readonly Asset[],
-    targetHF?: Bps,
-  ): LeverageLimitReport;
 
   /**
    * The collaterals an account can actually take out, most valuable first —
@@ -800,12 +769,6 @@ export interface IOpportunitiesPrepare {
     token: Address,
     targetHF?: bigint,
   ): Promise<bigint>;
-  /** Known fixed-debt withdrawal caps in token units; unresolved entries require preparation. */
-  withdrawCollateralLimits(
-    position: PositionInput,
-    token: Address,
-    targetHF?: bigint,
-  ): Promise<AmountLimitReport>;
 
   /**
    * The tail of a delayed route: claim the matured withdrawal, then whatever the

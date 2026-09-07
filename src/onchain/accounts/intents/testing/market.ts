@@ -206,16 +206,7 @@ export function caToken(
   balance: bigint,
   quota = 0n,
 ): CreditAccountSlice["tokens"][number] {
-  const index = Object.keys(LIQUIDATION_THRESHOLDS).findIndex(
-    t => t.toLowerCase() === token.toLowerCase(),
-  );
-  return {
-    token,
-    balance,
-    quota,
-    mask: index < 0 ? 0n : 1n << BigInt(index),
-    success: true,
-  };
+  return { token, balance, quota, mask: 0n, success: true };
 }
 
 /** Bare CA slice on the fixture market. */
@@ -228,11 +219,7 @@ export function buildFixtureCreditAccount(args: {
     creditManager: CREDIT_MANAGER,
     creditFacade: CREDIT_FACADE,
     underlying: UND,
-    enabledTokensMask: args.tokens.reduce(
-      (mask, t) =>
-        t.token.toLowerCase() === UND || t.quota > 0n ? mask | t.mask : mask,
-      1n,
-    ),
+    enabledTokensMask: 0n,
     totalDebtUSD: 0n,
     totalDebt: args.totalDebt,
     tokens: args.tokens,

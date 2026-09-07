@@ -86,11 +86,6 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       { token: POS, balance: quotaFor(MARGIN_UND * 3n, POS) },
     ]);
     expect(state.minQuota).toEqual(state.averageQuota);
-    expect(state.executionConstraints.useSafePrices).toBe(true);
-    expect(state.executionConstraints.revertOnForbiddenTokens).toBe(true);
-    expect(
-      state.executionConstraints.constraints.every(c => c.status === "passed"),
-    ).toBe(true);
   });
 
   it("fills position metrics from the expected branch", async () => {
@@ -106,9 +101,10 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     expect(state.liquidationPrice).not.toBeNull();
   });
 
-  it("refuses a safe-price swap even without a wallet payout when main HF is healthy", async () => {
-    // The swap's return flag requires safe collateral valuation. Borrowing on
-    // its own does not enable safe prices, and this body has no withdrawal.
+  it("weighs the safe-price factor at the reserve feed, not the main one", async () => {
+    // An opening hands the pool's funds over, so the credit manager judges it
+    // at safe prices; POS reserves at half its main price, and the reported
+    // factor has to follow that feed rather than repeat `healthFactor`.
     const { result } = run(
       case_underlying_3x,
       buildOpenStrategySdk({
@@ -116,56 +112,12 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       }),
     );
     const outcome = await result;
-    expect(outcome).toMatchObject({
-      ok: false,
-      reason: "insufficientCollateral",
-      detail: { safePrices: true },
-      executionConstraints: { useSafePrices: true, checkCollateral: true },
-    });
-  });
+    if (!outcome.ok) {
+      throw new Error(`expected a state, got error: ${outcome.reason}`);
+    }
 
-  it("refuses a safe-price opening when the target has no reserve feed", async () => {
-    const { result } = run(
-      case_underlying_3x,
-      buildOpenStrategySdk({ reservePrices: {} }),
-    );
-    expect(await result).toMatchObject({
-      ok: false,
-      reason: "insufficientCollateral",
-      detail: { safePrices: true, healthFactor: 0 },
-    });
-  });
-
-  it("checks the routed floor, even when expected balances support the debt", async () => {
-    const { result } = run(
-      case_underlying_3x,
-      buildOpenStrategySdk({
-        routeFloor: amount => amount / 2n,
-      }),
-    );
-    expect(await result).toMatchObject({
-      ok: false,
-      reason: "insufficientCollateral",
-      detail: { safePrices: true },
-    });
-  });
-
-  it("keeps independent borrowing and collateral failures in the report", async () => {
-    const { result } = run(
-      case_underlying_3x,
-      buildOpenStrategySdk({
-        availableLiquidity: 0n,
-        reservePrices: {},
-      }),
-    );
-    const outcome = await result;
-    expect(outcome.ok).toBe(false);
-    if (outcome.ok) throw new Error("expected borrowing refusal");
-    expect(outcome.executionConstraints?.constraints).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: "poolLiquidity", status: "failed" }),
-        expect.objectContaining({ id: "collateral", status: "failed" }),
-      ]),
+    expect(outcome.state.safeHealthFactor).toBeLessThan(
+      outcome.state.healthFactor,
     );
   });
 

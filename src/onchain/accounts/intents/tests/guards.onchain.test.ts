@@ -174,17 +174,13 @@ describe("forbidden tokens — sellable, but never bought", () => {
     );
   });
 
-  it("refuses a safe-price sale that leaves the forbidden token enabled", async () => {
+  it("lets a plan sell one down, which is the way out of it", async () => {
     const result = await run(
       { type: "ADJUST_LEVERAGE", targetLeverage: 150n, token: POS },
       { forbiddenTokens: [POS] },
     );
 
-    expect(result).toMatchObject({
-      ok: false,
-      reason: "forbiddenToken",
-      detail: { violation: "enabled" },
-    });
+    expect(result.ok).toBe(true);
   });
 
   it("says nothing about a forbidden token the plan never touches", async () => {
@@ -387,7 +383,6 @@ describe("refusal details", () => {
     }
     expect(result.detail).toEqual({
       token: expect.objectContaining({ address: POS }),
-      violation: "quotaIncrease",
     });
   });
 

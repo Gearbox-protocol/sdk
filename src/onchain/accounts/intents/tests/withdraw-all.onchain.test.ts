@@ -12,7 +12,6 @@ import {
   ANY,
   buildFixtureCreditAccount,
   buildMarketSdk,
-  CREDIT_FACADE,
   caToken,
   POS,
   POS2,
@@ -25,7 +24,6 @@ import {
   MOCK_CLOSE_CALL,
   MOCK_REQUEST_CALL,
   MOCK_RWA_UNWRAP_CALL,
-  makeMockFacade,
 } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
 import { DEBT_BEFORE, QUOTA_BEFORE, TVL_BEFORE } from "./withdraw.fixtures.js";
@@ -302,17 +300,7 @@ describe("withdraw.start — everything out, account left open", () => {
       type: "CLOSE_ACCOUNT",
       to: WALLET,
     });
-    const quotaAssets = [
-      { token: POS2, balance: QUOTA_BEFORE },
-      { token: POS, balance: MIN_INT96 },
-    ];
-    expect(result.calls).toEqual([
-      MOCK_REQUEST_CALL,
-      ...makeMockFacade(CREDIT_FACADE).prepareUpdateQuotas({
-        averageQuota: quotaAssets,
-        minQuota: quotaAssets,
-      }),
-    ]);
+    expect(result.calls).toEqual([MOCK_REQUEST_CALL, CA_OP_CALLS.changeQuota]);
 
     // The request alone settles nothing: the position sits in the phantom and
     // the loan still stands.

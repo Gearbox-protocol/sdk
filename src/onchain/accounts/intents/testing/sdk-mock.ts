@@ -1,4 +1,4 @@
-import { type Address, encodeFunctionData } from "viem";
+import type { Address } from "viem";
 import { vi } from "vitest";
 import type {
   Bps,
@@ -9,13 +9,10 @@ import type {
 import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
   CreditAccountDataPayload,
+  EncodableCreditAccountOperation,
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
-import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../../../market/adapters/abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
-import { iUniswapV3AdapterAbi } from "../../../market/adapters/abi/adapters/iUniswapV3Adapter.js";
-import { iwstEthv1AdapterAbi } from "../../../market/adapters/abi/adapters/iwstEthv1Adapter.js";
-import { makeTestFacade } from "../../../market/credit/CreditFacadeV310Contract.mock.js";
 import { CreditSuite } from "../../../market/credit/CreditSuite.js";
 import { calcMaxLeverage } from "../../../market/math.js";
 import {
@@ -23,7 +20,6 @@ import {
   TestPriceOracle,
 } from "../../../market/oracle/TestPriceOracle.mock.js";
 import { PositionsService } from "../../../positions/PositionsService.js";
-import { CreditAccountsServiceV310 } from "../../CreditAccountsServiceV310.js";
 import type { CreditAccountSlice } from "../types.js";
 
 /**
@@ -31,9 +27,9 @@ import type { CreditAccountSlice } from "../types.js";
  *
  * The service resolves all market data through `OnchainSDK`
  * (`marketRegister`, `tokensMeta`, `accounts`). `buildMockSdk` builds a mock
- * from plain records. Facade calls use the production encoders; adapter calls
- * use representative ABI-encoded methods. Mock route quotes are independent of
- * these representative adapter amounts and do not prove execution guarantees.
+ * from plain records; assemble mocks ECHO recognizable sentinel calls derived
+ * from their inputs, so `result.calls` pins down which ops reached the
+ * assembler and in which order.
  */
 
 /**
@@ -57,107 +53,74 @@ export const MOCK_LIQUIDATION_FEES = {
   liquidationDiscount: 9700,
 };
 
-/**
- * Representative executable adapter calldata. Router amounts remain a separate
- * mock quote: these calls test method classification, not venue execution.
- * Empty calldata used to hide the distinction between a known adapter method
- * and an unknown call, which must fail closed during safe-price validation.
- */
+/** Recognizable router call embedded in routed leg results. */
 export const MOCK_ROUTER_CALL: MultiCall = {
   target: "0x9999999999999999999999999999999999999999" as Address,
-  callData: encodeFunctionData({
-    abi: iUniswapV3AdapterAbi,
-    functionName: "exactInputSingle",
-    args: [
-      {
-        tokenIn: "0x3333333333333333333333333333333333333333",
-        tokenOut: "0x2222222222222222222222222222222222222222",
-        fee: 3000,
-        recipient: "0xacacacacacacacacacacacacacacacacacacacac",
-        deadline: MAX_UINT256,
-        amountIn: 1n,
-        amountOutMinimum: 1n,
-        sqrtPriceLimitX96: 0n,
-      },
-    ],
-  }),
+  callData: "0x",
 };
 
 /** Router call of the many-to-one leg an exit routes. */
 export const MOCK_CLOSE_CALL: MultiCall = {
   target: "0x9595959595959595959595959595959595959595" as Address,
-  callData: MOCK_ROUTER_CALL.callData,
+  callData: "0x",
 };
 
 /** Returned by the `getRWAWrapCalls` mock; passes through per wrap op. */
 export const MOCK_RWA_WRAP_CALL: MultiCall = {
   target: "0x8888888888888888888888888888888888888888" as Address,
-  callData: encodeFunctionData({
-    abi: iwstEthv1AdapterAbi,
-    functionName: "wrap",
-    args: [1n],
-  }),
+  callData: "0x",
 };
 
 /** Router-produced call for an RWA underlying → asset unwrap leg. */
 export const MOCK_RWA_UNWRAP_CALL: MultiCall = {
   target: "0x7777777777777777777777777777777777777777" as Address,
-  callData: encodeFunctionData({
-    abi: iwstEthv1AdapterAbi,
-    functionName: "unwrap",
-    args: [1n],
-  }),
+  callData: "0x",
 };
 
 /** Fixture `claimableWithdrawal.claimCalls` content; echoes through claim ops. */
 export const MOCK_CLAIM_CALL: MultiCall = {
   target: "0x1111111111111111111111111111111111111111" as Address,
-  callData: encodeFunctionData({
-    abi: iSecuritizeRedemptionGatewayAdapterV311Abi,
-    functionName: "claim",
-    args: [["0xacacacacacacacacacacacacacacacacacacacac"]],
-  }),
+  callData: "0x",
 };
 
 /** Fixture `requestableWithdrawal.requestCalls`; echoes through request ops. */
 export const MOCK_REQUEST_CALL: MultiCall = {
   target: "0x2222222222222222222222222222222222222222" as Address,
-  callData: encodeFunctionData({
-    abi: iSecuritizeRedemptionGatewayAdapterV311Abi,
-    functionName: "redeem",
-    args: [1n],
-  }),
+  callData: "0x",
 };
 
-/** Real facade encoders, retargeted to the fixture facade without any RPC. */
-export function makeMockFacade(address: Address) {
-  return Object.assign(makeTestFacade(), { address });
-}
-
-const representativeFacade = makeMockFacade(
-  "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-);
-
-/** Representative calls used only to assert the shape/order of legacy flows. */
+/** One sentinel call per plain encodable op type. */
 export const CA_OP_CALLS = {
-  addCollateral: representativeFacade.prepareAddCollateral(
-    [{ token: "0x3333333333333333333333333333333333333333", balance: 1n }],
-    {},
-  )[0]!,
-  increaseDebt: representativeFacade.prepareIncreaseDebt(1n),
-  decreaseDebt: representativeFacade.prepareChangeDebt(1n, true),
-  withdrawCollateral: representativeFacade.prepareWithdrawCollateral(
-    "0x3333333333333333333333333333333333333333",
-    1n,
-    "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
-  ),
-  changeQuota: representativeFacade.prepareUpdateQuotas({
-    averageQuota: [
-      { token: "0x2222222222222222222222222222222222222222", balance: 1n },
-    ],
-    minQuota: [],
-  })[0]!,
+  addCollateral: {
+    target: "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1" as Address,
+    callData: "0x",
+  },
+  increaseDebt: {
+    target: "0xd1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1" as Address,
+    callData: "0x",
+  },
+  decreaseDebt: {
+    target: "0xd2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2" as Address,
+    callData: "0x",
+  },
+  withdrawCollateral: {
+    target: "0xc1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1" as Address,
+    callData: "0x",
+  },
+  changeQuota: {
+    target: "0xc2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2" as Address,
+    callData: "0x",
+  },
 } as const satisfies Record<string, MultiCall>;
+
+function echoEncodableOpCalls(
+  op: EncodableCreditAccountOperation,
+): MultiCall[] {
+  if ("calls" in op) {
+    return [...op.calls];
+  }
+  return [CA_OP_CALLS[op.type]];
+}
 
 export interface MockQuotaEntry {
   token: Address;
@@ -401,7 +364,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   const strategyName = strategyTargetCollateral
     ? `${tokenOf(strategyTargetCollateral).symbol} / ${underlyingToken.symbol}`
     : undefined;
-  const facade = makeMockFacade(args.creditFacade);
   const creditManagerSuite = {
     name: "TestCreditManager",
     strategyName,
@@ -414,15 +376,14 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
     creditManager: {
       address: args.creditManager,
-      underlying: args.underlying,
       liquidationThresholds,
       collateralTokens,
       feeInterest: args.feeInterest ?? 0,
       maxLeverage: (collateral: Address, targetHF?: Bps) =>
         calcMaxLeverage(liquidationThresholds.get(collateral) ?? 0, targetHF),
     },
-    creditFacade: Object.assign(facade, {
-      underlying: args.underlying,
+    creditFacade: {
+      address: args.creditFacade,
       maxDebt: args.maxDebt,
       minDebt: args.minDebt ?? 0n,
       isPaused: facadePaused,
@@ -430,7 +391,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       expirationDate,
       maxDebtPerBlockMultiplier: args.maxDebtPerBlockMultiplier ?? 2,
       forbiddenTokensMask,
-    }),
+    },
     market,
     isPaused: facadePaused || poolPaused,
     forbiddenTokens: [...forbidden] as Address[],
@@ -636,38 +597,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     currentBlock: 1n,
     timestamp: args.timestamp ?? 0,
     withdrawalCompressor,
-    getContract: (address: Address) => {
-      const common = {
-        address,
-        targetContract: address,
-        creditManager: args.creditManager,
-        version: 310,
-      };
-      switch (address.toLowerCase()) {
-        case MOCK_ROUTER_CALL.target:
-        case MOCK_CLOSE_CALL.target:
-          return {
-            ...common,
-            abi: iUniswapV3AdapterAbi,
-            contractType: "ADAPTER::UNISWAP_V3_ROUTER",
-          };
-        case MOCK_RWA_WRAP_CALL.target:
-        case MOCK_RWA_UNWRAP_CALL.target:
-          return {
-            ...common,
-            abi: iwstEthv1AdapterAbi,
-            contractType: "ADAPTER::LIDO_WSTETH_V1",
-          };
-        case MOCK_CLAIM_CALL.target:
-        case MOCK_REQUEST_CALL.target:
-          return {
-            ...common,
-            version: 311,
-            abi: iSecuritizeRedemptionGatewayAdapterV311Abi,
-            contractType: "ADAPTER::SECURITIZE_REDEMPTION",
-          };
-      }
-    },
     tokensMeta: {
       get: (token: Address) => ({
         decimals: decimalsOf(token),
@@ -687,7 +616,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     marketRegister: {
       findByCreditManager: vi.fn(() => market),
       findCreditManager: vi.fn(() => creditManagerSuite),
-      findCreditFacade: vi.fn(() => facade),
     },
     routerFor: vi.fn(() => router),
     accounts: {
@@ -701,26 +629,15 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
           return slice ? payloadOf(slice) : undefined;
         },
       ),
-      // Exercise the production encoders: quota deltas and debt changes are
-      // executable state transitions, so representative amounts are unsafe here.
       assembleCaOperations: vi.fn(
-        CreditAccountsServiceV310.prototype.assembleCaOperations,
+        ({ operations }: { operations: EncodableCreditAccountOperation[] }) =>
+          operations.flatMap(echoEncodableOpCalls),
       ),
-      prepareIncreaseDebt: vi.fn(
-        CreditAccountsServiceV310.prototype.prepareIncreaseDebt,
-      ),
-      prepareChangeDebt: vi.fn(
-        CreditAccountsServiceV310.prototype.prepareChangeDebt,
-      ),
-      prepareAddCollateral: vi.fn(
-        CreditAccountsServiceV310.prototype.prepareAddCollateral,
-      ),
-      prepareWithdrawToken: vi.fn(
-        CreditAccountsServiceV310.prototype.prepareWithdrawToken,
-      ),
-      prepareUpdateQuotas: vi.fn(
-        CreditAccountsServiceV310.prototype.prepareUpdateQuotas,
-      ),
+      prepareIncreaseDebt: vi.fn(() => CA_OP_CALLS.increaseDebt),
+      prepareChangeDebt: vi.fn(() => CA_OP_CALLS.decreaseDebt),
+      prepareAddCollateral: vi.fn(() => [CA_OP_CALLS.addCollateral]),
+      prepareWithdrawToken: vi.fn(() => CA_OP_CALLS.withdrawCollateral),
+      prepareUpdateQuotas: vi.fn(() => [CA_OP_CALLS.changeQuota]),
       assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
       assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
       previewDelayedWithdrawal,
@@ -737,7 +654,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
   } as unknown as OnchainSDK;
 
-  Object.assign(sdk.accounts, { sdk });
   Object.assign(sdk, { positions: new PositionsService(sdk) });
   return sdk;
 }

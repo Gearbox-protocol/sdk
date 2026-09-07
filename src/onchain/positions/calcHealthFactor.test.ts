@@ -67,26 +67,6 @@ function hf(
 }
 
 describe("calcHealthFactor", () => {
-  it("uses the floored Solidity target for an executable check", () => {
-    // Debt USD=3 and minHF=15000 gives target=4, so TWV=4 passes even
-    // though dividing back into a display ratio would produce 13333 bps.
-    expect(
-      calcHealthFactor({
-        snapshot: snapshot({
-          assets: [{ token: DAI, balance: 4n }],
-          totalDebt: 3n,
-        }),
-        underlying: DAI,
-        decimals: { [DAI]: 0 },
-        prices: {},
-        readPrice: () => 1n,
-        liquidationThresholds: { [DAI]: 10000 },
-        activeQuotas: {},
-        stopAt: 15000,
-      }),
-    ).toBe(15000);
-  });
-
   it("matches the legacy calcHealthFactor numbers", () => {
     expect(hf()).toBe(10244);
   });

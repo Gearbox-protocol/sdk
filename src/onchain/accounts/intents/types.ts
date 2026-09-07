@@ -10,7 +10,6 @@ import type {
   PreviewRefusal,
 } from "../../validation/refusal.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
-import type { ExecutionConstraintReport } from "./execution-constraints.js";
 import type { AccountCalculatorOperation } from "./operations.js";
 
 /**
@@ -78,7 +77,6 @@ export type IntentPreviewResult =
       operations: AccountCalculatorOperation[];
       state: OperationState;
       calls: MultiCall[];
-      executionConstraints?: ExecutionConstraintReport;
     }
   | PreviewRefusal;
 
@@ -182,7 +180,6 @@ export type DelayedStartResult =
       operations: AccountCalculatorOperation[];
       state: OperationState;
       calls: MultiCall[];
-      executionConstraints?: ExecutionConstraintReport;
       delayed: DelayedStart;
     }
   | PreviewRefusal;

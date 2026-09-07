@@ -89,7 +89,7 @@ one planner covers every "is the deposit already the position token" shape.
 | pool can lend `dD`   | `insufficientPoolLiquidity`              |
 | `T` quotable, not forbidden | `quotaLimitReached`, `forbiddenToken` |
 | market quota headroom | `quotaLimitReached`                     |
-| HF of floor balances (pricing derived from calls) | `insufficientCollateral` |
+| HF of the projected state (main prices — nothing leaves) | `insufficientCollateral` |
 
 ## Notes
 

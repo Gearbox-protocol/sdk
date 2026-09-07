@@ -3,9 +3,12 @@ import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { MarketSuite } from "../../market/MarketSuite.js";
 import {
   checkBorrowLimit,
+  checkCollateralised,
   checkCreditManagerPaused,
+  checkForbiddenToken,
   checkMarketExpired,
   checkQuotaLimit,
+  MIN_HEALTH_FACTOR_FACADE,
 } from "../../validation/checks.js";
 import { type BorrowLimitBinding, raise } from "../../validation/refusal.js";
 import { toToken } from "../../validation/token.js";
@@ -71,14 +74,10 @@ export function borrowable(suite: CreditSuite): {
   // Ties keep the earlier term, as the previous `reduce` did.
   const terms: Array<{ limit: bigint; binding: BorrowLimitBinding }> = [
     { limit: pool.availableLiquidity, binding: "poolAvailableLiquidity" },
-    ...(maxDebtPerBlockMultiplier === 255
-      ? []
-      : [
-          {
-            limit: maxDebt * BigInt(maxDebtPerBlockMultiplier),
-            binding: "facadePerBlockCap" as const,
-          },
-        ]),
+    {
+      limit: maxDebt * BigInt(maxDebtPerBlockMultiplier),
+      binding: "facadePerBlockCap",
+    },
     ...(available === undefined
       ? []
       : [{ limit: available, binding: "managerDebtAvailable" as const }]),
@@ -111,9 +110,9 @@ export function assertCanBorrow(
 /**
  * What the account is allowed to end up holding more of than it started with.
  *
- * Forbidden-token checks live in execution-constraints: they need the final
- * enabled mask and accumulated call flags, not just projected balances. A token
- * the market takes no quota for is worthless as collateral:
+ * A forbidden token may be sold and may leave, but its balance must not grow —
+ * the facade checks exactly that at the end of the multicall. A token the
+ * market takes no quota for is not forbidden, only worthless as collateral:
  * buying one builds a position the collateral check cannot count, so the plan
  * is refused before it is signed rather than after it reverts.
  *
@@ -122,11 +121,13 @@ export function assertCanBorrow(
  */
 export function assertGrowthAllowed(args: {
   sdk: OnchainSDK;
+  suite: CreditSuite;
   market: MarketSuite;
   before: readonly Asset[];
   after: readonly Asset[];
 }): void {
-  const { sdk, market, before, after } = args;
+  const { sdk, suite, market, before, after } = args;
+  const forbidden = suite.forbiddenTokens;
   const underlying = market.pool.underlying;
 
   for (const { token, balance } of after) {
@@ -134,6 +135,13 @@ export function assertGrowthAllowed(args: {
     if (balance <= held) {
       continue;
     }
+    raise(
+      checkForbiddenToken({
+        token: toToken(sdk, token),
+        isForbidden: forbidden.some(f => eq(f, token)),
+      }),
+      `${token} is forbidden in this market and the plan buys more of it`,
+    );
     if (eq(token, underlying) || isPhantomToken(sdk, token)) {
       continue;
     }
@@ -151,6 +159,50 @@ export function assertGrowthAllowed(args: {
       );
     }
   }
+}
+
+/**
+ * The facade weighs the account against its debt at the end of every multicall
+ * and reverts if the collateral does not cover it, so a plan that lands the
+ * account below water is refused here.
+ *
+ * The bar is the facade's own `1.0`, because this guard answers one question:
+ * would the transaction revert. It is deliberately not `MIN_HF_LIMITED`, and
+ * the three bars in this codebase are three different jobs:
+ *
+ * - here, `1.0` — what the facade enforces, so what a plan must clear to land;
+ * - `maxWithdrawCollateral` sizes at `MIN_HF_LIMITED + 2` — a *sizing* helper
+ *   leaving headroom, which is not the same as a validity check;
+ * - a form refuses at or below `MIN_HF_LIMITED` (`MIN_HEALTH_FACTOR_FORM`).
+ *
+ * Raising this one to `MIN_HF_LIMITED` was tried and reverted: it made
+ * `maxWithdraw` hand back a ceiling this guard then refused, and it blocked
+ * small top-ups of an account sitting in `[1.0, 1.01)` — the very operations
+ * that rescue it. A form wanting the stricter bar has `validateHF`.
+ *
+ * Note that a position already underwater cannot be nursed back one step at a
+ * time — the check is on where the transaction ends, not on whether it
+ * improved things.
+ *
+ * @remarks
+ * The caller decides the pricing the factor was computed at: main prices, or
+ * the safe ones the facade switches to when the call hands funds over. A token
+ * whose reserve feed the SDK cannot read keeps its main price, so a plan can
+ * still be refused on-chain after passing here.
+ */
+export function assertCollateralised(
+  healthFactorBps: number,
+  safePrices: boolean,
+): void {
+  const required = MIN_HEALTH_FACTOR_FACADE;
+  raise(
+    checkCollateralised({
+      healthFactor: healthFactorBps,
+      required,
+      safePrices,
+    }),
+    `the account would end at a health factor of ${healthFactorBps}, below ${required}`,
+  );
 }
 
 /**

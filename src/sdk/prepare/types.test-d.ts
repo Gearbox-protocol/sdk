@@ -8,12 +8,10 @@ import type {
 import type {
   CreditAccountNotFoundError,
   DebtOutOfRangeError,
-  ExecutionRequirementsUnavailableError,
   ForbiddenTokenError,
   InsufficientCollateralError,
   InsufficientPoolLiquidityError,
   InsufficientSourceBalanceError,
-  InvalidPriceFeedError,
   LeverageOutOfRangeError,
   MalformedTransactionError,
   MarketExpiredError,
@@ -73,8 +71,6 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["openNewStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         OpenStrategyResult,
-        | ExecutionRequirementsUnavailableError
-        | InvalidPriceFeedError
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError
@@ -95,8 +91,6 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["depositStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | ExecutionRequirementsUnavailableError
-        | InvalidPriceFeedError
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError
@@ -118,8 +112,6 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["repayStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | ExecutionRequirementsUnavailableError
-        | InvalidPriceFeedError
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError
@@ -138,8 +130,6 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["addCollateral"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | ExecutionRequirementsUnavailableError
-        | InvalidPriceFeedError
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError
@@ -153,8 +143,6 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["withdrawCollateral"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | ExecutionRequirementsUnavailableError
-        | InvalidPriceFeedError
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError
@@ -172,8 +160,6 @@ describe("every prepare method names exactly its own refusals", () => {
       SDKReturn<
         StrategyRoutesResult,
         (
-          | ExecutionRequirementsUnavailableError
-          | InvalidPriceFeedError
           | MarketPausedError
           | MarketExpiredError
           | ForbiddenTokenError
@@ -198,8 +184,6 @@ describe("every prepare method names exactly its own refusals", () => {
       SDKReturn<
         StrategyRoutesResult,
         (
-          | ExecutionRequirementsUnavailableError
-          | InvalidPriceFeedError
           | MarketPausedError
           | MarketExpiredError
           | ForbiddenTokenError
@@ -225,8 +209,6 @@ describe("every prepare method names exactly its own refusals", () => {
     expectTypeOf<Awaited<ReturnType<P["finalize"]>>>().toEqualTypeOf<
       SDKReturn<
         FinalizeResult,
-        | ExecutionRequirementsUnavailableError
-        | InvalidPriceFeedError
         | MarketPausedError
         | MarketExpiredError
         | ForbiddenTokenError

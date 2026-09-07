@@ -29,7 +29,6 @@ import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
 import type { MultiCall, RawTx } from "../types/index.js";
-import { assembleOpenAccountCalls } from "./assemble-open-account-calls.js";
 import { AccountBotsService } from "./bots/index.js";
 import {
   CreditAccountCompressor,
@@ -400,17 +399,25 @@ export class CreditAccountsServiceV310
     }
 
     const { creditFacade } = cmSuite;
-    let calls = assembleOpenAccountCalls(creditFacade, {
-      debt,
-      collateral,
-      permits,
-      calls: openPathCalls,
-      minQuota,
-      averageQuota,
-      withdrawToken: tokenToWithdraw,
-      to,
-      callsAfter,
-    });
+    let calls = [
+      creditFacade.prepareIncreaseDebt(debt),
+      ...creditFacade.prepareAddCollateral(collateral, permits),
+      ...openPathCalls, // path from underlying to withdrawal token
+      ...(tokenToWithdraw
+        ? [
+            creditFacade.prepareWithdrawCollateral(
+              tokenToWithdraw,
+              MAX_UINT256,
+              to,
+            ),
+          ]
+        : []),
+      ...creditFacade.prepareUpdateQuotas({
+        minQuota,
+        averageQuota,
+      }),
+      ...(callsAfter ?? []),
+    ];
 
     calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
     calls = await this.prependPriceUpdates(cm.address, calls);

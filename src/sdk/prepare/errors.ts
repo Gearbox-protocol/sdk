@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import type {
   Bps,
   IGearboxError,
@@ -6,30 +6,12 @@ import type {
   Token,
   TokenAmount,
 } from "../../model/index.js";
-import type { ExecutionConstraintReport } from "../../onchain/accounts/intents/execution-constraints.js";
 import type {
   BorrowLimitBinding,
   PreviewErrorReason,
   PreviewIssue,
   RouteRefusals,
 } from "../../onchain/index.js";
-
-export interface PrepareError extends IGearboxError {
-  executionConstraints?: ExecutionConstraintReport;
-}
-
-export interface ExecutionRequirementsUnavailableError extends PrepareError {
-  code: "executionRequirementsUnavailable";
-  callIndex: number;
-  target: Address;
-  selector: Hex;
-}
-
-export interface InvalidPriceFeedError extends PrepareError {
-  code: "invalidPriceFeed";
-  token: Address;
-  feed: "main" | "reserve";
-}
 
 /**
  * Why a preparation was refused.
@@ -56,8 +38,6 @@ export interface InvalidPriceFeedError extends PrepareError {
  * shared guards, the missing account, and a wrapped crash.
  **/
 export type AccountFlowError =
-  | ExecutionRequirementsUnavailableError
-  | InvalidPriceFeedError
   | MarketPausedError
   | MarketExpiredError
   | ForbiddenTokenError
@@ -69,8 +49,6 @@ export type AccountFlowError =
 
 /** Same guards for the account-less open flow. */
 export type OpenFlowError =
-  | ExecutionRequirementsUnavailableError
-  | InvalidPriceFeedError
   | MarketPausedError
   | MarketExpiredError
   | ForbiddenTokenError
@@ -80,7 +58,7 @@ export type OpenFlowError =
   | UnexpectedFailureError;
 
 /** The debt the request implies falls outside the facade's band. */
-export interface DebtOutOfRangeError extends PrepareError {
+export interface DebtOutOfRangeError extends IGearboxError {
   code: "debtOutOfRange";
   /** All three in the market's underlying. */
   requested: TokenAmount;
@@ -89,7 +67,7 @@ export interface DebtOutOfRangeError extends PrepareError {
 }
 
 /** The leverage asked for cannot be expressed as a plan at all. */
-export interface LeverageOutOfRangeError extends PrepareError {
+export interface LeverageOutOfRangeError extends IGearboxError {
   code: "leverageOutOfRange";
   /**
    * Scaled by `LEVERAGE_DECIMALS` (`100n` = 1x), as the intent states it — not
@@ -101,7 +79,7 @@ export interface LeverageOutOfRangeError extends PrepareError {
 }
 
 /** Nothing on the account or in the wallet can fund what was asked. */
-export interface InsufficientSourceBalanceError extends PrepareError {
+export interface InsufficientSourceBalanceError extends IGearboxError {
   code: "insufficientSourceBalance";
   /**
    * Both absent where the request never got as far as naming an amount, which
@@ -112,7 +90,7 @@ export interface InsufficientSourceBalanceError extends PrepareError {
 }
 
 /** Input token is not accepted by the flow (e.g. deposit of a non-underlying). */
-export interface UnsupportedCollateralTokenError extends PrepareError {
+export interface UnsupportedCollateralTokenError extends IGearboxError {
   code: "unsupportedCollateralToken";
   token: Token;
 }
@@ -122,7 +100,7 @@ export interface UnsupportedCollateralTokenError extends PrepareError {
  * requested, several and none was picked, or the pathfinder itself found no
  * path for the amounts involved.
  **/
-export interface UnsupportedTokenPairError extends PrepareError {
+export interface UnsupportedTokenPairError extends IGearboxError {
   code: "unsupportedTokenPair";
   /**
    * `to` is absent where the market named no output for `from`; both are absent
@@ -136,21 +114,21 @@ export interface UnsupportedTokenPairError extends PrepareError {
  * The intent cannot settle with a delay: the source has no redemption config,
  * the chain has no compressor, or the payout is one the tail cannot serve.
  **/
-export interface NoDelayedRouteError extends PrepareError {
+export interface NoDelayedRouteError extends IGearboxError {
   code: "noDelayedRoute";
   /** Absent where the refusal is the intent's, not the token's. */
   token?: Token;
 }
 
 /** Several redemption venues for the source, and nothing says which. */
-export interface MultipleDelayedWithdrawalsError extends PrepareError {
+export interface MultipleDelayedWithdrawalsError extends IGearboxError {
   code: "multipleDelayedWithdrawals";
   token: Token;
   venues: number;
 }
 
 /** A redemption of the same asset is already in flight. */
-export interface WithdrawalInProgressError extends PrepareError {
+export interface WithdrawalInProgressError extends IGearboxError {
   code: "withdrawalInProgress";
   /** The phantom token standing for the redemption already in flight. */
   inFlight: TokenAmount;
@@ -160,12 +138,12 @@ export interface WithdrawalInProgressError extends PrepareError {
  * The claim names no operation to resume: requested without an intent, or read
  * through a compressor too old to report one.
  **/
-export interface NoRecordedIntentError extends PrepareError {
+export interface NoRecordedIntentError extends IGearboxError {
   code: "noRecordedIntent";
 }
 
 /** The facade is paused: nothing can be done at all. */
-export interface MarketPausedError extends PrepareError {
+export interface MarketPausedError extends IGearboxError {
   code: "marketPaused";
   /**
    * The paused credit manager. Always present from `prepare`: the engine's
@@ -176,7 +154,7 @@ export interface MarketPausedError extends PrepareError {
 }
 
 /** The facade is past its expiration date and takes no more multicalls. */
-export interface MarketExpiredError extends PrepareError {
+export interface MarketExpiredError extends IGearboxError {
   code: "marketExpired";
   creditManager: Address;
   /** Unix seconds, as the facade reports it. */
@@ -187,7 +165,7 @@ export interface MarketExpiredError extends PrepareError {
  * The pool cannot lend what the plan draws right now — its free liquidity, the
  * manager's debt limit or the per-block cap stands in the way.
  **/
-export interface InsufficientPoolLiquidityError extends PrepareError {
+export interface InsufficientPoolLiquidityError extends IGearboxError {
   code: "insufficientPoolLiquidity";
   /** Both in the market's underlying. */
   requested: TokenAmount;
@@ -205,7 +183,7 @@ export interface InsufficientPoolLiquidityError extends PrepareError {
 }
 
 /** The market takes no more quota for a token the plan wants to hold. */
-export interface QuotaLimitReachedError extends PrepareError {
+export interface QuotaLimitReachedError extends IGearboxError {
   code: "quotaLimitReached";
   /** The token whose quota is asked for. */
   token: Token;
@@ -219,17 +197,16 @@ export interface QuotaLimitReachedError extends PrepareError {
 }
 
 /** The plan would increase the balance of a token the market forbids. */
-export interface ForbiddenTokenError extends PrepareError {
+export interface ForbiddenTokenError extends IGearboxError {
   code: "forbiddenToken";
   token: Token;
-  violation?: "quotaIncrease" | "enabled" | "balanceIncrease";
 }
 
 /**
  * The account would end the transaction owing more than its collateral is worth
  * under liquidation thresholds, which the facade refuses to allow.
  **/
-export interface InsufficientCollateralError extends PrepareError {
+export interface InsufficientCollateralError extends IGearboxError {
   code: "insufficientCollateral";
   /**
    * The factor that was compared, which for a call that hands funds over is the
@@ -247,7 +224,7 @@ export interface InsufficientCollateralError extends PrepareError {
 }
 
 /** The pool is winding down: it still pays out, but takes no more deposits. */
-export interface PoolSunsetError extends PrepareError {
+export interface PoolSunsetError extends IGearboxError {
   code: "poolSunset";
   pool: Address;
 }
@@ -256,7 +233,7 @@ export interface PoolSunsetError extends PrepareError {
  * The account would end up with more quoted tokens than the facade enables at
  * once. A count, not an amount — unlike {@link QuotaLimitReachedError}.
  **/
-export interface QuotaCountExceededError extends PrepareError {
+export interface QuotaCountExceededError extends IGearboxError {
   code: "quotaCountExceeded";
   count: number;
   max: number;
@@ -266,7 +243,7 @@ export interface QuotaCountExceededError extends PrepareError {
  * The transaction could not be replayed: it is malformed, and every field
  * derived from replayed balances is guesswork.
  **/
-export interface MalformedTransactionError extends PrepareError {
+export interface MalformedTransactionError extends IGearboxError {
   code: "malformedTransaction";
   /**
    * The SDK's own preview warning code (the `MalformedPreviewError`
@@ -285,7 +262,7 @@ export interface MalformedTransactionError extends PrepareError {
  * A market fact, not a bad argument: pass a `targetToken` to open against a
  * manager that has no default one.
  **/
-export interface NoStrategyTargetCollateralError extends PrepareError {
+export interface NoStrategyTargetCollateralError extends IGearboxError {
   code: "noStrategyTargetCollateral";
   creditManager: Address;
 }
@@ -294,7 +271,7 @@ export interface NoStrategyTargetCollateralError extends PrepareError {
  * No account at that address in the markets this SDK is connected to — closed
  * since it was listed, or read on the wrong chain.
  **/
-export interface CreditAccountNotFoundError extends PrepareError {
+export interface CreditAccountNotFoundError extends IGearboxError {
   code: "creditAccountNotFound";
   creditAccount: Address;
 }
@@ -309,7 +286,7 @@ export interface CreditAccountNotFoundError extends PrepareError {
  * refusable `prepare` method always answers: the failure that used to escape
  * as an exception arrives here instead, whole, under `cause`.
  **/
-export interface UnexpectedFailureError extends PrepareError {
+export interface UnexpectedFailureError extends IGearboxError {
   code: "unexpectedFailure";
   /** What actually went wrong, for a log and a bug report. */
   cause: Error;
@@ -336,9 +313,6 @@ export interface WithRouteRefusals {
  * code and the amounts in its own words, see {@link IGearboxError.message}.
  **/
 const MESSAGES: Record<PreviewErrorReason, string> = {
-  executionRequirementsUnavailable:
-    "The final calls have unresolved execution requirements.",
-  invalidPriceFeed: "A required price feed is unavailable.",
   debtOutOfRange: "The debt this request implies is outside the market's band.",
   leverageOutOfRange: "The leverage asked for cannot be expressed as a plan.",
   insufficientSourceBalance:
@@ -356,7 +330,7 @@ const MESSAGES: Record<PreviewErrorReason, string> = {
   insufficientPoolLiquidity: "The pool cannot lend what this plan draws.",
   quotaLimitReached:
     "The market takes no more quota for a token this plan holds.",
-  forbiddenToken: "This plan violates a forbidden-token requirement.",
+  forbiddenToken: "This plan would increase the balance of a forbidden token.",
   insufficientCollateral:
     "The account would end this transaction under-collateralised.",
   poolSunset: "The pool is winding down and takes no more deposits.",
@@ -374,8 +348,6 @@ const MESSAGES: Record<PreviewErrorReason, string> = {
  * spells out.
  **/
 export interface RefusalErrors {
-  executionRequirementsUnavailable: ExecutionRequirementsUnavailableError;
-  invalidPriceFeed: InvalidPriceFeedError;
   debtOutOfRange: DebtOutOfRangeError;
   leverageOutOfRange: LeverageOutOfRangeError;
   insufficientSourceBalance: InsufficientSourceBalanceError;
@@ -408,18 +380,15 @@ export interface RefusalErrors {
  * Generic over the issue it is handed, so a call site that already knows the
  * reason gets that reason's error back rather than a union to narrow again.
  **/
-export function toRefusalError<
-  I extends PreviewIssue & { executionConstraints?: ExecutionConstraintReport },
->(issue: I): RefusalErrors[I["reason"]] {
+export function toRefusalError<I extends PreviewIssue>(
+  issue: I,
+): RefusalErrors[I["reason"]] {
   if (issue.reason === "malformedTransaction") {
     return {
       code: "malformedTransaction",
       message: MESSAGES.malformedTransaction,
       previewCode: issue.detail.code,
       detail: issue.detail.message,
-      ...(issue.executionConstraints
-        ? { executionConstraints: issue.executionConstraints }
-        : {}),
     } as RefusalErrors[I["reason"]];
   }
   // Sound for every concrete reason above: each detail is exactly the fields
@@ -429,9 +398,6 @@ export function toRefusalError<
     code: issue.reason,
     message: MESSAGES[issue.reason],
     ...issue.detail,
-    ...(issue.executionConstraints
-      ? { executionConstraints: issue.executionConstraints }
-      : {}),
   } as RefusalErrors[I["reason"]];
 }
 
