@@ -22,19 +22,22 @@ export interface AdapterSafePriceContext {
 }
 
 type Rules = {
-  versions: readonly number[];
   yes?: string;
   no?: string;
   diff?: string;
 };
 
-const curveRules: readonly Rules[] = [
-  {
-    versions: [311],
+const curveRules = {
+  311: {
     yes: "exchange exchange_underlying add_liquidity add_liquidity_one_coin remove_liquidity remove_liquidity_imbalance remove_liquidity_one_coin",
     diff: "exchange_diff exchange_diff_underlying add_diff_liquidity_one_coin remove_diff_liquidity_one_coin",
   },
-];
+};
+
+const vaultRule: Rules = {
+  no: "deposit depositDiff mint withdraw redeem redeemDiff",
+};
+const issuanceRule: Rules = { no: "depositInstant depositInstantDiff" };
 
 /** Reviewed Solidity return values, not protocol operations or ABI output names.
  * Every SDK adapter type is listed; versions absent here fail closed. The source
@@ -42,193 +45,135 @@ const curveRules: readonly Rules[] = [
  * `diff` means false on the balance no-op branch and true on execution; a method
  * containing "Diff" does NOT imply this rule (Balancer and wrappers differ).
  */
-const rules: Record<AdapterContractType, readonly Rules[]> = {
-  "ADAPTER::ACCOUNT_MIGRATOR": [{ versions: [310], no: "migrate" }],
-  "ADAPTER::BALANCER_V3_ROUTER": [
-    {
-      versions: [311],
+const rules: Record<AdapterContractType, Partial<Record<number, Rules>>> = {
+  "ADAPTER::ACCOUNT_MIGRATOR": { 310: { no: "migrate" } },
+  "ADAPTER::BALANCER_V3_ROUTER": {
+    311: {
       yes: "swapSingleTokenExactIn swapSingleTokenDiffIn addLiquidityUnbalanced addLiquidityUnbalancedDiff removeLiquiditySingleTokenExactIn removeLiquiditySingleTokenDiff",
     },
-  ],
-  "ADAPTER::BALANCER_V3_WRAPPER": [
-    { versions: [310], no: "mint mintDiff burn burnDiff" },
-  ],
-  "ADAPTER::CAMELOT_V3_ROUTER": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::BALANCER_V3_WRAPPER": {
+    310: { no: "mint mintDiff burn burnDiff" },
+  },
+  "ADAPTER::CAMELOT_V3_ROUTER": {
+    310: {
       yes: "exactInputSingle exactInputSingleSupportingFeeOnTransferTokens exactInput exactOutputSingle exactOutput",
       diff: "exactDiffInputSingle exactDiffInputSingleSupportingFeeOnTransferTokens exactDiffInput",
     },
-  ],
+  },
   "ADAPTER::CURVE_STABLE_NG": curveRules,
   "ADAPTER::CURVE_V1_2ASSETS": curveRules,
   "ADAPTER::CURVE_V1_3ASSETS": curveRules,
   "ADAPTER::CURVE_V1_4ASSETS": curveRules,
   "ADAPTER::CURVE_V1_STECRV_POOL": curveRules,
-  "ADAPTER::CVX_V1_BASE_REWARD_POOL": [
-    {
-      versions: [311],
+  "ADAPTER::CVX_V1_BASE_REWARD_POOL": {
+    311: {
       no: "stake stakeDiff depositPhantomToken getReward withdraw withdrawDiff withdrawPhantomToken withdrawAndUnwrap withdrawDiffAndUnwrap",
     },
-  ],
-  "ADAPTER::CVX_V1_BOOSTER": [
-    { versions: [310], no: "deposit depositDiff withdraw withdrawDiff" },
-  ],
-  "ADAPTER::DAI_USDS_EXCHANGE": [
-    { versions: [310], no: "daiToUsds daiToUsdsDiff usdsToDai usdsToDaiDiff" },
-  ],
-  "ADAPTER::ERC4626_VAULT": [
-    {
-      versions: [310, 311, 312],
-      no: "deposit depositDiff mint withdraw redeem redeemDiff",
-    },
-  ],
-  "ADAPTER::ERC4626_VAULT_REFERRAL": [
-    {
-      versions: [310],
-      no: "deposit depositDiff mint withdraw redeem redeemDiff",
-    },
-  ],
-  "ADAPTER::FLUID_DEX": [
-    { versions: [310], yes: "swapIn", diff: "swapInDiff" },
-  ],
-  "ADAPTER::INFINIFI_GATEWAY": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::CVX_V1_BOOSTER": {
+    310: { no: "deposit depositDiff withdraw withdrawDiff" },
+  },
+  "ADAPTER::DAI_USDS_EXCHANGE": {
+    310: { no: "daiToUsds daiToUsdsDiff usdsToDai usdsToDaiDiff" },
+  },
+  "ADAPTER::ERC4626_VAULT": { 310: vaultRule, 311: vaultRule, 312: vaultRule },
+  "ADAPTER::ERC4626_VAULT_REFERRAL": { 310: vaultRule },
+  "ADAPTER::FLUID_DEX": { 310: { yes: "swapIn", diff: "swapInDiff" } },
+  "ADAPTER::INFINIFI_GATEWAY": {
+    310: {
       no: "mint mintDiff stake stakeDiff unstake unstakeDiff createPosition createPositionDiff redeem redeemDiff claimRedemption",
     },
-  ],
-  "ADAPTER::INFINIFI_UNWINDING": [
-    {
-      versions: [310],
-      yes: "startUnwinding",
-      no: "withdraw withdrawPhantomToken",
-    },
-  ],
-  "ADAPTER::KELP_DEPOSIT_POOL": [
-    { versions: [310], yes: "depositAsset", diff: "depositAssetDiff" },
-  ],
-  "ADAPTER::KELP_WITHDRAWAL": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::INFINIFI_UNWINDING": {
+    310: { yes: "startUnwinding", no: "withdraw withdrawPhantomToken" },
+  },
+  "ADAPTER::KELP_DEPOSIT_POOL": {
+    310: { yes: "depositAsset", diff: "depositAssetDiff" },
+  },
+  "ADAPTER::KELP_WITHDRAWAL": {
+    310: {
       yes: "initiateWithdrawal",
       diff: "initiateWithdrawalDiff",
       no: "completeWithdrawal withdrawPhantomToken",
     },
-  ],
-  "ADAPTER::LIDO_V1": [{ versions: [310], no: "submit submitDiff" }],
-  "ADAPTER::LIDO_WSTETH_V1": [
-    { versions: [310], no: "wrap wrapDiff unwrap unwrapDiff" },
-  ],
-  "ADAPTER::MELLOW_CLAIMER": [
-    {
-      versions: [310],
-      no: "multiAccept multiAcceptAndClaim withdrawPhantomToken",
-    },
-  ],
-  "ADAPTER::MELLOW_DVV": [
-    { versions: [310], no: "withdraw redeem redeemDiff" },
-  ],
-  "ADAPTER::MELLOW_ERC4626_VAULT": [
-    {
-      versions: [312],
+  },
+  "ADAPTER::LIDO_V1": { 310: { no: "submit submitDiff" } },
+  "ADAPTER::LIDO_WSTETH_V1": { 310: { no: "wrap wrapDiff unwrap unwrapDiff" } },
+  "ADAPTER::MELLOW_CLAIMER": {
+    310: { no: "multiAccept multiAcceptAndClaim withdrawPhantomToken" },
+  },
+  "ADAPTER::MELLOW_DVV": { 310: { no: "withdraw redeem redeemDiff" } },
+  "ADAPTER::MELLOW_ERC4626_VAULT": {
+    312: {
       no: "deposit depositDiff mint",
       yes: "withdraw redeem",
       diff: "redeemDiff",
     },
-  ],
-  "ADAPTER::MELLOW_WRAPPER": [{ versions: [310], no: "deposit depositDiff" }],
-  "ADAPTER::MIDAS_GATEWAY": [
-    {
-      versions: [311],
+  },
+  "ADAPTER::MELLOW_WRAPPER": { 310: { no: "deposit depositDiff" } },
+  "ADAPTER::MIDAS_GATEWAY": {
+    311: {
       yes: "redeemRequest transferRedeemer",
       diff: "redeemRequestDiff",
       no: "receiveGreenlist withdraw withdrawFromRedeemer withdrawPhantomToken",
     },
-  ],
-  "ADAPTER::MIDAS_ISSUANCE_VAULT": [
-    { versions: [310, 311], no: "depositInstant depositInstantDiff" },
-  ],
-  "ADAPTER::MIDAS_REDEMPTION_VAULT": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::MIDAS_ISSUANCE_VAULT": { 310: issuanceRule, 311: issuanceRule },
+  "ADAPTER::MIDAS_REDEMPTION_VAULT": {
+    310: {
       yes: "redeemRequest",
       no: "redeemInstant redeemInstantDiff withdraw withdrawPhantomToken",
     },
-    { versions: [311], no: "redeemInstant redeemInstantDiff" },
-  ],
-  "ADAPTER::PENDLE_ROUTER": [
-    {
-      versions: [311],
+    311: { no: "redeemInstant redeemInstantDiff" },
+  },
+  "ADAPTER::PENDLE_ROUTER": {
+    311: {
       yes: "swapExactTokenForPt swapExactPtForToken redeemPyToToken addLiquiditySingleToken removeLiquiditySingleToken",
       diff: "swapDiffTokenForPt swapDiffPtForToken redeemDiffPyToToken addLiquiditySingleTokenDiff removeLiquiditySingleTokenDiff",
     },
-  ],
-  "ADAPTER::SECURITIZE_ONRAMP": [
-    { versions: [310], yes: "swap", diff: "swapDiff" },
-  ],
-  "ADAPTER::SECURITIZE_REDEMPTION": [
-    {
-      versions: [310],
-      yes: "redeem",
-      diff: "redeemDiff",
-      no: "claim transferRedeemer",
-    },
-    {
-      versions: [311],
-      yes: "redeem claim transferRedeemer",
-      diff: "redeemDiff",
-    },
-  ],
-  "ADAPTER::STAKING_REWARDS": [
-    {
-      versions: [312],
+  },
+  "ADAPTER::SECURITIZE_ONRAMP": { 310: { yes: "swap", diff: "swapDiff" } },
+  "ADAPTER::SECURITIZE_REDEMPTION": {
+    310: { yes: "redeem", diff: "redeemDiff", no: "claim transferRedeemer" },
+    311: { yes: "redeem claim transferRedeemer", diff: "redeemDiff" },
+  },
+  "ADAPTER::STAKING_REWARDS": {
+    312: {
       no: "stake stakeDiff depositPhantomToken getReward withdraw withdrawDiff withdrawPhantomToken",
     },
-  ],
-  "ADAPTER::TRADERJOE_ROUTER": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::TRADERJOE_ROUTER": {
+    310: {
       yes: "swapExactTokensForTokens swapExactTokensForTokensSupportingFeeOnTransferTokens",
       diff: "swapDiffTokensForTokens swapDiffTokensForTokensSupportingFeeOnTransferTokens",
     },
-  ],
-  "ADAPTER::UNISWAP_V2_ROUTER": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::UNISWAP_V2_ROUTER": {
+    310: {
       yes: "swapTokensForExactTokens swapExactTokensForTokens",
       diff: "swapDiffTokensForTokens",
     },
-  ],
-  "ADAPTER::UNISWAP_V3_ROUTER": [
-    {
-      versions: [310],
+  },
+  "ADAPTER::UNISWAP_V3_ROUTER": {
+    310: {
       yes: "exactInputSingle exactInput exactOutputSingle exactOutput",
       diff: "exactDiffInputSingle exactDiffInput",
     },
-  ],
-  "ADAPTER::UNISWAP_V4_GATEWAY": [
-    {
-      versions: [310],
-      yes: "swapExactInputSingle",
-      diff: "swapExactInputSingleDiff",
-    },
-  ],
-  "ADAPTER::UPSHIFT_VAULT": [
-    {
-      versions: [311],
+  },
+  "ADAPTER::UNISWAP_V4_GATEWAY": {
+    310: { yes: "swapExactInputSingle", diff: "swapExactInputSingleDiff" },
+  },
+  "ADAPTER::UPSHIFT_VAULT": {
+    311: {
       no: "deposit depositDiff mint claim withdrawPhantomToken",
       yes: "requestRedeem",
       diff: "requestRedeemDiff",
     },
-  ],
-  "ADAPTER::VELODROME_V2_ROUTER": [
-    {
-      versions: [310],
-      yes: "swapExactTokensForTokens",
-      diff: "swapDiffTokensForTokens",
-    },
-  ],
+  },
+  "ADAPTER::VELODROME_V2_ROUTER": {
+    310: { yes: "swapExactTokensForTokens", diff: "swapDiffTokensForTokens" },
+  },
 };
 
 function includes(methods: string | undefined, name: string): boolean {
@@ -263,9 +208,8 @@ export function classifyAdapterSafePrices(
     kind: "unsupported",
     reason,
   });
-  const selected = rules[adapter.contractType as AdapterContractType]?.find(
-    rule => rule.versions.includes(adapter.version),
-  );
+  const selected =
+    rules[adapter.contractType as AdapterContractType]?.[adapter.version];
   if (!selected)
     return unsupported(
       `Unreviewed adapter type/version: ${adapter.contractType} v${adapter.version}`,

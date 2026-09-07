@@ -44,12 +44,7 @@ export interface ExecutionConstraint {
   unit?: "bps";
 }
 
-/**
- * Execution requirements belong to an operation, not to its displayed account
- * state. In particular, main HF can be healthy while this report refuses a
- * safe-price-requiring swap. `undefined` pricing is genuinely unresolved;
- * clients must never coerce it to false to manufacture a valid preparation.
- */
+/** Operation checks, separate from display metrics. Undefined pricing is unresolved. */
 export interface ExecutionConstraintReport {
   checkCollateral: boolean;
   useSafePrices: boolean | undefined;
@@ -72,15 +67,10 @@ export interface MulticallConstraintsProps {
 }
 
 /**
- * Mirrors CreditFacadeV3._multicall (core-v3 510fc65): flags accumulate across
- * the entire ordered body. An adapter boolean enables BOTH safe pricing and
- * forbidden-token rejection; increaseDebt enables only the latter. Actual
- * closeCreditAccount skips final checks, whereas a zero-debt multicall does not
- * skip its forbidden-token check.
- *
- * Only calldata and guaranteed pre-call balance bounds participate. An expected
- * router quote is not an upper bound. After an external call, unknown balances
- * stay unknown until a compareBalances bracket establishes a new lower bound.
+ * CreditFacadeV3._multicall (core-v3 510fc65): adapter true accumulates both
+ * flags; increaseDebt only forbids tokens. Actual close skips final checks,
+ * but zero-debt multicall still checks forbidden tokens. Balance bounds come
+ * from calldata and compareBalances, never expected router quotes.
  */
 export function inspectMulticall({
   sdk,
@@ -308,15 +298,10 @@ export function inspectMulticall({
     ...unsupported,
     ...(report.useSafePrices === undefined ? unresolved : []),
   ];
-  report.constraints.push(
-    ...(pricingIssues.length
-      ? pricingIssues.map(issue => ({
-          id: "callPricing" as const,
-          status: "unresolved" as const,
-          issue,
-        }))
-      : [{ id: "callPricing" as const, status: "passed" as const }]),
-  );
+  for (const issue of pricingIssues)
+    report.constraints.push({ id: "callPricing", status: "unresolved", issue });
+  if (!pricingIssues.length)
+    report.constraints.push({ id: "callPricing", status: "passed" });
   return report;
 }
 
@@ -340,15 +325,10 @@ export function captureConstraint(
 }
 
 /**
- * Evaluate the resolved call body against its floor snapshot. The final enabled
- * mask, not positive balances alone, decides the forbidden-token rule. In
- * particular one unit of forbidden dust can still block a withdrawal.
- *
- * The default execution threshold is the facade's 1.0, not the form's
- * MIN_HF_LIMITED or the sizing helper's MIN_HF_LIMITED + 2 buffer. Raising it
- * would reject valid top-ups ending in [1.0, 1.01); forms can use validateHF
- * for their stricter bar. Execution checks the final state, so merely improving
- * an account that still ends below the required threshold is insufficient.
+ * Check the floor snapshot. Enabled forbidden tokens reject even at zero/dust.
+ * Default HF is the facade's 1.0: using the form's MIN_HF_LIMITED or sizing's
+ * MIN_HF_LIMITED + 2 would reject valid top-ups ending in [1.0, 1.01).
+ * Improving an account still below the final threshold is insufficient.
  */
 export function evaluateExecutionConstraints(
   props: MulticallConstraintsProps & {

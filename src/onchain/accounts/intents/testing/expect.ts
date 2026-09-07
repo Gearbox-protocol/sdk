@@ -87,15 +87,11 @@ export function withOnchainOpCalls(ops: ExpectedFlowOp[]): ExpectedFlowOp[] {
   return ops.map(op => {
     switch (op.type) {
       case "changeQuota":
-        return { ...op, calls: [CA_OP_CALLS.changeQuota] };
       case "addCollateral":
-        return { ...op, calls: [CA_OP_CALLS.addCollateral] };
       case "increaseDebt":
-        return { ...op, calls: [CA_OP_CALLS.increaseDebt] };
       case "decreaseDebt":
-        return { ...op, calls: [CA_OP_CALLS.decreaseDebt] };
       case "withdrawCollateral":
-        return { ...op, calls: [CA_OP_CALLS.withdrawCollateral] };
+        return { ...op, calls: [CA_OP_CALLS[op.type]] };
       case "swap":
         return {
           ...op,
@@ -127,6 +123,9 @@ function matchOp(
   index: number,
 ): void {
   expect(actual.type, `op[${index}].type`).toBe(expected.type);
+  expect(actual.calls, `op[${index}].calls`).toEqual(
+    expectedCalls(expected, actual),
+  );
 
   switch (expected.type) {
     case "changeQuota":
@@ -139,9 +138,6 @@ function matchOp(
       expect(actual.quotaDecrease, `op[${index}].quotaDecrease`).toEqual(
         expected.quotaDecrease,
       );
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "startDelayedWithdrawal":
       if (actual.type !== "startDelayedWithdrawal") {
@@ -152,9 +148,6 @@ function matchOp(
       expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
       expect(actual.settlement, `op[${index}].settlement`).toBe(
         expected.settlement,
-      );
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
       );
       break;
     case "claimDelayedWithdrawal":
@@ -171,9 +164,6 @@ function matchOp(
         `op[${index}].withdrawalTokenSpent`,
       ).toBe(expected.withdrawalTokenSpent);
       expect(actual.outputs, `op[${index}].outputs`).toEqual(expected.outputs);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "swap":
       if (actual.type !== "swap") {
@@ -184,27 +174,18 @@ function matchOp(
       expect(actual.amountOut, `op[${index}].amountOut`).toBe(
         expected.amountOut,
       );
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "decreaseDebt":
       if (actual.type !== "decreaseDebt") {
         return;
       }
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "increaseDebt":
       if (actual.type !== "increaseDebt") {
         return;
       }
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "addCollateral":
       if (actual.type !== "addCollateral") {
@@ -213,9 +194,6 @@ function matchOp(
       expect(actual.token, `op[${index}].token`).toBe(expected.token);
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.value, `op[${index}].value`).toBe(expected.value);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "withdrawCollateral":
       if (actual.type !== "withdrawCollateral") {
@@ -224,9 +202,6 @@ function matchOp(
       expect(actual.token, `op[${index}].token`).toBe(expected.token);
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.to, `op[${index}].to`).toBe(expected.to);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected, actual),
-      );
       break;
     case "unwrapRwaCollateral":
       if (actual.type !== "unwrapRwaCollateral") {
@@ -238,9 +213,6 @@ function matchOp(
       expect(actual.amountOut, `op[${index}].amountOut`).toBe(
         expected.amountOut,
       );
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
-      );
       break;
     case "wrapRwaCollateral":
       if (actual.type !== "wrapRwaCollateral") {
@@ -251,9 +223,6 @@ function matchOp(
       expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
       expect(actual.amountOut, `op[${index}].amountOut`).toBe(
         expected.amountOut,
-      );
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
       );
       break;
   }

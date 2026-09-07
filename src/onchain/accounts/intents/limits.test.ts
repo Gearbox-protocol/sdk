@@ -19,14 +19,14 @@ const ca = buildFixtureCreditAccount({
   totalDebt: 50n * unit,
   tokens: [caToken(POS, 100n * unit, 1000n * unit)],
 });
+const collateralProps = { creditAccount: ca, token: POS, targetHF: 10_000n };
 
 describe("preliminary operation limits", () => {
   it("keeps an empty enabled mask authoritative", () => {
     const report = withdrawCollateralLimits({
+      ...collateralProps,
       sdk: buildMarketSdk({ forbiddenTokens: [POS] }),
       creditAccount: { ...ca, enabledTokensMask: 0n },
-      token: POS,
-      targetHF: 10_000n,
     });
     expect(report).toMatchObject({ max: 0n, useSafePrices: true });
     expect(report.constraints).toContainEqual({
@@ -37,10 +37,8 @@ describe("preliminary operation limits", () => {
   it("reduces the collateral ceiling when reserve value falls", () => {
     const report = (reserve: bigint) =>
       withdrawCollateralLimits({
+        ...collateralProps,
         sdk: buildMarketSdk({ reservePrices: { ...PRICES, [POS]: reserve } }),
-        creditAccount: ca,
-        token: POS,
-        targetHF: 10_000n,
       });
     // Holding 100, debt 50 and LT .92 needs 54.35 tokens at $2, more at $1.5.
     const fullPriceMax = report(200_000_000n).max;
@@ -54,7 +52,7 @@ describe("preliminary operation limits", () => {
 
   it("distinguishes absent reserve (zero collateral) from unavailable feed", () => {
     const sdk = buildMarketSdk({ reservePrices: {} });
-    const props = { sdk, creditAccount: ca, token: POS, targetHF: 10_000n };
+    const props = { sdk, ...collateralProps };
     expect(withdrawCollateralLimits(props).constraints).toContainEqual({
       id: "collateral",
       status: "calculated",
@@ -101,19 +99,6 @@ describe("preliminary operation limits", () => {
     expect(report.max).toBeGreaterThan(0n);
   });
 
-  it("leaves forbidden-token eligibility to the final enabled mask", () => {
-    const report = withdrawCollateralLimits({
-      sdk: buildMarketSdk({ forbiddenTokens: [POS] }),
-      creditAccount: ca,
-      token: POS,
-      targetHF: 10_000n,
-    });
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({ id: "forbiddenTokens", status: "unresolved" }),
-    );
-    expect(report.complete).toBe(false);
-  });
-
   it("reports separate leverage caps in native leverage units", () => {
     const report = leverageLimits({
       sdk: buildMarketSdk({
@@ -154,19 +139,19 @@ describe("preliminary operation limits", () => {
     });
   });
 
-  it("retains enabled forbidden dust and zero balances in the mask check", () => {
-    for (const balance of [0n, 1n]) {
+  it("leaves forbidden-token eligibility unresolved even for dust and zero", () => {
+    for (const balance of [0n, 1n, 100n * unit]) {
       const creditAccount = {
         ...ca,
         enabledTokensMask: 2n,
         tokens: [{ ...caToken(POS, balance, 0n), mask: 2n }],
       };
       const report = withdrawCollateralLimits({
+        ...collateralProps,
         sdk: buildMarketSdk({ forbiddenTokens: [POS] }),
         creditAccount,
-        token: POS,
-        targetHF: 10_000n,
       });
+      expect(report.complete).toBe(false);
       expect(report.constraints).toContainEqual(
         expect.objectContaining({
           id: "forbiddenTokens",
@@ -187,10 +172,9 @@ describe("preliminary operation limits", () => {
     };
     expect(
       withdrawCollateralLimits({
+        ...collateralProps,
         sdk: buildMarketSdk(),
         creditAccount,
-        token: POS,
-        targetHF: 10_000n,
       }).max,
     ).toBe(100n * unit);
   });

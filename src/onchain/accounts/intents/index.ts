@@ -448,15 +448,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
     if (!result.ok) {
       return result;
     }
-    const { operations, state, calls, executionConstraints } = result;
-    return {
-      ok: true,
-      operations,
-      state,
-      calls,
-      remainder,
-      executionConstraints,
-    };
+    const { delayed: _delayed, ...preview } = result;
+    return { ...preview, remainder };
   }
 
   /**
@@ -492,20 +485,14 @@ export class CreditAccountOperationsService extends SDKConstruct {
           props.creditAccount.creditManager,
         ),
       );
-      const { operations, state, calls, delayed, executionConstraints } =
-        await realize(plan(), {
+      return {
+        ok: true,
+        ...(await realize(plan(), {
           creditAccount: props.creditAccount,
           sdk: props.sdk,
           slippage: props.slippage ?? 0,
           quotaReserve: props.quotaReserve,
-        });
-      return {
-        ok: true,
-        operations,
-        state,
-        calls,
-        delayed,
-        executionConstraints,
+        })),
       };
     } catch (e) {
       return asFailure(e);

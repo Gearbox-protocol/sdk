@@ -9,7 +9,6 @@ import type {
 import { MAX_UINT256 } from "../../../constants/index.js";
 import type {
   CreditAccountDataPayload,
-  EncodableCreditAccountOperation,
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
@@ -132,8 +131,7 @@ export const MOCK_REQUEST_CALL: MultiCall = {
 
 /** Real facade encoders, retargeted to the fixture facade without any RPC. */
 export function makeMockFacade(address: Address) {
-  const facade = makeTestFacade();
-  return Object.assign(facade, { address });
+  return Object.assign(makeTestFacade(), { address });
 }
 
 const representativeFacade = makeMockFacade(
@@ -639,48 +637,36 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     timestamp: args.timestamp ?? 0,
     withdrawalCompressor,
     getContract: (address: Address) => {
-      const target = address.toLowerCase();
       const common = {
         address,
         targetContract: address,
         creditManager: args.creditManager,
         version: 310,
       };
-      if (
-        [MOCK_ROUTER_CALL, MOCK_CLOSE_CALL].some(
-          c => c.target.toLowerCase() === target,
-        )
-      ) {
-        return {
-          ...common,
-          abi: iUniswapV3AdapterAbi,
-          contractType: "ADAPTER::UNISWAP_V3_ROUTER",
-        };
+      switch (address.toLowerCase()) {
+        case MOCK_ROUTER_CALL.target:
+        case MOCK_CLOSE_CALL.target:
+          return {
+            ...common,
+            abi: iUniswapV3AdapterAbi,
+            contractType: "ADAPTER::UNISWAP_V3_ROUTER",
+          };
+        case MOCK_RWA_WRAP_CALL.target:
+        case MOCK_RWA_UNWRAP_CALL.target:
+          return {
+            ...common,
+            abi: iwstEthv1AdapterAbi,
+            contractType: "ADAPTER::LIDO_WSTETH_V1",
+          };
+        case MOCK_CLAIM_CALL.target:
+        case MOCK_REQUEST_CALL.target:
+          return {
+            ...common,
+            version: 311,
+            abi: iSecuritizeRedemptionGatewayAdapterV311Abi,
+            contractType: "ADAPTER::SECURITIZE_REDEMPTION",
+          };
       }
-      if (
-        [MOCK_RWA_WRAP_CALL, MOCK_RWA_UNWRAP_CALL].some(
-          c => c.target.toLowerCase() === target,
-        )
-      ) {
-        return {
-          ...common,
-          abi: iwstEthv1AdapterAbi,
-          contractType: "ADAPTER::LIDO_WSTETH_V1",
-        };
-      }
-      if (
-        [MOCK_CLAIM_CALL, MOCK_REQUEST_CALL].some(
-          c => c.target.toLowerCase() === target,
-        )
-      ) {
-        return {
-          ...common,
-          version: 311,
-          abi: iSecuritizeRedemptionGatewayAdapterV311Abi,
-          contractType: "ADAPTER::SECURITIZE_REDEMPTION",
-        };
-      }
-      return undefined;
     },
     tokensMeta: {
       get: (token: Address) => ({
@@ -718,44 +704,22 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       // Exercise the production encoders: quota deltas and debt changes are
       // executable state transitions, so representative amounts are unsafe here.
       assembleCaOperations: vi.fn(
-        (props: {
-          operations: EncodableCreditAccountOperation[];
-          creditFacade: Address;
-        }) =>
-          CreditAccountsServiceV310.prototype.assembleCaOperations.call(
-            { sdk } as CreditAccountsServiceV310,
-            props,
-          ),
+        CreditAccountsServiceV310.prototype.assembleCaOperations,
       ),
       prepareIncreaseDebt: vi.fn(
-        (
-          _address: Address,
-          ...params: Parameters<typeof facade.prepareIncreaseDebt>
-        ) => facade.prepareIncreaseDebt(...params),
+        CreditAccountsServiceV310.prototype.prepareIncreaseDebt,
       ),
       prepareChangeDebt: vi.fn(
-        (
-          _address: Address,
-          ...params: Parameters<typeof facade.prepareChangeDebt>
-        ) => facade.prepareChangeDebt(...params),
+        CreditAccountsServiceV310.prototype.prepareChangeDebt,
       ),
       prepareAddCollateral: vi.fn(
-        (
-          _address: Address,
-          ...params: Parameters<typeof facade.prepareAddCollateral>
-        ) => facade.prepareAddCollateral(...params),
+        CreditAccountsServiceV310.prototype.prepareAddCollateral,
       ),
       prepareWithdrawToken: vi.fn(
-        (
-          _address: Address,
-          ...params: Parameters<typeof facade.prepareWithdrawCollateral>
-        ) => facade.prepareWithdrawCollateral(...params),
+        CreditAccountsServiceV310.prototype.prepareWithdrawToken,
       ),
       prepareUpdateQuotas: vi.fn(
-        (
-          _address: Address,
-          ...params: Parameters<typeof facade.prepareUpdateQuotas>
-        ) => facade.prepareUpdateQuotas(...params),
+        CreditAccountsServiceV310.prototype.prepareUpdateQuotas,
       ),
       assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
       assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
@@ -773,6 +737,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     },
   } as unknown as OnchainSDK;
 
+  Object.assign(sdk.accounts, { sdk });
   Object.assign(sdk, { positions: new PositionsService(sdk) });
   return sdk;
 }

@@ -6,6 +6,7 @@ import { iUniswapV3AdapterAbi } from "../../market/adapters/abi/adapters/iUniswa
 import type { AccountSnapshot } from "../../positions/types.js";
 import type { MultiCall } from "../../types/transactions.js";
 import {
+  type ExecutionConstraint,
   evaluateExecutionConstraints,
   inspectMulticall,
 } from "./execution-constraints.js";
@@ -82,28 +83,47 @@ function snapshot(account: CreditAccountSlice = ca): AccountSnapshot {
   };
 }
 
+function expectConstraint(
+  constraints: ExecutionConstraint[],
+  expected: Pick<ExecutionConstraint, "id" | "status"> & {
+    issue?: { reason?: string; detail?: object };
+  },
+) {
+  expect(
+    constraints.find(c => c.id === expected.id && c.status === expected.status),
+  ).toMatchObject(expected);
+}
+
+function fixture(extras?: Parameters<typeof buildMarketSdk>[0], account = ca) {
+  const sdk = buildMarketSdk(extras);
+  return {
+    sdk,
+    oracle:
+      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.priceOracle,
+    creditAccount: account,
+    snapshot: snapshot(account),
+    calls: [MOCK_ROUTER_CALL],
+  };
+}
+
 describe("execution call requirements", () => {
-  it("classifies real adapter calls without a payout and accumulates true across a mixed route", () => {
-    const props = { sdk: buildMarketSdk(), creditAccount: ca };
-    expect(
-      inspectMulticall({ ...props, calls: [MOCK_ROUTER_CALL] }),
-    ).toMatchObject({ useSafePrices: true, revertOnForbiddenTokens: true });
-    expect(
-      inspectMulticall({ ...props, calls: [MOCK_RWA_WRAP_CALL] }),
-    ).toMatchObject({ useSafePrices: false, revertOnForbiddenTokens: false });
-    expect(
-      inspectMulticall({
-        ...props,
-        calls: [MOCK_ROUTER_CALL, MOCK_RWA_WRAP_CALL],
-      }),
-    ).toMatchObject({ useSafePrices: true, revertOnForbiddenTokens: true });
-    expect(
-      inspectMulticall({ ...props, calls: [CA_OP_CALLS.increaseDebt] }),
-    ).toMatchObject({ useSafePrices: false, revertOnForbiddenTokens: true });
-  });
+  it.each([
+    [[MOCK_ROUTER_CALL], true, true],
+    [[MOCK_RWA_WRAP_CALL], false, false],
+    [[MOCK_ROUTER_CALL, MOCK_RWA_WRAP_CALL], true, true],
+    [[CA_OP_CALLS.increaseDebt], false, true],
+  ] as const)(
+    "accumulates safe/forbidden flags for %j",
+    (calls, useSafePrices, revertOnForbiddenTokens) => {
+      expect(inspectMulticall({ ...fixture(), calls })).toMatchObject({
+        useSafePrices,
+        revertOnForbiddenTokens,
+      });
+    },
+  );
 
   it("resolves a diff no-op at equality but keeps post-external balances unknown", () => {
-    const props = { sdk: buildMarketSdk(), creditAccount: ca };
+    const props = fixture();
     expect(inspectMulticall({ ...props, calls: [diff] }).useSafePrices).toBe(
       false,
     );
@@ -118,7 +138,7 @@ describe("execution call requirements", () => {
       calls: [MOCK_RWA_WRAP_CALL, diff, MOCK_ROUTER_CALL],
     });
     expect(dominated.useSafePrices).toBe(true);
-    expect(dominated.constraints).toContainEqual({
+    expectConstraint(dominated.constraints, {
       id: "callPricing",
       status: "passed",
     });
@@ -133,19 +153,17 @@ describe("execution call requirements", () => {
         { ...MOCK_ROUTER_CALL, callData: "0xdeadbeef" },
       ],
     });
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "callPricing",
-        status: "unresolved",
-        issue: expect.objectContaining({
-          reason: "executionRequirementsUnavailable",
-          detail: expect.objectContaining({
-            callIndex: 1,
-            selector: "0xdeadbeef",
-          }),
-        }),
-      }),
-    );
+    expectConstraint(report.constraints, {
+      id: "callPricing",
+      status: "unresolved",
+      issue: {
+        reason: "executionRequirementsUnavailable",
+        detail: {
+          callIndex: 1,
+          selector: "0xdeadbeef",
+        },
+      },
+    });
   });
 });
 
@@ -154,16 +172,14 @@ describe("final enabled forbidden tokens", () => {
 
   it("forces safe prices for retained non-growing collateral and names balance growth separately", () => {
     const props = {
-      sdk: sdk(),
-      creditAccount: ca,
+      ...fixture({ forbiddenTokens: [POS] }),
       calls: [],
-      snapshot: snapshot(),
     };
     expect(evaluateExecutionConstraints(props)).toMatchObject({
       useSafePrices: true,
       revertOnForbiddenTokens: false,
     });
-    expect(evaluateExecutionConstraints(props).constraints).toContainEqual({
+    expectConstraint(evaluateExecutionConstraints(props).constraints, {
       id: "forbiddenTokens",
       status: "passed",
     });
@@ -171,7 +187,7 @@ describe("final enabled forbidden tokens", () => {
       ...snapshot(),
       assets: [{ token: POS, balance: 101n * unit }],
     };
-    expect(
+    expectConstraint(
       evaluateExecutionConstraints({
         ...props,
         calls: [
@@ -185,14 +201,13 @@ describe("final enabled forbidden tokens", () => {
         ],
         snapshot: grown,
       }).constraints,
-    ).toContainEqual(
-      expect.objectContaining({
+      {
         id: "forbiddenTokens",
         status: "failed",
-        issue: expect.objectContaining({
-          detail: expect.objectContaining({ violation: "balanceIncrease" }),
-        }),
-      }),
+        issue: {
+          detail: { violation: "balanceIncrease" },
+        },
+      },
     );
   });
 
@@ -208,15 +223,13 @@ describe("final enabled forbidden tokens", () => {
         calls: [MOCK_ROUTER_CALL],
         snapshot: snapshot(account),
       });
-      expect(report.constraints).toContainEqual(
-        expect.objectContaining({
-          id: "forbiddenTokens",
-          status: "failed",
-          issue: expect.objectContaining({
-            detail: expect.objectContaining({ violation: "enabled" }),
-          }),
-        }),
-      );
+      expectConstraint(report.constraints, {
+        id: "forbiddenTokens",
+        status: "failed",
+        issue: {
+          detail: { violation: "enabled" },
+        },
+      });
     }
   });
 
@@ -228,7 +241,7 @@ describe("final enabled forbidden tokens", () => {
       calls: [MOCK_ROUTER_CALL, quota(MIN_INT96)],
       snapshot: { ...snapshot(account), quotas: [] },
     });
-    expect(report.constraints).toContainEqual({
+    expectConstraint(report.constraints, {
       id: "forbiddenTokens",
       status: "passed",
     });
@@ -236,16 +249,13 @@ describe("final enabled forbidden tokens", () => {
 
   it("distinguishes actual close from multicall but still rejects immediate forbidden quota growth", () => {
     const props = {
-      sdk: sdk(),
-      creditAccount: ca,
-      calls: [MOCK_ROUTER_CALL],
-      snapshot: snapshot(),
+      ...fixture({ forbiddenTokens: [POS] }),
     };
     const closed = evaluateExecutionConstraints({
       ...props,
       entryPoint: "closeCreditAccount",
     });
-    expect(closed.constraints).toContainEqual({
+    expectConstraint(closed.constraints, {
       id: "collateral",
       status: "notApplicable",
     });
@@ -259,15 +269,13 @@ describe("final enabled forbidden tokens", () => {
       calls: [quota(1n)],
       entryPoint: "closeCreditAccount",
     });
-    expect(illegal.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "forbiddenTokens",
-        status: "failed",
-        issue: expect.objectContaining({
-          detail: expect.objectContaining({ violation: "quotaIncrease" }),
-        }),
-      }),
-    );
+    expectConstraint(illegal.constraints, {
+      id: "forbiddenTokens",
+      status: "failed",
+      issue: {
+        detail: { violation: "quotaIncrease" },
+      },
+    });
   });
 
   it("starts opening from the underlying mask and accounts for encoded quota increases", () => {
@@ -283,175 +291,131 @@ describe("final enabled forbidden tokens", () => {
       ...props,
       calls: [CA_OP_CALLS.increaseDebt, quota(unit)],
     });
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "forbiddenTokens",
-        status: "failed",
-        issue: expect.objectContaining({
-          detail: expect.objectContaining({ violation: "quotaIncrease" }),
-        }),
-      }),
-    );
+    expectConstraint(report.constraints, {
+      id: "forbiddenTokens",
+      status: "failed",
+      issue: {
+        detail: { violation: "quotaIncrease" },
+      },
+    });
   });
 });
 
 describe("strict collateral valuation", () => {
   it("treats absent reserves as zero without reading a bad main collateral answer", () => {
-    const sdk = buildMarketSdk({ reservePrices: {} });
-    const oracle =
-      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.priceOracle;
+    const props = fixture({ reservePrices: {} });
+    const { oracle } = props;
     const main = oracle.mainPrice.bind(oracle);
     const read = vi.spyOn(oracle, "mainPrice").mockImplementation(token => {
       if (token === POS) throw new Error("stale");
       return main(token);
     });
-    const report = evaluateExecutionConstraints({
-      sdk,
-      creditAccount: ca,
-      calls: [MOCK_ROUTER_CALL],
-      snapshot: snapshot(),
+    const report = evaluateExecutionConstraints(props);
+    expectConstraint(report.constraints, {
+      id: "collateral",
+      status: "failed",
+      issue: { reason: "insufficientCollateral" },
     });
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "collateral",
-        status: "failed",
-        issue: expect.objectContaining({ reason: "insufficientCollateral" }),
-      }),
-    );
     expect(read).not.toHaveBeenCalledWith(POS);
   });
 
   it("reports a configured invalid reserve instead of presenting it as zero collateral", () => {
-    const sdk = buildMarketSdk();
-    const oracle =
-      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.priceOracle;
+    const props = fixture();
+    const { oracle } = props;
     vi.spyOn(oracle, "reservePrice").mockImplementation(() => {
       throw new Error("stale");
     });
-    const report = evaluateExecutionConstraints({
-      sdk,
-      creditAccount: ca,
-      calls: [MOCK_ROUTER_CALL],
-      snapshot: snapshot(),
+    const report = evaluateExecutionConstraints(props);
+    expectConstraint(report.constraints, {
+      id: "collateral",
+      status: "failed",
+      issue: {
+        reason: "invalidPriceFeed",
+        detail: { token: POS, feed: "reserve" },
+      },
     });
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "collateral",
-        status: "failed",
-        issue: {
-          reason: "invalidPriceFeed",
-          detail: { token: POS, feed: "reserve" },
-        },
-      }),
-    );
   });
 
   it("uses main pricing for underlying even with no reserve", () => {
-    const sdk = buildMarketSdk({ reservePrices: {} });
     const account = buildFixtureCreditAccount({
       totalDebt: 50n * unit,
       tokens: [caToken(UND, 100n * unit)],
     });
-    const oracle =
-      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.priceOracle;
+    const props = fixture({ reservePrices: {} }, account);
+    const { oracle } = props;
     const read = vi.spyOn(oracle, "reservePrice");
-    expect(
-      evaluateExecutionConstraints({
-        sdk,
-        creditAccount: account,
-        calls: [MOCK_ROUTER_CALL],
-        snapshot: snapshot(account),
-      }).constraints,
-    ).toContainEqual(
-      expect.objectContaining({ id: "collateral", status: "passed" }),
-    );
+    expectConstraint(evaluateExecutionConstraints(props).constraints, {
+      id: "collateral",
+      status: "passed",
+    });
     expect(read).not.toHaveBeenCalled();
   });
 
   it("honors a raised full-check HF rather than the default facade threshold", () => {
-    const props = {
-      sdk: buildMarketSdk(),
-      creditAccount: ca,
-      snapshot: snapshot(),
-    };
-    expect(
+    const props = fixture();
+    expectConstraint(
       evaluateExecutionConstraints({ ...props, calls: [] }).constraints,
-    ).toContainEqual(
-      expect.objectContaining({ id: "collateral", status: "passed" }),
+      { id: "collateral", status: "passed" },
     );
     const report = evaluateExecutionConstraints({
       ...props,
       calls: [fullCheck(20000)],
     });
     expect(report.minHealthFactor).toBe(20000);
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "collateral",
-        status: "failed",
-        issue: expect.objectContaining({
-          detail: expect.objectContaining({ required: 20000 }),
-        }),
-      }),
-    );
+    expectConstraint(report.constraints, {
+      id: "collateral",
+      status: "failed",
+      issue: {
+        detail: { required: 20000 },
+      },
+    });
   });
 
   it("does not read later invalid feeds once earlier collateral meets the target", () => {
-    const sdk = buildMarketSdk();
     const account = buildFixtureCreditAccount({
       totalDebt: 50n * unit,
       tokens: [...ca.tokens, caToken(POS2, 100n * unit, 1000n * unit)],
     });
-    const oracle =
-      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.priceOracle;
+    const props = fixture(undefined, account);
+    const { oracle } = props;
     const reserve = oracle.reservePrice.bind(oracle);
     const read = vi.spyOn(oracle, "reservePrice").mockImplementation(token => {
       if (token === POS2) throw new Error("stale");
       return reserve(token);
     });
-    const props = { sdk, creditAccount: account, snapshot: snapshot(account) };
-    expect(
+    expectConstraint(
       evaluateExecutionConstraints({ ...props, calls: [MOCK_ROUTER_CALL] })
         .constraints,
-    ).toContainEqual(
-      expect.objectContaining({ id: "collateral", status: "passed" }),
+      { id: "collateral", status: "passed" },
     );
     expect(read).not.toHaveBeenCalledWith(POS2);
     const pos2Mask = caToken(POS2, 0n).mask;
-    expect(
+    expectConstraint(
       evaluateExecutionConstraints({
         ...props,
         calls: [MOCK_ROUTER_CALL, fullCheck(10000, [pos2Mask])],
       }).constraints,
-    ).toContainEqual(
-      expect.objectContaining({
+      {
         id: "collateral",
         status: "failed",
         issue: {
           reason: "invalidPriceFeed",
           detail: { token: POS2, feed: "reserve" },
         },
-      }),
+      },
     );
   });
 
   it("does not read any feed for zero debt", () => {
-    const sdk = buildMarketSdk();
-    const oracle =
-      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.priceOracle;
+    const props = fixture(undefined, { ...ca, totalDebt: 0n });
+    const { oracle } = props;
     const read = vi.spyOn(oracle, "mainPrice").mockImplementation(() => {
       throw new Error("stale");
     });
-    const account = { ...ca, totalDebt: 0n };
-    expect(
-      evaluateExecutionConstraints({
-        sdk,
-        creditAccount: account,
-        snapshot: snapshot(account),
-        calls: [MOCK_ROUTER_CALL],
-      }).constraints,
-    ).toContainEqual(
-      expect.objectContaining({ id: "collateral", status: "passed" }),
-    );
+    expectConstraint(evaluateExecutionConstraints(props).constraints, {
+      id: "collateral",
+      status: "passed",
+    });
     expect(read).not.toHaveBeenCalled();
   });
 
@@ -462,15 +426,13 @@ describe("strict collateral valuation", () => {
       snapshot: snapshot(),
       calls: [MOCK_RWA_WRAP_CALL],
     });
-    expect(report.constraints).toContainEqual(
-      expect.objectContaining({
-        id: "forbiddenTokens",
-        status: "unresolved",
-        issue: expect.objectContaining({
-          reason: "executionRequirementsUnavailable",
-        }),
-      }),
-    );
+    expectConstraint(report.constraints, {
+      id: "forbiddenTokens",
+      status: "unresolved",
+      issue: {
+        reason: "executionRequirementsUnavailable",
+      },
+    });
     expect(report.useSafePrices).toBe(true);
   });
 });

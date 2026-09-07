@@ -62,15 +62,22 @@ export interface LeverageLimitReport {
 function knownMax<T extends bigint | number>(
   constraints: LimitConstraint<T>[],
 ): T | undefined {
-  return constraints.reduce<T | undefined>(
-    (max, c) =>
-      c.max === undefined
-        ? max
-        : max === undefined || c.max < max
-          ? c.max
-          : max,
-    undefined,
-  );
+  let max: T | undefined;
+  for (const c of constraints) {
+    if (c.max !== undefined && (max === undefined || c.max < max)) max = c.max;
+  }
+  return max;
+}
+
+function marketConstraint<T extends bigint | number>(
+  blocked: boolean,
+  zero: T,
+): LimitConstraint<T> {
+  return {
+    id: "market",
+    status: "calculated",
+    ...(blocked ? { max: zero, reason: "Market is paused or expired" } : {}),
+  };
 }
 
 /** Fixed-debt withdrawal, valued with the same safe prices as preparation. */
@@ -86,13 +93,7 @@ export function withdrawCollateralLimits(
   try {
     const suite = sdk.marketRegister.findCreditManager(ca.creditManager);
     const oracle = suite.market.priceOracle;
-    constraints.push({
-      id: "market",
-      status: "calculated",
-      ...(suite.isPaused || suite.isExpired
-        ? { max: 0n, reason: "Market is paused or expired" }
-        : {}),
-    });
+    constraints.push(marketConstraint(suite.isPaused || suite.isExpired, 0n));
     const forbidden = suite.forbiddenTokens.some(f =>
       ca.tokens.some(
         t => eq(f, t.token) && (t.mask & ca.enabledTokensMask) !== 0n,
@@ -165,13 +166,7 @@ export function withdrawStrategyLimits({
   let exit: bigint | undefined;
   try {
     const suite = sdk.marketRegister.findCreditManager(ca.creditManager);
-    constraints.push({
-      id: "market",
-      status: "calculated",
-      ...(suite.isPaused || suite.isExpired
-        ? { max: 0n, reason: "Market is paused or expired" }
-        : {}),
-    });
+    constraints.push(marketConstraint(suite.isPaused || suite.isExpired, 0n));
     for (const t of ca.tokens) {
       if (
         t.balance > 0n &&
@@ -222,13 +217,7 @@ export function leverageLimits(props: LeverageBandProps): LeverageLimitReport {
       props.creditManager,
     );
     const { market } = suite;
-    constraints.push({
-      id: "market",
-      status: "calculated",
-      ...(suite.isPaused || suite.isExpired
-        ? { max: 0, reason: "Market is paused or expired" }
-        : {}),
-    });
+    constraints.push(marketConstraint(suite.isPaused || suite.isExpired, 0));
     try {
       const target = suite.strategyTargetCollateral;
       if (!target) throw new Error("No strategy target");

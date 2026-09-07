@@ -205,10 +205,28 @@ prices when required by the complete call body. `safePrices` says
 which, so it differing from the projection's `healthFactor` is not a
 contradiction — the safe factor is reported there as `safeHealthFactor`.
 
-Executable results also carry `executionConstraints`; refusals retain the same
-report when evaluation reached the assembled calls. An early input or routing
-failure has no complete report. See [execution constraints](./execution-constraints.md)
-for the upfront limits API and the developer review checklist.
+## Execution constraints and upfront limits
+
+`executionConstraints` describes the executable operation separately from its
+display projection: pricing flags, minimum HF, and independently evaluated
+constraints with `passed`, `failed`, `unresolved` or `notApplicable` status.
+Failures retain typed `issue.detail`; collateral reports basis-point `actual`
+and `required`. `checkedHealthFactor` is capped once the lazy check passes.
+Refusals retain the first error and attach the other evaluated constraints.
+Early input/routing failures may have no report; absence does not mean passed.
+
+`prepare.withdrawCollateralLimits(position, token)`,
+`prepare.withdrawStrategyLimits(position)` and
+`prepare.leverageLimits(strategy, collateral, targetHF)` expose individual caps
+and their minimum known `max`, in input units. **`complete: false` means a
+preliminary bound, not an executable Max**: prepare the amount to resolve quota
+refreshes and routing. Withdrawals require safe prices; opening depends on its
+route. Partial withdrawal's `exit` is a separate oracle estimate, not its cap.
+
+Unknown adapter behavior is `executionRequirementsUnavailable`; an invalid
+required configured feed is `invalidPriceFeed`. See [adapter source notes](../adapter-safe-prices.md).
+Checks use loaded state and route guarantees; future delayed tails remain
+estimates until their matured claims are prepared.
 
 ## Two routes for the flows that sell
 
