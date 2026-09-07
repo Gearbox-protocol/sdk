@@ -2,6 +2,9 @@
 
 Status: proposed product behavior. Scope: calculator and the forms consuming it.
 
+Supporting design: [intent flow and suggested result shape](../intents/README.md#proposed-execution-constraints-and-upfront-limits),
+[opening](../intents/open-strategy.md#notes), and [adapter source notes](../adapter-safe-prices.md).
+
 ## Problem and outcome
 
 A user can see a healthy position and a plausible withdrawal or leverage amount,

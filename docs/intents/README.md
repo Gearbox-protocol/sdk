@@ -4,6 +4,10 @@ Every operation the intent calculator can preview on a credit account, drawn as
 a graph: the cases a request splits into, the facade calls each case assembles,
 and the arithmetic the amounts come from.
 
+Pricing-check updates on these pages describe the proposed
+[action eligibility design](../plans/action-limits-and-execution-eligibility.md).
+They are not implemented by this documentation-only PR.
+
 Code: [`src/onchain/accounts/intents`](../../src/onchain/accounts/intents). Public
 surface: `sdk.opportunities.prepare` (see
 [`src/sdk/prepare`](../../src/sdk/prepare)).
@@ -33,7 +37,7 @@ flowchart TD
   growth{"any balance grown that must not?"}
   quota["quota update: cleared by the plan,<br/>or sized to the projected balances"]
   head{"quota headroom left in the market?"}
-  hf{"projected health factor >= 1.0?<br/>safe prices when funds leave"}
+  hf{"floor collateral meets the facade threshold?<br/>pricing derived from ordered calls"}
   ok["ok: operations + state + calls"]
   no["ok: false, reason"]
 
@@ -108,9 +112,11 @@ debt including accrued interest and fees, `L` total leverage scaled by
 | `A_max`: largest `A` with `HF` at or above `MIN_HF_LIMITED + 2` once `A` of one token leaves — the same `HF` above, at safe prices, solved for that balance | `maxWithdrawCollateral` | `calcMaxWithdrawCollateral` |
 
 Prices come from the market oracle, RWA-aware (a wrapper and its asset convert
-1:1 up to decimals). A call that hands funds over is judged at **safe prices** —
-the lower of a token's main and reserve feed — because that is what the credit
-manager does. Both factors are reported either way: `healthFactor` at main
+1:1 up to decimals). Withdrawal and an adapter returning `true` require **safe
+prices**, even without a wallet payout. Retaining an enabled forbidden token
+also requires safe prices if the facade permits its balance to remain. Safe
+prices use the lower main/reserve answer, missing reserves contribute zero,
+and the underlying always uses main prices. Both factors are reported: `healthFactor` at main
 prices, `safeHealthFactor` beside it, since which one decides a transaction is a
 property of the call that ends up being sent.
 
@@ -199,9 +205,42 @@ One table, two spellings of it: `PrepareApi` is the only place that converts.
 | `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `required`, `safePrices` |
 
 `insufficientCollateral`'s `healthFactor` is the factor the check compared: safe
-prices for a call that hands funds over, main prices otherwise. `safePrices` says
+prices when required by the complete call body. `safePrices` says
 which, so it differing from the projection's `healthFactor` is not a
 contradiction — the safe factor is reported there as `safeHealthFactor`.
+
+## Proposed execution constraints and upfront limits
+
+The following names illustrate a result shape; final API naming is left to
+development. The design separates call requirements, floor validation and UI limits.
+
+| Action condition | Safe pricing | Reject remaining enabled forbidden tokens |
+| --- | --- | --- |
+| Withdrawal or adapter returning true | Required | Yes |
+| Debt increase alone | Not by itself | Yes |
+| Permitted retained forbidden holding | Required | Balance must not increase |
+| Actual account close | Final collateral check skipped | Apply close-specific rules |
+
+`executionConstraints` describes the executable operation separately from its
+display projection: pricing flags, minimum HF, and independently evaluated
+constraints with `passed`, `failed`, `unresolved` or `notApplicable` status.
+Failures retain typed `issue.detail`; collateral reports basis-point `actual`
+and `required`. `checkedHealthFactor` is capped once the lazy check passes.
+Refusals retain the first error and attach the other evaluated constraints.
+Early input/routing failures may have no report; absence does not mean passed.
+
+`prepare.withdrawCollateralLimits(position, token)`,
+`prepare.withdrawStrategyLimits(position)` and
+`prepare.leverageLimits(strategy, collateral, targetHF)` expose individual caps
+and their minimum known `max`, in input units. **`complete: false` means a
+preliminary bound, not an executable Max**: prepare the amount to resolve quota
+refreshes and routing. Withdrawals require safe prices; opening depends on its
+route. Partial withdrawal's `exit` is a separate oracle estimate, not its cap.
+
+Unknown adapter behavior is `executionRequirementsUnavailable`; an invalid
+required configured feed is `invalidPriceFeed`. See [adapter source notes](../adapter-safe-prices.md).
+Checks use loaded state and route guarantees; future delayed tails remain
+estimates until their matured claims are prepared.
 
 ## Two routes for the flows that sell
 
