@@ -251,6 +251,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x5A93bc6983F80f5c55675eA4e77bb46DdC9665e8",
         "0x5415092F06403F30486EF846dBAE0532c6Bd8759",
         "0x9D866298f6B8E168a06e313D47059f2C097A92F1",
+        "0x0F4e4432977Bbf3962322996F1c9aeFdBC62256d",
       ]),
       isPublic: true,
       wellKnownToken: {
