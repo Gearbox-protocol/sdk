@@ -1,7 +1,11 @@
 import {
   asEstimated,
   type ExitStrategyPositionPreview,
+  isSDKError,
+  type MalformedTransactionError,
   type RepayStrategyPositionPreview,
+  type SDKReturn,
+  sdkOk,
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
@@ -14,15 +18,9 @@ import type {
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
-import type {
-  PreviewOperationInput,
-  PreviewOperationOptions,
-} from "../types.js";
+import type { PreviewOperationInput } from "../types.js";
 import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
-import {
-  type ReplayMulticallResult,
-  replayMulticall,
-} from "./replayMulticall.js";
+import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 /**
@@ -39,8 +37,11 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: CloseOrRepayOperation,
   permanent: boolean,
-  options: PreviewOperationOptions<true>,
-): ExitStrategyPositionPreview | RepayStrategyPositionPreview {
+  replay: ReplayMulticallResult,
+): SDKReturn<
+  ExitStrategyPositionPreview | RepayStrategyPositionPreview,
+  MalformedTransactionError
+> {
   const { sdk } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -54,10 +55,9 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
     exitTokens.push(meta.asset);
   }
 
-  const replay = replayMulticall(sdk, operation, options);
   const kind = classifyCloseOrRepay(operation.multicall, exitTokens);
   return kind === "close"
-    ? previewCloseCreditAccount(input, operation, permanent, replay)
+    ? sdkOk(previewCloseCreditAccount(input, operation, permanent, replay))
     : previewRepayCreditAccount(input, operation, permanent, replay);
 }
 
@@ -77,14 +77,12 @@ function previewCloseCreditAccount<P extends PluginsMap>(
     operation.creditManager,
   );
 
-  const { before, after, warning: replayWarning } = replay;
+  const { before, after } = replay;
   const account = after.account;
-  let warning = replayWarning;
   const priced = market.priceOracle.safeConvertAssets(
     account.balances.toAssets(),
     market.underlying,
   );
-  warning ??= priced.error;
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
   // in case of RWA markets, withdrawn token might be underlying (dcUSDC)
@@ -108,13 +106,11 @@ function previewCloseCreditAccount<P extends PluginsMap>(
     creditAccount: operation.creditAccount,
     name: suite.accountStrategyName(operation.creditAccount),
     targetCollateral: suite.accountTargetCollateral(operation.creditAccount),
-    // On a malformed multicall the withdrawn amount depends on best-effort
-    // replayed balances and may be unreliable
     receivedAmount: market.priceOracle.toTokenAmount(
       receivedToken,
       after.collateralWithdrawn.getOrZero(receivedToken),
     ),
-    warning,
+    warning: priced.error,
   };
 }
 
@@ -128,30 +124,31 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
-): RepayStrategyPositionPreview {
+): SDKReturn<RepayStrategyPositionPreview, MalformedTransactionError> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
 
-  const { before, after, warning: replayWarning } = replay;
+  const { before, after } = replay;
   const account = after.account;
 
-  const { assets: collateralAdded, warning: unwrapWarning } =
-    unwrapNativeCollateral(
-      after.collateralAdded.toAssets(),
-      value,
-      sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
-    );
-  let warning = replayWarning ?? unwrapWarning;
+  const unwrapped = unwrapNativeCollateral(
+    after.collateralAdded.toAssets(),
+    value,
+    sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
+  );
+  if (isSDKError(unwrapped)) {
+    return unwrapped;
+  }
+  const collateralAdded = unwrapped.data;
   const priced = market.priceOracle.safeConvertAssets(
     account.balances.toAssets(),
     market.underlying,
   );
-  warning ??= priced.error;
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
 
-  return {
+  return sdkOk({
     operation: "RepayCreditAccount",
     permanent,
     ...asEstimated(
@@ -166,11 +163,9 @@ function previewRepayCreditAccount<P extends PluginsMap>(
       market.priceOracle.toTokenAmount(a.token, a.balance),
     ),
     debtRepaid: market.toUnderlyingAmount(before.totalDebt - account.totalDebt),
-    // On a malformed multicall the MAX_UINT256 withdrawal sentinel resolves
-    // against best-effort replayed balances and may be unreliable
     collateralWithdrawn: after.collateralWithdrawn
       .toAssets()
       .map(a => market.priceOracle.toTokenAmount(a.token, a.balance)),
-    warning,
-  };
+    warning: priced.error,
+  });
 }

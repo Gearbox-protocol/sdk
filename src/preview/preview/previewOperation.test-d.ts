@@ -1,26 +1,24 @@
 import type { Address, Hex } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
-import type { OperationPreview, SDKReturn } from "../../model/index.js";
-import {
-  type ClientOptions,
-  type InvalidDelayedIntentError,
-  OnchainSDK,
-} from "../../onchain/index.js";
+import type {
+  CreditAccountNotFoundError,
+  InvalidDelayedIntentError,
+  MalformedTransactionError,
+  OperationPreview,
+  PoolOperationPreviewError,
+  SDKReturn,
+  UnsupportedOperationError,
+  UnsupportedPoolFunctionError,
+  UnsupportedTargetError,
+  UnsupportedZapperFunctionError,
+} from "../../model/index.js";
+import { UnsupportedTargetError as UnsupportedTargetValue } from "../../model/index.js";
+import { type ClientOptions, OnchainSDK } from "../../onchain/index.js";
 // @ts-expect-error IntentPreviewError left the public validation barrel: the
 // engine keeps it internally (raise.js), the public surface answers error
 // objects instead.
 import { IntentPreviewError } from "../../onchain/validation/index.js";
 import { BotsPlugin } from "../../plugins/bots/index.js";
-import type {
-  UnsupportedPoolFunctionError,
-  UnsupportedTargetError,
-  UnsupportedZapperFunctionError,
-} from "../parse/errors.js";
-import { UnsupportedTargetError as UnsupportedTargetValue } from "../parse/errors.js";
-import type {
-  PoolOperationPreviewError,
-  UnsupportedOperationError,
-} from "./errors.js";
 import { previewOperation } from "./previewOperation.js";
 
 void IntentPreviewError;
@@ -68,6 +66,8 @@ describe("previewOperation result envelope", () => {
         | UnsupportedOperationError
         | InvalidDelayedIntentError
         | PoolOperationPreviewError
+        | MalformedTransactionError
+        | CreditAccountNotFoundError
       >
     >();
   });
@@ -89,6 +89,8 @@ describe("previewOperation result envelope", () => {
         | "unsupportedOperation"
         | "invalidDelayedIntent"
         | "poolOperationPreviewError"
+        | "malformedTransaction"
+        | "creditAccountNotFound"
       >();
     }
   });

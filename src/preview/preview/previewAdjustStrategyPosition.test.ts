@@ -7,7 +7,7 @@ import {
   type Hex,
   parseEther,
 } from "viem";
-import { beforeAll, expect, it } from "vitest";
+import { beforeAll, expect, it, vi } from "vitest";
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
@@ -536,4 +536,63 @@ it("reports the health factor at both pricings", async () => {
   expect(result.estSafeHealthFactor).toBeLessThanOrEqual(
     result.estHealthFactor,
   );
+});
+
+it("answers malformedTransaction for an unmatched storeExpectedBalances", async () => {
+  const calldata = encodeFunctionData({
+    abi: iCreditFacadeV310Abi,
+    functionName: "multicall",
+    args: [
+      CREDIT_ACCOUNT,
+      [
+        {
+          target: FACADE,
+          callData: encodeFunctionData({
+            abi: iCreditFacadeMulticallV310Abi,
+            functionName: "storeExpectedBalances",
+            args: [[]],
+          }),
+        },
+      ],
+    ],
+  });
+
+  const answer = await previewOperation(
+    { sdk, to: FACADE, calldata, sender: OWNER, value: 0n },
+    { creditAccount },
+  );
+  expect(answer.ok).toBe(false);
+  if (answer.ok) {
+    throw new Error("expected a refusal");
+  }
+  expect(answer.error.code).toBe("malformedTransaction");
+});
+
+it("answers creditAccountNotFound when the account cannot be resolved", async () => {
+  const spy = vi
+    .spyOn(sdk.accounts, "getCreditAccountData")
+    .mockResolvedValue(undefined);
+  const OP: Hex =
+    "0xebe4107c000000000000000000000000e22ced1808c22455747f366cf94d45b3201302d30000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000009515ab9bb73a9642f1a93ba7c2790e9d08227f9a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000242b7c7b1100000000000000000000000000000000000000000000000015d9165eda4bb6e000000000000000000000000000000000000000000000000000000000";
+
+  try {
+    const answer = await previewOperation({
+      sdk,
+      to: FACADE,
+      calldata: OP,
+      sender: OWNER,
+      value: 0n,
+    });
+    expect(answer.ok).toBe(false);
+    if (answer.ok) {
+      throw new Error("expected a refusal");
+    }
+    expect(answer.error).toEqual({
+      code: "creditAccountNotFound",
+      creditAccount: CREDIT_ACCOUNT,
+      message: `Credit account not found: ${CREDIT_ACCOUNT}.`,
+    });
+  } finally {
+    spy.mockRestore();
+  }
 });

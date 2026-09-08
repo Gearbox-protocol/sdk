@@ -1,7 +1,11 @@
 import type { Address, Hex } from "viem";
-import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
+import {
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+  type UnsupportedPoolFunctionError,
+} from "../../model/index.js";
 import type { OnchainSDK, PoolV310Contract } from "../../onchain/index.js";
-import type { UnsupportedPoolFunctionError } from "./errors.js";
 import type { PoolOperation } from "./types.js";
 
 /**

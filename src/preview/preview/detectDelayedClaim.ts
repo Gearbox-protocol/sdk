@@ -1,7 +1,9 @@
 import type { Address } from "viem";
-import type { DelayedIntent } from "../../model/index.js";
+import type {
+  DelayedIntent,
+  InvalidDelayedIntentError,
+} from "../../model/index.js";
 import { type SDKReturn, sdkOk } from "../../model/index.js";
-import type { InvalidDelayedIntentError } from "../../onchain/index.js";
 import {
   AbstractAdapterContract,
   type OnchainSDK,

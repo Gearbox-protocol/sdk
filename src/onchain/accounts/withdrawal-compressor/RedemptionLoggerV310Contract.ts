@@ -1,10 +1,12 @@
 import type { Address } from "viem";
 import { iRedemptionLoggerV310Abi } from "../../../abi/iRedemptionLoggerV310.js";
-import type { DelayedIntent } from "../../../model/index.js";
+import type {
+  DelayedIntent,
+  InvalidDelayedIntentError,
+} from "../../../model/index.js";
 import { type SDKReturn, sdkErr, sdkOk } from "../../../model/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import type { InvalidDelayedIntentError } from "./errors.js";
 import { decodeDelayedIntent } from "./intent-codec.js";
 import type { IRedemptionLoggerContract, RedemptionLog } from "./types.js";
 
@@ -68,8 +70,6 @@ export class RedemptionLoggerV310Contract
         code: "invalidDelayedIntent",
         message: `cannot decode delayed intent from extraData ${log.extraData}`,
         extraData: log.extraData,
-        // The same normalisation decodeSimulationError applies: a non-Error
-        // reason is kept, stringified, rather than dropped.
         cause: e instanceof Error ? e : new Error(String(e)),
       } satisfies InvalidDelayedIntentError);
     }

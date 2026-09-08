@@ -8,6 +8,5 @@ export * from "./checkMarketExpired.js";
 export * from "./checkPoolLiquidity.js";
 export * from "./checkPoolPaused.js";
 export * from "./checkPoolSunset.js";
-export * from "./checkPreviewError.js";
 export * from "./checkQuotaCount.js";
 export * from "./checkQuotaLimit.js";

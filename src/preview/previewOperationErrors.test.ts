@@ -1,4 +1,4 @@
-// D1 (preview errors cleanup): the clean-surface spec of the six preview
+// D1 (preview errors cleanup): the clean-surface spec of the eight preview
 // refusal errors. Each is an interface alone — raise sites build the literal
 // (`satisfies`), nothing constructs them for callers. Payloads are pinned
 // exactly (toEqual) so the answered dictionary cannot drift.
@@ -22,6 +22,8 @@ describe("preview barrel surface", () => {
       "UnsupportedOperationError",
       "InvalidDelayedIntentError",
       "PoolOperationPreviewError",
+      "MalformedTransactionError",
+      "CreditAccountNotFoundError",
       "IntentPreviewError",
       "isPreviewOperationError",
       // and no factory took their place — raise sites build literals
@@ -31,6 +33,8 @@ describe("preview barrel surface", () => {
       "unsupportedOperation",
       "invalidDelayedIntent",
       "poolOperationPreviewError",
+      "malformedTransaction",
+      "creditAccountNotFound",
     ]) {
       expect(name in previewBarrel, name).toBe(false);
     }

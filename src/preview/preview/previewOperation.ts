@@ -1,22 +1,26 @@
 import type { OperationPreview } from "../../model/index.js";
 import {
+  type CreditAccountNotFoundError,
+  creditAccountNotFound,
+  type InstantStrategyPositionOperationPreview,
+  type InvalidDelayedIntentError,
   isSDKError,
+  type MalformedTransactionError,
+  type PoolOperationPreviewError,
   type SDKReturn,
   sdkErr,
   sdkOk,
+  type UnsupportedOperationError,
+  type UnsupportedPoolFunctionError,
+  type UnsupportedTargetError,
+  type UnsupportedZapperFunctionError,
 } from "../../model/index.js";
-import type {
-  InvalidDelayedIntentError,
-  PluginsMap,
-} from "../../onchain/index.js";
+import type { PluginsMap } from "../../onchain/index.js";
 import {
   isPoolOperation,
   type MulticallOperation,
   parseOperationCalldata,
   type RWAMulticallOperation,
-  type UnsupportedPoolFunctionError,
-  type UnsupportedTargetError,
-  type UnsupportedZapperFunctionError,
 } from "../parse/index.js";
 import type {
   PreviewOperationInput,
@@ -26,10 +30,6 @@ import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStra
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
-import type {
-  PoolOperationPreviewError,
-  UnsupportedOperationError,
-} from "./errors.js";
 import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
 import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
@@ -37,6 +37,7 @@ import { previewOpenStrategyPosition } from "./previewOpenStrategyPosition.js";
 import { previewPoolPositionOperation } from "./previewPoolPositionOperation.js";
 import {
   type ReplayableOperation,
+  type ReplayMulticallResult,
   replayMulticall,
 } from "./replayMulticall.js";
 
@@ -51,7 +52,9 @@ export type PreviewOperationError =
   | UnsupportedZapperFunctionError
   | UnsupportedOperationError
   | InvalidDelayedIntentError
-  | PoolOperationPreviewError;
+  | PoolOperationPreviewError
+  | MalformedTransactionError
+  | CreditAccountNotFoundError;
 
 /**
  * Previews a raw operation calldata: decodes it into a typed operation and
@@ -60,8 +63,8 @@ export type PreviewOperationError =
  * Answers an {@link SDKReturn} envelope: the preview behind `ok: true`, or —
  * when the transaction is one the previewer refuses to read — a
  * {@link PreviewOperationError} behind `ok: false`. A thrown exception
- * still means the SDK could not do its job (a read failed, the targeted
- * credit account could not be resolved), not a refusal of the transaction.
+ * still means the SDK could not do its job (a read failed), not a refusal
+ * of the transaction.
  */
 export async function previewOperation<P extends PluginsMap = PluginsMap>(
   input: PreviewOperationInput<P>,
@@ -81,17 +84,27 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     operation.operation === "OpenCreditAccount" ||
     operation.operation === "RWAOpenCreditAccount"
   ) {
-    return sdkOk(await previewOpenStrategyPosition(input, operation));
+    return previewOpenStrategyPosition(input, operation);
   }
 
   if (operation.operation === "CloseCreditAccount") {
     const resolved = await resolveCreditAccount(input, operation, options);
+    if (isSDKError(resolved)) {
+      return resolved;
+    }
+    const replayed = replayMulticall(input.sdk, operation, resolved.data);
+    if (isSDKError(replayed)) {
+      return replayed;
+    }
     const preview = previewExitOrRepayStrategyPosition(
       input,
       operation,
       true,
-      resolved,
+      replayed.data,
     );
+    if (isSDKError(preview)) {
+      return preview;
+    }
     const intent = await resolveDelayedClaimIntent(
       input.sdk,
       operation.multicall,
@@ -100,9 +113,9 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     if (isSDKError(intent)) {
       return intent;
     }
-    preview.intent = intent.data;
+    preview.data.intent = intent.data;
 
-    return sdkOk(preview);
+    return preview;
   }
 
   if (
@@ -111,7 +124,19 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     operation.operation === "RWAMulticall"
   ) {
     const resolved = await resolveCreditAccount(input, operation, options);
-    return previewMulticallOperation(input, operation, resolved);
+    if (isSDKError(resolved)) {
+      return resolved;
+    }
+    const replayed = replayMulticall(input.sdk, operation, resolved.data);
+    if (isSDKError(replayed)) {
+      return replayed;
+    }
+    return previewMulticallOperation(
+      input,
+      operation,
+      replayed.data,
+      options?.blockNumber,
+    );
   }
 
   return sdkErr({
@@ -130,7 +155,9 @@ async function resolveCreditAccount<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: ReplayableOperation,
   options?: PreviewOperationOptions,
-): Promise<PreviewOperationOptions<true>> {
+): Promise<
+  SDKReturn<PreviewOperationOptions<true>, CreditAccountNotFoundError>
+> {
   let creditAccount = options?.creditAccount;
   if (!creditAccount) {
     creditAccount = await input.sdk.accounts.getCreditAccountData(
@@ -139,9 +166,9 @@ async function resolveCreditAccount<P extends PluginsMap>(
     );
   }
   if (!creditAccount) {
-    throw new Error(`credit account ${operation.creditAccount} not found`);
+    return sdkErr(creditAccountNotFound(operation.creditAccount));
   }
-  return { ...options, creditAccount };
+  return sdkOk({ ...options, creditAccount });
 }
 
 /**
@@ -154,15 +181,32 @@ async function resolveCreditAccount<P extends PluginsMap>(
 async function previewMulticallOperation<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: MulticallOperation | RWAMulticallOperation,
-  options: PreviewOperationOptions<true>,
+  replay: ReplayMulticallResult,
+  blockNumber?: bigint,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
   const { sdk } = input;
 
   // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
   // zero-debt closure/repay: the account stays open but debt is cleared.
-  const instantPreview = isCloseOrRepay(operation.multicall)
-    ? previewExitOrRepayStrategyPosition(input, operation, false, options)
-    : previewAdjustStrategyPosition(input, operation, options);
+  let instantPreview: InstantStrategyPositionOperationPreview;
+  if (isCloseOrRepay(operation.multicall)) {
+    const instant = previewExitOrRepayStrategyPosition(
+      input,
+      operation,
+      false,
+      replay,
+    );
+    if (isSDKError(instant)) {
+      return instant;
+    }
+    instantPreview = instant.data;
+  } else {
+    const instant = previewAdjustStrategyPosition(input, operation, replay);
+    if (isSDKError(instant)) {
+      return instant;
+    }
+    instantPreview = instant.data;
+  }
 
   const detected = detectDelayedOperation(sdk, operation.multicall);
   if (isSDKError(detected)) {
@@ -176,7 +220,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
     const intent = await resolveDelayedClaimIntent(
       sdk,
       operation.multicall,
-      options?.blockNumber,
+      blockNumber,
     );
     if (isSDKError(intent)) {
       return intent;
@@ -185,7 +229,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
     return sdkOk(instantPreview);
   }
 
-  const { before, after } = replayMulticall(sdk, operation, options);
+  const { before, after } = replay;
 
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,

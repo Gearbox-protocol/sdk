@@ -3,6 +3,9 @@ import {
   type SDKReturn,
   sdkErr,
   sdkOk,
+  type UnsupportedPoolFunctionError,
+  type UnsupportedTargetError,
+  type UnsupportedZapperFunctionError,
 } from "../../model/index.js";
 import {
   CreditFacadeV310Contract,
@@ -12,11 +15,6 @@ import {
   ZapperContract,
 } from "../../onchain/index.js";
 import type { PreviewOperationInput } from "../types.js";
-import type {
-  UnsupportedPoolFunctionError,
-  UnsupportedTargetError,
-  UnsupportedZapperFunctionError,
-} from "./errors.js";
 import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";
 import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
 import { parseRWAFactoryOperationCalldata } from "./parseRWAFactoryOperationCalldata.js";

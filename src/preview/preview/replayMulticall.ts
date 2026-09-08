@@ -1,5 +1,10 @@
 import type { Address } from "viem";
-import type { OperationPreviewError } from "../../model/index.js";
+import {
+  type MalformedTransactionError,
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+} from "../../model/index.js";
 import type { OnchainSDK, PluginsMap } from "../../onchain/index.js";
 import type { InnerOperation } from "../parse/index.js";
 import type { PreviewOperationOptions } from "../types.js";
@@ -34,7 +39,6 @@ export interface ReplayMulticallResult {
    * replay in facade execution order
    */
   after: ReplayState;
-  warning?: OperationPreviewError;
 }
 
 /**
@@ -45,13 +49,16 @@ export function replayMulticall<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   operation: ReplayableOperation,
   options: PreviewOperationOptions<true>,
-): ReplayMulticallResult {
+): SDKReturn<ReplayMulticallResult, MalformedTransactionError> {
   const before = CreditAccountState.fromCreditAccountData(
     options.creditAccount,
   );
   const after = makeReplayState(before.clone());
 
-  const warning = replayInnerOperations(sdk, operation.multicall, after);
+  const error = replayInnerOperations(sdk, operation.multicall, after);
+  if (error) {
+    return sdkErr(error);
+  }
 
-  return { before, after, warning };
+  return sdkOk({ before, after });
 }

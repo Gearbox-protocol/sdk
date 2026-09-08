@@ -7,7 +7,7 @@ import {
 } from "viem";
 import { describe, expect, it } from "vitest";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
-import type { OperationPreviewError } from "../../model/index.js";
+import type { MalformedTransactionError } from "../../model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
@@ -161,7 +161,7 @@ function zeroState(): ReplayState {
 
 interface ApplyResult {
   state: ReplayState;
-  warning?: OperationPreviewError;
+  error?: MalformedTransactionError;
 }
 
 function apply(
@@ -169,8 +169,8 @@ function apply(
   state: ReplayState = zeroState(),
   sdk: OnchainSDK = stubSdk(),
 ): ApplyResult {
-  const warning = replayInnerOperations(sdk, multicall, state);
-  return { state, warning };
+  const error = replayInnerOperations(sdk, multicall, state);
+  return { state, error };
 }
 
 /** Seeds a zeroed state with balances, debt and total debt. */
@@ -235,7 +235,7 @@ describe("replayInnerOperations on zero-seeded state", () => {
 
   it("bracket: storeExpectedBalances applies deltas, Execute threads leftovers, compareBalances changes nothing", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { state, warning } = apply(
+    const { state, error } = apply(
       [
         { operation: "AddCollateral", token: WETH, amount: 100n },
         {
@@ -248,7 +248,7 @@ describe("replayInnerOperations on zero-seeded state", () => {
       zeroState(),
       sdk,
     );
-    expect(warning).toBeUndefined();
+    expect(error).toBeUndefined();
     // delta applied for the target token
     expect(state.account.balances.get(WSTETH)).toBe(90n);
     // diff-style adapter spent WETH down to 1 wei leftover
@@ -331,7 +331,7 @@ describe("replayInnerOperations on non-zero seeded state", () => {
 
   it("bracket on pre-existing balances: delta on top of seeded target, leftover overwrites seeded input", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { state, warning } = apply(
+    const { state, error } = apply(
       [
         {
           operation: "StoreExpectedBalances",
@@ -351,7 +351,7 @@ describe("replayInnerOperations on non-zero seeded state", () => {
       ),
       sdk,
     );
-    expect(warning).toBeUndefined();
+    expect(error).toBeUndefined();
     // delta lands on top of the seeded target balance
     expect(state.account.balances.get(WSTETH)).toBe(100n);
     // diff semantics: input spent down to the calldata leftover regardless of
@@ -371,7 +371,7 @@ describe("replayInnerOperations on malformed multicalls", () => {
       [ADAPTER]: stubAdapter(WETH, 10n),
       [SECOND_ADAPTER]: stubAdapter(WSTETH, 0n),
     });
-    const { state, warning } = apply(
+    const { state, error } = apply(
       [
         {
           operation: "StoreExpectedBalances",
@@ -389,78 +389,48 @@ describe("replayInnerOperations on malformed multicalls", () => {
       seededState([{ token: WETH, balance: 100n }], 0n, 0n),
       sdk,
     );
-    expect(warning).toBeUndefined();
+    expect(error).toBeUndefined();
     expect(state.account.balances.get(WETH)).toBe(10n);
     expect(state.account.balances.get(WSTETH)).toBe(0n);
     expect(state.account.balances.get(USDC)).toBe(50n);
   });
 
-  it("reports a warning on nested storeExpectedBalances/compareBalances brackets", async () => {
-    const { warning } = apply([
+  it("reports an error on nested storeExpectedBalances/compareBalances brackets", async () => {
+    const { error } = apply([
       { operation: "StoreExpectedBalances", deltas: [] },
       { operation: "StoreExpectedBalances", deltas: [] },
       { operation: "CompareBalances" },
       { operation: "CompareBalances" },
     ]);
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "malformedBracket",
-        kind: "nested",
-        message: expect.stringContaining(
-          "nested storeExpectedBalances/compareBalances bracket",
-        ),
-      }),
-    );
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("reports a warning on compareBalances without a preceding storeExpectedBalances", async () => {
-    const { warning } = apply([{ operation: "CompareBalances" }]);
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "malformedBracket",
-        kind: "unmatchedCompare",
-        message: expect.stringContaining(
-          "compareBalances without a preceding storeExpectedBalances",
-        ),
-      }),
-    );
+  it("reports an error on compareBalances without a preceding storeExpectedBalances", async () => {
+    const { error } = apply([{ operation: "CompareBalances" }]);
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("reports a warning on storeExpectedBalances without a matching compareBalances", async () => {
-    const { warning } = apply([
+  it("reports an error on storeExpectedBalances without a matching compareBalances", async () => {
+    const { error } = apply([
       { operation: "StoreExpectedBalances", deltas: [] },
     ]);
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "malformedBracket",
-        kind: "unmatchedStore",
-        message: expect.stringContaining(
-          "storeExpectedBalances without a matching compareBalances",
-        ),
-      }),
-    );
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("reports a warning on a bracketed call to a non-adapter target", async () => {
-    const { warning } = apply([
+  it("reports an error on a bracketed call to a non-adapter target", async () => {
+    const { error } = apply([
       { operation: "StoreExpectedBalances", deltas: [] },
       execute(),
       { operation: "CompareBalances" },
     ]);
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "nonAdapterCallInBracket",
-        target: ADAPTER,
-        message: expect.stringContaining("is not an adapter call"),
-      }),
-    );
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("reports a warning when a bracketed adapter preview throws, with the adapter's message", async () => {
+  it("reports an error when a bracketed adapter preview throws", async () => {
     const sdk = stubSdk({
       [ADAPTER]: stubThrowingAdapter("cannot decode selector 0xdeadbeef"),
     });
-    const { warning } = apply(
+    const { error } = apply(
       [
         { operation: "StoreExpectedBalances", deltas: [] },
         execute(),
@@ -469,36 +439,23 @@ describe("replayInnerOperations on malformed multicalls", () => {
       zeroState(),
       sdk,
     );
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "unpreviewableAdapterCall",
-        adapter: ADAPTER,
-        message: "cannot decode selector 0xdeadbeef",
-        cause: expect.any(Error),
-      }),
-    );
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("reports a warning on an out-of-bracket adapter call that is not an RWA wrap/unwrap", async () => {
+  it("reports an error on an out-of-bracket adapter call that is not an RWA wrap/unwrap", async () => {
     const sdk = stubSdk({ [ADAPTER]: stubAdapter(WETH, 1n) });
-    const { warning } = apply([execute()], zeroState(), sdk);
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "adapterCallOutsideBracket",
-        adapter: ADAPTER,
-        message: expect.stringContaining("outside of"),
-      }),
-    );
+    const { error } = apply([execute()], zeroState(), sdk);
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("does not report a warning on an out-of-bracket RWA wrap/unwrap call", async () => {
+  it("does not report an error on an out-of-bracket RWA wrap/unwrap call", async () => {
     const sdk = stubSdkWithRWAAdapter(USDC, RWA_SHARE);
     const calldata = encodeFunctionData({
       abi: ierc4626AdapterAbi,
       functionName: "deposit",
       args: [100n, zeroAddress],
     });
-    const { state, warning } = apply(
+    const { state, error } = apply(
       [
         { operation: "AddCollateral", token: USDC, amount: 500n },
         execute(ADAPTER, calldata),
@@ -506,84 +463,40 @@ describe("replayInnerOperations on malformed multicalls", () => {
       zeroState(),
       sdk,
     );
-    expect(warning).toBeUndefined();
+    expect(error).toBeUndefined();
     // 1-to-1 wrap applied directly
     expect(state.account.balances.get(USDC)).toBe(400n);
     expect(state.account.balances.get(RWA_SHARE)).toBe(100n);
   });
 
-  it("reports a warning on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", async () => {
+  it("reports an error on an out-of-bracket RWA wrap/unwrap call with undecodable calldata", async () => {
     const sdk = stubSdkWithRWAAdapter(USDC, RWA_SHARE);
-    const { warning } = apply(
-      [execute(ADAPTER, "0xdeadbeef")],
-      zeroState(),
-      sdk,
-    );
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "unsupportedOutOfBracketCall",
-        adapter: ADAPTER,
-        message: expect.any(String),
-        cause: expect.any(Error),
-      }),
-    );
+    const { error } = apply([execute(ADAPTER, "0xdeadbeef")], zeroState(), sdk);
+    expect(error?.code).toBe("malformedTransaction");
   });
 
-  it("does not report a warning on an out-of-bracket Midas receiveGreenlist call", async () => {
+  it("does not report an error on an out-of-bracket Midas receiveGreenlist call", async () => {
     const sdk = stubSdk({
       [MIDAS_GATEWAY_ADAPTER]: stubMidasGatewayAdapter(),
     });
-    const { state, warning } = apply(
+    const { state, error } = apply(
       [execute(MIDAS_GATEWAY_ADAPTER, RECEIVE_GREENLIST_CALLDATA)],
       zeroState(),
       sdk,
     );
-    expect(warning).toBeUndefined();
+    expect(error).toBeUndefined();
     expect(state.account.balances.size).toBe(0);
   });
 
-  it("reports a warning on an out-of-bracket Midas gateway call that is not receiveGreenlist", async () => {
+  it("reports an error on an out-of-bracket Midas gateway call that is not receiveGreenlist", async () => {
     const sdk = stubSdk({
       [MIDAS_GATEWAY_ADAPTER]: stubMidasGatewayAdapter(),
     });
-    const { warning } = apply(
+    const { error } = apply(
       [execute(MIDAS_GATEWAY_ADAPTER, "0xdeadbeef")],
       zeroState(),
       sdk,
     );
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "adapterCallOutsideBracket",
-        adapter: MIDAS_GATEWAY_ADAPTER,
-        message: expect.stringContaining("outside of"),
-      }),
-    );
-  });
-
-  it("keeps applying explicit facade ops after the warning is recorded", async () => {
-    const { state, warning } = apply([
-      execute(),
-      { operation: "AddCollateral", token: USDC, amount: 100n },
-      { operation: "IncreaseBorrowedAmount", token: USDC, amount: 1000n },
-      { operation: "UpdateQuota", token: WETH, change: 50n },
-      {
-        operation: "WithdrawCollateral",
-        token: USDC,
-        amount: 30n,
-        to: RECEIVER,
-      },
-    ]);
-    expect(warning).toEqual(
-      expect.objectContaining({
-        code: "adapterCallOutsideBracket",
-        adapter: ADAPTER,
-        message: expect.stringContaining("outside of"),
-      }),
-    );
-    expect(state.collateralAdded.get(USDC)).toBe(100n);
-    expect(state.collateralWithdrawn.get(USDC)).toBe(30n);
-    expect(state.account.debt).toBe(1000n);
-    expect(state.account.totalDebt).toBe(1000n);
-    expect(state.account.quotas.get(WETH)).toBe(50n);
+    expect(error?.code).toBe("malformedTransaction");
   });
 });

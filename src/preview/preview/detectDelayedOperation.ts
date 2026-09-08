@@ -1,12 +1,14 @@
 import { isAddressEqual } from "viem";
-import type { DelayedIntent } from "../../model/index.js";
+import type {
+  DelayedIntent,
+  InvalidDelayedIntentError,
+} from "../../model/index.js";
 import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
 import {
   AbstractAdapterContract,
   type Asset,
   type DelayedWithdrawalRequest,
   decodeDelayedIntent,
-  type InvalidDelayedIntentError,
   type OnchainSDK,
   type PluginsMap,
 } from "../../onchain/index.js";

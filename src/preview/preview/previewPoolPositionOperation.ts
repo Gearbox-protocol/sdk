@@ -3,14 +3,18 @@ import { iPoolV310Abi } from "../../abi/310/generated.js";
 import { ierc20Abi } from "../../abi/iERC20.js";
 import { iZapperAbi } from "../../abi/iZapper.js";
 import type { PoolPositionOperationPreview } from "../../model/index.js";
-import { type SDKReturn, sdkErr, sdkOk } from "../../model/index.js";
+import {
+  type PoolOperationPreviewError,
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+} from "../../model/index.js";
 import type { PluginsMap } from "../../onchain/index.js";
 import type { PoolOperation } from "../parse/index.js";
 import type {
   PreviewOperationInput,
   PreviewOperationOptions,
 } from "../types.js";
-import type { PoolOperationPreviewError } from "./errors.js";
 
 /** ERC4626 preview read paired with each pool operation kind. */
 type PreviewFunctionName =

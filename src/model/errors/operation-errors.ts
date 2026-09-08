@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import type { MalformedPreviewError } from "../previews.js";
 import type { Bps, Token, TokenAmount } from "../primitives.js";
 import type {
   RWAMissingOpenAccountRequirements,
@@ -373,30 +372,5 @@ export function rwaOpenRequirementsNotMet(
     code: "rwaOpenRequirementsNotMet",
     message: `The RWA factory still wants something from the borrower before ${args.token.symbol} can be opened on.`,
     ...args,
-  };
-}
-
-/**
- * The transaction could not be replayed: it is malformed, and every field
- * derived from replayed balances is guesswork.
- **/
-export interface MalformedTransactionError extends IGearboxError {
-  code: "malformedTransaction";
-  /**
-   * The replay warning behind the refusal, whole — its own code and message,
-   * plus whatever else it names. Kept under a field of its own because it
-   * spells `code` and `message` the same way the envelope does.
-   **/
-  warning: MalformedPreviewError;
-}
-
-/** {@inheritDoc MalformedTransactionError} */
-export function malformedTransaction(
-  warning: MalformedPreviewError,
-): MalformedTransactionError {
-  return {
-    code: "malformedTransaction",
-    message: `The transaction could not be replayed: ${warning.message}`,
-    warning,
   };
 }

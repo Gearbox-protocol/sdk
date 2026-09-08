@@ -2,9 +2,7 @@ import type { Address } from "viem";
 import type { IGearboxError } from "./base.js";
 
 /**
- * The oracle has no price for `token`. Preview callers attach this with
- * `warning ??=` so a malformed-transaction warning already recorded keeps
- * precedence.
+ * The oracle has no price for token
  **/
 export interface UnpriceableTokenError extends IGearboxError {
   code: "unpriceableToken";

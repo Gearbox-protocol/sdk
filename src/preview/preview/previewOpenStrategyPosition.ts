@@ -1,7 +1,12 @@
 import {
   asEstimated,
+  isSDKError,
+  type MalformedTransactionError,
   type OpenStrategyPositionPreview,
-  type OperationPreviewError,
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+  type UnpriceableTokenError,
 } from "../../model/index.js";
 import {
   type AddressMap,
@@ -26,7 +31,7 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 export function previewOpenStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
-): OpenStrategyPositionPreview {
+): SDKReturn<OpenStrategyPositionPreview, MalformedTransactionError> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -37,29 +42,34 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   const state = makeReplayState(
     CreditAccountState.beforeOpen(operation.creditManager, market.underlying),
   );
-  let warning = replayInnerOperations(sdk, operation.multicall, state);
+  const replayError = replayInnerOperations(sdk, operation.multicall, state);
+  if (replayError) {
+    return sdkErr(replayError);
+  }
   const account = state.account;
 
   // collateral value is computed before unwrapping since the oracle cannot
   // price the native token. Best-effort: tokens the oracle cannot price
   // contribute nothing.
-  let priceWarning: OperationPreviewError | undefined;
+  let warning: UnpriceableTokenError | undefined;
   const netValue = state.collateralAdded.sum((token, balance) => {
     const priced = oracle.safeConvert(token, market.underlying, balance);
-    priceWarning ??= priced.error;
+    warning ??= priced.error;
     return priced.value;
   });
-  const { assets: collateral, warning: unwrapWarning } = unwrapNativeCollateral(
+  const unwrapped = unwrapNativeCollateral(
     state.collateralAdded.toAssets(),
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
-  warning ??= unwrapWarning ?? priceWarning;
+  if (isSDKError(unwrapped)) {
+    return unwrapped;
+  }
+  const collateral = unwrapped.data;
 
   // `toSnapshot` filters out dust, including the 1-wei leftovers of drained
   // inputs and intermediate tokens, and on opening the folded quotas are the
-  // applied changes since the account started at zero. On a malformed multicall
-  // the replayed balances are best-effort and may be unreliable.
+  // applied changes since the account started at zero.
   const snap = account.toSnapshot(netValue + account.totalDebt);
   const targetAsset = inferTargetAsset(operation.multicall, account.balances);
 
@@ -89,16 +99,16 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   };
 
   if (operation.operation === "RWAOpenCreditAccount") {
-    return {
+    return sdkOk({
       ...projection,
       operation: "RWAOpenCreditAccount",
       rwaArgs: operation.args,
-    };
+    });
   }
-  return {
+  return sdkOk({
     ...projection,
     operation: "OpenCreditAccount",
-  };
+  });
 }
 
 /**

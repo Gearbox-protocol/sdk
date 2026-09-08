@@ -1,6 +1,10 @@
 import {
   type AdjustStrategyPositionPreview,
   asEstimated,
+  isSDKError,
+  type MalformedTransactionError,
+  type SDKReturn,
+  sdkOk,
 } from "../../model/index.js";
 import {
   AP_WETH_TOKEN,
@@ -12,25 +16,20 @@ import type {
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
-import type {
-  PreviewOperationInput,
-  PreviewOperationOptions,
-} from "../types.js";
-import { replayMulticall } from "./replayMulticall.js";
+import type { PreviewOperationInput } from "../types.js";
+import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 /**
  * Previews a `multicall`/`botMulticall` operation on an existing credit
- * account: threads the multicall through {@link replayMulticall} over the
- * pre-resolved account state (`options.creditAccount`) and reports the
- * minimal guaranteed post-state alongside the changes relative to the
- * pre-state.
+ * account: reports the replayed post-state alongside the changes relative
+ * to the pre-state.
  */
 export function previewAdjustStrategyPosition<P extends PluginsMap>(
   input: PreviewOperationInput<P>,
   operation: MulticallOperation | RWAMulticallOperation,
-  options: PreviewOperationOptions<true>,
-): AdjustStrategyPositionPreview {
+  replay: ReplayMulticallResult,
+): SDKReturn<AdjustStrategyPositionPreview, MalformedTransactionError> {
   const { sdk, value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
@@ -38,21 +37,18 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
   const oracle = market.priceOracle;
 
-  const {
-    before,
-    after,
-    warning: replayWarning,
-  } = replayMulticall(sdk, operation, options);
+  const { before, after } = replay;
   const account = after.account;
-  let warning = replayWarning;
 
-  const { assets: collateralAdded, warning: unwrapWarning } =
-    unwrapNativeCollateral(
-      after.collateralAdded.toAssets(),
-      value,
-      sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
-    );
-  warning ??= unwrapWarning;
+  const unwrapped = unwrapNativeCollateral(
+    after.collateralAdded.toAssets(),
+    value,
+    sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
+  );
+  if (isSDKError(unwrapped)) {
+    return unwrapped;
+  }
+  const collateralAdded = unwrapped.data;
 
   // The replayed state is seeded with all initial tokens and entries are
   // never deleted, so its keys are the union of tokens present before or
@@ -63,19 +59,14 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
 
   // estimated post-operation account value: minimal guaranteed assets
   // converted to underlying and summed. Best-effort: tokens the oracle
-  // cannot price contribute nothing. Malformed-transaction warnings
-  // recorded above take precedence over an unpriceable-token caveat.
-  //
-  // On a malformed multicall the replayed balances the sum is taken over are
-  // best-effort and may be unreliable.
+  // cannot price contribute nothing.
   const priced = oracle.safeConvertAssets(
     account.balances.toAssets(),
     market.underlying,
   );
-  warning ??= priced.error;
   const snap = account.toSnapshot(priced.value);
 
-  return {
+  return sdkOk({
     operation: "AdjustCreditAccount",
     // The state itself comes from the builder the intents engine reports its
     // own projections from, so a transaction this module reads back and the
@@ -113,6 +104,6 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
     assetsChange: assetsChange.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
-    warning,
-  };
+    warning: priced.error,
+  });
 }

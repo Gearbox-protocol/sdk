@@ -20,8 +20,8 @@ import type {
  * What the intents engine can raise: unit-check errors it runs, plus the
  * planning outcomes discovered mid-walk. Feeds prepare's per-method unions.
  *
- * Not a catch-all of every SDK error — pool paused/sunset and a malformed
- * transaction are `checkOperation`'s, not the engine's.
+ * Not a catch-all of every SDK error — pool paused/sunset is `checkOperation`'s,
+ * a malformed transaction is `previewOperation`'s, not the engine's.
  **/
 export type IntentValidationError =
   | CreditManagerPausedError

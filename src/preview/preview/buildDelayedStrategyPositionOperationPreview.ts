@@ -5,7 +5,7 @@ import {
   type DelayedWithdrawCollateralIntent,
   type ExitStrategyPositionPreview,
   type InstantStrategyPositionOperationPreview,
-  type OperationPreviewError,
+  type UnpriceableTokenError,
 } from "../../model/index.js";
 import {
   AssetsMap,
@@ -53,7 +53,7 @@ export function buildDelayedStrategyPositionOperationPreview(
   const oracle = sdk.marketRegister.findByCreditManager(
     post.creditManager,
   ).priceOracle;
-  let warning: OperationPreviewError | undefined;
+  let warning: UnpriceableTokenError | undefined;
   const convert: ConvertFn = (from, to, amount) => {
     const priced = oracle.safeConvert(from, to, amount);
     warning ??= priced.error;
@@ -222,7 +222,7 @@ function buildClosePreview(
   post: CreditAccountState,
   receivedToken: Address,
   sdk: OnchainSDK,
-  warning: OperationPreviewError | undefined,
+  warning: UnpriceableTokenError | undefined,
 ): ExitStrategyPositionPreview {
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
   const oracle = market.priceOracle;
@@ -264,7 +264,7 @@ function buildAdjustPreview(
   before: CreditAccountState,
   collateralWithdrawn: AssetsMap,
   sdk: OnchainSDK,
-  warning: OperationPreviewError | undefined,
+  warning: UnpriceableTokenError | undefined,
 ): AdjustStrategyPositionPreview {
   const market = sdk.marketRegister.findByCreditManager(post.creditManager);
   const oracle = market.priceOracle;
