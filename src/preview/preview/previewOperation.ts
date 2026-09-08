@@ -18,7 +18,6 @@ import {
   type UnsupportedTargetError,
   type UnsupportedZapperFunctionError,
 } from "../parse/index.js";
-import type { PreviewSimulationError } from "../simulate/errors.js";
 import type {
   PreviewOperationInput,
   PreviewOperationOptions,
@@ -27,7 +26,10 @@ import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStra
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
-import type { UnsupportedOperationError } from "./errors.js";
+import type {
+  PoolOperationPreviewError,
+  UnsupportedOperationError,
+} from "./errors.js";
 import { estimateClaimableAt } from "./estimateClaimableAt.js";
 import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
 import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
@@ -49,7 +51,7 @@ export type PreviewOperationError =
   | UnsupportedZapperFunctionError
   | UnsupportedOperationError
   | InvalidDelayedIntentError
-  | PreviewSimulationError;
+  | PoolOperationPreviewError;
 
 /**
  * Previews a raw operation calldata: decodes it into a typed operation and

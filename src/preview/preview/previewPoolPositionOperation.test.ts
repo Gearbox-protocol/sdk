@@ -8,6 +8,7 @@ import {
 } from "../../onchain/market/oracle/TestPriceOracle.mock.js";
 import type {
   PoolDepositOperation,
+  PoolMintOperation,
   PoolOperation,
   PoolRedeemOperation,
   PoolWithdrawOperation,
@@ -165,6 +166,20 @@ function deposit(
   };
 }
 
+function mint(over: Partial<PoolMintOperation> = {}): PoolMintOperation {
+  return {
+    operation: "Mint",
+    pool: POOL,
+    receiver: RECEIVER,
+    shares: 50n,
+    underlying: UNDERLYING,
+    tokenIn: UNDERLYING,
+    tokenOut: POOL,
+    zapper: undefined,
+    ...over,
+  };
+}
+
 function withdraw(
   over: Partial<PoolWithdrawOperation> = {},
 ): PoolWithdrawOperation {
@@ -224,6 +239,36 @@ describe("previewPoolPositionOperation", () => {
         address: POOL,
         functionName: "previewDeposit",
         args: [10n],
+      }),
+      expect.objectContaining({
+        address: POOL,
+        functionName: "balanceOf",
+        args: [RECEIVER],
+      }),
+    ]);
+  });
+
+  it("mint: amountIn from previewMint, amountOut from calldata shares", async () => {
+    const { answer, calls } = await preview(mint({ shares: 50n }), {
+      previewAmount: 55n,
+      shares: 1n,
+    });
+
+    expect(answer).toMatchObject({
+      ok: true,
+      data: {
+        operation: "Mint",
+        holder: RECEIVER,
+        tokenIn: { value: 55n },
+        tokenOut: { value: 50n },
+        netValue: { value: 51n },
+      },
+    });
+    expect(calls).toEqual([
+      expect.objectContaining({
+        address: POOL,
+        functionName: "previewMint",
+        args: [50n],
       }),
       expect.objectContaining({
         address: POOL,
@@ -318,7 +363,7 @@ describe("previewPoolPositionOperation", () => {
   });
 
   it("non-underlying zapper deposit converts minted shares through dieselRate", async () => {
-    const { answer } = await preview(
+    const { answer, calls } = await preview(
       deposit({
         assets: 1_000n,
         tokenIn: WETH,
@@ -333,6 +378,18 @@ describe("previewPoolPositionOperation", () => {
       // current 1 + minted 10 (not the 1000 WETH zapper input)
       data: { netValue: { value: 11n } },
     });
+    expect(calls).toEqual([
+      expect.objectContaining({
+        address: ZAPPER,
+        functionName: "previewDeposit",
+        args: [1_000n],
+      }),
+      expect.objectContaining({
+        address: POOL,
+        functionName: "balanceOf",
+        args: [RECEIVER],
+      }),
+    ]);
   });
 
   it("redeem remaining netValue ignores withdrawFee; tokenOut carries it", async () => {
@@ -364,7 +421,7 @@ describe("previewPoolPositionOperation", () => {
     });
   });
 
-  it("propagates a simulation failure without assembling a preview", async () => {
+  it("propagates a pool-operation preview failure without assembling a preview", async () => {
     const sdk = {
       client: {
         multicall: async () => {
@@ -382,7 +439,7 @@ describe("previewPoolPositionOperation", () => {
 
     expect(answer).toMatchObject({
       ok: false,
-      error: { code: "previewSimulationFailed" },
+      error: { code: "poolOperationPreviewError", pool: POOL },
     });
   });
 });

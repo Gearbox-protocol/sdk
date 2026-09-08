@@ -12,9 +12,7 @@ import type { PreviewOperationError } from "../../preview/index.js";
 export interface IPreview {
   /**
    * Decodes a raw operation and assembles an operation-specific,
-   * human-displayable preview. A refusal of the calldata — an unsupported
-   * target, function or operation, a foreign delayed intent, a failed
-   * simulation — is the `ok: false` half; genuine failures still throw.
+   * human-displayable preview.
    **/
   previewOperation(
     input: PreviewOperationInput,

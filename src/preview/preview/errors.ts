@@ -12,13 +12,22 @@ import type {
 
 /**
  * Refusal answered by `previewOperation` for parsed operations it cannot
- * preview yet. A plain returned object per the SDK's refusal vocabulary —
- * not a thrown `Error`.
+ * preview yet.
  */
 export interface UnsupportedOperationError extends IGearboxError {
   code: "unsupportedOperation";
   /** The parsed operation kind (the `operation` discriminant). */
   operation: string;
+}
+
+/**
+ * Refusal answered when the pool operation preview read (ERC4626 preview +
+ * share `balanceOf`) fails.
+ */
+export interface PoolOperationPreviewError extends IGearboxError {
+  code: "poolOperationPreviewError";
+  /** Pool the operation targeted. */
+  pool: Address;
 }
 
 const MALFORMED_BRACKET_MESSAGE: Record<MalformedBracketKind, string> = {

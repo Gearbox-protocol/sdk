@@ -17,8 +17,10 @@ import type {
   UnsupportedZapperFunctionError,
 } from "../parse/errors.js";
 import { UnsupportedTargetError as UnsupportedTargetValue } from "../parse/errors.js";
-import type { PreviewSimulationError } from "../simulate/errors.js";
-import type { UnsupportedOperationError } from "./errors.js";
+import type {
+  PoolOperationPreviewError,
+  UnsupportedOperationError,
+} from "./errors.js";
 import { previewOperation } from "./previewOperation.js";
 
 void IntentPreviewError;
@@ -65,7 +67,7 @@ describe("previewOperation result envelope", () => {
         | UnsupportedZapperFunctionError
         | UnsupportedOperationError
         | InvalidDelayedIntentError
-        | PreviewSimulationError
+        | PoolOperationPreviewError
       >
     >();
   });
@@ -86,7 +88,7 @@ describe("previewOperation result envelope", () => {
         | "unsupportedZapperFunction"
         | "unsupportedOperation"
         | "invalidDelayedIntent"
-        | "previewSimulationFailed"
+        | "poolOperationPreviewError"
       >();
     }
   });

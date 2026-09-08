@@ -8,44 +8,12 @@ import { isSDKError } from "../model/index.js";
 import type { OnchainSDK } from "../onchain/index.js";
 import * as previewBarrel from "./index.js";
 import { previewOperation } from "./preview/previewOperation.js";
-import { asPreviewSimulationError } from "./simulate/errors.js";
 
 const TARGET: Address = "0x00000000000000000000000000000000000000aa";
 const CALLDATA: Hex = "0x12345678";
 
-describe("asPreviewSimulationError", () => {
-  it("normalises a thrown Error into the exact literal", () => {
-    const boom = new Error("AllowanceFailedException");
-    expect(asPreviewSimulationError(boom, "multicall")).toEqual({
-      code: "previewSimulationFailed",
-      message: "AllowanceFailedException",
-      failures: [
-        {
-          source: "multicall",
-          detail: { reason: "AllowanceFailedException", cause: boom },
-        },
-      ],
-      cause: boom,
-    });
-  });
-
-  it("passes a matching refusal through by identity and normalises the rest", () => {
-    const existing = asPreviewSimulationError(new Error("kept"), "multicall");
-    expect(asPreviewSimulationError(existing, "multicall")).toBe(existing);
-
-    const fromString = asPreviewSimulationError("boom", "unknown");
-    expect(fromString.code).toBe("previewSimulationFailed");
-    expect(fromString.failures).toHaveLength(1);
-    expect(fromString.failures[0]?.source).toBe("unknown");
-
-    const fromNull = asPreviewSimulationError(null, "unknown");
-    expect(fromNull.code).toBe("previewSimulationFailed");
-  });
-});
-
 describe("preview barrel surface", () => {
-  it("barrel exports the one normaliser and no error constructors or guards", () => {
-    expect(typeof previewBarrel.asPreviewSimulationError).toBe("function");
+  it("barrel exports no error constructors or guards", () => {
     for (const name of [
       // the class-era aliases stay types only
       "UnsupportedTargetError",
@@ -53,7 +21,7 @@ describe("preview barrel surface", () => {
       "UnsupportedZapperFunctionError",
       "UnsupportedOperationError",
       "InvalidDelayedIntentError",
-      "PreviewSimulationError",
+      "PoolOperationPreviewError",
       "IntentPreviewError",
       "isPreviewOperationError",
       // and no factory took their place — raise sites build literals
@@ -62,7 +30,7 @@ describe("preview barrel surface", () => {
       "unsupportedZapperFunction",
       "unsupportedOperation",
       "invalidDelayedIntent",
-      "previewSimulationFailed",
+      "poolOperationPreviewError",
     ]) {
       expect(name in previewBarrel, name).toBe(false);
     }
