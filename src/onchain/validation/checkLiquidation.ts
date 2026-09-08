@@ -7,7 +7,6 @@ import { checkLiquidationFunding } from "./bundles/checkLiquidationFunding.js";
 import type { WalletFundingError } from "./bundles/checkWallet.js";
 
 export interface CheckLiquidationInput {
-  sdk: OnchainSDK;
   details: LiquidationDetails;
   liquidator: Address;
 }
@@ -26,10 +25,11 @@ export type LiquidationValidationError =
  * Whether `liquidator` may send a full liquidation of this account
  */
 export async function checkLiquidation(
+  sdk: OnchainSDK,
   input: CheckLiquidationInput,
   options: CheckLiquidationOptions = {},
 ): Promise<LiquidationValidationError[]> {
-  const { sdk, details, liquidator } = input;
+  const { details, liquidator } = input;
   return [
     ...checkLiquidationEligibility({ sdk, details, liquidator }),
     ...(await checkLiquidationFunding({

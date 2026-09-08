@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  ChainId,
   DebtOutOfRangeError,
   InsufficientCollateralError,
   QuotaCountExceededError,
@@ -19,7 +20,7 @@ import { toToken } from "./helpers/index.js";
 
 /** A simulated credit operation, as the intents engine reports one. */
 export interface CreditSimulationInput {
-  sdk: OnchainSDK;
+  chainId: ChainId;
   state: OperationState;
 }
 
@@ -28,7 +29,7 @@ export interface CreditSimulationInput {
  * the tokens moving through it but not the market they belong to.
  */
 export interface PoolSimulationInput {
-  sdk: OnchainSDK;
+  chainId: ChainId;
   pool: Address;
   state: PoolSimulation;
   /** Whether the operation puts liquidity in rather than taking it out. */
@@ -69,11 +70,12 @@ export type SimulationValidationError =
  * state — which the engine does not read either.
  */
 export function checkSimulation(
+  sdk: OnchainSDK,
   input: CheckSimulationInput,
   options: HealthFactorThresholds = {},
 ): SimulationValidationError[] {
   if ("pool" in input) {
-    const { sdk, pool, state, isDeposit } = input;
+    const { pool, state, isDeposit } = input;
     return checkPoolOperation({
       sdk,
       pool,
@@ -82,7 +84,7 @@ export function checkSimulation(
     });
   }
 
-  const { sdk, state } = input;
+  const { state } = input;
   const suite = sdk.marketRegister.findCreditManager(state.creditManager);
 
   return [

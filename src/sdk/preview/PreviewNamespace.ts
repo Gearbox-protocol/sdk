@@ -5,12 +5,19 @@ import type {
   SDKReturn,
 } from "../../model/index.js";
 import {
+  type CheckOperationOptions,
+  type CheckSimulationInput,
+  checkOperation,
+  checkSimulation,
+  type HealthFactorThresholds,
   type MultichainSDK,
+  type OperationValidationError,
   type PreviewOperationError,
   previewOperation,
+  type SimulationValidationError,
 } from "../../onchain/index.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
-import type { IPreview } from "./types.js";
+import type { CheckOperationProps, IPreview } from "./types.js";
 
 /**
  * {@inheritDoc IPreview}
@@ -34,5 +41,30 @@ export class PreviewNamespace implements IPreview {
     await this.#ensureFresh?.([input.chainId]);
     const sdk = this.#onchain.chain(input.chainId);
     return previewOperation(sdk, input, options);
+  }
+
+  /**
+   * {@inheritDoc IPreview.checkOperation}
+   **/
+  public async checkOperation(
+    props: CheckOperationProps,
+    options?: CheckOperationOptions,
+  ): Promise<OperationValidationError[]> {
+    const { chainId, ...input } = props;
+    await this.#ensureFresh?.([chainId]);
+    const sdk = this.#onchain.chain(chainId);
+    return checkOperation({ sdk, ...input }, options);
+  }
+
+  /**
+   * {@inheritDoc IPreview.checkSimulation}
+   **/
+  public async checkSimulation(
+    props: CheckSimulationInput,
+    options?: HealthFactorThresholds,
+  ): Promise<SimulationValidationError[]> {
+    await this.#ensureFresh?.([props.chainId]);
+    const sdk = this.#onchain.chain(props.chainId);
+    return checkSimulation(sdk, props, options);
   }
 }

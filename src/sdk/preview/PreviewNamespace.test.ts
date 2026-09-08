@@ -5,15 +5,30 @@ import type {
   PreviewOperationInput,
 } from "../../model/index.js";
 import { sdkOk } from "../../model/index.js";
-import type { MultichainSDK, OnchainSDK } from "../../onchain/index.js";
+import type {
+  MultichainSDK,
+  OnchainSDK,
+  OperationState,
+  PoolSimulation,
+} from "../../onchain/index.js";
 import { previewOperation } from "../../onchain/preview/preview/previewOperation.js";
+import { checkOperation } from "../../onchain/validation/checkOperation.js";
+import { checkSimulation } from "../../onchain/validation/checkSimulation.js";
 import { PreviewNamespace } from "./PreviewNamespace.js";
 
 vi.mock("../../onchain/preview/preview/previewOperation.js", () => ({
   previewOperation: vi.fn(),
 }));
+vi.mock("../../onchain/validation/checkOperation.js", () => ({
+  checkOperation: vi.fn(),
+}));
+vi.mock("../../onchain/validation/checkSimulation.js", () => ({
+  checkSimulation: vi.fn(),
+}));
 
 const previewOperationMock = vi.mocked(previewOperation);
+const checkOperationMock = vi.mocked(checkOperation);
+const checkSimulationMock = vi.mocked(checkSimulation);
 
 const CHAIN_ID = 1;
 const TO = "0x0000000000000000000000000000000000000001" as Address;
@@ -86,6 +101,8 @@ beforeEach(() => {
   vi.resetAllMocks();
   chain.mockReturnValue(chainSdk);
   previewOperationMock.mockResolvedValue(sdkOk<OperationPreview>(previewData));
+  checkOperationMock.mockResolvedValue([]);
+  checkSimulationMock.mockReturnValue([]);
 });
 
 describe("PreviewNamespace.previewOperation", () => {
@@ -112,5 +129,94 @@ describe("PreviewNamespace.previewOperation", () => {
       blockNumber: 99n,
     });
     expect(order).toEqual(["fresh", "preview"]);
+  });
+});
+
+describe("PreviewNamespace.checkOperation", () => {
+  it("awaits ensureFresh for the named chain, then delegates", async () => {
+    const order: string[] = [];
+    const ensureFresh = vi.fn(async () => {
+      order.push("fresh");
+    });
+    checkOperationMock.mockImplementation(async () => {
+      order.push("check");
+      return [];
+    });
+
+    const ns = new PreviewNamespace(onchain, {
+      maxOffchainLagSeconds: 0,
+      ensureFresh,
+    });
+    const props = {
+      chainId: CHAIN_ID,
+      preview: previewData,
+      sender: SENDER,
+    };
+    const options = { blockNumber: 99n };
+    const result = await ns.checkOperation(props, options);
+
+    expect(result).toEqual([]);
+    expect(ensureFresh).toHaveBeenCalledWith([CHAIN_ID]);
+    expect(chain).toHaveBeenCalledWith(CHAIN_ID);
+    expect(checkOperationMock).toHaveBeenCalledWith(
+      { sdk: chainSdk, preview: previewData, sender: SENDER },
+      options,
+    );
+    expect(order).toEqual(["fresh", "check"]);
+  });
+});
+
+describe("PreviewNamespace.checkSimulation", () => {
+  it("awaits ensureFresh for the named chain, then delegates", async () => {
+    const order: string[] = [];
+    const ensureFresh = vi.fn(async () => {
+      order.push("fresh");
+    });
+    checkSimulationMock.mockImplementation(() => {
+      order.push("check");
+      return [];
+    });
+
+    const ns = new PreviewNamespace(onchain, {
+      maxOffchainLagSeconds: 0,
+      ensureFresh,
+    });
+    const state = {} as OperationState;
+    const options = { minHealthFactor: 10_000 };
+    const result = await ns.checkSimulation(
+      { chainId: CHAIN_ID, state },
+      options,
+    );
+
+    expect(result).toEqual([]);
+    expect(ensureFresh).toHaveBeenCalledWith([CHAIN_ID]);
+    expect(chain).toHaveBeenCalledWith(CHAIN_ID);
+    expect(checkSimulationMock).toHaveBeenCalledWith(
+      chainSdk,
+      { chainId: CHAIN_ID, state },
+      options,
+    );
+    expect(order).toEqual(["fresh", "check"]);
+  });
+
+  it("forwards a pool simulation with pool and isDeposit", async () => {
+    const ensureFresh = vi.fn(async () => {});
+    const ns = new PreviewNamespace(onchain, {
+      maxOffchainLagSeconds: 0,
+      ensureFresh,
+    });
+    const state = {} as PoolSimulation;
+    await ns.checkSimulation({
+      chainId: CHAIN_ID,
+      pool: TO,
+      state,
+      isDeposit: true,
+    });
+
+    expect(checkSimulationMock).toHaveBeenCalledWith(
+      chainSdk,
+      { chainId: CHAIN_ID, pool: TO, state, isDeposit: true },
+      undefined,
+    );
   });
 });

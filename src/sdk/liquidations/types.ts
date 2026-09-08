@@ -7,9 +7,12 @@ import type {
 } from "../../model/index.js";
 import type {
   BuildLiquidationTxProps,
+  CheckLiquidationInput,
+  CheckLiquidationOptions,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  LiquidationValidationError,
 } from "../../onchain/index.js";
 
 /**
@@ -45,6 +48,16 @@ export interface ILiquidations {
   getLiquidationPositions(
     props: GetLiquidationPositionsProps<true>,
   ): Promise<DataResponse<LiquidationPosition[]>>;
+  /**
+   * Whether `liquidator` may send a full liquidation of this account.
+   *
+   * `details` must come from {@link ILiquidations.getLiquidationDetails} called
+   * with the same `liquidator`.
+   **/
+  checkLiquidation(
+    props: CheckLiquidationInput,
+    options?: CheckLiquidationOptions,
+  ): Promise<LiquidationValidationError[]>;
 }
 
 /**
