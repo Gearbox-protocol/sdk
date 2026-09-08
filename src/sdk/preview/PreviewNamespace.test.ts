@@ -6,10 +6,10 @@ import type {
 } from "../../model/index.js";
 import { sdkOk } from "../../model/index.js";
 import type { MultichainSDK, OnchainSDK } from "../../onchain/index.js";
-import { previewOperation } from "../../preview/preview/previewOperation.js";
+import { previewOperation } from "../../onchain/preview/preview/previewOperation.js";
 import { PreviewNamespace } from "./PreviewNamespace.js";
 
-vi.mock("../../preview/preview/previewOperation.js", () => ({
+vi.mock("../../onchain/preview/preview/previewOperation.js", () => ({
   previewOperation: vi.fn(),
 }));
 

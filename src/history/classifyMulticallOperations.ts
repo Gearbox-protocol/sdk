@@ -3,6 +3,7 @@ import type {
   AddressMap,
   ChainContractsRegister,
   ParsedCallV2,
+  TokenTransfer,
 } from "../onchain/index.js";
 import {
   AbstractAdapterContract,
@@ -10,13 +11,12 @@ import {
   toNetTransfers,
 } from "../onchain/index.js";
 import type { CallTrace } from "../onchain/utils/trace.js";
-import type { TokenTransfer } from "../preview/parse/index.js";
 import {
   TransferAlignmentError,
   UnknownAdapterError,
   WithdrawCollateralAlignmentError,
   type WithdrawCollateralEventInfo,
-} from "../preview/trace/index.js";
+} from "./trace/index.js";
 import type {
   AdapterOperation,
   InnerFacadeOperation,

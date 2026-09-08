@@ -4,12 +4,12 @@ import type {
   PreviewOperationOptions,
   SDKReturn,
 } from "../../model/index.js";
-import type { MultichainSDK } from "../../onchain/index.js";
-import type { ILogger } from "../../onchain/types/logger.js";
 import {
+  type MultichainSDK,
   type PreviewOperationError,
   previewOperation,
-} from "../../preview/index.js";
+} from "../../onchain/index.js";
+import type { ILogger } from "../../onchain/types/logger.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
 import type { IPreview } from "./types.js";
 

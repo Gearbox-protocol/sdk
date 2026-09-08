@@ -4,7 +4,7 @@ import type {
   PreviewOperationOptions,
   SDKReturn,
 } from "../../model/index.js";
-import type { PreviewOperationError } from "../../preview/index.js";
+import type { PreviewOperationError } from "../../onchain/index.js";
 
 /**
  * On-chain preview of a raw operation calldata.

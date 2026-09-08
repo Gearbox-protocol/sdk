@@ -1,4 +1,3 @@
-import type { LegacyAdapterOperation } from "../onchain/index.js";
 import type {
   AdapterOperation as BaseAdapterOperation,
   CloseCreditAccountOperation as BaseCloseCreditAccountOperation,
@@ -9,11 +8,12 @@ import type {
   OpenCreditAccountOperation as BaseOpenCreditAccountOperation,
   PartialLiquidationOperation as BasePartialLiquidationOperation,
   FacadeOperationMetadata,
+  LegacyAdapterOperation,
   OperationMetadata,
   TraceAdapterExt,
-} from "../preview/parse/index.js";
+} from "../onchain/index.js";
 
-// Non-generic shared operation types are re-exported from `preview` unchanged
+// Non-generic shared operation types are re-exported from `onchain` unchanged
 // so the `history` entry point keeps exposing them.
 export type {
   AddCollateralOp,
@@ -24,7 +24,7 @@ export type {
   OperationMetadata,
   UpdateQuotaOp,
   WithdrawCollateralOp,
-} from "../preview/parse/index.js";
+} from "../onchain/index.js";
 
 /**
  * History-specific adapter-operation extension: trace-derived data

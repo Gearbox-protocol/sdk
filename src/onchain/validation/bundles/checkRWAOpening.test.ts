@@ -18,7 +18,7 @@ import { checkRWAOpening } from "./checkRWAOpening.js";
 
 const FIXTURE = resolve(
   import.meta.dirname,
-  "../../../preview/__fixtures__/Mainnet-25432463-securitize.json",
+  "../../preview/__fixtures__/Mainnet-25432463-securitize.json",
 );
 
 const SENDER: Address = "0xf13df765f3047850Cede5aA9fDF20a12A75f7F70";

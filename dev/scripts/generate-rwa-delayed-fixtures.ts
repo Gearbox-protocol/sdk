@@ -38,7 +38,7 @@
  * path with explicit leftoverBalances (RouterIntentQuoteSource leftover
  * branch), full-amount swaps use findOneTokenPath.
  *
- * Produces, under src/preview/__fixtures__:
+ * Produces, under src/onchain/preview/__fixtures__:
  * - Mainnet-{block}-rwa.json: serialized `sdk.state` snapshot covering both
  *   market configurators (including withdrawable assets of the withdrawal
  *   compressor);
@@ -151,7 +151,10 @@ const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
 const SECURITIZE_ADMIN_PRIVATE_KEY: Hex =
   "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a";
 
-const DEST_DIR = resolve(import.meta.dirname, "../../src/preview/__fixtures__");
+const DEST_DIR = resolve(
+  import.meta.dirname,
+  "../../src/onchain/preview/__fixtures__",
+);
 
 // Scenario: "open a credit account depositing 20k USDC at 5x leverage into
 // ACRED", then "withdraw 2000 USDC (or RLUSD) while maintaining leverage",

@@ -14,6 +14,7 @@ import {
   Curve2AssetsAdapterContract,
   OnchainSDK,
   type ParsedCallV2,
+  type TokenTransfer,
   UniswapV3AdapterContract,
   WstETHV1AdapterContract,
 } from "../onchain/index.js";
@@ -21,7 +22,6 @@ import {
   type CallTrace,
   EXECUTE_BYTES_SELECTOR,
 } from "../onchain/utils/trace.js";
-import type { TokenTransfer } from "../preview/parse/index.js";
 import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 
 const addr = (hex: string) => getAddress(padHex(hex as Address, { size: 20 }));

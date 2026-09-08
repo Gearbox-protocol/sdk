@@ -17,10 +17,10 @@ import {
   MultichainSDK,
   type OnchainSDK,
   PERCENTAGE_FACTOR,
+  previewOperation,
   type RawTx,
   sendRawTx,
 } from "../../onchain/index.js";
-import { previewOperation } from "../../preview/index.js";
 import type { PrepareRequest } from "../../sdk/index.js";
 import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";

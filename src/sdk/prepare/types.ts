@@ -500,7 +500,7 @@ export interface FinalizeParams extends PrepareOptions {
  * pathfinder for real swap paths. Nothing is executed and nothing is signed —
  * the result is the numbers plus the calldata that would produce them.
  *
- * Not to be confused with `src/preview`, which goes the other way: it takes
+ * Not to be confused with `src/onchain/preview`, which goes the other way: it takes
  * calldata that already exists and reports what it would do.
  *
  * Every refusable method answers `SDKReturn` and names, in its own signature,
