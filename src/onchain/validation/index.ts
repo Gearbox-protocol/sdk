@@ -1,4 +1,5 @@
 export * from "./bundles/index.js";
+export * from "./checkLiquidation.js";
 export * from "./checkOperation.js";
 export * from "./checkSimulation.js";
 export * from "./checks/index.js";

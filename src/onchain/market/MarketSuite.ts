@@ -242,6 +242,13 @@ export class MarketSuite extends SDKConstruct {
   }
 
   /**
+   * Whether `sender` may liquidate a paused facade of this market.
+   */
+  public isEmergencyLiquidator(sender: Address): boolean {
+    return this.state.emergencyLiquidators.some(a => isAddressEqual(a, sender));
+  }
+
+  /**
    * Quota configuration of every token the market quotes: how much of it the
    * market accepts in total, and what holding it costs.
    */

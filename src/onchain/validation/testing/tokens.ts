@@ -8,6 +8,7 @@ export const CM = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;
 export const POOL = "0xcccccccccccccccccccccccccccccccccccccccc" as Address;
 export const OWNER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Address;
 export const SPENDER = "0xdddddddddddddddddddddddddddddddddddddddd" as Address;
+export const CA = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as Address;
 
 export function token(address: string, symbol = "TKN"): Token {
   return {

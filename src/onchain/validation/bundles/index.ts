@@ -3,6 +3,8 @@ export * from "./checkCollateralFunding.js";
 export * from "./checkCreditOperation.js";
 export * from "./checkDraw.js";
 export * from "./checkHealthFactors.js";
+export * from "./checkLiquidationEligibility.js";
+export * from "./checkLiquidationFunding.js";
 export * from "./checkMarket.js";
 export * from "./checkObtained.js";
 export * from "./checkPoolFunding.js";
