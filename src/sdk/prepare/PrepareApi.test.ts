@@ -7,7 +7,6 @@ import type {
   SDKReturn,
   TokenAmount,
 } from "../../model/index.js";
-import { isSDKError } from "../../model/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -29,7 +28,7 @@ import { PrepareApi } from "./PrepareApi.js";
  * envelope narrowing every assertion below would otherwise have to repeat.
  */
 function plan<D, E extends IGearboxError>(result: SDKReturn<D, E>): D {
-  if (isSDKError(result)) {
+  if (!result.ok) {
     throw new Error(`prepare refused: ${result.error.code}`);
   }
   return result.data;
@@ -352,7 +351,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: between,
       to: WALLET,
     });
-    expect(isSDKError(refused) && refused.error.code).toBe("debtOutOfRange");
+    expect(!refused.ok && refused.error.code).toBe("debtOutOfRange");
 
     // at the exit itself the flow accepts, and empties the account
     const result = await api.withdrawStrategy(position, {
@@ -534,7 +533,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       { token: UND, amount: 1n },
     );
 
-    if (!isSDKError(result)) throw new Error("expected a refusal");
+    if (result.ok) throw new Error("expected a refusal");
     expect(result.error.code).toBe("unexpectedFailure");
     expect(
       result.error.code === "unexpectedFailure" && result.error.cause.message,
@@ -553,7 +552,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       { amount: 1n, wallet: WALLET },
     );
 
-    if (!isSDKError(result)) throw new Error("expected a refusal");
+    if (result.ok) throw new Error("expected a refusal");
     expect(result.error.code).toBe("unexpectedFailure");
   });
 

@@ -1,5 +1,4 @@
 import {
-  isSDKError,
   type SDKReturn,
   sdkErr,
   sdkOk,
@@ -44,7 +43,7 @@ export function parseOperationCalldata<P extends PluginsMap>(
 
   if (contract instanceof ZapperContract) {
     const answer = contract.parseOperation(calldata, value);
-    if (isSDKError(answer)) {
+    if (!answer.ok) {
       return answer;
     }
     const parsed = answer.data;

@@ -1,7 +1,6 @@
 import {
   asEstimated,
   type ExitStrategyPositionPreview,
-  isSDKError,
   type MalformedTransactionError,
   type RepayStrategyPositionPreview,
   type SDKReturn,
@@ -138,7 +137,7 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
-  if (isSDKError(unwrapped)) {
+  if (!unwrapped.ok) {
     return unwrapped;
   }
   const collateralAdded = unwrapped.data;

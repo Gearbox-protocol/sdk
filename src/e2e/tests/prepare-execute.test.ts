@@ -9,7 +9,6 @@ import {
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { createAnvilClient } from "../../dev/createAnvilClient.js";
-import { isSDKError } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
@@ -139,8 +138,8 @@ describe("prepare → execute on a mainnet fork", () => {
       sender: borrower,
       value: BigInt(tx.value),
     });
-    expect(isSDKError(preview), "preview must parse").toBe(false);
-    if (isSDKError(preview)) throw new Error("unreachable");
+    expect(preview.ok, "preview must parse").toBe(true);
+    if (!preview.ok) throw new Error("unreachable");
     expect(
       await checkOperation({
         sdk: chain,
@@ -325,8 +324,8 @@ describe("prepare → execute on a mainnet fork", () => {
         calldata: tx.callData,
         sender: borrower,
       });
-      expect(isSDKError(preview), "preview must parse").toBe(false);
-      if (isSDKError(preview)) throw new Error("unreachable");
+      expect(preview.ok, "preview must parse").toBe(true);
+      if (!preview.ok) throw new Error("unreachable");
       const errors = await checkOperation({
         sdk: chain,
         preview: preview.data,

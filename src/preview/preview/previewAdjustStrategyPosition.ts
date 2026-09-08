@@ -1,7 +1,6 @@
 import {
   type AdjustStrategyPositionPreview,
   asEstimated,
-  isSDKError,
   type MalformedTransactionError,
   type SDKReturn,
   sdkOk,
@@ -45,7 +44,7 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
-  if (isSDKError(unwrapped)) {
+  if (!unwrapped.ok) {
     return unwrapped;
   }
   const collateralAdded = unwrapped.data;

@@ -4,7 +4,6 @@ import {
   creditAccountNotFound,
   type InstantStrategyPositionOperationPreview,
   type InvalidDelayedIntentError,
-  isSDKError,
   type MalformedTransactionError,
   type PoolOperationPreviewError,
   type SDKReturn,
@@ -71,7 +70,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
   options?: PreviewOperationOptions,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
   const parsed = parseOperationCalldata(input);
-  if (isSDKError(parsed)) {
+  if (!parsed.ok) {
     return parsed;
   }
   const operation = parsed.data;
@@ -89,11 +88,11 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
 
   if (operation.operation === "CloseCreditAccount") {
     const resolved = await resolveCreditAccount(input, operation, options);
-    if (isSDKError(resolved)) {
+    if (!resolved.ok) {
       return resolved;
     }
     const replayed = replayMulticall(input.sdk, operation, resolved.data);
-    if (isSDKError(replayed)) {
+    if (!replayed.ok) {
       return replayed;
     }
     const preview = previewExitOrRepayStrategyPosition(
@@ -102,7 +101,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
       true,
       replayed.data,
     );
-    if (isSDKError(preview)) {
+    if (!preview.ok) {
       return preview;
     }
     const intent = await resolveDelayedClaimIntent(
@@ -110,7 +109,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
       operation.multicall,
       options?.blockNumber,
     );
-    if (isSDKError(intent)) {
+    if (!intent.ok) {
       return intent;
     }
     preview.data.intent = intent.data;
@@ -124,11 +123,11 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     operation.operation === "RWAMulticall"
   ) {
     const resolved = await resolveCreditAccount(input, operation, options);
-    if (isSDKError(resolved)) {
+    if (!resolved.ok) {
       return resolved;
     }
     const replayed = replayMulticall(input.sdk, operation, resolved.data);
-    if (isSDKError(replayed)) {
+    if (!replayed.ok) {
       return replayed;
     }
     return previewMulticallOperation(
@@ -196,20 +195,20 @@ async function previewMulticallOperation<P extends PluginsMap>(
       false,
       replay,
     );
-    if (isSDKError(instant)) {
+    if (!instant.ok) {
       return instant;
     }
     instantPreview = instant.data;
   } else {
     const instant = previewAdjustStrategyPosition(input, operation, replay);
-    if (isSDKError(instant)) {
+    if (!instant.ok) {
       return instant;
     }
     instantPreview = instant.data;
   }
 
   const detected = detectDelayedOperation(sdk, operation.multicall);
-  if (isSDKError(detected)) {
+  if (!detected.ok) {
     return detected;
   }
   const delayed = detected.data;
@@ -222,7 +221,7 @@ async function previewMulticallOperation<P extends PluginsMap>(
       operation.multicall,
       blockNumber,
     );
-    if (isSDKError(intent)) {
+    if (!intent.ok) {
       return intent;
     }
     instantPreview.intent = intent.data;

@@ -4,7 +4,6 @@
 // exactly (toEqual) so the answered dictionary cannot drift.
 import type { Address, Hex } from "viem";
 import { describe, expect, it } from "vitest";
-import { isSDKError } from "../model/index.js";
 import type { OnchainSDK } from "../onchain/index.js";
 import * as previewBarrel from "./index.js";
 import { previewOperation } from "./preview/previewOperation.js";
@@ -54,8 +53,8 @@ describe("previewOperation envelope", () => {
       sender: "0x00000000000000000000000000000000000000bb",
     });
 
-    expect(isSDKError(answer)).toBe(true);
-    if (!isSDKError(answer)) {
+    expect(answer.ok).toBe(false);
+    if (answer.ok) {
       throw new Error("expected a refusal");
     }
     expect(answer.error).toEqual({

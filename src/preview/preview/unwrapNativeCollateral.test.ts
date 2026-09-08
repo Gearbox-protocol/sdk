@@ -1,6 +1,6 @@
 import { type Address, getAddress, padHex, parseEther } from "viem";
 import { describe, expect, it } from "vitest";
-import { isSDKError, sdkOk } from "../../model/index.js";
+import { sdkOk } from "../../model/index.js";
 import { NATIVE_ADDRESS } from "../../onchain/index.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -46,8 +46,8 @@ describe("unwrapNativeCollateral", () => {
     const collateral = [{ token: WETH, balance: parseEther("10") }];
 
     const answer = unwrapNativeCollateral(collateral, parseEther("11"), WETH);
-    expect(isSDKError(answer)).toBe(true);
-    if (!isSDKError(answer)) {
+    expect(answer.ok).toBe(false);
+    if (answer.ok) {
       throw new Error("expected a refusal");
     }
     expect(answer.error.code).toBe("malformedTransaction");
@@ -57,8 +57,8 @@ describe("unwrapNativeCollateral", () => {
     const collateral = [{ token: USDC, balance: 1_000_000n }];
 
     const answer = unwrapNativeCollateral(collateral, parseEther("1"), WETH);
-    expect(isSDKError(answer)).toBe(true);
-    if (!isSDKError(answer)) {
+    expect(answer.ok).toBe(false);
+    if (answer.ok) {
       throw new Error("expected a refusal");
     }
     expect(answer.error.code).toBe("malformedTransaction");
