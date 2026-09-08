@@ -61,8 +61,8 @@ beforeAll(() => {
 
 // transactions are generated against Mainnet using frontend UI
 async function preview(tx: Tx) {
-  const answer = await previewOperation({
-    sdk,
+  const answer = await previewOperation(sdk, {
+    chainId: sdk.chainId,
     to: tx.to,
     calldata: tx.data,
     sender: SENDER,
@@ -277,8 +277,8 @@ it("answers malformedTransaction when open value exceeds WETH collateral", async
     value: parseEther("11"),
   };
 
-  const answer = await previewOperation({
-    sdk,
+  const answer = await previewOperation(sdk, {
+    chainId: sdk.chainId,
     to: STRATEGY_ETH_TO_WEETH.to,
     calldata: STRATEGY_ETH_TO_WEETH.data,
     sender: SENDER,

@@ -2,19 +2,18 @@ import type { ContractFunctionParameters } from "viem";
 import { iPoolV310Abi } from "../../../abi/310/generated.js";
 import { ierc20Abi } from "../../../abi/iERC20.js";
 import { iZapperAbi } from "../../../abi/iZapper.js";
-import type { PoolPositionOperationPreview } from "../../../model/index.js";
+import type {
+  PoolPositionOperationPreview,
+  PreviewOperationOptions,
+} from "../../../model/index.js";
 import {
   type PoolOperationPreviewError,
   type SDKReturn,
   sdkErr,
   sdkOk,
 } from "../../../model/index.js";
-import type { PluginsMap } from "../../index.js";
+import type { OnchainSDK, PluginsMap } from "../../index.js";
 import type { PoolOperation } from "../parse/index.js";
-import type {
-  PreviewOperationInput,
-  PreviewOperationOptions,
-} from "../types.js";
 
 /** ERC4626 preview read paired with each pool operation kind. */
 type PreviewFunctionName =
@@ -95,11 +94,10 @@ function amountsInOut(
 }
 
 export async function previewPoolPositionOperation<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
   operation: PoolOperation,
   options?: PreviewOperationOptions,
 ): Promise<SDKReturn<PoolPositionOperationPreview, PoolOperationPreviewError>> {
-  const { sdk } = input;
   const { tokenIn, tokenOut } = operation;
   const market = sdk.marketRegister.findByPool(operation.pool);
   const pool = market.pool.pool;
@@ -129,7 +127,6 @@ export async function previewPoolPositionOperation<P extends PluginsMap>(
       pool: operation.pool,
       cause: cause instanceof Error ? cause : new Error(String(cause)),
     } satisfies PoolOperationPreviewError;
-    options?.logger?.error(error, "pool operation preview failed");
     return sdkErr(error);
   }
   const sim = amountsInOut(operation, previewAmount);

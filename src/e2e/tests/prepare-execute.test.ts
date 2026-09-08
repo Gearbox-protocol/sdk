@@ -131,8 +131,8 @@ describe("prepare → execute on a mainnet fork", () => {
 
   async function send(request: PrepareRequest): Promise<RawTx> {
     const tx = await execute().buildTx(request);
-    const preview = await previewOperation({
-      sdk: chain,
+    const preview = await previewOperation(chain, {
+      chainId: chain.chainId,
       to: tx.to,
       calldata: tx.callData,
       sender: borrower,
@@ -318,8 +318,8 @@ describe("prepare → execute on a mainnet fork", () => {
         ethAmount: 0n,
       });
 
-      const preview = await previewOperation({
-        sdk: chain,
+      const preview = await previewOperation(chain, {
+        chainId: chain.chainId,
         to: tx.to,
         calldata: tx.callData,
         sender: borrower,

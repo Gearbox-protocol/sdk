@@ -2,19 +2,19 @@ import {
   asEstimated,
   type MalformedTransactionError,
   type OpenStrategyPositionPreview,
+  type PreviewOperationInput,
   type SDKReturn,
   sdkErr,
   sdkOk,
   type UnpriceableTokenError,
 } from "../../../model/index.js";
 import { AP_WETH_TOKEN, NO_VERSION } from "../../constants/address-provider.js";
-import type { AddressMap, Asset, PluginsMap } from "../../index.js";
+import type { AddressMap, Asset, OnchainSDK, PluginsMap } from "../../index.js";
 import type {
   InnerOperation,
   OpenCreditAccountOperation,
   RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
-import type { PreviewOperationInput } from "../types.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {
   makeReplayState,
@@ -23,10 +23,11 @@ import {
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
 export function previewOpenStrategyPosition<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
   operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
 ): SDKReturn<OpenStrategyPositionPreview, MalformedTransactionError> {
-  const { sdk, value = 0n } = input;
+  const { value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );

@@ -5,9 +5,8 @@ import {
   sdkErr,
   sdkOk,
 } from "../../../model/index.js";
-import type { OnchainSDK, PluginsMap } from "../../index.js";
+import type { CreditAccountData, OnchainSDK, PluginsMap } from "../../index.js";
 import type { InnerOperation } from "../parse/index.js";
-import type { PreviewOperationOptions } from "../types.js";
 import { CreditAccountState } from "./CreditAccountState.js";
 import {
   makeReplayState,
@@ -43,16 +42,14 @@ export interface ReplayMulticallResult {
 
 /**
  * Replays the operation's multicall over the account's pre-resolved
- * pre-state (`options.creditAccount`) via {@link replayInnerOperations}.
+ * pre-state via {@link replayInnerOperations}.
  */
 export function replayMulticall<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   operation: ReplayableOperation,
-  options: PreviewOperationOptions<true>,
+  creditAccount: CreditAccountData,
 ): SDKReturn<ReplayMulticallResult, MalformedTransactionError> {
-  const before = CreditAccountState.fromCreditAccountData(
-    options.creditAccount,
-  );
+  const before = CreditAccountState.fromCreditAccountData(creditAccount);
   const after = makeReplayState(before.clone());
 
   const error = replayInnerOperations(sdk, operation.multicall, after);

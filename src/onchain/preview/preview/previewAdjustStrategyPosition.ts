@@ -2,17 +2,17 @@ import {
   type AdjustStrategyPositionPreview,
   asEstimated,
   type MalformedTransactionError,
+  type PreviewOperationInput,
   type SDKReturn,
   sdkOk,
 } from "../../../model/index.js";
 import { AP_WETH_TOKEN, NO_VERSION } from "../../constants/address-provider.js";
 import { DUST_THRESHOLD } from "../../constants/math.js";
-import type { PluginsMap } from "../../index.js";
+import type { OnchainSDK, PluginsMap } from "../../index.js";
 import type {
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
-import type { PreviewOperationInput } from "../types.js";
 import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -22,11 +22,12 @@ import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
  * to the pre-state.
  */
 export function previewAdjustStrategyPosition<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
   operation: MulticallOperation | RWAMulticallOperation,
   replay: ReplayMulticallResult,
 ): SDKReturn<AdjustStrategyPositionPreview, MalformedTransactionError> {
-  const { sdk, value = 0n } = input;
+  const { value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );

@@ -2,19 +2,19 @@ import {
   asEstimated,
   type ExitStrategyPositionPreview,
   type MalformedTransactionError,
+  type PreviewOperationInput,
   type RepayStrategyPositionPreview,
   type SDKReturn,
   sdkOk,
 } from "../../../model/index.js";
 import { AP_WETH_TOKEN, NO_VERSION } from "../../constants/address-provider.js";
 import { MAX_UINT256 } from "../../constants/math.js";
-import type { PluginsMap } from "../../index.js";
+import type { OnchainSDK, PluginsMap } from "../../index.js";
 import type {
   CloseCreditAccountOperation,
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
-import type { PreviewOperationInput } from "../types.js";
 import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
 import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
@@ -30,7 +30,8 @@ export type CloseOrRepayOperation =
   | RWAMulticallOperation;
 
 export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
@@ -38,7 +39,6 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
   ExitStrategyPositionPreview | RepayStrategyPositionPreview,
   MalformedTransactionError
 > {
-  const { sdk } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
@@ -53,8 +53,8 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
 
   const kind = classifyCloseOrRepay(operation.multicall, exitTokens);
   return kind === "close"
-    ? sdkOk(previewCloseCreditAccount(input, operation, permanent, replay))
-    : previewRepayCreditAccount(input, operation, permanent, replay);
+    ? sdkOk(previewCloseCreditAccount(sdk, operation, permanent, replay))
+    : previewRepayCreditAccount(sdk, input, operation, permanent, replay);
 }
 
 /**
@@ -63,12 +63,11 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
  * withdrawn to the user.
  */
 function previewCloseCreditAccount<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
 ): ExitStrategyPositionPreview {
-  const { sdk } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );
@@ -116,12 +115,13 @@ function previewCloseCreditAccount<P extends PluginsMap>(
  * in-kind.
  */
 function previewRepayCreditAccount<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
 ): SDKReturn<RepayStrategyPositionPreview, MalformedTransactionError> {
-  const { sdk, value = 0n } = input;
+  const { value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
     operation.creditManager,
   );

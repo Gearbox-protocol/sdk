@@ -138,15 +138,7 @@ function fakeSdk(args: FakeSdkArgs): {
 
 async function preview(operation: PoolOperation, args: FakeSdkArgs) {
   const { sdk, calls } = fakeSdk(args);
-  const answer = await previewPoolPositionOperation(
-    {
-      sdk,
-      to: operation.zapper ?? operation.pool,
-      calldata: "0x",
-      sender: OWNER,
-    },
-    operation,
-  );
+  const answer = await previewPoolPositionOperation(sdk, operation);
   return { answer, calls };
 }
 
@@ -432,10 +424,7 @@ describe("previewPoolPositionOperation", () => {
       tokensMeta: { mustGetToken: () => ({ name: "Test Pool" }) },
     } as unknown as OnchainSDK;
 
-    const answer = await previewPoolPositionOperation(
-      { sdk, to: POOL, calldata: "0x", sender: OWNER },
-      deposit(),
-    );
+    const answer = await previewPoolPositionOperation(sdk, deposit());
 
     expect(answer).toMatchObject({
       ok: false,

@@ -339,8 +339,8 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // Tx 1: open with 20k USDC collateral at 5x leverage; the router swaps
   // the collateral and the borrowed funds into the RWA collateral.
   it("previews the account opening with 20k USDC at 5x leverage", async () => {
-    const answer = await previewOperation({
-      sdk,
+    const answer = await previewOperation(sdk, {
+      chainId: sdk.chainId,
       to: txs.open.to,
       calldata: txs.open.calldata,
       sender: investor,
@@ -398,14 +398,16 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // minted), debt is untouched until the withdrawal is claimed.
   it("previews the delayed withdrawal request and its resume", async () => {
     const answer = await previewOperation(
+      sdk,
       {
-        sdk,
+        chainId: sdk.chainId,
         to: txs.request.to,
         calldata: txs.request.calldata,
         sender: investor,
         value: 0n,
       },
-      { creditAccount: afterOpen },
+      undefined,
+      afterOpen,
     );
     if (!answer.ok) {
       throw new Error(`preview refused: ${answer.error.code}`);
@@ -498,14 +500,16 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // redemption logger.
   it("previews the claim tx with the WITHDRAW_COLLATERAL resume tail", async () => {
     const answer = await previewOperation(
+      sdk,
       {
-        sdk,
+        chainId: sdk.chainId,
         to: txs.claim.to,
         calldata: txs.claim.calldata,
         sender: investor,
         value: 0n,
       },
-      { creditAccount: afterRequest },
+      undefined,
+      afterRequest,
     );
     if (!answer.ok) {
       throw new Error(`preview refused: ${answer.error.code}`);
@@ -562,14 +566,16 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // redemption with a CLOSE_ACCOUNT intent, the collateral quota is zeroed.
   it("previews the delayed close request and its resume", async () => {
     const answer = await previewOperation(
+      sdk,
       {
-        sdk,
+        chainId: sdk.chainId,
         to: txs.closeRequest.to,
         calldata: txs.closeRequest.calldata,
         sender: investor,
         value: 0n,
       },
-      { creditAccount: afterClaim },
+      undefined,
+      afterClaim,
     );
     if (!answer.ok) {
       throw new Error(`preview refused: ${answer.error.code}`);
@@ -644,14 +650,16 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
   // underlying, repay the whole debt and withdraw the leftover.
   it("previews the final claim tx as a closure", async () => {
     const answer = await previewOperation(
+      sdk,
       {
-        sdk,
+        chainId: sdk.chainId,
         to: txs.close.to,
         calldata: txs.close.calldata,
         sender: investor,
         value: 0n,
       },
-      { creditAccount: afterCloseRequest },
+      undefined,
+      afterCloseRequest,
     );
     if (!answer.ok) {
       throw new Error(`preview refused: ${answer.error.code}`);

@@ -1,4 +1,8 @@
-import type { OperationPreview } from "../../../model/index.js";
+import type {
+  OperationPreview,
+  PreviewOperationInput,
+  PreviewOperationOptions,
+} from "../../../model/index.js";
 import {
   type CreditAccountNotFoundError,
   creditAccountNotFound,
@@ -14,17 +18,13 @@ import {
   type UnsupportedTargetError,
   type UnsupportedZapperFunctionError,
 } from "../../../model/index.js";
-import type { PluginsMap } from "../../index.js";
+import type { CreditAccountData, OnchainSDK, PluginsMap } from "../../index.js";
 import {
   isPoolOperation,
   type MulticallOperation,
   parseOperationCalldata,
   type RWAMulticallOperation,
 } from "../parse/index.js";
-import type {
-  PreviewOperationInput,
-  PreviewOperationOptions,
-} from "../types.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
@@ -64,38 +64,49 @@ export type PreviewOperationError =
  * {@link PreviewOperationError} behind `ok: false`. A thrown exception
  * still means the SDK could not do its job (a read failed), not a refusal
  * of the transaction.
+ *
+ * `input.chainId` and `sdk` both name the chain; the engine does not read
+ * `input.chainId`.
  */
 export async function previewOperation<P extends PluginsMap = PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
   options?: PreviewOperationOptions,
+  creditAccount?: CreditAccountData,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
-  const parsed = parseOperationCalldata(input);
+  const parsed = parseOperationCalldata(sdk, input);
   if (!parsed.ok) {
     return parsed;
   }
   const operation = parsed.data;
 
   if (isPoolOperation(operation)) {
-    return previewPoolPositionOperation(input, operation, options);
+    return previewPoolPositionOperation(sdk, operation, options);
   }
 
   if (
     operation.operation === "OpenCreditAccount" ||
     operation.operation === "RWAOpenCreditAccount"
   ) {
-    return previewOpenStrategyPosition(input, operation);
+    return previewOpenStrategyPosition(sdk, input, operation);
   }
 
   if (operation.operation === "CloseCreditAccount") {
-    const resolved = await resolveCreditAccount(input, operation, options);
+    const resolved = await resolveCreditAccount(
+      sdk,
+      operation,
+      options,
+      creditAccount,
+    );
     if (!resolved.ok) {
       return resolved;
     }
-    const replayed = replayMulticall(input.sdk, operation, resolved.data);
+    const replayed = replayMulticall(sdk, operation, resolved.data);
     if (!replayed.ok) {
       return replayed;
     }
     const preview = previewExitOrRepayStrategyPosition(
+      sdk,
       input,
       operation,
       true,
@@ -105,7 +116,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
       return preview;
     }
     const intent = await resolveDelayedClaimIntent(
-      input.sdk,
+      sdk,
       operation.multicall,
       options?.blockNumber,
     );
@@ -122,15 +133,21 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     operation.operation === "BotMulticall" ||
     operation.operation === "RWAMulticall"
   ) {
-    const resolved = await resolveCreditAccount(input, operation, options);
+    const resolved = await resolveCreditAccount(
+      sdk,
+      operation,
+      options,
+      creditAccount,
+    );
     if (!resolved.ok) {
       return resolved;
     }
-    const replayed = replayMulticall(input.sdk, operation, resolved.data);
+    const replayed = replayMulticall(sdk, operation, resolved.data);
     if (!replayed.ok) {
       return replayed;
     }
     return previewMulticallOperation(
+      sdk,
       input,
       operation,
       replayed.data,
@@ -147,27 +164,26 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
 
 /**
  * Resolves the pre-state of the credit account an operation targets: uses the
- * state provided via options when present, otherwise fetches it from the
- * credit account compressor.
+ * injected state when present, otherwise fetches it from the credit account
+ * compressor.
  */
 async function resolveCreditAccount<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
   operation: ReplayableOperation,
   options?: PreviewOperationOptions,
-): Promise<
-  SDKReturn<PreviewOperationOptions<true>, CreditAccountNotFoundError>
-> {
-  let creditAccount = options?.creditAccount;
-  if (!creditAccount) {
-    creditAccount = await input.sdk.accounts.getCreditAccountData(
+  creditAccount?: CreditAccountData,
+): Promise<SDKReturn<CreditAccountData, CreditAccountNotFoundError>> {
+  let resolved = creditAccount;
+  if (!resolved) {
+    resolved = await sdk.accounts.getCreditAccountData(
       operation.creditAccount,
       options?.blockNumber,
     );
   }
-  if (!creditAccount) {
+  if (!resolved) {
     return sdkErr(creditAccountNotFound(operation.creditAccount));
   }
-  return sdkOk({ ...options, creditAccount });
+  return sdkOk(resolved);
 }
 
 /**
@@ -178,18 +194,18 @@ async function resolveCreditAccount<P extends PluginsMap>(
  * the state after the withdrawal is claimed.
  */
 async function previewMulticallOperation<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
   operation: MulticallOperation | RWAMulticallOperation,
   replay: ReplayMulticallResult,
   blockNumber?: bigint,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
-  const { sdk } = input;
-
   // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
   // zero-debt closure/repay: the account stays open but debt is cleared.
   let instantPreview: InstantStrategyPositionOperationPreview;
   if (isCloseOrRepay(operation.multicall)) {
     const instant = previewExitOrRepayStrategyPosition(
+      sdk,
       input,
       operation,
       false,
@@ -200,7 +216,12 @@ async function previewMulticallOperation<P extends PluginsMap>(
     }
     instantPreview = instant.data;
   } else {
-    const instant = previewAdjustStrategyPosition(input, operation, replay);
+    const instant = previewAdjustStrategyPosition(
+      sdk,
+      input,
+      operation,
+      replay,
+    );
     if (!instant.ok) {
       return instant;
     }

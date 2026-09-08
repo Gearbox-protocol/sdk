@@ -42,12 +42,17 @@ const sdkWithUnrelatedPlugin = new OnchainSDK("Mainnet", clientOptions, {
 
 describe("previewOperation sdk typing", () => {
   it("accepts an SDK created without plugins", () => {
-    void previewOperation({ sdk: sdkWithoutPlugins, to, calldata, sender });
+    void previewOperation(sdkWithoutPlugins, {
+      chainId: sdkWithoutPlugins.chainId,
+      to,
+      calldata,
+      sender,
+    });
   });
 
   it("accepts an SDK with unrelated plugins", () => {
-    void previewOperation({
-      sdk: sdkWithUnrelatedPlugin,
+    void previewOperation(sdkWithUnrelatedPlugin, {
+      chainId: sdkWithUnrelatedPlugin.chainId,
       to,
       calldata,
       sender,
@@ -73,8 +78,8 @@ describe("previewOperation result envelope", () => {
   });
 
   it("narrows to the preview or the refusal on the ok discriminant", async () => {
-    const answer = await previewOperation({
-      sdk: sdkWithoutPlugins,
+    const answer = await previewOperation(sdkWithoutPlugins, {
+      chainId: sdkWithoutPlugins.chainId,
       to,
       calldata,
       sender,

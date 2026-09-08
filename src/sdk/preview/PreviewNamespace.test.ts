@@ -108,16 +108,9 @@ describe("PreviewNamespace.previewOperation", () => {
     expect(result.ok && result.data).toBe(previewData);
     expect(ensureFresh).toHaveBeenCalledWith([CHAIN_ID]);
     expect(chain).toHaveBeenCalledWith(CHAIN_ID);
-    expect(previewOperationMock).toHaveBeenCalledWith(
-      {
-        sdk: chainSdk,
-        to: TO,
-        calldata: CALLDATA,
-        sender: SENDER,
-        value: 10n,
-      },
-      { blockNumber: 99n, logger: undefined },
-    );
+    expect(previewOperationMock).toHaveBeenCalledWith(chainSdk, input, {
+      blockNumber: 99n,
+    });
     expect(order).toEqual(["fresh", "preview"]);
   });
 });

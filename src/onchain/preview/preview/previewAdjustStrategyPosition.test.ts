@@ -18,8 +18,8 @@ import { previewOperation } from "./previewOperation.js";
 // Scoped (KPK market configurator only) snapshot of the Gearbox anvil Mainnet
 // fork, replayed via `hydrate` so the test runs fully offline. The account
 // data fixture is the pre-state of the credit account targeted by all sample
-// multicalls, captured at the same block; it is passed to previews via
-// `options.creditAccount` so they don't hit the credit account compressor.
+// multicalls, captured at the same block; it is passed to previews as the
+// credit-account argument so they don't hit the credit account compressor.
 //
 // The account owes 40 WETH of principal with 122187064668312 wei of interest
 // and fees accrued on top, and `totalDebt` is the whole of it — which is why the
@@ -72,8 +72,10 @@ beforeAll(() => {
 // UI, but never sent; the account pre-state is ~44 cbETH with 40 WETH debt
 async function preview(calldata: Hex) {
   const answer = await previewOperation(
-    { sdk, to: FACADE, calldata, sender: OWNER, value: 0n },
-    { creditAccount },
+    sdk,
+    { chainId: sdk.chainId, to: FACADE, calldata, sender: OWNER, value: 0n },
+    undefined,
+    creditAccount,
   );
   if (!answer.ok) {
     throw new Error(`preview refused: ${answer.error.code}`);
@@ -554,8 +556,10 @@ it("answers malformedTransaction for an unmatched storeExpectedBalances", async 
   });
 
   const answer = await previewOperation(
-    { sdk, to: FACADE, calldata, sender: OWNER, value: 0n },
-    { creditAccount },
+    sdk,
+    { chainId: sdk.chainId, to: FACADE, calldata, sender: OWNER, value: 0n },
+    undefined,
+    creditAccount,
   );
   expect(answer.ok).toBe(false);
   if (answer.ok) {
@@ -572,8 +576,8 @@ it("answers creditAccountNotFound when the account cannot be resolved", async ()
     "0xebe4107c000000000000000000000000e22ced1808c22455747f366cf94d45b3201302d30000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000009515ab9bb73a9642f1a93ba7c2790e9d08227f9a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000242b7c7b1100000000000000000000000000000000000000000000000015d9165eda4bb6e000000000000000000000000000000000000000000000000000000000";
 
   try {
-    const answer = await previewOperation({
-      sdk,
+    const answer = await previewOperation(sdk, {
+      chainId: sdk.chainId,
       to: FACADE,
       calldata: OP,
       sender: OWNER,

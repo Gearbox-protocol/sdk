@@ -45,8 +45,10 @@ describe("close/repay with withdrawals (WETH strategy)", () => {
   // UI, but never sent
   async function preview(calldata: Hex) {
     const answer = await previewOperation(
-      { sdk, to: FACADE, calldata, sender: OWNER, value: 0n },
-      { creditAccount },
+      sdk,
+      { chainId: sdk.chainId, to: FACADE, calldata, sender: OWNER, value: 0n },
+      undefined,
+      creditAccount,
     );
     if (!answer.ok) {
       throw new Error(`preview refused: ${answer.error.code}`);
@@ -238,14 +240,16 @@ describe.each(WALLET_FUNDED_REPAY_SCENARIOS)(
 
     it("previews the full repay as RepayCreditAccount", async () => {
       const answer = await previewOperation(
+        sdk,
         {
-          sdk,
+          chainId: sdk.chainId,
           to: repay.to,
           calldata: repay.calldata,
           sender: investor,
           value: 0n,
         },
-        { creditAccount: afterOpen },
+        undefined,
+        afterOpen,
       );
       if (!answer.ok) {
         throw new Error(`preview refused: ${answer.error.code}`);

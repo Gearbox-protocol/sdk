@@ -1,3 +1,4 @@
+import type { PreviewOperationInput } from "../../../model/index.js";
 import {
   type SDKReturn,
   sdkErr,
@@ -6,12 +7,11 @@ import {
   type UnsupportedTargetError,
   type UnsupportedZapperFunctionError,
 } from "../../../model/index.js";
-import type { PluginsMap } from "../../index.js";
+import type { OnchainSDK, PluginsMap } from "../../index.js";
 import { CreditFacadeV310Contract } from "../../market/credit/CreditFacadeV310Contract.js";
 import { PoolV310Contract } from "../../market/pool/PoolV310Contract.js";
 import { isRWAFactory } from "../../market/rwa/types.js";
 import { ZapperContract } from "../../market/zapper/ZapperContract.js";
-import type { PreviewOperationInput } from "../types.js";
 import { parseFacadeOperationCalldata } from "./parseFacadeOperationCalldata.js";
 import { parsePoolOperationCalldata } from "./parsePoolOperationCalldata.js";
 import { parseRWAFactoryOperationCalldata } from "./parseRWAFactoryOperationCalldata.js";
@@ -25,14 +25,15 @@ import type { PoolOperation } from "./types-pools.js";
  * credit facade operations and RWA factory operations.
  */
 export function parseOperationCalldata<P extends PluginsMap>(
-  input: PreviewOperationInput<P>,
+  sdk: OnchainSDK<P>,
+  input: PreviewOperationInput,
 ): SDKReturn<
   Operation,
   | UnsupportedTargetError
   | UnsupportedPoolFunctionError
   | UnsupportedZapperFunctionError
 > {
-  const { sdk, to, calldata, value, sender } = input;
+  const { to, calldata, value, sender } = input;
   const contract = sdk.getContract(to);
 
   if (contract instanceof PoolV310Contract) {

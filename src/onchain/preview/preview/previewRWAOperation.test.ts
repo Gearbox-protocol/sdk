@@ -114,8 +114,8 @@ it("previews RWA account opening with an unwrap call", async () => {
     ],
   });
 
-  const answer = await previewOperation({
-    sdk,
+  const answer = await previewOperation(sdk, {
+    chainId: sdk.chainId,
     to: FACTORY,
     calldata,
     sender: SENDER,
@@ -199,8 +199,10 @@ it("previews an unwrap-and-withdraw multicall on an existing RWA account", async
   } as unknown as CreditAccountData;
 
   const answer = await previewOperation(
-    { sdk, to: FACTORY, calldata, sender: SENDER, value: 0n },
-    { creditAccount },
+    sdk,
+    { chainId: sdk.chainId, to: FACTORY, calldata, sender: SENDER, value: 0n },
+    undefined,
+    creditAccount,
   );
   if (!answer.ok) {
     throw new Error(`preview refused: ${answer.error.code}`);
@@ -252,8 +254,8 @@ it("a facade opening has operation OpenCreditAccount and no rwaArgs", async () =
     ],
   });
 
-  const answer = await previewOperation({
-    sdk,
+  const answer = await previewOperation(sdk, {
+    chainId: sdk.chainId,
     to: creditFacade,
     calldata,
     sender: SENDER,
