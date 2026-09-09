@@ -669,7 +669,8 @@ export interface StrategyOpportunityDetail extends StrategyOpportunity {
    * Registration the wallet passed to `getStrategy` still needs before it may
    * open this strategy. `null` when the strategy is not KYC-gated, when no
    * wallet was given, or when the wallet is already eligible. `undefined`
-   * when the source did not evaluate it (backend, for now).
+   * only in `offchain` mode, where the backend does not evaluate it. In
+   * `both` mode `kyc` is taken from the chain whenever that leg succeeded.
    **/
   kyc?: KycRequirement | null;
 }

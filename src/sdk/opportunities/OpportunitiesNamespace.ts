@@ -66,7 +66,10 @@ export class OpportunitiesNamespace
     pool: (onchain, offchain) =>
       mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
     strategy: (onchain, offchain) =>
-      mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
+      overlayOnchainKyc(
+        mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
+        onchain,
+      ),
   };
 
   // preparing an operation reads the whole chain SDK — accounts, pools and the
@@ -196,4 +199,24 @@ export class OpportunitiesNamespace
   ): Promise<DataResponse<ChartBundle<Metrics>>> {
     return this.offchain.getCharts(key, metrics, range);
   }
+}
+
+/**
+ * Freshness still picks the body; `kyc` is taken from a successful chain
+ * response because the backend does not evaluate it.
+ **/
+function overlayOnchainKyc(
+  merged: DataResponse<StrategyOpportunityDetail> | undefined,
+  onchain: DataResponse<StrategyOpportunityDetail> | undefined,
+): DataResponse<StrategyOpportunityDetail> | undefined {
+  if (!merged || !onchain || onchain.meta.chains[0]?.status !== "success") {
+    return merged;
+  }
+  if (merged === onchain) {
+    return merged;
+  }
+  return {
+    ...merged,
+    data: { ...merged.data, kyc: onchain.data.kyc },
+  };
 }

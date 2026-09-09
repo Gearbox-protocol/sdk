@@ -138,6 +138,10 @@ export interface IOpportunitiesOffchainBranch {
 export interface IOpportunityMergers {
   list: ListMerger<Opportunity[]>;
   pool: EntityMerger<PoolOpportunityDetail>;
+  /**
+   * Same freshness rule as {@link pool}, except `kyc` is taken from the chain
+   * whenever that leg succeeded — the backend does not evaluate it.
+   **/
   strategy: EntityMerger<StrategyOpportunityDetail>;
 }
 
