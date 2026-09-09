@@ -288,7 +288,7 @@ export interface CreditAccountNotEmptyError extends IGearboxError {
 
 /**
  * An empty opening was asked for with something to open it with: collateral to
- * spend, or an account to reuse.
+ * spend, an account to reuse, or a leverage to reach.
  **/
 export interface EmptyOpenTakesNothingError extends IGearboxError {
   code: "emptyOpenTakesNothing";
@@ -464,7 +464,8 @@ export function creditAccountNotFound(
 export function emptyOpenTakesNothing(): EmptyOpenTakesNothingError {
   return {
     code: "emptyOpenTakesNothing",
-    message: "An empty opening takes no collateral and no account to reuse.",
+    message:
+      "An empty opening takes no collateral, no account to reuse and no leverage.",
   };
 }
 

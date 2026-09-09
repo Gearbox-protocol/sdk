@@ -236,7 +236,7 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
 
 describe("PrepareApi.openNewStrategy — the empty opening", () => {
   const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
-  const EMPTY = { empty: true, collateral: [], leverage: LEVERAGE_DECIMALS };
+  const EMPTY = { empty: true, collateral: [], leverage: 0n };
 
   function api(extras?: MarketSdkExtras) {
     const sdk = buildMarketSdk({ minDebt: MIN_DEBT, ...extras });
@@ -281,12 +281,20 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
       ...EMPTY,
       creditAccount: CREDIT_ACCOUNT,
     });
+    const withLeverage = await api().api.openNewStrategy(STRATEGY, {
+      ...EMPTY,
+      leverage: LEVERAGE_DECIMALS * 3n,
+    });
 
     expect(withCollateral.ok).toBe(false);
     expect(withAccount.ok).toBe(false);
-    if (withCollateral.ok || withAccount.ok) throw new Error("unreachable");
+    expect(withLeverage.ok).toBe(false);
+    if (withCollateral.ok || withAccount.ok || withLeverage.ok) {
+      throw new Error("unreachable");
+    }
     expect(withCollateral.error.code).toBe("emptyOpenTakesNothing");
     expect(withAccount.error.code).toBe("emptyOpenTakesNothing");
+    expect(withLeverage.error.code).toBe("emptyOpenTakesNothing");
   });
 
   it("still refuses an ordinary opening that supplies nothing", async () => {

@@ -412,10 +412,12 @@ export interface OpenStrategyParams extends PrepareOptions {
    * route quoted. A wallet holds one so a position can be put on it later, by
    * an opening that names it as {@link creditAccount}.
    *
-   * {@link collateral} must be empty and {@link creditAccount} unset — the flag
-   * and the arguments have to agree. {@link leverage} and {@link targetToken}
-   * are not read: with no collateral the debt is zero at any leverage, and
-   * there is nothing to route anywhere.
+   * {@link collateral} must be empty, {@link leverage} zero and
+   * {@link creditAccount} unset — the flag and the arguments have to agree.
+   * Neither leverage nor {@link targetToken} is read: with no collateral the
+   * debt is zero at any leverage, and there is nothing to route anywhere. Zero
+   * is the one leverage an ordinary opening refuses, so it cannot be mistaken
+   * for a request.
    **/
   empty?: boolean;
 }

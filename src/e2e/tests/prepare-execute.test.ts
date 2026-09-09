@@ -15,7 +15,6 @@ import { isSDKError } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
-  LEVERAGE_DECIMALS,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
@@ -1296,11 +1295,12 @@ describe("prepare → execute on a mainnet fork", () => {
   // block mined before them costs three wei of accrual and breaks their
   // exact-value assertions.
   describe("openNewStrategy — the empty opening", () => {
-    // Neither is read when `empty` is set; both are required by the params.
+    // Nothing here is read; the three of them are what the flag has to agree
+    // with.
     const EMPTY_OPEN = {
       empty: true,
       collateral: [],
-      leverage: LEVERAGE_DECIMALS,
+      leverage: 0n,
     };
 
     /** Opens the empty account on the synced state and returns its address. */

@@ -381,8 +381,12 @@ export class PrepareApi
       if (params.empty) {
         // The flag and the arguments have to agree: taking this branch on the
         // flag alone would silently drop collateral the caller meant to spend,
-        // or an account it meant to reuse.
-        if (params.collateral.length > 0 || params.creditAccount) {
+        // an account it meant to reuse, or the leverage it asked to reach.
+        if (
+          params.collateral.length > 0 ||
+          params.creditAccount ||
+          params.leverage !== 0n
+        ) {
           return sdkErr(emptyOpenTakesNothing());
         }
         // Nothing is routed, so a market with no strategy target can still
