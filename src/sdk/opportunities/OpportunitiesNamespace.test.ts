@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   DataResponse,
@@ -5,6 +6,7 @@ import type {
   OpportunityFilter,
   PoolOpportunityDetail,
   PoolOpportunityKey,
+  StrategyOpportunityKey,
   Timestamp,
 } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
@@ -20,6 +22,7 @@ const MAINNET = chains.Mainnet.id;
 const PLASMA = chains.Plasma.id;
 const NOW = 1_700_000_000 as Timestamp;
 const BLOCK = 100;
+const WALLET = "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa" as Address;
 
 const onchainSource = {
   list: vi.fn(),
@@ -105,6 +108,23 @@ describe("a read reaches both sources as it was written", () => {
     expect(onchainSource.list).toHaveBeenCalledWith(filter);
     expect(offchainSource.list).toHaveBeenCalledWith(filter);
   });
+
+  it.each([undefined, WALLET])(
+    "hands both sources the strategy key and wallet %s",
+    async wallet => {
+      const key: StrategyOpportunityKey = {
+        chainId: MAINNET,
+        creditManager: "0x3eb9000000000000000000000000000000000000",
+      };
+      onchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
+      offchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
+
+      await namespace().getStrategy(key, wallet);
+
+      expect(onchainSource.getStrategy).toHaveBeenCalledWith(key, wallet);
+      expect(offchainSource.getStrategy).toHaveBeenCalledWith(key, wallet);
+    },
+  );
 });
 
 describe("a source that fails degrades the read instead of failing it", () => {

@@ -5,6 +5,7 @@ import type {
 import type { Address, ContractFunctionParameters } from "viem";
 import type { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
 import {
+  type KycProtocol,
   RWA_FACTORY_SECURITIZE,
   type RWAFactoryType,
   type RWAMissingOpenAccountRequirements,
@@ -232,6 +233,26 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
     calls: MultiCall[],
     args?: RWAOperationArgs<T>,
   ): RawTx;
+}
+
+/**
+ * Result of {@link IDegenNFT.checkKyc}.
+ */
+export interface KycCheckResult {
+  eligible: boolean;
+  /** Token the wallet must be registered for. */
+  token: Address;
+}
+
+/**
+ * Degen NFT that gates credit-account opening behind a KYC provider.
+ */
+export interface IDegenNFT extends IBaseContract {
+  readonly protocol: KycProtocol;
+  /**
+   * Same predicate the NFT's `burn` reverts on.
+   */
+  checkKyc(wallet: Address, targetCollateral: Address): Promise<KycCheckResult>;
 }
 
 /**

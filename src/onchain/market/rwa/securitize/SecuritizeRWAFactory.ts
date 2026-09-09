@@ -67,7 +67,7 @@ export class SecuritizeRWAFactory
       data.baseParams.serializedParams,
     );
     this.owner = decoded[0];
-    this.degenNFT = new SecuritizeDegenNFT(sdk, decoded[1]);
+    this.degenNFT = new SecuritizeDegenNFT(sdk, decoded[1], this);
     for (const t of data.tokens) {
       this.tokensMeta.upsert(t.addr, t);
     }

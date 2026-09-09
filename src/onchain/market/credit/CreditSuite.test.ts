@@ -1,8 +1,31 @@
 import { type Address, getAddress } from "viem";
-import { describe, expect, it } from "vitest";
-import type { Curator, Token, UnderlyingToken } from "../../../model/index.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type Curator,
+  KYC_REGISTRATION_LINKS,
+  type Token,
+  type UnderlyingToken,
+} from "../../../model/index.js";
+import type { CreditSuiteState } from "../../base/index.js";
+import { ADDRESS_0X0 } from "../../constants/index.js";
+import type { OnchainSDK } from "../../OnchainSDK.js";
+import { createDegenNFT } from "../rwa/createDegenNFT.js";
+import type { IDegenNFT } from "../rwa/types.js";
 import { CreditSuite } from "./CreditSuite.js";
-import type { LiquidationFees } from "./types.js";
+import createCreditConfigurator from "./createCreditConfigurator.js";
+import createCreditFacade from "./createCreditFacade.js";
+import createCreditManager from "./createCreditManager.js";
+import type {
+  ICreditConfiguratorContract,
+  ICreditFacadeContract,
+  ICreditManagerContract,
+  LiquidationFees,
+} from "./types.js";
+
+vi.mock("./createCreditConfigurator.js", () => ({ default: vi.fn() }));
+vi.mock("./createCreditFacade.js", () => ({ default: vi.fn() }));
+vi.mock("./createCreditManager.js", () => ({ default: vi.fn() }));
+vi.mock("../rwa/createDegenNFT.js", () => ({ createDegenNFT: vi.fn() }));
 
 const WETH = getAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
 const CBETH = getAddress("0xBe9895146f7AF43049ca1c1AE358B0541Ea49704");
@@ -294,5 +317,122 @@ describe("CreditSuite.strategyOpportunity", () => {
     expect(
       CreditSuite.prototype.strategyOpportunity.call(suite),
     ).toBeUndefined();
+  });
+});
+
+const DEGEN = getAddress("0x1111111111111111111111111111111111111111");
+const WALLET = getAddress("0x4444444444444444444444444444444444444444");
+const TARGET = getAddress("0x5555555555555555555555555555555555555555");
+const TOKEN: Token = {
+  chainId: 1,
+  address: TARGET,
+  symbol: "mGLO",
+  name: "Midas Global",
+  decimals: 18,
+};
+
+const create = vi.mocked(createDegenNFT);
+
+beforeEach(() => {
+  create.mockReset();
+});
+
+function kycSuite(degenNFT: Address, token?: Token): CreditSuite {
+  vi.mocked(createCreditFacade).mockReturnValue({
+    degenNFT,
+  } as unknown as ICreditFacadeContract);
+  vi.mocked(createCreditManager).mockReturnValue(
+    {} as unknown as ICreditManagerContract,
+  );
+  vi.mocked(createCreditConfigurator).mockReturnValue(
+    {} as unknown as ICreditConfiguratorContract,
+  );
+  const sdk = {
+    client: {},
+    tokensMeta: {
+      getToken: vi.fn((address: Address) =>
+        token && address.toLowerCase() === token.address.toLowerCase()
+          ? token
+          : undefined,
+      ),
+    },
+  } as unknown as OnchainSDK;
+  return new CreditSuite(sdk, {
+    creditManager: { name: "TestCM", pool: ADDRESS_0X0 },
+  } as unknown as CreditSuiteState);
+}
+
+describe("CreditSuite.degenNFT", () => {
+  it("returns undefined without RPC when the facade has no degen NFT", async () => {
+    await expect(kycSuite(ADDRESS_0X0).degenNFT()).resolves.toBeUndefined();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("loads once and reuses the cached promise", async () => {
+    const nft = { protocol: "midas" } as IDegenNFT;
+    create.mockResolvedValue(nft);
+    const suite = kycSuite(DEGEN);
+    await expect(suite.degenNFT()).resolves.toBe(nft);
+    await expect(suite.degenNFT()).resolves.toBe(nft);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith(expect.anything(), DEGEN);
+  });
+});
+
+describe("CreditSuite.kycRequirement", () => {
+  it("returns null without RPC when the facade has no degen NFT", async () => {
+    await expect(
+      kycSuite(ADDRESS_0X0).kycRequirement(WALLET, TARGET),
+    ).resolves.toBeNull();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("returns null when the degen NFT is not a KYC gate", async () => {
+    create.mockResolvedValue(undefined);
+    await expect(
+      kycSuite(DEGEN).kycRequirement(WALLET, TARGET),
+    ).resolves.toBeNull();
+  });
+
+  it.each([
+    {
+      name: "eligible",
+      eligible: true,
+      token: TOKEN,
+      expected: null,
+    },
+    {
+      name: "not eligible, token known",
+      eligible: false,
+      token: TOKEN,
+      expected: {
+        protocol: "midas" as const,
+        token: TOKEN,
+        registrationLink: KYC_REGISTRATION_LINKS.midas,
+      },
+    },
+    {
+      name: "not eligible, token unknown",
+      eligible: false,
+      token: undefined,
+      expected: {
+        protocol: "midas" as const,
+        token: undefined,
+        registrationLink: KYC_REGISTRATION_LINKS.midas,
+      },
+    },
+  ])("$name", async ({ eligible, token, expected }) => {
+    const checkKyc = vi.fn(async () => ({
+      eligible,
+      token: TARGET,
+    }));
+    create.mockResolvedValue({
+      protocol: "midas",
+      checkKyc,
+    } as unknown as IDegenNFT);
+    await expect(
+      kycSuite(DEGEN, token).kycRequirement(WALLET, TARGET),
+    ).resolves.toEqual(expected);
+    expect(checkKyc).toHaveBeenCalledWith(WALLET, TARGET);
   });
 });

@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   ChartBundle,
   ChartRange,
@@ -38,9 +39,12 @@ export interface IOffchainOpportunities {
   ): Promise<DataResponse<PoolOpportunityDetail>>;
   /**
    * Detailed view of one strategy opportunity.
+   *
+   * @param wallet - Optional wallet address to check KYC status for.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
+    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>>;
   /**
    * Protocol-wide totals across every opportunity the backend serves.

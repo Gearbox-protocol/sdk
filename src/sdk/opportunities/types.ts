@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   ChartBundle,
   ChartRange,
@@ -38,10 +39,12 @@ export interface IOpportunitiesBase {
     key: PoolOpportunityKey,
   ): Promise<DataResponse<PoolOpportunityDetail>>;
   /**
-   * Detailed view of one strategy opportunity.
+   * Detailed view of one strategy opportunity. With `wallet`, `kyc` tells whether
+   * that wallet must register with the strategy's KYC provider before opening.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
+    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>>;
   /**
    * Narrows an already-read list, rows and metadata alike. `undefined` passes

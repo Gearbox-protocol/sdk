@@ -1,4 +1,5 @@
 import type { Address, Hex, TypedDataDefinition } from "viem";
+import type { Token } from "./primitives.js";
 
 /**
  * Discriminant of the Securitize RWA factory contract type.
@@ -144,3 +145,33 @@ export type RWAMissingOpenAccountRequirements<
  **/
 export type RWAOperationArgs<T extends RWAFactoryType = RWAFactoryType> =
   Extract<SecuritizeOperationArgs, { type: T }>;
+
+/**
+ * KYC providers a strategy may be gated by
+ **/
+export const KYC_PROTOCOLS = ["securitize", "midas"] as const;
+
+/** String literal union of {@link KYC_PROTOCOLS}. */
+export type KycProtocol = (typeof KYC_PROTOCOLS)[number];
+
+/**
+ * What a wallet still has to do before it may open a KYC-gated strategy.
+ **/
+export interface KycRequirement {
+  protocol: KycProtocol;
+  /**
+   * Token the wallet must be registered for; `undefined` when unknown to the
+   * token registry.
+   **/
+  token?: Token;
+  /** Where the wallet completes registration with {@link protocol}. */
+  registrationLink: string;
+}
+
+/**
+ * Hardcoded registration URLs for each {@link KycProtocol}.
+ **/
+export const KYC_REGISTRATION_LINKS: Record<KycProtocol, string> = {
+  securitize: "https://securitize.io/",
+  midas: "https://form.typeform.com/to/DqZaw6kr",
+};

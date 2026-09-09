@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   ChartBundle,
   ChartRange,
@@ -146,11 +147,12 @@ export class OpportunitiesNamespace
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
+    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.merged("get strategy opportunity", {
       chainIds: [key.chainId],
-      fromChain: source => source.getStrategy(key),
-      fromBackend: source => source.getStrategy(key),
+      fromChain: source => source.getStrategy(key, wallet),
+      fromBackend: source => source.getStrategy(key, wallet),
       merge: this.merge.strategy,
     });
   }

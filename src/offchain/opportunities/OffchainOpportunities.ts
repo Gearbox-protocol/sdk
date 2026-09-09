@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { z } from "zod/v4";
 import type { ChartBundle, ChartRange } from "../../model/charts.js";
 import type {
@@ -72,6 +73,7 @@ export class OffchainOpportunities
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
+    _wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.get({
       path: this.#strategyPath(key),

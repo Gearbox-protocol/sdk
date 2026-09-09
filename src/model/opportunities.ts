@@ -12,6 +12,7 @@ import type {
   Token,
   UnderlyingToken,
 } from "./primitives.js";
+import type { KycRequirement } from "./rwa.js";
 
 /**
  * Discriminator of the two opportunity kinds.
@@ -664,6 +665,13 @@ export interface StrategyOpportunityDetail extends StrategyOpportunity {
    * Prices and feeds of the underlying and the target collateral.
    **/
   priceFeeds: PriceFeedSummary;
+  /**
+   * Registration the wallet passed to `getStrategy` still needs before it may
+   * open this strategy. `null` when the strategy is not KYC-gated, when no
+   * wallet was given, or when the wallet is already eligible. `undefined`
+   * when the source did not evaluate it (backend, for now).
+   **/
+  kyc?: KycRequirement | null;
 }
 
 /**

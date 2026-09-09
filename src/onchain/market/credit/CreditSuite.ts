@@ -1,13 +1,15 @@
 import { type Address, isAddressEqual } from "viem";
-import type {
-  Bps,
-  CreditOperationMarket,
-  RWAOperationArgs,
-  StrategyOpportunity,
-  StrategyOpportunityDetail,
-  Timestamp,
-  Token,
-  UnderlyingToken,
+import {
+  type Bps,
+  type CreditOperationMarket,
+  KYC_REGISTRATION_LINKS,
+  type KycRequirement,
+  type RWAOperationArgs,
+  type StrategyOpportunity,
+  type StrategyOpportunityDetail,
+  type Timestamp,
+  type Token,
+  type UnderlyingToken,
 } from "../../../model/index.js";
 import type { CreditAccountData, CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
@@ -16,7 +18,7 @@ import {
   getLegacyStrategyTarget,
   isSunsetStrategy,
 } from "../../chain/chains.js";
-import { PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
+import { ADDRESS_0X0, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { IRouterContract } from "../../router/index.js";
 import type {
@@ -34,7 +36,8 @@ import {
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
 } from "../math.js";
-import type { IRWAFactory } from "../rwa/types.js";
+import { createDegenNFT } from "../rwa/createDegenNFT.js";
+import type { IDegenNFT, IRWAFactory } from "../rwa/types.js";
 import { strategyName as formatStrategyName } from "../strategyName.js";
 import {
   dominantCollateral,
@@ -98,6 +101,8 @@ export class CreditSuite extends SDKConstruct {
    * parameters, collateral tokens, adapter permissions, and facade settings.
    */
   public readonly creditConfigurator: ICreditConfiguratorContract;
+
+  #degenNFT?: Promise<IDegenNFT | undefined>;
 
   /**
    * Original compressor contract snapshot for this credit suite.
@@ -166,6 +171,44 @@ export class CreditSuite extends SDKConstruct {
    */
   public get rwaFactory(): IRWAFactory | undefined {
     return this.market.rwaFactory;
+  }
+
+  /**
+   * KYC-gated degen NFT on this suite's facade, loaded on first use.
+   * `undefined` when the facade has none, or when the NFT is not a KYC gate.
+   */
+  public degenNFT(): Promise<IDegenNFT | undefined> {
+    const address = this.creditFacade.degenNFT;
+    if (isAddressEqual(address, ADDRESS_0X0)) {
+      return Promise.resolve(undefined);
+    }
+    if (!this.#degenNFT) {
+      this.#degenNFT = createDegenNFT(this.sdk, address);
+    }
+    return this.#degenNFT;
+  }
+
+  /**
+   * What `wallet` still has to do before the facade lets it open an account;
+   * `null` when nothing (no degen NFT, not a KYC gate, or already eligible).
+   */
+  public async kycRequirement(
+    wallet: Address,
+    targetCollateral: Address,
+  ): Promise<KycRequirement | null> {
+    const nft = await this.degenNFT();
+    if (!nft) {
+      return null;
+    }
+    const { eligible, token } = await nft.checkKyc(wallet, targetCollateral);
+    if (eligible) {
+      return null;
+    }
+    return {
+      protocol: nft.protocol,
+      token: this.tokensMeta.getToken(token),
+      registrationLink: KYC_REGISTRATION_LINKS[nft.protocol],
+    };
   }
 
   /**
