@@ -77,13 +77,17 @@ describe("math — the three formulas behind every intent", () => {
     expect(() =>
       proportionalDebt({ debt: 1_000n, collateral: 0n }, 100n),
     ).toThrowError(
-      expect.objectContaining({ error: expect.objectContaining({ code: "insufficientBalance" }) }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "insufficientBalance" }),
+      }),
     );
   });
 
   it("[INV-4] leverage below 1x is rejected as leverageOutOfRange", () => {
     expect(() => assertLeverageAtLeastOne(X1 - 1n)).toThrowError(
-      expect.objectContaining({ error: expect.objectContaining({ code: "leverageOutOfRange" }) }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "leverageOutOfRange" }),
+      }),
     );
     expect(() => assertLeverageAtLeastOne(X1)).not.toThrow();
   });
@@ -95,10 +99,14 @@ describe("math — the three formulas behind every intent", () => {
     expect(withinLimits(100n)).not.toThrow();
     expect(withinLimits(10_000n)).not.toThrow();
     expect(withinLimits(99n)).toThrowError(
-      expect.objectContaining({ error: expect.objectContaining({ code: "debtOutOfRange" }) }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "debtOutOfRange" }),
+      }),
     );
     expect(withinLimits(10_001n)).toThrowError(
-      expect.objectContaining({ error: expect.objectContaining({ code: "debtOutOfRange" }) }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "debtOutOfRange" }),
+      }),
     );
   });
 

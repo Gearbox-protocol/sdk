@@ -5,7 +5,10 @@ import type {
   InsufficientBalanceError,
   UnexpectedFailureError,
 } from "../../../model/index.js";
-import { insufficientBalance, unexpectedFailure } from "../../../model/index.js";
+import {
+  insufficientBalance,
+  unexpectedFailure,
+} from "../../../model/index.js";
 import { NATIVE_ADDRESS } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { amountOf, toToken } from "../helpers/index.js";
