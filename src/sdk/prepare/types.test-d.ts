@@ -6,8 +6,10 @@ import type {
   SDKReturn,
 } from "../../model/index.js";
 import type {
+  CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   DebtOutOfRangeError,
+  EmptyOpenTakesNothingError,
   ForbiddenTokenError,
   InsufficientCollateralError,
   InsufficientPoolLiquidityError,
@@ -83,6 +85,9 @@ describe("every prepare method names exactly its own refusals", () => {
         | UnsupportedTokenPairError
         | InsufficientPoolLiquidityError
         | NoStrategyTargetCollateralError
+        | EmptyOpenTakesNothingError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
       >
     >();
   });

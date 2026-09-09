@@ -89,3 +89,56 @@ flowchart LR
 - The requested `leverage` is total leverage (`300n` = 3x), not the debt
   multiple. The `leverage` the preview answers with is the read model's plain
   multiplier (`3`), as `StrategyPosition.leverage` reports it.
+
+## The empty opening
+
+`params.empty` opens the account and stops there: no collateral leaves the
+wallet, no debt is drawn, no route is quoted, and no quota is bought. It exists
+so a wallet can hold an account ahead of being allowed to use one — which
+markets want that is the caller's decision, and the SDK does not gate it.
+
+```text
+openCreditAccount(wallet, calls, 0)
+  calls = the price updates the market demands, and nothing else
+```
+
+`collateral`, `leverage`, `targetToken` and `creditAccount` are not read: with
+no collateral the debt is zero at any leverage, and there is nothing to route
+anywhere. A market with no strategy target can still hand out an account.
+
+Taken as an early branch in `buildOpenStrategyState` rather than threaded
+through the walk, for one concrete reason: `findOpenStrategyPath` has no guard
+for an empty basket and would still make its `eth_call` — unlike
+`findBestClosePath`, which short-circuits. The only check the branch runs is
+`assertMarketOperable`.
+
+The account it leaves behind reports `debt` and `totalValue` of zero and stores
+`MAX_UINT256` as its health factor, which both the projection and the read path
+report as `MAX_UINT16` (65535). `positions.list` returns it — the compressor is
+queried with `includeZeroDebt` unless a filter says otherwise. A caller's own
+list may still hide it: `PositionFilter.isZeroDebt` is what drops such rows.
+
+## Reusing a pre-opened account
+
+`params.creditAccount` puts the position on an account that already exists —
+one held by an [empty opening](#the-empty-opening) — instead of creating one. The projection is identical either way; only the transaction differs.
+
+```text
+state.creditAccount ─▶ openCA.reopenCreditAccount ─▶ multicall(account, calls)
+              absent ─▶                              openCreditAccount(wallet, calls, ref)
+```
+
+The account it was simulated against rides back on the result rather than being
+asked of the caller again at `buildTx`, so the transaction cannot be built
+against an account the numbers were not computed for.
+
+**The account must carry no debt and no quotas**, and `openNewStrategy` refuses
+with `creditAccountNotEmpty` when it does. `averageQuota` / `minQuota` are
+absolute levels encoded as `updateQuota` deltas from zero, so an account already
+holding quotas would be sized against the wrong starting point. Balances on it
+are simply routed with the rest.
+
+Growing a position that already exists is `depositStrategy`, not this.
+
+An account on a different credit manager, or one the SDK cannot find, refuses
+with `creditAccountNotFound`.
