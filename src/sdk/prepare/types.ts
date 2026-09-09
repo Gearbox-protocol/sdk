@@ -1,10 +1,12 @@
 import type { Address } from "viem";
 import type {
   Bps,
+  CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   CreditManagerPausedError,
   Curator,
   DebtOutOfRangeError,
+  EmptyOpenTakesNothingError,
   ForbiddenTokenError,
   InsufficientBalanceError,
   InsufficientCollateralError,
@@ -46,7 +48,9 @@ import type {
 } from "../../onchain/index.js";
 
 export type {
+  CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
+  EmptyOpenTakesNothingError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -433,6 +437,29 @@ export interface OpenStrategyParams extends PrepareOptions {
   targetToken?: Address;
   /** Collateral to leave unswapped; everything else is routed into the target. */
   leftoverBalances?: Asset[];
+  /**
+   * Existing credit account to open the position on, instead of creating one.
+   *
+   * Must belong to `strategy.creditManager` and carry no debt and no quotas —
+   * an account pre-opened by an {@link empty} opening.
+   * The projection is identical either way; only the transaction differs, and
+   * `execute.buildTx` reads which one to build off the result's own
+   * `state.creditAccount`.
+   **/
+  creditAccount?: Address;
+  /**
+   * Open the account holding nothing: no collateral, no debt, no quotas, and no
+   * route quoted. A wallet holds one so a position can be put on it later, by
+   * an opening that names it as {@link creditAccount}.
+   *
+   * {@link collateral} must be empty, {@link leverage} zero and
+   * {@link creditAccount} unset — the flag and the arguments have to agree.
+   * Neither leverage nor {@link targetToken} is read: with no collateral the
+   * debt is zero at any leverage, and there is nothing to route anywhere. Zero
+   * is the one leverage an ordinary opening refuses, so it cannot be mistaken
+   * for a request.
+   **/
+  empty?: boolean;
 }
 
 export interface LpParams {
@@ -573,6 +600,9 @@ export interface IOpportunitiesPrepare {
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
+      | EmptyOpenTakesNothingError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
     >
   >;
 

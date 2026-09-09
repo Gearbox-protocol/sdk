@@ -13,36 +13,18 @@ export const iDegenNftv2Abi = parseAbi([
   "function mint(address to, uint256 amount) external",
 ]);
 
-export const faucetAbi = [
+export const iFaucetAbi = [
   {
     type: "function",
     name: "assets",
-    inputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "index", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "claim",
-    inputs: [
-      {
-        name: "amountUSD",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "amountUSD", type: "uint256", internalType: "uint256" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -62,16 +44,62 @@ export const faucetAbi = [
         type: "tuple[]",
         internalType: "struct TokenClaim[]",
         components: [
-          {
-            name: "token",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "amount",
-            type: "uint256",
-            internalType: "uint256",
-          },
+          { name: "token", type: "address", internalType: "address" },
+          { name: "amount", type: "uint256", internalType: "uint256" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "claimOnBehalfOf",
+    inputs: [
+      { name: "receiver", type: "address", internalType: "address" },
+      {
+        name: "claims",
+        type: "tuple[]",
+        internalType: "struct TokenClaim[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          { name: "amount", type: "uint256", internalType: "uint256" },
+        ],
+      },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "claimOnBehalfOf",
+    inputs: [
+      { name: "receiver", type: "address", internalType: "address" },
+      { name: "amountUSD", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "claimOnBehalfOf",
+    inputs: [{ name: "receiver", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "configure",
+    inputs: [
+      { name: "minAmountUSD", type: "uint256", internalType: "uint256" },
+      {
+        name: "tokens",
+        type: "tuple[]",
+        internalType: "struct FaucetToken[]",
+        components: [
+          { name: "token", type: "address", internalType: "address" },
+          { name: "price", type: "uint256", internalType: "uint256" },
+          { name: "decimals", type: "uint8", internalType: "uint8" },
         ],
       },
     ],
@@ -82,96 +110,35 @@ export const faucetAbi = [
     type: "function",
     name: "getAssets",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address[]",
-        internalType: "address[]",
-      },
-    ],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "hasClaimed",
-    inputs: [
-      {
-        name: "user",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "minAmountUSD",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "owner",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "prices",
-    inputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "scales",
-    inputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "token", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
 ] as const;

@@ -1,4 +1,6 @@
 import type { Address } from "viem";
+import type { ChartRange, ProtocolChartMetric } from "./charts.js";
+import type { ChainScopedFilter } from "./filters.js";
 import type { LiquidationPosition } from "./liquidations.js";
 import type {
   PoolPosition,
@@ -85,4 +87,24 @@ export interface AnalyticsPositionPage {
   offset: number;
   /** Effective maximum number of rows returned. */
   limit: number;
+}
+
+/**
+ * What one protocol-wide chart read asks for.
+ *
+ * A {@link ChartQuery} that also carries its chain scope: the series is a sum
+ * over chains rather than a property of one subject, so which chains are in it
+ * is part of the question and not something a path segment already answered.
+ * Omitting `chainIds` asks for every chain the backend serves.
+ **/
+export interface AnalyticsChartQuery extends ChainScopedFilter {
+  /**
+   * Metrics to chart, at least one and each named once. They become the keys of
+   * {@link ChartBundle.series}.
+   **/
+  metrics: readonly ProtocolChartMetric[];
+  /**
+   * Window to cover, echoed back in {@link ChartWindow.range}.
+   **/
+  range: ChartRange;
 }

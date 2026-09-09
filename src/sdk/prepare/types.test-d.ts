@@ -1,9 +1,11 @@
 import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 import type {
+  CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   CreditManagerPausedError,
   DebtOutOfRangeError,
+  EmptyOpenTakesNothingError,
   ForbiddenTokenError,
   IGearboxError,
   InsufficientBalanceError,
@@ -81,6 +83,9 @@ describe("every prepare method names exactly its own errors", () => {
         | UnsupportedTokenPairError
         | InsufficientPoolLiquidityError
         | NoStrategyTargetCollateralError
+        | EmptyOpenTakesNothingError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
       >
     >();
   });

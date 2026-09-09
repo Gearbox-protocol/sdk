@@ -121,6 +121,25 @@ export type StrategyPositionChartMetric =
   (typeof STRATEGY_POSITION_CHART_METRICS)[number];
 
 /**
+ * Every metric the protocol as a whole can chart.
+ *
+ * Protocol-wide rather than per subject: the series describes Gearbox itself
+ * over every chain the read covers, so it has no address to hang off and is
+ * read from the analytics namespace rather than from an opportunity.
+ *
+ * `tvlUsd` is deliberately not spelled `tvl`: that key is already the credit
+ * manager's TVL in whole underlying tokens, and one metric has exactly one
+ * unit in {@link CHART_METRIC_UNITS}.
+ **/
+export const PROTOCOL_CHART_METRICS = ["tvlUsd"] as const;
+
+/**
+ * Metric the protocol as a whole can chart, derived from
+ * {@link PROTOCOL_CHART_METRICS}.
+ **/
+export type ProtocolChartMetric = (typeof PROTOCOL_CHART_METRICS)[number];
+
+/**
  * Any metric an opportunity can chart.
  **/
 export type OpportunityChartMetric =
@@ -141,7 +160,10 @@ export type PositionChartMetric =
  * the same rate whether an opportunity or a position charts it — so one metric
  * has one unit in {@link CHART_METRIC_UNITS} no matter who asks for it.
  **/
-export type ChartMetric = OpportunityChartMetric | PositionChartMetric;
+export type ChartMetric =
+  | OpportunityChartMetric
+  | PositionChartMetric
+  | ProtocolChartMetric;
 
 /**
  * What one chart read asks for, beyond the subject its route names.
@@ -240,6 +262,9 @@ export const CHART_METRIC_UNITS = {
   debt: "token",
   healthFactor: "bps",
   netApy7d: "bps",
+  // protocol. Dollars rather than tokens: a sum over chains and underlyings
+  // has no single token to count whole units of
+  tvlUsd: "usd",
 } as const satisfies Record<ChartMetric, ChartUnit>;
 
 /**

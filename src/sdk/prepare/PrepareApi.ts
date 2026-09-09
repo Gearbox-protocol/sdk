@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import type {
   Bps,
   ChainId,
@@ -14,7 +14,9 @@ import type {
   Timestamp,
 } from "../../model/index.js";
 import {
+  creditAccountNotEmpty,
   creditAccountNotFound,
+  emptyOpenTakesNothing,
   noRecordedIntent,
   noStrategyTargetCollateral,
   sdkErr,
@@ -52,7 +54,10 @@ import type {
   AccountFlowError,
   AddCollateralParams,
   AdjustLeverageParams,
+  CreditAccountNotEmptyError,
+  CreditAccountNotFoundError,
   DepositStrategyParams,
+  EmptyOpenTakesNothingError,
   FinalizeParams,
   FinalizeResult,
   IOpportunitiesPrepare,
@@ -360,17 +365,58 @@ export class PrepareApi
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
+      | EmptyOpenTakesNothingError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
     >
   > {
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
+      if (params.empty) {
+        // The flag and the arguments have to agree: taking this branch on the
+        // flag alone would silently drop collateral the caller meant to spend,
+        // an account it meant to reuse, or the leverage it asked to reach.
+        if (
+          params.collateral.length > 0 ||
+          params.creditAccount ||
+          params.leverage !== 0n
+        ) {
+          return sdkErr(emptyOpenTakesNothing());
+        }
+        // Nothing is routed, so a market with no strategy target can still
+        // hand out an account.
+        return opened(
+          await service(sdk).openStrategyIntent({
+            sdk,
+            creditManager: strategy.creditManager,
+            empty: true,
+          }),
+          at,
+        );
+      }
       const targetToken =
         params.targetToken ??
         sdk.marketRegister.findCreditManager(strategy.creditManager)
           .strategyTargetCollateral;
       if (!targetToken) {
         return sdkErr(noStrategyTargetCollateral(strategy.creditManager));
+      }
+      let creditAccount: CreditAccountSlice | undefined;
+      if (params.creditAccount) {
+        const reused = await slice(sdk, params.creditAccount);
+        if (
+          !reused ||
+          !isAddressEqual(reused.creditManager, strategy.creditManager)
+        ) {
+          return sdkErr(creditAccountNotFound(params.creditAccount));
+        }
+        // Empty means no debt and no quotas; whatever balances sit on the
+        // account are the opening's to route.
+        if (reused.totalDebt > 0n || reused.tokens.some(t => t.quota > 0n)) {
+          return sdkErr(creditAccountNotEmpty(params.creditAccount));
+        }
+        creditAccount = reused;
       }
       return opened(
         await service(sdk).openStrategyIntent({
@@ -382,6 +428,7 @@ export class PrepareApi
           leftoverBalances: params.leftoverBalances,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
+          creditAccount,
         }),
         at,
       );

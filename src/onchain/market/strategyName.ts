@@ -5,7 +5,7 @@ import type { Token } from "../../model/index.js";
  * borrowed underlying, e.g. `"wstETH / WETH"`.
  *
  * Uses each token's display {@link Token.symbol}, which may already be a
- * curated pretty name or a `"source -> target"` redemption rewrite.
+ * curated pretty name or a `"target redemption from source"` redemption rewrite.
  *
  * @param target - Collateral the position is built around.
  * @param underlying - Token the position borrows.

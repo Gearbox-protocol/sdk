@@ -398,7 +398,9 @@ export class CreditAccountsServiceV310
 
     const { creditFacade } = cmSuite;
     let calls = [
-      creditFacade.prepareIncreaseDebt(debt),
+      // A zero-debt open draws nothing, and `increaseDebt(0)` is a call the
+      // facade would run for no reason.
+      ...(debt > 0n ? [creditFacade.prepareIncreaseDebt(debt)] : []),
       ...creditFacade.prepareAddCollateral(collateral, permits),
       ...openPathCalls, // path from underlying to withdrawal token
       ...(tokenToWithdraw
@@ -420,7 +422,7 @@ export class CreditAccountsServiceV310
     calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
     calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
-      ? cmSuite.multicallTx(reopenCreditAccount, calls)
+      ? cmSuite.multicallTx(reopenCreditAccount, calls, rwaOptions)
       : cmSuite.openCreditAccountTx(to, calls, referralCode, rwaOptions);
     tx.value = ethAmount.toString(10);
 

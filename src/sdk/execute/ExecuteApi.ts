@@ -98,6 +98,7 @@ async function openTx(
     calls: state.calls,
     averageQuota: state.averageQuota,
     minQuota: state.minQuota,
+    reopenCreditAccount: state.creditAccount,
     permits: {},
     referralCode: 0n,
     rwaOptions: await openRwaOptions(sdk, request),
