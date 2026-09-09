@@ -277,6 +277,24 @@ export interface CreditAccountNotFoundError extends IGearboxError {
 }
 
 /**
+ * The account named to open a position on carries debt or quotas.
+ *
+ * Growing a position that already exists is `depositStrategy`.
+ **/
+export interface CreditAccountNotEmptyError extends IGearboxError {
+  code: "creditAccountNotEmpty";
+  creditAccount: Address;
+}
+
+/**
+ * An empty opening was asked for with something to open it with: collateral to
+ * spend, an account to reuse, or a leverage to reach.
+ **/
+export interface EmptyOpenTakesNothingError extends IGearboxError {
+  code: "emptyOpenTakesNothing";
+}
+
+/**
  * The SDK could not answer at all: a read that failed, a chain it is not
  * connected to, a market or token address it knows nothing about, a contract
  * that reverted where nothing should, a bug of ours.
@@ -415,6 +433,19 @@ export function noStrategyTargetCollateral(
 }
 
 /**
+ * {@inheritDoc CreditAccountNotEmptyError}
+ **/
+export function creditAccountNotEmpty(
+  creditAccount: Address,
+): CreditAccountNotEmptyError {
+  return {
+    code: "creditAccountNotEmpty",
+    message: `Credit account ${creditAccount} carries debt or quotas.`,
+    creditAccount,
+  };
+}
+
+/**
  * {@inheritDoc CreditAccountNotFoundError}
  **/
 export function creditAccountNotFound(
@@ -424,6 +455,17 @@ export function creditAccountNotFound(
     code: "creditAccountNotFound",
     message: `Credit account not found: ${creditAccount}.`,
     creditAccount,
+  };
+}
+
+/**
+ * {@inheritDoc EmptyOpenTakesNothingError}
+ **/
+export function emptyOpenTakesNothing(): EmptyOpenTakesNothingError {
+  return {
+    code: "emptyOpenTakesNothing",
+    message:
+      "An empty opening takes no collateral, no account to reuse and no leverage.",
   };
 }
 

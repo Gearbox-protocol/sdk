@@ -4,6 +4,17 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — reusing a pre-opened account
+
+`openNewStrategy` takes `params.creditAccount`, and it can be refused:
+`creditAccountNotFound` when the SDK cannot find the account or it belongs to
+another credit manager, `creditAccountNotEmpty` when it carries debt or quotas.
+A consumer that dispatches exhaustively over the method's error union — a
+`Record<code, …>` or a `switch` with a `never` check — has two cases to add. A
+consumer that reads `error.message` needs no change.
+
+---
+
 ## v16.x — wallet-wide Merkl rewards
 
 `getMerklRewards` is gone. Rewards are read for the whole wallet at once, and
