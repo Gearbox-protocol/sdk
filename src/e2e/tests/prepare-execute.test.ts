@@ -142,12 +142,16 @@ describe("prepare → execute on a mainnet fork", () => {
     });
     expect(preview.ok, "preview must parse").toBe(true);
     if (!preview.ok) throw new Error("unreachable");
+    const errors = await checkOperation({
+      sdk: chain,
+      preview: preview.data,
+      sender: borrower,
+    });
+    // Sunset lists are current; this suite pins BLOCK, when the pool was still live.
+    // checkOperation therefore reports poolSunset on deposits into it, but the
+    // fork still mines them.
     expect(
-      await checkOperation({
-        sdk: chain,
-        preview: preview.data,
-        sender: borrower,
-      }),
+      errors.filter(e => e.code !== "poolSunset"),
       "the send still needs",
     ).toEqual([]);
     await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
