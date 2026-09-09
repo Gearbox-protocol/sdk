@@ -1,18 +1,22 @@
 import type { Address } from "viem";
-import type { AccountProjection, TokenAmount } from "../../../model/index.js";
+import {
+  type AccountProjection,
+  insufficientBalance,
+  type TokenAmount,
+} from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import {
   assertCanBorrow,
   assertCollateralised,
   assertGrowthAllowed,
   assertMarketOperable,
-  assertQuotaHeadroom,
+  assertQuotaAvailable,
 } from "./guards.js";
 import {
-  assertDebtInBand,
+  assertDebtLimits,
   assertLeverageAtLeastOne,
   debtForLeverage,
 } from "./math.js";
@@ -153,8 +157,7 @@ export async function buildOpenStrategyState(
   );
   if (margin <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       "openStrategy: collateral is worth nothing in underlying",
     );
   }
@@ -173,7 +176,7 @@ export async function buildOpenStrategyState(
     totalDebt: 0n,
     tokens: [],
   };
-  assertDebtInBand(sdk, debt, suite.creditFacade, underlying);
+  assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
   assertCanBorrow(sdk, suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
@@ -211,7 +214,7 @@ export async function buildOpenStrategyState(
   // The expected branch is the one the account is opened on, so it is the one
   // the market has to have room for.
   assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
-  assertQuotaHeadroom(sdk, market, averageQuota);
+  assertQuotaAvailable(sdk, market, averageQuota);
 
   // The expected branch is what the account is weighed as: the floor is what
   // the transaction is signed against, but it is not where the position lands.

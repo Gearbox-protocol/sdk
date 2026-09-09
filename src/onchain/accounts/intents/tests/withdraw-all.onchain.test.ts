@@ -120,12 +120,13 @@ describe("withdraw.start — everything out, account left open", () => {
     expect(state.quotas).toEqual([]);
   });
 
-  it("gives the router every token at once, and pays out in one", async () => {
+  it("gives the router every token at once, and withdraws in one", async () => {
     const result = await run([
       caToken(POS, TVL_BEFORE, QUOTA_BEFORE),
       caToken(POS2, 5000000000n, 0n),
     ]);
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     const swap = result.operations.find(op => op.type === "swap");
     expect(swap?.from).toEqual([
@@ -143,7 +144,8 @@ describe("withdraw.start — everything out, account left open", () => {
 
   it("settles the loan in full, so accrued interest cannot leave dust", async () => {
     const result = await run([caToken(UND, TVL_BEFORE)]);
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     expect(
       result.operations.find(op => op.type === "decreaseDebt"),
@@ -152,7 +154,8 @@ describe("withdraw.start — everything out, account left open", () => {
 
   it("hands over the balance the facade finds, not the one quoted here", async () => {
     const result = await run([caToken(POS, TVL_BEFORE, QUOTA_BEFORE)]);
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     // A route that beats its floor leaves more underlying than the projection
     // knows about, and the exit is meant to leave nothing behind.
@@ -166,7 +169,8 @@ describe("withdraw.start — everything out, account left open", () => {
       caToken(POS, TVL_BEFORE, QUOTA_BEFORE),
       caToken(POS2, 5000000000n, 4000000000n),
     ]);
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     expect(
       result.operations.find(op => op.type === "changeQuota"),
@@ -255,7 +259,7 @@ describe("withdraw.start — everything out, account left open", () => {
     // leave the facade unpaid.
     expectPreviewError(
       await run([caToken(POS, DEBT_BEFORE / 2n, QUOTA_BEFORE)]),
-      "insufficientSourceBalance",
+      "insufficientBalance",
     );
   });
 
@@ -278,7 +282,7 @@ describe("withdraw.start — everything out, account left open", () => {
   it("can be started as a redemption: the whole source, nothing named", async () => {
     // The account's only asset redeems through its issuer, so the router has
     // nothing to sell — the exit has to begin as a request. It takes all of
-    // POS and writes down only where the leftovers go; there is no payout to
+    // POS and writes down only where the leftovers go; there is no withdrawal to
     // record, because at claim time the exit is rebuilt from the account.
     const result = await runDelayed();
 
@@ -315,7 +319,7 @@ describe("withdraw.start — everything out, account left open", () => {
   });
 
   it("refuses the redemption of a source the account does not hold", async () => {
-    expectPreviewError(await runDelayed(ANY), "insufficientSourceBalance");
+    expectPreviewError(await runDelayed(ANY), "insufficientBalance");
   });
 });
 

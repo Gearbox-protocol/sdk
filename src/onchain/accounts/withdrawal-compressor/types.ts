@@ -1,9 +1,12 @@
 import type { Address, Hex } from "viem";
-import type { DelayedIntent, SDKReturn } from "../../../model/index.js";
+import type {
+  DelayedIntent,
+  InvalidDelayedIntentError,
+  SDKReturn,
+} from "../../../model/index.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { MultiCall } from "../../types/index.js";
 import type { MulticallBatch } from "../../utils/viem/index.js";
-import type { InvalidDelayedIntentError } from "./errors.js";
 
 /**
  * Delayed intent decoded from `extraData`, enriched with data known at read time.

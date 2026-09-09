@@ -1,7 +1,7 @@
 # Delayed routes: request now, finish later
 
 Some collateral does not sell on a DEX — a Securitize dsToken, a Mellow share.
-It redeems through its issuer, which answers a request now and pays out days
+It redeems through its issuer, which answers a request now and settles days
 later. Two of the intents can take that route:
 [withdraw](./withdraw.md) and [adjust leverage](./adjust-leverage.md).
 
@@ -22,7 +22,7 @@ to know in the first place.
 
 ```mermaid
 flowchart LR
-  a["request: startDelayedWithdrawal(S, amount)<br/>the phantom token stands in for the proceeds"]
+  a["request: startDelayedWithdrawal(S, amount)<br/>the phantom token stands in for the claim until it matures"]
   b["[days] issuer processes the redemption"]
   c["claim: claimDelayedWithdrawal<br/>+ whatever the recorded intent still owes"]
   a --> b --> c
@@ -35,8 +35,8 @@ withdrawable, so a second request for the same asset is refused
 ## What the result reports
 
 The request is half an operation, so the state it lands in is not an answer to
-"what does this do to my position": the debt still stands, nothing has been paid
-out, and the position sits in the phantom token. So `state` is the far side —
+"what does this do to my position": the debt still stands, nothing has been
+withdrawn, and the position sits in the phantom token. So `state` is the far side —
 the account once the redemption has matured, been claimed and the tail has run —
 which is the same place the instant route reaches in one transaction, and what
 makes the two routes comparable at all.
@@ -64,7 +64,7 @@ flowchart TD
   all{"exit? (W == MAX_UINT256 or Wᵤ >= C0)"}
   pay{"T is U, or the RWA asset behind U?"}
   src{"T == S?"}
-  r1["request(S, price(U → S, dD)), reserve = W<br/>the payout never leaves the account, only the debt is raised"]
+  r1["request(S, price(U → S, dD)), reserve = W<br/>the withdrawal never leaves the account, only the debt is raised"]
   r2["request(S, price(U → S, Wᵤ + dD)), reserve = 0"]
   cfg{"exactly one redemption venue for S?"}
   ph{"phantom balance already held?"}
@@ -75,7 +75,7 @@ flowchart TD
   in --> shape --> all
   all -->|"yes"| ex["request(S, balance(S)), reserve = 0<br/>record CLOSE_ACCOUNT: to<br/>the whole position is redeemed, nothing else is named"] --> cfg
   all --> pay
-  pay -->|"no"| e2["noDelayedRoute<br/>the tail cannot pay out in T"]
+  pay -->|"no"| e2["noDelayedRoute<br/>the tail cannot withdraw in T"]
   pay --> src
   src -->|"yes"| r1 --> cfg
   src -->|"no"| r2 --> cfg
@@ -89,7 +89,7 @@ flowchart TD
 ```
 
 `settlement` is `"delayed"` when any output of the redemption matures later, and
-`"instant"` when the venue happens to pay out at once — in which case the request
+`"instant"` when the venue happens to settle at once — in which case the request
 already is the whole operation.
 
 ## Leading half: adjust leverage
@@ -150,19 +150,19 @@ flowchart TD
 
 ### `WITHDRAW_COLLATERAL`, four shapes
 
-The claim is split between the payout the wallet was promised and the debt the
-leading half deferred. The payout is served first, so a routing shortfall shows
-up as leverage a touch above target rather than as a payout that came up short.
+The claim is split between the withdrawal the wallet was promised and the debt the
+leading half deferred. `W` is served first, so a bad quote shows
+up as leverage a touch above target rather than as a wallet paid less than it was promised.
 
 ```mermaid
 flowchart TD
-  subgraph a["dD == 0: the whole claim is payout"]
+  subgraph a["dD == 0: the whole claim is the withdrawal"]
     a1["claimDelayedWithdrawal"] --> a2["convert claimed → T, all of it"] --> a3["withdrawCollateral(T, min(raised, W), to)"]
   end
-  subgraph b["S == T: the payout was already on the account"]
+  subgraph b["S == T: the withdrawal was already on the account"]
     b1["claimDelayedWithdrawal"] --> b2["convert claimed → U, all of it"] --> b3["decreaseDebt(min(raised, dD))"] --> b4["withdrawCollateral(T, W, to)"]
   end
-  subgraph c["T == U: payout and debt both want the underlying"]
+  subgraph c["T == U: withdrawal and debt both want the underlying"]
     c1["claimDelayedWithdrawal"] --> c2["convert claimed → U, all of it"] --> c3["decreaseDebt(dD), keeping W back"] --> c4["withdrawCollateral(U, min(raised, W), to)"]
   end
   subgraph d["T is the RWA asset, the debt wants U"]
@@ -170,7 +170,7 @@ flowchart TD
   end
 ```
 
-A payout in `T` that is neither the underlying nor the RWA asset behind it is
+A withdrawal in `T` that is neither the underlying nor the RWA asset behind it is
 refused (`noDelayedRoute`) — the leading half checks the same thing, so this only
 fires when the account's market changed shape in between.
 
@@ -219,7 +219,7 @@ account and only their quota has to catch up.
 ### A claim that matured in part
 
 Every venue above answers a redemption whole: one request, one claim, one tail.
-A legacy Mellow multivault does not — it pays out what its subvaults hold liquid
+A legacy Mellow multivault does not — it hands over what its subvaults hold liquid
 and re-queues the rest — so its claim credits an instant output **and** a delayed
 one, the phantom it names is burned and a fresh one minted for the remainder,
 and the operation is not over when the tail has run.
@@ -239,11 +239,11 @@ if (tail.ok && tail.data.remainder) {
 }
 ```
 
-- **`WITHDRAW_COLLATERAL`** — the payout `W` and the deferred repayment `dD` are
+- **`WITHDRAW_COLLATERAL`** — the withdrawal `W` and the deferred repayment `dD` are
   cut in the proportion that arrived. Serving them whole out of half the claim
   would pay the wallet in full now and deleverage a claim later, which is not
   the fixed leverage the withdrawal asked for; in proportion, each claim moves
-  both, and the two add up to exactly one payout and one repayment.
+  both, and the two add up to exactly one withdrawal and one repayment.
 - **`DECREASE_LEVERAGE`** — everything claimed goes into the debt already, so a
   claim at a time needs no adjusting.
 - **`CLOSE_ACCOUNT`** — the exit cannot run while a withdrawal is in flight: the
@@ -255,7 +255,7 @@ if (tail.ok && tail.data.remainder) {
   is made from.
 
 The share is measured against the phantom the claim left behind, which stands
-for its payout one for one — the same reading the request half takes when it
+for its claim one for one — the same reading the request half takes when it
 names the claim it expects — so only the decimals of the two are reconciled.
 
 ## Notes

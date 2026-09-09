@@ -1,4 +1,4 @@
-import type { IGearboxError } from "./errors.js";
+import type { IGearboxError } from "./errors/index.js";
 
 /**
  * The success half of every refusable answer: the data the method was asked
@@ -25,7 +25,7 @@ export interface SDKError<E extends IGearboxError = IGearboxError> {
  *
  * ```ts
  * const res = await sdk.opportunities.prepare.depositStrategy(position, params);
- * if (isSDKError(res)) {
+ * if (!res.ok) {
  *   return showRefusal(res.error);   // res.error: exactly this method's union
  * }
  * res.data;                          // res.data: StrategyResult
@@ -68,14 +68,4 @@ export function sdkOk<T>(data: T): SDKResult<T> {
 /** The failure half, built. */
 export function sdkErr<E extends IGearboxError>(error: E): SDKError<E> {
   return { ok: false, error };
-}
-
-/**
- * Narrows a {@link SDKReturn} to its failure half. Trivial over `ok`, but it
- * names the intent at call sites that would otherwise read `!r.ok`.
- **/
-export function isSDKError<T, E extends IGearboxError>(
-  answer: SDKReturn<T, E>,
-): answer is SDKError<E> {
-  return !answer.ok;
 }

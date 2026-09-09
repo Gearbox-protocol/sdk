@@ -11,19 +11,18 @@ import {
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { createAnvilClient } from "../../dev/createAnvilClient.js";
-import { isSDKError } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
+  checkOperation,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
   PERCENTAGE_FACTOR,
+  previewOperation,
   type RawTx,
   sendRawTx,
 } from "../../onchain/index.js";
-import { checkPrerequisites } from "../../preview/index.js";
-import { previewOperation } from "../../preview/preview/previewOperation.js";
 import type { PrepareRequest } from "../../sdk/index.js";
 import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
@@ -134,18 +133,26 @@ describe("prepare → execute on a mainnet fork", () => {
 
   async function send(request: PrepareRequest): Promise<RawTx> {
     const tx = await execute().buildTx(request);
-    const prerequisites = await checkPrerequisites({
-      sdk: chain,
+    const preview = await previewOperation(chain, {
+      chainId: chain.chainId,
       to: tx.to,
       calldata: tx.callData,
       sender: borrower,
       value: BigInt(tx.value),
     });
-    expect(isSDKError(prerequisites), "prerequisites must parse").toBe(false);
-    if (isSDKError(prerequisites)) throw new Error("unreachable");
+    expect(preview.ok, "preview must parse").toBe(true);
+    if (!preview.ok) throw new Error("unreachable");
+    const errors = await checkOperation({
+      sdk: chain,
+      preview: preview.data,
+      sender: borrower,
+    });
+    // Sunset lists are current; this suite pins BLOCK, when the pool was still live.
+    // checkOperation therefore reports poolSunset on deposits into it, but the
+    // fork still mines them.
     expect(
-      prerequisites.data.filter(p => p.satisfied !== true),
-      "prerequisites the send still needs",
+      errors.filter(e => e.code !== "poolSunset"),
+      "the send still needs",
     ).toEqual([]);
     await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
     return tx;
@@ -270,7 +277,7 @@ describe("prepare → execute on a mainnet fork", () => {
     if (!sim.ok) throw new Error(`sim failed: ${sim.error.code}`);
     const { instant } = sim.data;
     if (!instant) {
-      throw new Error(`no instant route: ${sim.data.refused.instant}`);
+      throw new Error(`no instant route: ${sim.data.errors.instant?.code}`);
     }
     return {
       // the route, back in the envelope `buildTx` takes
@@ -302,7 +309,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(before.totalValue).toBeGreaterThanOrEqual(floor);
     });
 
-    it("without the allowance, checkPrerequisites reports it and the send reverts before any block", async () => {
+    it("without the allowance, checkOperation reports it and the send reverts before any block", async () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await sync();
       const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
@@ -317,19 +324,20 @@ describe("prepare → execute on a mainnet fork", () => {
         ethAmount: 0n,
       });
 
-      const prerequisites = await checkPrerequisites({
-        sdk: chain,
+      const preview = await previewOperation(chain, {
+        chainId: chain.chainId,
         to: tx.to,
         calldata: tx.callData,
         sender: borrower,
       });
-      expect(isSDKError(prerequisites), "prerequisites must parse").toBe(false);
-      if (isSDKError(prerequisites)) throw new Error("unreachable");
-      expect(
-        prerequisites.data.some(
-          p => p.kind === "allowance" && p.satisfied === false,
-        ),
-      ).toBe(true);
+      expect(preview.ok, "preview must parse").toBe(true);
+      if (!preview.ok) throw new Error("unreachable");
+      const errors = await checkOperation({
+        sdk: chain,
+        preview: preview.data,
+        sender: borrower,
+      });
+      expect(errors.some(e => e.code === "insufficientAllowance")).toBe(true);
       await expect(sendRawTx(wallet, { tx })).rejects.toThrow();
     });
   });
@@ -679,17 +687,17 @@ describe("prepare → execute on a mainnet fork", () => {
           slippage: S,
         }),
       );
-      // one route for the whole position, and the payout is the underlying it
+      // one route for the whole position, and the withdrawal is the underlying it
       // was sold into
       const swaps = sim.data.operations.filter(op => op.type === "swap");
       expect(swaps).toHaveLength(1);
       expect(swaps[0]?.from.map(a => a.token.toLowerCase())).toEqual([
         TARGET_TOKEN.toLowerCase(),
       ]);
-      const payouts = sim.data.operations.filter(
+      const withdrawals = sim.data.operations.filter(
         op => op.type === "withdrawCollateral",
       );
-      expect(payouts.map(op => op.token.toLowerCase())).toEqual([
+      expect(withdrawals.map(op => op.token.toLowerCase())).toEqual([
         underlying.toLowerCase(),
       ]);
       expect(preview.totalDebt.value).toBe(0n);
@@ -707,7 +715,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
       expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
       expect(after.tokens.filter(t => t.balance > 1n)).toEqual([]);
-      // the payout names no amount, so the wallet gets whatever is left once the
+      // the withdrawal names no amount, so the wallet gets whatever is left once the
       // loan is settled. The projection is a floor twice over — the route's
       // slippage and the interest the `full` repayment reserves — so the only
       // ceiling that holds is the position's own worth before it was sold
@@ -718,7 +726,7 @@ describe("prepare → execute on a mainnet fork", () => {
           functionName: "balanceOf",
           args: [borrower],
         })) - before;
-      expect(paid).toBeGreaterThanOrEqual(payouts[0]?.amount ?? 0n);
+      expect(paid).toBeGreaterThanOrEqual(withdrawals[0]?.amount ?? 0n);
       expect(paid).toBeLessThanOrEqual(totalValue);
     });
   });
@@ -1048,7 +1056,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
   /**
    * The refusals the engine reads off the live market rather than off its
-   * arguments: the underlying this manager was configured with, the debt band
+   * arguments: the underlying this manager was configured with, the debtLimits
    * it enforces, the balances the account actually holds. The reasons are
    * values, so nothing here sends or throws.
    */
@@ -1105,11 +1113,11 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.ok || sim.error.code !== "insufficientCollateral") {
         throw new Error("expected insufficientCollateral");
       }
-      expect(sim.error.refused).toEqual({
-        instant: "insufficientCollateral",
-        delayed: "noDelayedRoute",
-      });
-      expect(sim.error.healthFactor).toBeLessThan(sim.error.required);
+      expect(sim.error.errors.instant?.code).toBe("insufficientCollateral");
+      expect(sim.error.errors.delayed?.code).toBe("noDelayedRoute");
+      expect(sim.error.healthFactor).toBeLessThan(
+        sim.error.healthFactorThreshold,
+      );
     });
 
     it("refuses to move out collateral the account does not hold", async () => {
@@ -1121,8 +1129,8 @@ describe("prepare → execute on a mainnet fork", () => {
         to: borrower,
       });
 
-      if (sim.ok || sim.error.code !== "insufficientSourceBalance") {
-        throw new Error("expected insufficientSourceBalance");
+      if (sim.ok || sim.error.code !== "insufficientBalance") {
+        throw new Error("expected insufficientBalance");
       }
       // The amounts are optional on this code because most of its sites refuse
       // before there is a balance to compare. This one is the ledger walk, so
@@ -1282,7 +1290,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // redeem is denominated in shares, so that side of it is exact
       expect(held - (await balance(shares))).toBe(burned);
       // the underlying is the loaded-block rate applied to those shares. The
-      // send lands a block later, and a share only ever grows, so the payout is
+      // send lands a block later, and a share only ever grows, so the withdrawal is
       // that figure or a hair above it — never below.
       const paid = (await balance(USDC)) - before;
       const promised = sim.data.state.tokenOut.value;
@@ -1433,14 +1441,14 @@ describe("prepare → execute on a mainnet fork", () => {
         ethAmount: 0n,
       });
 
-      const preview = await previewOperation({
-        sdk: chain,
+      const preview = await previewOperation(chain, {
+        chainId: chain.chainId,
         to: tx.to,
         calldata: tx.callData,
         sender: borrower,
       });
-      expect(isSDKError(preview), "the reuse must parse").toBe(false);
-      if (isSDKError(preview)) throw new Error("unreachable");
+      expect(preview.ok, "the reuse must parse").toBe(true);
+      if (!preview.ok) throw new Error("unreachable");
       // What a caller's confirm screen will be handed: the transaction really
       // is a deposit into an account that already exists.
       expect(preview.data.operation).toBe("AdjustCreditAccount");

@@ -2,13 +2,11 @@ import type { Address } from "viem";
 import type {
   AccountProjection,
   DelayedIntent,
+  SDKError,
   TokenAmount,
 } from "../../../model/index.js";
 import type { MultiCall, OnchainSDK, RouterCASlice } from "../../index.js";
-import type {
-  PreviewErrorReason,
-  PreviewRefusal,
-} from "../../validation/refusal.js";
+import type { IntentValidationError } from "../../validation/raise.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import type { AccountCalculatorOperation } from "./operations.js";
 
@@ -69,7 +67,7 @@ export interface OperationState extends AccountProjection, SimulationPrices {}
 
 /**
  * What planning an intent yields: the operation chain, the state it projects,
- * and the calldata that realises it — or the reason the request is not viable.
+ * and the calldata that realises it — or the error that stopped the plan.
  */
 export type IntentPreviewResult =
   | {
@@ -78,7 +76,7 @@ export type IntentPreviewResult =
       state: OperationState;
       calls: MultiCall[];
     }
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /**
  * What a claim did not bring, when the venue served part of a matured
@@ -118,7 +116,7 @@ export type FinishIntentResult =
        */
       remainder: ClaimRemainder | undefined;
     })
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** What the request recorded, and when the tail can be run. */
 export interface DelayedStart {
@@ -133,17 +131,17 @@ export interface DelayedStart {
   /**
    * `instant` when the venue served the whole request on the spot, so no claim
    * will ever arrive to carry the tail. The intent is then left half-done —
-   * nothing repaid, nothing paid out — and the caller wants `startIntent`
+   * nothing repaid, nothing withdrawn — and the caller wants `startIntent`
    * instead, which settles all of it in one transaction.
    */
   settlement: "instant" | "delayed";
   /**
    * What the claim is expected to credit the account with once the redemption
-   * matures: the venue's payout token and the amount the request queued.
+   * matures: the token the redemption settles in and the amount the request queued.
    * `undefined` when the request settled on the spot and nothing is coming.
    *
-   * An estimate, not a quote — the issuer prices the redemption when it pays
-   * out, and the state the intent is previewed against was read now.
+   * An estimate, not a quote — the issuer prices the redemption when it settles,
+   * and the state the intent is previewed against was read now.
    */
   claim: { token: Address; amount: bigint } | undefined;
   /**
@@ -182,7 +180,7 @@ export type DelayedStartResult =
       calls: MultiCall[];
       delayed: DelayedStart;
     }
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** An intent previewed through the router: one transaction, settled now. */
 export type InstantRoute = Extract<IntentPreviewResult, { ok: true }>;
@@ -193,38 +191,38 @@ export type DelayedRoute = Extract<DelayedStartResult, { ok: true }>;
 /**
  * Why a route is missing from an {@link IntentRoutesResult}.
  *
- * A reason is the engine's refusal — `noDelayedRoute` for a source with no
+ * An error is the engine's verdict — `noDelayedRoute` for a source with no
  * redemption venue or for a leverage move that settles at once,
- * `insufficientSourceBalance` for a payout the account cannot fund. `undefined`
+ * `insufficientBalance` for a withdrawal the account cannot fund. A missing key
  * next to a missing route means the route could not be quoted at all: the
  * pathfinder found no way out of the source, or the read behind it failed.
  */
-export interface RouteRefusals {
-  instant: PreviewErrorReason | undefined;
-  delayed: PreviewErrorReason | undefined;
+export interface RouteErrors {
+  instant?: IntentValidationError;
+  delayed?: IntentValidationError;
 }
 
 /**
  * Both ways one intent can be served, previewed side by side: traded through
  * the router, which settles in a single transaction, or redeemed through the
- * source's issuer, which answers now and pays out days later.
+ * source's issuer, which answers now and settles days later.
  *
  * Which of them an account can take depends on the intent and the token it
  * sells, so both are quoted and a route it cannot take comes back `undefined`
- * with its refusal in `refused`. Only when neither answers is the request itself
- * unviable, and then `reason` is the instant route's refusal — the route every
- * account is expected to have — falling back to the delayed one's.
+ * with its error in `errors`. Only when neither answers is the request itself
+ * unviable, and then `error` is the instant route's — the route every account
+ * is expected to have — falling back to the delayed one's.
  */
 export type IntentRoutesResult =
   | {
       ok: true;
       instant: InstantRoute | undefined;
       delayed: DelayedRoute | undefined;
-      refused: RouteRefusals;
+      errors: RouteErrors;
     }
-  | (PreviewRefusal & {
-      /** {@inheritDoc IntentRoutesResult.refused} */
-      refused: RouteRefusals;
+  | (SDKError<IntentValidationError> & {
+      /** {@inheritDoc IntentRoutesResult.errors} */
+      errors: RouteErrors;
     });
 
 /**
@@ -388,12 +386,13 @@ export interface RepayStrategyIntent {
  * Intent 2.1 — withdraw part of the position's net value at fixed leverage.
  *
  * The requested amount leaves the account, and debt is repaid in the same
- * proportion so leverage is unchanged: `dD = D0 * W / C0`. Both the payout and
- * the repayment are funded by liquidating the source token, which means the
+ * proportion so leverage is unchanged: `dD = D0 * W / C0`. Both the withdrawal
+ * and the repayment are funded by liquidating the source token, which means the
  * account must give up `W + dD` of value in total.
  *
- * The payout leg and the repayment leg are quoted separately and do not share a
- * pool, so a shortfall on the payout leg does not eat into the repayment.
+ * The withdrawal leg and the repayment leg are quoted separately and do not
+ * share a pool, so a bad quote on the withdrawal leg does not eat into the
+ * repayment.
  *
  * Asking for the whole net value is the exit instead — there is no leverage
  * left to hold — and the shape changes with it: the quotas are dropped, the
@@ -408,7 +407,7 @@ export interface WithdrawStrategyIntent {
   type: "WITHDRAW";
   /**
    * Amount the wallet receives, denominated in `tokenOut`. At or above the
-   * account's net value this is an exit, which pays out the underlying the
+   * account's net value this is an exit, which hands over the underlying the
    * position was sold into rather than in `tokenOut`.
    *
    * `MAX_UINT256` is that exit stated outright, and the amount a "close
@@ -416,7 +415,7 @@ export interface WithdrawStrategyIntent {
    * rounding can turn it back into a withdrawal that leaves dust behind.
    */
   amount: bigint;
-  /** Wallet receiving the payout. */
+  /** Token recipient. */
   to: Address;
   /**
    * Token the wallet receives. Defaults to the market underlying — which, on an
@@ -460,7 +459,7 @@ export interface WithdrawCeilings {
    * has caught up with its collateral.
    *
    * A Max button is better served by sending `MAX_UINT256` than this figure —
-   * the exit is then named outright, and no rounding in the payout token's
+   * the exit is then named outright, and no rounding in the withdrawal token's
    * price can drop the request back into the refused gap.
    */
   exit: bigint;

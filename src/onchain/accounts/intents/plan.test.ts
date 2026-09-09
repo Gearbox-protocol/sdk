@@ -49,7 +49,7 @@ function view(args: {
     rwaAsset: args.rwaAsset,
     debt: args.debt,
     collateral: totalValue - args.debt,
-    band: { minDebt: 1n, maxDebt: 1_000_000n },
+    debtLimits: { minDebt: 1n, maxDebt: 1_000_000n },
     balanceOf: token => args.balances[token] ?? 0n,
     price: (_from, _to, amount) => amount,
     fattest: exclude => {
@@ -96,7 +96,11 @@ describe("planAdjustLeverage — collateral is the invariant", () => {
     );
     expect(() =>
       planAdjustLeverage({ targetLeverage: X1 - 1n, token: T }, twoX),
-    ).toThrowError(expect.objectContaining({ reason: "leverageOutOfRange" }));
+    ).toThrowError(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "leverageOutOfRange" }),
+      }),
+    );
   });
 
   it("[INV-4] falls back to the fattest non-underlying balance", () => {
@@ -144,7 +148,11 @@ describe("planDeposit — collateral grows, debt follows", () => {
         { token: U, amount: 500n, positionToken: T, targetLeverage: X1 },
         twoX,
       ),
-    ).toThrowError(expect.objectContaining({ reason: "leverageOutOfRange" }));
+    ).toThrowError(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "leverageOutOfRange" }),
+      }),
+    );
   });
 
   it("[INV-6] RWA asset is wrapped into the underlying before conversion", () => {
@@ -178,7 +186,9 @@ describe("planDeposit — collateral grows, debt follows", () => {
     expect(() =>
       planDeposit({ token: T, amount: 500n, positionToken: T }, twoX),
     ).toThrowError(
-      expect.objectContaining({ reason: "unsupportedCollateralToken" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "unsupportedCollateralToken" }),
+      }),
     );
   });
 });
@@ -250,31 +260,39 @@ describe("planRepay — funding in, debt down, position untouched", () => {
 
   it("[INV-9] leaving the debt below minDebt is unviable, as is paying nothing", () => {
     const v = view({ debt: 1_000n, balances: { [T]: 2_000n } });
-    v.band.minDebt = 700n;
+    v.debtLimits.minDebt = 700n;
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
-      expect.objectContaining({ reason: "debtOutOfRange" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "debtOutOfRange" }),
+      }),
     );
     expect(() => planRepay({ token: U, amount: 0n }, twoX)).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "insufficientBalance" }),
+      }),
     );
   });
 
   it("only the underlying, or the RWA asset, can pay a loan down", () => {
     expect(() => planRepay({ token: T, amount: 400n }, twoX)).toThrowError(
-      expect.objectContaining({ reason: "unsupportedCollateralToken" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "unsupportedCollateralToken" }),
+      }),
     );
   });
 
   it("an account that owes nothing has nothing to repay", () => {
     const v = view({ debt: 0n, balances: { [T]: 2_000n } });
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
-      expect.objectContaining({ reason: "debtOutOfRange" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "debtOutOfRange" }),
+      }),
     );
   });
 });
 
-describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
-  it("[INV-3] S=U, T=U: one identity leg, repay keeps the payout aside", () => {
+describe("planWithdraw — withdrawal leaves, debt shrinks in proportion", () => {
+  it("[INV-3] S=U, T=U: one identity leg, repay keeps the withdrawal aside", () => {
     const v = view({ debt: 1_000n, balances: { [U]: 2_000n } });
     expect(planWithdraw({ amount: 100n, to: WALLET }, v)).toEqual([
       { kind: "convert", from: U, to: U, amount: 200n },
@@ -293,7 +311,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
     ]);
   });
 
-  it("[INV-3] S=T, T=T2: independent debt and payout legs", () => {
+  it("[INV-3] S=T, T=T2: independent debt and withdrawal legs", () => {
     expect(
       planWithdraw(
         { amount: 100n, to: WALLET, sourceToken: T, tokenOut: T2 },
@@ -307,7 +325,7 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
     ]);
   });
 
-  it("[INV-5] S=T=payout: the payout leg is an identity", () => {
+  it("[INV-5] S=T=tokenOut: the withdrawal leg is an identity", () => {
     expect(
       planWithdraw(
         { amount: 100n, to: WALLET, sourceToken: T, tokenOut: T },
@@ -361,11 +379,13 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
   it("[INV-3] an account the debt has caught up with has nothing to hand over", () => {
     const v = view({ debt: 2_000n, balances: { [U]: 2_000n } });
     expect(() => planWithdraw({ amount: 100n, to: WALLET }, v)).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "insufficientBalance" }),
+      }),
     );
   });
 
-  it("[INV-3] the exit can be redeemed too: the whole source, no payout named", () => {
+  it("[INV-3] the exit can be redeemed too: the whole source, no withdrawal named", () => {
     expect(
       planWithdrawDelayed({ amount: 1_000n, to: WALLET, sourceToken: T }, twoX),
     ).toEqual([
@@ -386,7 +406,9 @@ describe("planWithdraw — payout leaves, debt shrinks in proportion", () => {
         twoX,
       ),
     ).toThrowError(
-      expect.objectContaining({ reason: "insufficientSourceBalance" }),
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "insufficientBalance" }),
+      }),
     );
   });
 });

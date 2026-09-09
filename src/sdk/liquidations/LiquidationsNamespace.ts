@@ -7,12 +7,15 @@ import type {
 } from "../../model/index.js";
 import type {
   BuildLiquidationTxProps,
+  CheckLiquidationInput,
+  CheckLiquidationOptions,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  LiquidationValidationError,
   MultichainSDK,
 } from "../../onchain/index.js";
-import { toChainIds } from "../../onchain/index.js";
+import { checkLiquidation, toChainIds } from "../../onchain/index.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
 import type { ILiquidations } from "./types.js";
 
@@ -66,5 +69,17 @@ export class LiquidationsNamespace implements ILiquidations {
   ): Promise<DataResponse<LiquidationPosition[]>> {
     await this.#ensureFresh?.(props.chainIds);
     return this.#onchain.liquidations.getLiquidationPositions(props);
+  }
+
+  /**
+   * {@inheritDoc ILiquidations.checkLiquidation}
+   **/
+  public async checkLiquidation(
+    props: CheckLiquidationInput,
+    options?: CheckLiquidationOptions,
+  ): Promise<LiquidationValidationError[]> {
+    await this.#ensureFresh?.([props.details.chainId]);
+    const sdk = this.#onchain.chain(props.details.chainId);
+    return checkLiquidation(sdk, props, options);
   }
 }

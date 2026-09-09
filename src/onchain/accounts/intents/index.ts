@@ -1,14 +1,16 @@
 import type { Address } from "viem";
+import {
+  type SDKError,
+  sdkErr,
+  unsupportedTokenPair,
+} from "../../../model/index.js";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
-import { MIN_HF_LIMITED } from "../../validation/checks.js";
+import { MIN_HF_LIMITED } from "../../validation/index.js";
 import {
   IntentPreviewError,
-  type PreviewRefusal,
-  refuse,
-} from "../../validation/refusal.js";
+  type IntentValidationError,
+} from "../../validation/raise.js";
 import { assertMarketOperable } from "./guards.js";
-
-export { borrowable } from "./guards.js";
 
 import {
   calcLeverageBand,
@@ -49,7 +51,7 @@ import type {
   FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
-  RouteRefusals,
+  RouteErrors,
   StartIntent,
   StartIntentProps,
   WithdrawCeilings,
@@ -78,7 +80,7 @@ export type {
   PathLossRate,
   RepayStrategyIntent,
   ResumableIntent,
-  RouteRefusals,
+  RouteErrors,
   StartIntent,
   WithdrawAssetIntent,
   WithdrawCeilings,
@@ -104,7 +106,7 @@ export type {
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; state: OpenStrategyState }
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** An intent plus everything previewing it needs. */
 type StartProps = StartIntentProps & { intent: StartIntent };
@@ -121,7 +123,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Previews an operation on an existing account.
    *
    * @param props - Intent plus account slice, quota reserve and slippage
-   * @returns Operations, projected state and calldata, or `{ ok: false, reason }`
+   * @returns Operations, projected state and calldata, or `{ ok: false, error }`
    * when the intent cannot be satisfied (e.g. the account lacks the source
    * balance)
    */
@@ -159,8 +161,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Both ends of what a `WITHDRAW` can take out, in underlying: the largest
-   * partial withdrawal that keeps leverage and stays inside the facade's debt
-   * band, and the net value an exit hands over. They are reported together
+   * partial withdrawal that keeps leverage and stays inside the facade's
+   * `debtLimits`, and the net value an exit hands over. They are reported together
    * because a withdraw form needs both — the range it may offer, and the one
    * amount past it that is allowed — and because the distance between them is
    * the account's own, not a constant a caller could assume.
@@ -178,7 +180,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
   ): WithdrawCeilings {
     const view = accountView(props.creditAccount, props.sdk);
     return {
-      partial: maxProportionalWithdrawal(view, view.band),
+      partial: maxProportionalWithdrawal(view, view.debtLimits),
       // an account underwater owes more than it holds, and has nothing to hand
       // over on the way out
       exit: view.collateral > 0n ? view.collateral : 0n,
@@ -207,8 +209,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * A credit manager's `maxLeverage` follows from the liquidation threshold
    * alone, so it is the same for a hundred dollars and for a million. What a
-   * given deposit reaches is decided by the debt it implies and by the band
-   * the market puts that debt in — the range a leverage slider should offer.
+   * given deposit reaches is decided by the debt it implies and by the
+   * `debtLimits` the market puts that debt in — the range a leverage slider should offer.
    *
    * Unlike the other ceilings here this one reads no account: opening has none
    * yet, and adjusting measures against the net value the caller already
@@ -228,9 +230,9 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * while its health factor stays at `targetHF` — the ceiling a
    * withdraw-collateral form should offer. Thresholds, prices and quota
    * activity come from the account's market, valued the way the facade values
-   * a call that pays out; zero debt frees the whole balance.
+   * a call that withdraws collateral; zero debt frees the whole balance.
    *
-   * The default is {@link MIN_HF_LIMITED}, the bar a form holds an
+   * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
    * account to.
    *
    * @param props - Account slice, the SDK holding its market, the collateral
@@ -246,8 +248,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const { targetHF = MIN_HF_LIMITED, ...rest } = props;
     return maxWithdrawCollateral({
       ...rest,
-      // two basis points clear of the bar: a ceiling equal to it would make a
-      // Max button produce an amount the form then refuses
+      // two basis points clear of the threshold: a ceiling equal to it would
+      // make a Max button produce an amount the form then refuses
       targetHF: targetHF + 2n,
     });
   }
@@ -258,8 +260,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * Sits apart from {@link startIntent} because it is a different trade route,
    * not a different intent: the request goes to the issuer instead of the
-   * router, and the proceeds — hence the repayment and the payout — arrive days
-   * later. Both routes of one intent are quoted together by
+   * router, and what it sells for — hence the repayment and the withdrawal —
+   * arrives days later. Both routes of one intent are quoted together by
    * {@link intentRoutes}; this is the one to call when the delayed route is the
    * only one of interest.
    *
@@ -271,7 +273,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * @param props - Intent plus account slice, quota reserve and slippage
    * @returns The request transaction, the state it ends in and what it recorded
-   * for the tail, or `{ ok: false, reason }` — `noDelayedRoute` when this route
+   * for the tail, or `{ ok: false, error }` — `noDelayedRoute` when this route
    * does not exist for the account at all
    */
   async startDelayedIntent(
@@ -331,8 +333,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
       return { ...result, state: tail.state, delayed };
     } catch (e) {
       // A tail that cannot be walked is a request that would strand the
-      // account, so it is refused here rather than started and regretted.
-      return asFailure(e);
+      // account, so it is stopped here rather than started and regretted.
+      return asSDKError(e);
     }
   }
 
@@ -343,7 +345,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * Which routes an account has depends on the intent and the token it sells,
    * and a form has to know before it can offer a choice — so both are quoted
    * from the same request and each is reported on its own. A route the account
-   * cannot take comes back `undefined` with its refusal in `refused`; only when
+   * cannot take comes back `undefined` with its error in `errors`; only when
    * neither answers is the whole result `{ ok: false }`.
    *
    * A route that could not be quoted at all — a pathfinder with no path out of
@@ -353,7 +355,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * @param props - A withdraw or adjust-leverage intent plus account slice,
    * quota reserve and slippage
-   * @returns Whichever routes are viable, or `{ ok: false, reason }` when none is
+   * @returns Whichever routes are viable, or `{ ok: false, error }` when none is
    */
   async intentRoutes(
     props: StartIntentProps & { intent: DelayableIntent },
@@ -371,17 +373,17 @@ export class CreditAccountOperationsService extends SDKConstruct {
       delayed.status === "fulfilled" && delayed.value.ok
         ? delayed.value
         : undefined;
-    const instantRefusal =
+    const instantError =
       instant.status === "fulfilled" && !instant.value.ok
-        ? instant.value
+        ? instant.value.error
         : undefined;
-    const delayedRefusal =
+    const delayedError =
       delayed.status === "fulfilled" && !delayed.value.ok
-        ? delayed.value
+        ? delayed.value.error
         : undefined;
-    const refused: RouteRefusals = {
-      instant: instantRefusal?.reason,
-      delayed: delayedRefusal?.reason,
+    const errors: RouteErrors = {
+      ...(instantError === undefined ? {} : { instant: instantError }),
+      ...(delayedError === undefined ? {} : { delayed: delayedError }),
     };
 
     if (instantRoute || delayedRoute) {
@@ -389,24 +391,24 @@ export class CreditAccountOperationsService extends SDKConstruct {
         ok: true,
         instant: instantRoute,
         delayed: delayedRoute,
-        refused,
+        errors,
       };
     }
 
-    // Nothing answered. A refusal is a value the caller can act on, but a route
+    // Nothing answered. An error is a value the caller can act on, but a route
     // that could not be quoted at all is a genuine failure, and there is no
     // preview left to report it alongside.
     const failed = [instant, delayed].find(s => s.status === "rejected");
     if (failed?.status === "rejected") {
       throw failed.reason;
     }
-    const chosen = instantRefusal ?? delayedRefusal;
+    const chosen = instantError ?? delayedError;
     if (chosen === undefined) {
       // disposition(D1-S6): kept — allSettled invariant; every route settles
       // as an answer or a refusal, anything else is a bug.
       throw new Error("intentRoutes: a route neither answered nor refused");
     }
-    return { ...chosen, refused };
+    return { ...sdkErr(chosen), errors };
   }
 
   /**
@@ -419,7 +421,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * catch up.
    *
    * A claim that brought only part of what the request queued — a legacy Mellow
-   * multivault, which pays out what it holds liquid and re-queues the rest — is
+   * multivault, which hands over what it holds liquid and re-queues the rest — is
    * served in proportion, and what it did not settle comes back as `remainder`:
    * the withdrawal still in flight and the intent to finish it with.
    *
@@ -455,7 +457,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    *
    * @param props - Credit manager, wallet collateral, target token and leverage
    * @returns Debt, position size, projected balances and quotas for both the
-   * expected and the floor branch, or `{ ok: false, reason }` when the requested
+   * expected and the floor branch, or `{ ok: false, error }` when the requested
    * leverage or the resulting debt is not viable
    */
   async openStrategyIntent(
@@ -464,7 +466,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
     try {
       return { ok: true, state: await buildOpenStrategyState(props) };
     } catch (e) {
-      return asFailure(e);
+      return asSDKError(e);
     }
   }
 
@@ -487,7 +489,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
       });
       return { ok: true, operations, state, calls, delayed };
     } catch (e) {
-      return asFailure(e);
+      return asSDKError(e);
     }
   }
 }
@@ -500,7 +502,7 @@ type Previewed =
   | (Extract<IntentPreviewResult, { ok: true }> & {
       delayed: DelayedStart | undefined;
     })
-  | PreviewRefusal;
+  | SDKError<IntentValidationError>;
 
 /** Drops the delayed half for the flows that cannot produce one. */
 function plain(result: Previewed): IntentPreviewResult {
@@ -512,14 +514,9 @@ function plain(result: Previewed): IntentPreviewResult {
 }
 
 /** Unviable requests are values; anything else is a genuine failure. */
-function asFailure(e: unknown): PreviewRefusal {
-  if (e instanceof IntentPreviewError) {
-    return refuse(e.reason, e.detail);
-  }
-  if (isUnroutable(e)) {
-    // The revert names no pair: the leg that asked for one is frames away.
-    return refuse("unsupportedTokenPair", undefined);
-  }
+function asSDKError(e: unknown): SDKError<IntentValidationError> {
+  if (e instanceof IntentPreviewError) return sdkErr(e.error);
+  if (isUnroutable(e)) return sdkErr(unsupportedTokenPair());
   throw e;
 }
 
@@ -527,7 +524,7 @@ function asFailure(e: unknown): PreviewRefusal {
  * How the pathfinder says there is no route: it reverts instead of answering
  * with an empty path, so viem raises a contract error where the rest of the
  * engine raises an {@link IntentPreviewError}. Nothing is wrong — the trade
- * asked for cannot be made, which is a refusal the caller can act on, and one
+ * asked for cannot be made, which is an error the caller can act on, and one
  * `intentRoutes` in particular must keep as a value so the other route can
  * still be offered.
  */

@@ -5,6 +5,7 @@ import type {
   PriceFeedSummary,
   SafeValue,
   TokenAmount,
+  UnpriceableTokenError,
 } from "../../../model/index.js";
 import type {
   Asset,
@@ -20,7 +21,6 @@ import type {
   PriceUpdate,
   UpdatePriceFeedsResult,
 } from "../pricefeeds/index.js";
-import type { UnpriceableTokenError } from "./errors.js";
 import type PriceFeedAnswerMap from "./PriceFeedAnswerMap.js";
 
 /**

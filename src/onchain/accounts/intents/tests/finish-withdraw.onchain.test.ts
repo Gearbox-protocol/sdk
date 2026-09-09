@@ -247,7 +247,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
     return service.finishIntent(props);
   }
 
-  // MATRIX MISMATCH (see case_matrix_4_3_tail): the engine repays before paying out.
+  // MATRIX MISMATCH (see case_matrix_4_3_tail): the engine repays before withdrawing.
   it("matrix 4.3 tail: claim UND → decreaseDebt → withdrawCollateral → changeQuota", async () => {
     const result = await runMatrix(case_matrix_4_3_tail);
 
@@ -264,7 +264,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
     });
   });
 
-  // MATRIX MISMATCH (see case_matrix_4_4_tail): the engine repays before paying out.
+  // MATRIX MISMATCH (see case_matrix_4_4_tail): the engine repays before withdrawing.
   it("matrix 4.4 tail: claim ANY → swap → decreaseDebt → withdrawCollateral → changeQuota", async () => {
     const result = await runMatrix(case_matrix_4_4_tail);
 
@@ -282,7 +282,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
     });
   });
 
-  // MATRIX MISMATCH (see case_matrix_4_5_tail): the engine repays before paying out.
+  // MATRIX MISMATCH (see case_matrix_4_5_tail): the engine repays before withdrawing.
   it("matrix 4.5 tail: claim UND → decreaseDebt → unwrap → withdrawCollateral(RWA) → changeQuota", async () => {
     const result = await runMatrix(case_matrix_4_5_tail);
 
@@ -300,7 +300,7 @@ describe("withdraw tail — test-matrix rows 4.3–4.6 (onchain)", () => {
     });
   });
 
-  // MATRIX MISMATCH (see case_matrix_4_6_tail): the engine repays before paying out.
+  // MATRIX MISMATCH (see case_matrix_4_6_tail): the engine repays before withdrawing.
   it("matrix 4.6 tail: claim ANY → swap → decreaseDebt → unwrap → withdrawCollateral(RWA) → changeQuota", async () => {
     const result = await runMatrix(case_matrix_4_6_tail);
 

@@ -1,9 +1,11 @@
 import type { Address, Hex } from "viem";
-import type { SDKReturn } from "../../../model/index.js";
+import type {
+  SDKReturn,
+  UnsupportedZapperFunctionError,
+} from "../../../model/index.js";
 import type { IBaseContract } from "../../base/index.js";
 import type { RawTx } from "../../types/index.js";
 import type { ZapperData } from "../types.js";
-import type { UnsupportedZapperFunctionError } from "./errors.js";
 
 /**
  * Deposit decoded from a zapper call

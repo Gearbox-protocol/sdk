@@ -74,6 +74,6 @@ describe("addCollateral.start — position token in, debt fixed", () => {
       ...case_position_token,
       intent: { ...case_position_token.intent, amount: 0n },
     });
-    expectPreviewError(result, "insufficientSourceBalance");
+    expectPreviewError(result, "insufficientBalance");
   });
 });

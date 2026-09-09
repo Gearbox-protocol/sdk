@@ -3,7 +3,7 @@ import { LEVERAGE_DECIMALS } from "../../../constants/math.js";
 import { toBN } from "../../../utils/index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import { calcLeverageBand } from "../leverage-band.js";
-import { assertDebtInBand, debtForLeverage } from "../math.js";
+import { assertDebtLimits, debtForLeverage } from "../math.js";
 import {
   ANY,
   buildMarketSdk,
@@ -130,7 +130,7 @@ describe("calcLeverageBand", () => {
     ).toEqual({ min: 2, max: 2 });
   });
 
-  it("names no leverage the debt band would refuse", () => {
+  it("names no leverage that debtLimits would refuse", () => {
     // the trip a dialog makes: a leverage the slider reports, scaled the way
     // the client scales it, turned back into debt, checked by the guard that
     // refuses operations
@@ -170,7 +170,7 @@ describe("calcLeverageBand", () => {
         if (!reachable) continue;
         for (const leverage of [reachable.min, reachable.max]) {
           const debt = debtForLeverage(netValue, scaleLeverage(leverage));
-          expect(() => assertDebtInBand(sdk, debt, facade, UND)).not.toThrow();
+          expect(() => assertDebtLimits(sdk, debt, facade, UND)).not.toThrow();
           checked += 1;
         }
       }

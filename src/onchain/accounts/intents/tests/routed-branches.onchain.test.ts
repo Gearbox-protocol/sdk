@@ -70,7 +70,7 @@ describe("a routed leg's two amounts — the floor signs, the expectation is rep
   it("builds the calls off the floor and reports the state off the expectation", async () => {
     const result = await deposit(ONE_PERCENT);
     if (!result.ok) {
-      throw new Error(`deposit refused: ${result.reason}`);
+      throw new Error(`deposit refused: ${result.error.code}`);
     }
 
     // The calls: 500 added, 500 borrowed, 1000 routed into the position for a

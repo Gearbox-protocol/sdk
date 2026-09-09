@@ -1,15 +1,21 @@
 import type { Address } from "viem";
+import {
+  insufficientBalance,
+  multipleDelayedWithdrawals,
+  noDelayedRoute,
+  withdrawalInProgress,
+} from "../../../model/index.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
-import { toToken, toTokenAmount } from "../../validation/token.js";
+import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
 import {
   assertCanBorrow,
   assertCollateralised,
   assertGrowthAllowed,
-  assertQuotaHeadroom,
+  assertQuotaAvailable,
 } from "./guards.js";
 import {
   type AccountCalculatorOperation,
@@ -105,8 +111,8 @@ export async function realize(
    * The floor: every routed leg counted at the amount it guarantees. This is
    * what the calls are built from — a repayment may only spend underlying the
    * route promises to have raised — and what the guards are answered on, since
-   * a floor that does not clear the facade's bar is a transaction that can
-   * revert.
+   * a floor that does not clear the facade's threshold is a transaction that
+   * can revert.
    */
   const ledger = new OperationLedger(start);
   /**
@@ -146,18 +152,19 @@ export async function realize(
    * Whether anything leaves the account, which is what makes the credit manager
    * judge the closing collateral check at safe prices.
    */
-  let paysOut = false;
+  let withdrawsCollateral = false;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
   const assertHolds = (token: Address, amount: bigint, what: string): void => {
     const held = ledger.balanceOf(token);
     if (amount <= 0n || held < amount) {
       throw new IntentPreviewError(
-        "insufficientSourceBalance",
-        {
+        insufficientBalance({
           required: toTokenAmount(sdk, token, amount),
           held: toTokenAmount(sdk, token, held),
-        },
+          holderKind: "creditAccount",
+          holder: creditAccount.creditAccount,
+        }),
         `${what}: needs ${amount} of ${token}, account holds ${held}`,
       );
     }
@@ -292,8 +299,9 @@ export async function realize(
         );
         if (pending) {
           throw new IntentPreviewError(
-            "withdrawalInProgress",
-            { inFlight: toTokenAmount(sdk, pending.token, pending.balance) },
+            withdrawalInProgress(
+              toTokenAmount(sdk, pending.token, pending.balance),
+            ),
             `closeAll: ${pending.token} is a pending withdrawal, claim it first`,
           );
         }
@@ -331,7 +339,7 @@ export async function realize(
       case "withdraw": {
         const amount = amountOf(step.amount);
         assertHolds(step.token, amount, "withdraw");
-        paysOut = true;
+        withdrawsCollateral = true;
         push(
           buildWithdrawCollateralOperation({
             token: step.token,
@@ -350,14 +358,13 @@ export async function realize(
         // already in flight, and its claim owns the tail that follows it.
         if (ledger.balanceOf(asset.withdrawalPhantomToken) > 0n) {
           throw new IntentPreviewError(
-            "withdrawalInProgress",
-            {
-              inFlight: toTokenAmount(
+            withdrawalInProgress(
+              toTokenAmount(
                 sdk,
                 asset.withdrawalPhantomToken,
                 ledger.balanceOf(asset.withdrawalPhantomToken),
               ),
-            },
+            ),
             `request: ${asset.withdrawalPhantomToken} already holds a pending withdrawal`,
           );
         }
@@ -375,7 +382,7 @@ export async function realize(
         );
         // What the venue will hand over when the claim lands: the queued amount,
         // in the token this config redeems into. The phantom stands in for that
-        // payout one for one, so only the decimals have to be reconciled.
+        // claim one for one, so only the decimals have to be reconciled.
         const queued = preview.outputs.find(o => o.isDelayed);
         delayed = {
           record: step.record,
@@ -413,7 +420,7 @@ export async function realize(
         // The wrapper of an RWA market cannot leave the account, so it is
         // unwrapped before the walk rather than during it — that way the raw
         // asset is swept once, whatever the account already held of it.
-        paysOut = true;
+        withdrawsCollateral = true;
         const wrapped = ledger.balanceOf(underlying);
         if (rwaAsset && wrapped > 0n) {
           push(
@@ -428,7 +435,7 @@ export async function realize(
           );
         }
         for (const { token, balance } of ledger.snapshot().assets) {
-          const payout = buildWithdrawCollateralOperation({
+          const withdrawal = buildWithdrawCollateralOperation({
             token,
             amount: balance,
             to: step.to,
@@ -441,7 +448,10 @@ export async function realize(
           });
           // The call names no amount, so it takes whichever balance the branch
           // it is applied to arrived at, and leaves the token at zero either way.
-          push(payout, { ...payout, amount: expected.balanceOf(token) });
+          push(withdrawal, {
+            ...withdrawal,
+            amount: expected.balanceOf(token),
+          });
         }
         break;
       }
@@ -488,7 +498,7 @@ export async function realize(
     !cleared &&
     quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
   ) {
-    assertQuotaHeadroom(sdk, market, quotas.quotaIncrease);
+    assertQuotaAvailable(sdk, market, quotas.quotaIncrease);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 
@@ -526,9 +536,9 @@ export async function realize(
   assertCollateralised(
     sdk.positions.healthFactor(
       { ...snapshot, assets, totalValue: floor.totalValue },
-      { safePrices: paysOut },
+      { safePrices: withdrawsCollateral },
     ),
-    paysOut,
+    withdrawsCollateral,
   );
 
   // After the guards, so a refusal never waits on a measurement it will not report.
@@ -570,8 +580,7 @@ async function delayedConfig(
   const compressor = sdk.withdrawalCompressor;
   if (!compressor) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      { token: toToken(sdk, token) },
+      noDelayedRoute(toToken(sdk, token)),
       "request: chain has no withdrawal compressor",
     );
   }
@@ -582,15 +591,13 @@ async function delayedConfig(
   );
   if (assets.length === 0) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      { token: toToken(sdk, token) },
+      noDelayedRoute(toToken(sdk, token)),
       `request: ${token} has no delayed withdrawal config`,
     );
   }
   if (assets.length > 1) {
     throw new IntentPreviewError(
-      "multipleDelayedWithdrawals",
-      { token: toToken(sdk, token), venues: assets.length },
+      multipleDelayedWithdrawals(toToken(sdk, token), assets.length),
       `request: ${token} has ${assets.length} delayed withdrawal configs`,
     );
   }

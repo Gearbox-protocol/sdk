@@ -42,9 +42,9 @@ flowchart TD
   in --> lev
   lev -->|"no"| e1["leverageOutOfRange"]
   lev --> op
-  op -->|"no"| e2["marketPaused / marketExpired"]
+  op -->|"no"| e2["creditManagerPaused / marketExpired"]
   op --> m --> mz
-  mz -->|"no"| e3["insufficientSourceBalance"]
+  mz -->|"no"| e3["insufficientBalance"]
   mz --> d --> band
   band -->|"no"| e4["debtOutOfRange"]
   band --> bor

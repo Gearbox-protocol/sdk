@@ -50,7 +50,7 @@ export interface PointsProgram {
 }
 
 /**
- * Rewards paid out in a token, e.g. a liquidity mining program.
+ * Rewards in a token, e.g. a liquidity mining program.
  **/
 export interface TokenRewards {
   kind: "token";
@@ -356,7 +356,8 @@ export interface StrategyOpportunity extends OpportunityBase {
   /**
    * Largest debt a single new position can take on right now: the tightest of
    * the credit manager's remaining debt limit, the pool's free liquidity and
-   * the facade's per-account maximum.
+   * the facade's per-account `maxDebt`. Zero while borrowing is frozen
+   * (`maxDebtPerBlockMultiplier == 0`).
    **/
   maxBorrowAmount: Amount;
   /**
