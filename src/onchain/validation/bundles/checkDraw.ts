@@ -10,7 +10,7 @@ import type { CreditOperationPreview } from "./checkCreditOperation.js";
  * What the transaction draws, against what the market can lend right now.
  *
  * Only a draw is weighed: repaying, or leaving the debt alone, can never exceed
- * a ceiling. Opening borrows the whole debt; adjusting borrows
+ * the borrow limit. Opening borrows the whole debt; adjusting borrows
  * `totalDebtChange`.
  *
  * The engine holds every simulation to this already (`assertCanBorrow`), so

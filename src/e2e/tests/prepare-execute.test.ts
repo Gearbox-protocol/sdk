@@ -226,7 +226,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
   /**
    * `min ≤ actual ≤ min · (1 + S / (10000 − S))` — floor and pre-slippage
-   * ceiling.
+   * upper limit.
    *
    * The floor gets a millionth of slack because both sides price the position
    * with the oracle, and the price the SDK holds can sit one unit of the feed's
@@ -723,7 +723,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // the withdrawal names no amount, so the wallet gets whatever is left once the
       // loan is settled. The projection is a floor twice over — the route's
       // slippage and the interest the `full` repayment reserves — so the only
-      // ceiling that holds is the position's own worth before it was sold
+      // upper limit that holds is the position's own worth before it was sold
       const paid =
         (await chain.client.readContract({
           address: underlying,
@@ -1084,13 +1084,13 @@ describe("prepare → execute on a mainnet fork", () => {
     it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const ceiling =
+      const maxDebt =
         chain.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade
           .maxDebt;
       const sim = await prepare().depositStrategy(position(creditAccount), {
-        // at the leverage held, this much collateral draws more than the ceiling
+        // at the leverage held, this much collateral draws more than maxDebt
         token: USDC,
-        amount: ceiling * 2n,
+        amount: maxDebt * 2n,
         positionToken: TARGET_TOKEN,
         slippage: S,
       });
@@ -1098,13 +1098,13 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.ok || sim.error.code !== "debtOutOfRange") {
         throw new Error("expected debtOutOfRange");
       }
-      // The ceiling comes back with the refusal, so a form can clamp to it
+      // maxDebt comes back with the refusal, so a form can clamp to it
       // instead of asking again to find out where it is.
-      expect(sim.error.maxDebt.value).toBe(ceiling);
-      expect(sim.error.requested.value).toBeGreaterThan(ceiling);
+      expect(sim.error.maxDebt.value).toBe(maxDebt);
+      expect(sim.error.requested.value).toBeGreaterThan(maxDebt);
     });
 
-    it("hands the debt refusal the ceiling the suite would actually lend", async () => {
+    it("hands the debt refusal the maxBorrowAmount the suite would actually lend", async () => {
       await sync();
       const suite = chain.marketRegister.findCreditManager(CREDIT_MANAGER);
       const lends = suite.maxBorrowAmount();
@@ -1127,7 +1127,7 @@ describe("prepare → execute on a mainnet fork", () => {
       );
     });
 
-    it("hands a parsed transaction's debt refusal the same ceiling", async () => {
+    it("hands a parsed transaction's debt refusal the same maxBorrowAmount", async () => {
       await sync();
       const suite = chain.marketRegister.findCreditManager(CREDIT_MANAGER);
       const lends = suite.maxBorrowAmount();

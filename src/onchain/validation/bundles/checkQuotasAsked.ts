@@ -19,7 +19,7 @@ export function checkQuotasAsked(
   return increases
     .filter(q => q.value > 0n)
     .flatMap(q => {
-      // A token the market quotes nothing for has no ceiling to weigh against
+      // A token the market quotes nothing for has no quota available to weigh against
       // and counts as no collateral — the same reading the engine's guard takes.
       const quoted = pqk.hasActiveQuota(q.token.address);
       return checkQuotaLimit({

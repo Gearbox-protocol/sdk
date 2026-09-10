@@ -25,7 +25,7 @@ describe("checkDebtLimits", () => {
     expect(at(99n, true)[0]?.code).toBe("debtOutOfRange");
   });
 
-  it("carries the ceiling the caller supplied, in the same underlying", () => {
+  it("carries the maxBorrowAmount the caller supplied, in the same underlying", () => {
     const [error] = checkDebtLimits({
       ...limits,
       debt: 10_001n,

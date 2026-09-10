@@ -117,7 +117,7 @@ describe("calcMaxLeverage", () => {
     expect(calcMaxLeverage(9500, 10_100)).toBe(16);
   });
 
-  it("reads a higher target as a tighter ceiling", () => {
+  it("reads a higher target as a tighter max leverage", () => {
     expect(calcMaxLeverage(9000, 11_000)).toBeLessThan(
       calcMaxLeverage(9000, 10_100),
     );
