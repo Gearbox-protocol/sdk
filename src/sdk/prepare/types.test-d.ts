@@ -18,6 +18,7 @@ import type {
   NoDelayedRouteError,
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
+  PoolPausedError,
   PoolSunsetError,
   PositionCollateral,
   QuotaCountExceededError,
@@ -55,15 +56,25 @@ type ErrorOf<T> = T extends { ok: false; error: infer E } ? E : never;
  * allowed to abbreviate through those aliases.
  */
 describe("every prepare method names exactly its own errors", () => {
-  it("the LP flows answer with the unroutable pair and the read that failed", () => {
+  it("the LP flows answer the unroutable pair, the failed read and the pool's own state", () => {
+    // The pool's three refusals ride along because `prepare` reads the pool
+    // before it hands back a signable transaction, the way the credit walk
+    // reads the facade.
+    type LpErrors =
+      | UnsupportedTokenPairError
+      | UnexpectedFailureError
+      | PoolPausedError
+      | PoolSunsetError
+      | InsufficientPoolLiquidityError;
+
     expectTypeOf<Awaited<ReturnType<P["deposit"]>>>().toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+      SDKReturn<LpResult, LpErrors>
     >();
     expectTypeOf<Awaited<ReturnType<P["withdraw"]>>>().toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+      SDKReturn<LpResult, LpErrors>
     >();
     expectTypeOf<Awaited<ReturnType<P["redeem"]>>>().toEqualTypeOf<
-      SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+      SDKReturn<LpResult, LpErrors>
     >();
   });
 
@@ -244,14 +255,11 @@ describe("the preview-only codes appear in no prepare union", () => {
     | ErrorOf<Awaited<ReturnType<P["adjustLeverage"]>>>
     | ErrorOf<Awaited<ReturnType<P["finalize"]>>>;
 
-  it("poolSunset, quotaCountExceeded and malformedTransaction stay preview's", () => {
-    // @ts-expect-error poolSunset judges a deposit already sent, not a request
-    const _sunset: AnyPrepareError = {} as PoolSunsetError;
+  it("quotaCountExceeded and malformedTransaction stay preview's", () => {
     // @ts-expect-error quotaCountExceeded is the replay's error, not prepare's
     const _count: AnyPrepareError = {} as QuotaCountExceededError;
     // @ts-expect-error malformedTransaction can only be said of calldata handed in
     const _malformed: AnyPrepareError = {} as MalformedTransactionError;
-    void _sunset;
     void _count;
     void _malformed;
   });

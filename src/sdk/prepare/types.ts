@@ -41,6 +41,7 @@ import type {
   MultiCall,
   OpenStrategyState,
   OperationState,
+  PoolOperationError,
   PoolSimulation,
   ResumableIntent,
   RouteErrors,
@@ -64,6 +65,7 @@ export type {
   LeverageBand,
   OperationState,
   PathLossRate,
+  PoolOperationError,
   RouteErrors,
   WithdrawCeilings,
 } from "../../onchain/index.js";
@@ -554,7 +556,10 @@ export interface IOpportunitiesPrepare {
     pool: PoolInput,
     params: LpParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   >;
 
   /**
@@ -568,7 +573,10 @@ export interface IOpportunitiesPrepare {
     pool: PoolInput,
     params: LpParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   >;
 
   /**
@@ -579,7 +587,10 @@ export interface IOpportunitiesPrepare {
     pool: PoolInput,
     params: LpRedeemParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   >;
 
   /**
