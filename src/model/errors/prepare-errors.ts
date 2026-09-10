@@ -193,23 +193,6 @@ export function creditAccountNotEmpty(
 }
 
 /**
- * An empty opening was asked for with something to open it with: collateral to
- * spend, an account to reuse, or a leverage to reach.
- **/
-export interface EmptyOpenTakesNothingError extends IGearboxError {
-  code: "emptyOpenTakesNothing";
-}
-
-/** {@inheritDoc EmptyOpenTakesNothingError} */
-export function emptyOpenTakesNothing(): EmptyOpenTakesNothingError {
-  return {
-    code: "emptyOpenTakesNothing",
-    message:
-      "An empty opening takes no collateral, no account to reuse and no leverage.",
-  };
-}
-
-/**
  * The SDK could not answer at all: a read that failed, a chain it is not
  * connected to, a market or token address it knows nothing about, a contract
  * that reverted where nothing should, a bug of ours.

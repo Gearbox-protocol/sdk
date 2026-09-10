@@ -9,7 +9,6 @@ import type {
   MultichainSDK,
   OnchainSDK,
   OperationState,
-  PoolSimulation,
 } from "../../onchain/index.js";
 import { previewOperation } from "../../onchain/preview/preview/previewOperation.js";
 import { checkOperation } from "../../onchain/validation/checkOperation.js";
@@ -197,26 +196,5 @@ describe("PreviewNamespace.checkSimulation", () => {
       options,
     );
     expect(order).toEqual(["fresh", "check"]);
-  });
-
-  it("forwards a pool simulation with pool and isDeposit", async () => {
-    const ensureFresh = vi.fn(async () => {});
-    const ns = new PreviewNamespace(onchain, {
-      maxOffchainLagSeconds: 0,
-      ensureFresh,
-    });
-    const state = {} as PoolSimulation;
-    await ns.checkSimulation({
-      chainId: CHAIN_ID,
-      pool: TO,
-      state,
-      isDeposit: true,
-    });
-
-    expect(checkSimulationMock).toHaveBeenCalledWith(
-      chainSdk,
-      { chainId: CHAIN_ID, pool: TO, state, isDeposit: true },
-      undefined,
-    );
   });
 });

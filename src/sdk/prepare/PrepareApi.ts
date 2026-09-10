@@ -16,7 +16,6 @@ import type {
 import {
   creditAccountNotEmpty,
   creditAccountNotFound,
-  emptyOpenTakesNothing,
   noRecordedIntent,
   noStrategyTargetCollateral,
   sdkErr,
@@ -36,6 +35,7 @@ import type {
   LeverageBand,
   OnchainSDK,
   OpenStrategyPreviewResult,
+  PoolOperationError,
   PoolSimulation,
   ResumableIntent,
   StartIntent,
@@ -43,6 +43,7 @@ import type {
 } from "../../onchain/index.js";
 import {
   CreditAccountOperationsService,
+  checkPoolOperation,
   hexEq,
   MultichainConstruct,
   type MultichainSDK,
@@ -57,7 +58,6 @@ import type {
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   DepositStrategyParams,
-  EmptyOpenTakesNothingError,
   FinalizeParams,
   FinalizeResult,
   IOpportunitiesPrepare,
@@ -198,7 +198,10 @@ export class PrepareApi
     pool: PoolInput,
     params: LpParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   > {
     try {
       const chain = await this.#chain(pool.chainId);
@@ -218,6 +221,17 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+
+      const [refusal] = checkPoolOperation({
+        sdk: chain,
+        pool: pool.pool,
+        isDeposit: true,
+        tokenOut: state.tokenOut,
+      });
+      if (refusal) {
+        return sdkErr(refusal);
+      }
+
       const call = pools.addLiquidity({
         collateral: {
           token: state.tokenIn.token.address,
@@ -254,7 +268,10 @@ export class PrepareApi
     pool: PoolInput,
     params: LpParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   > {
     // {@inheritDoc PrepareApi.deposit} — same footing.
     try {
@@ -277,6 +294,17 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+
+      const [refusal] = checkPoolOperation({
+        sdk: chain,
+        pool: pool.pool,
+        isDeposit: false,
+        tokenOut: state.tokenOut,
+      });
+      if (refusal) {
+        return sdkErr(refusal);
+      }
+
       const { calls } = pools.removeLiquidity({
         pool: pool.pool,
         amount: params.amount,
@@ -307,7 +335,10 @@ export class PrepareApi
     pool: PoolInput,
     params: LpRedeemParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   > {
     // {@inheritDoc PrepareApi.deposit} — same footing.
     try {
@@ -327,6 +358,17 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+
+      const [refusal] = checkPoolOperation({
+        sdk: chain,
+        pool: pool.pool,
+        isDeposit: false,
+        tokenOut: state.tokenOut,
+      });
+      if (refusal) {
+        return sdkErr(refusal);
+      }
+
       const { calls } = pools.removeLiquidity({
         pool: pool.pool,
         amount: params.amount,
@@ -365,7 +407,6 @@ export class PrepareApi
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
-      | EmptyOpenTakesNothingError
       | CreditAccountNotFoundError
       | CreditAccountNotEmptyError
     >
@@ -374,16 +415,6 @@ export class PrepareApi
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
       if (params.empty) {
-        // The flag and the arguments have to agree: taking this branch on the
-        // flag alone would silently drop collateral the caller meant to spend,
-        // an account it meant to reuse, or the leverage it asked to reach.
-        if (
-          params.collateral.length > 0 ||
-          params.creditAccount ||
-          params.leverage !== 0n
-        ) {
-          return sdkErr(emptyOpenTakesNothing());
-        }
         // Nothing is routed, so a market with no strategy target can still
         // hand out an account.
         return opened(

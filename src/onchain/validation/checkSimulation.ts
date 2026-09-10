@@ -1,4 +1,3 @@
-import type { Address } from "viem";
 import type {
   ChainId,
   DebtOutOfRangeError,
@@ -7,14 +6,11 @@ import type {
 } from "../../model/index.js";
 import type { OperationState } from "../accounts/intents/types.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import type { PoolSimulation } from "../pools/types.js";
 import { checkAccountQuotas } from "./bundles/checkAccountQuotas.js";
 import type { HealthFactorThresholds } from "./bundles/checkHealthFactors.js";
 import { checkHealthFactors } from "./bundles/checkHealthFactors.js";
 import type { MarketStateError } from "./bundles/checkMarket.js";
 import { checkMarket } from "./bundles/checkMarket.js";
-import type { PoolOperationError } from "./bundles/checkPoolOperation.js";
-import { checkPoolOperation } from "./bundles/checkPoolOperation.js";
 import { checkDebtLimits } from "./checks/index.js";
 import { toToken } from "./helpers/index.js";
 
@@ -24,27 +20,14 @@ export interface CreditSimulationInput {
   state: OperationState;
 }
 
-/**
- * A simulated pool operation. The pool comes alongside the state, which names
- * the tokens moving through it but not the market they belong to.
- */
-export interface PoolSimulationInput {
-  chainId: ChainId;
-  pool: Address;
-  state: PoolSimulation;
-  /** Whether the operation puts liquidity in rather than taking it out. */
-  isDeposit: boolean;
-}
-
-export type CheckSimulationInput = CreditSimulationInput | PoolSimulationInput;
+export type CheckSimulationInput = CreditSimulationInput;
 
 /** {@inheritDoc checkSimulation} */
 export type SimulationValidationError =
   | MarketStateError
   | DebtOutOfRangeError
   | QuotaCountExceededError
-  | InsufficientCollateralError
-  | PoolOperationError;
+  | InsufficientCollateralError;
 
 /**
  * Whether a simulated operation clears the caller's own thresholds.
@@ -66,24 +49,14 @@ export type SimulationValidationError =
  * touched. The engine performed all three during the walk, so a simulation that
  * came back `ok` has already passed them.
  *
- * A pool operation has no account to weigh, so what is left is the pool's own
- * state — which the engine does not read either.
+ * A credit account only: a pool operation has no account to weigh, and the
+ * three things its own state decides are read by `prepare` before it answers.
  */
 export function checkSimulation(
   sdk: OnchainSDK,
   input: CheckSimulationInput,
   options: HealthFactorThresholds = {},
 ): SimulationValidationError[] {
-  if ("pool" in input) {
-    const { pool, state, isDeposit } = input;
-    return checkPoolOperation({
-      sdk,
-      pool,
-      isDeposit,
-      tokenOut: state.tokenOut,
-    });
-  }
-
   const { state } = input;
   const suite = sdk.marketRegister.findCreditManager(state.creditManager);
 
