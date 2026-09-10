@@ -6,7 +6,6 @@ import type {
   CreditManagerPausedError,
   Curator,
   DebtOutOfRangeError,
-  EmptyOpenTakesNothingError,
   ForbiddenTokenError,
   InsufficientBalanceError,
   InsufficientCollateralError,
@@ -51,7 +50,6 @@ import type {
 export type {
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
-  EmptyOpenTakesNothingError,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -425,7 +423,18 @@ export interface WithdrawCollateralParams extends PrepareOptions {
   to: Address;
 }
 
-export interface OpenStrategyParams extends PrepareOptions {
+/**
+ * Opening a position, in one of the two shapes an opening comes in.
+ *
+ * The union is the check: an empty opening names nothing to open with, so
+ * collateral it meant to spend or an account it meant to reuse cannot be
+ * silently dropped — those arguments do not typecheck against `empty: true`.
+ **/
+export type OpenStrategyParams =
+  | OpenStrategyFundedParams
+  | OpenStrategyEmptyParams;
+
+export interface OpenStrategyFundedParams extends PrepareOptions {
   /** Collateral coming from the wallet, in their own tokens. */
   collateral: Asset[];
   /**
@@ -443,25 +452,43 @@ export interface OpenStrategyParams extends PrepareOptions {
    * Existing credit account to open the position on, instead of creating one.
    *
    * Must belong to `strategy.creditManager` and carry no debt and no quotas —
-   * an account pre-opened by an {@link empty} opening.
+   * an account pre-opened by an {@link OpenStrategyEmptyParams} opening.
    * The projection is identical either way; only the transaction differs, and
    * `execute.buildTx` reads which one to build off the result's own
    * `state.creditAccount`.
    **/
   creditAccount?: Address;
+  empty?: false;
+}
+
+/**
+ * Opening an account that holds nothing: no collateral, no debt, no quotas, and
+ * no route quoted. A wallet holds one so a position can be put on it later, by
+ * an opening that names it as
+ * {@link OpenStrategyFundedParams.creditAccount}.
+ *
+ * The market is the whole request. There is nothing else to say: with no
+ * collateral the debt is zero at any leverage, and there is nothing to route
+ * anywhere — so leverage and a target token are not merely ignored here, they
+ * cannot be named.
+ **/
+export interface OpenStrategyEmptyParams {
+  empty: true;
   /**
-   * Open the account holding nothing: no collateral, no debt, no quotas, and no
-   * route quoted. A wallet holds one so a position can be put on it later, by
-   * an opening that names it as {@link creditAccount}.
+   * The three an empty opening would otherwise have to drop, spelled out as
+   * `never` rather than merely left out.
    *
-   * {@link collateral} must be empty, {@link leverage} zero and
-   * {@link creditAccount} unset — the flag and the arguments have to agree.
-   * Neither leverage nor {@link targetToken} is read: with no collateral the
-   * debt is zero at any leverage, and there is nothing to route anywhere. Zero
-   * is the one leverage an ordinary opening refuses, so it cannot be mistaken
-   * for a request.
+   * A bare `{ empty: true }` is a structural type, and excess-property checking
+   * only fires on a fresh object literal — so params built up in a variable, as
+   * a form builds them, would pass on the extra members and have them silently
+   * dropped. Naming them closes that: the shape is refused wherever it is
+   * written, and `empty` typed as a plain `boolean` is refused by both branches.
    **/
-  empty?: boolean;
+  collateral?: never;
+  leverage?: never;
+  creditAccount?: never;
+  targetToken?: never;
+  leftoverBalances?: never;
 }
 
 export interface LpParams {
@@ -611,7 +638,6 @@ export interface IOpportunitiesPrepare {
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
       | NoStrategyTargetCollateralError
-      | EmptyOpenTakesNothingError
       | CreditAccountNotFoundError
       | CreditAccountNotEmptyError
     >
