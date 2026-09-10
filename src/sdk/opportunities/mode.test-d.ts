@@ -15,6 +15,7 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   DelayedStrategyResult,
   LpResult,
+  PoolOperationError,
   StrategyRoutesResult,
   UnexpectedFailureError,
   UnsupportedTokenPairError,
@@ -64,7 +65,12 @@ describe("prepare quotes the delayed route with the instant one", () => {
     const params = { amount: 1_000n, wallet: WALLET };
     expectTypeOf(prepare.deposit(pool, params)).toEqualTypeOf<
       Promise<
-        SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+        SDKReturn<
+          LpResult,
+          | UnsupportedTokenPairError
+          | UnexpectedFailureError
+          | PoolOperationError
+        >
       >
     >();
   });

@@ -61,6 +61,9 @@ const X2 = 200n;
 const X3 = 300n;
 const COLLATERAL = parseUnits("1000", 6);
 const WALLET_USDC = parseUnits("5000", 6);
+/** The LP flows trade the WETH pool, the one still open on this block. */
+const POOL_WALLET = parseUnits("5", 18);
+const POOL_DEPOSIT = parseUnits("1", 18);
 
 describe("prepare → execute on a mainnet fork", () => {
   let multichain: MultichainSDK;
@@ -1152,7 +1155,19 @@ describe("prepare → execute on a mainnet fork", () => {
     let shares: Address;
 
     beforeAll(() => {
-      const market = chain.marketRegister.findByCreditManager(CREDIT_MANAGER);
+      // Not this file's own manager: every USDC pool on this block is on the
+      // sunset list, and `prepare` refuses a deposit into one. The WETH market
+      // is still taking liquidity; resolving it through the register rather
+      // than pinning an address keeps the test honest the day that changes.
+      const market = chain.marketRegister.markets.find(
+        m =>
+          !m.sunset &&
+          !m.pool.pool.isPaused &&
+          isAddressEqual(m.pool.underlying, WETH),
+      );
+      if (!market) {
+        throw new Error("no open WETH pool on this fork");
+      }
       pool = market.pool.pool.address;
       shares = pool;
     });
@@ -1178,12 +1193,12 @@ describe("prepare → execute on a mainnet fork", () => {
     }
 
     it("deposit: shares received are at most what the loaded-block rate promised", async () => {
-      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
-      await approve(USDC, pool);
+      await anvil.deal({ erc20: WETH, account: borrower, amount: POOL_WALLET });
+      await approve(WETH, pool);
       await sync();
       const sim = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL, wallet: borrower },
+        { amount: POOL_DEPOSIT, wallet: borrower },
       );
       if (!sim.ok) {
         throw new Error(`deposit sim failed: ${sim.error.code}`);
@@ -1207,12 +1222,12 @@ describe("prepare → execute on a mainnet fork", () => {
     });
 
     it("withdraw: underlying received is at least what the loaded-block rate promised", async () => {
-      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
-      await approve(USDC, pool);
+      await anvil.deal({ erc20: WETH, account: borrower, amount: POOL_WALLET });
+      await approve(WETH, pool);
       await sync();
       const deposit = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL, wallet: borrower },
+        { amount: POOL_DEPOSIT, wallet: borrower },
       );
       if (!deposit.ok) {
         throw new Error(`deposit sim failed: ${deposit.error.code}`);
@@ -1228,12 +1243,12 @@ describe("prepare → execute on a mainnet fork", () => {
       await sync();
       const sim = await prepare().withdraw(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL / 2n, wallet: borrower },
+        { amount: POOL_DEPOSIT / 2n, wallet: borrower },
       );
       if (!sim.ok) {
         throw new Error(`withdraw sim failed: ${sim.error.code}`);
       }
-      const before = await balance(USDC);
+      const before = await balance(WETH);
       await send({
         kind: "pool",
         chainId: CHAIN_ID,
@@ -1243,18 +1258,18 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expect((await balance(USDC)) - before).toBeGreaterThanOrEqual(
+      expect((await balance(WETH)) - before).toBeGreaterThanOrEqual(
         sim.data.state.tokenOut.value,
       );
     });
 
     it("redeem: the shares asked for are burned, and the underlying they were worth arrives", async () => {
-      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
-      await approve(USDC, pool);
+      await anvil.deal({ erc20: WETH, account: borrower, amount: POOL_WALLET });
+      await approve(WETH, pool);
       await sync();
       const deposit = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL, wallet: borrower },
+        { amount: POOL_DEPOSIT, wallet: borrower },
       );
       if (!deposit.ok) {
         throw new Error(`deposit sim failed: ${deposit.error.code}`);
@@ -1277,7 +1292,7 @@ describe("prepare → execute on a mainnet fork", () => {
       if (!sim.ok) {
         throw new Error(`redeem sim failed: ${sim.error.code}`);
       }
-      const before = await balance(USDC);
+      const before = await balance(WETH);
       await send({
         kind: "pool",
         chainId: CHAIN_ID,
@@ -1292,7 +1307,7 @@ describe("prepare → execute on a mainnet fork", () => {
       // the underlying is the loaded-block rate applied to those shares. The
       // send lands a block later, and a share only ever grows, so the withdrawal is
       // that figure or a hair above it — never below.
-      const paid = (await balance(USDC)) - before;
+      const paid = (await balance(WETH)) - before;
       const promised = sim.data.state.tokenOut.value;
       expect(paid).toBeGreaterThanOrEqual(promised);
       expect(paid).toBeLessThanOrEqual(promised + promised / 1_000_000n + 1n);
@@ -1303,13 +1318,8 @@ describe("prepare → execute on a mainnet fork", () => {
   // block mined before them costs three wei of accrual and breaks their
   // exact-value assertions.
   describe("openNewStrategy — the empty opening", () => {
-    // Nothing here is read; the three of them are what the flag has to agree
-    // with.
-    const EMPTY_OPEN = {
-      empty: true,
-      collateral: [],
-      leverage: 0n,
-    };
+    // The market is the whole request; the union has no room for anything else.
+    const EMPTY_OPEN = { empty: true } as const;
 
     /** Opens the empty account on the synced state and returns its address. */
     async function openEmpty(): Promise<Address> {

@@ -1,7 +1,6 @@
 export {
   creditAccountNotEmpty,
   creditAccountNotFound,
-  emptyOpenTakesNothing,
   noStrategyTargetCollateral,
   unexpectedFailure,
 } from "../../model/index.js";
