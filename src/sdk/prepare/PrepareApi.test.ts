@@ -48,6 +48,8 @@ const LP_BLOCK = 5n;
 const LP_TIMESTAMP = 1_700_000_000n;
 /** Pool shares the wallet holds before the operation, in the LP fake. */
 const HELD_SHARES = 200n;
+/** Underlying the fake pool can hand over — ample for every amount below. */
+const POOL_LIQUIDITY = 1_000_000n;
 
 const CURATOR = {
   address: "0xc0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0" as Address,
@@ -68,11 +70,32 @@ const amount = (address: Address, value: bigint): TokenAmount => ({
   valueUsd: null,
 });
 
-function buildApi() {
+/** The pool's own state, which `prepare` now reads before it prepares. */
+interface FakePoolState {
+  isPaused?: boolean;
+  sunset?: boolean;
+  availableLiquidity?: bigint;
+}
+
+function buildApi(state: FakePoolState = {}) {
+  const {
+    isPaused = false,
+    sunset = false,
+    availableLiquidity = POOL_LIQUIDITY,
+  } = state;
   const getShareBalance = vi.fn(async () => HELD_SHARES);
   const pools = {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
     getWithdrawalMetadata: vi.fn(() => ({})),
+    getDepositTokensOut: vi.fn(() => [POOL]),
+    getDepositMetadata: vi.fn(() => ({})),
+    simulateDeposit: vi.fn(
+      (props: { amount: bigint; tokenIn?: Address }): PoolSimulation => ({
+        tokenIn: amount(props.tokenIn ?? UNDERLYING, props.amount),
+        tokenOut: amount(POOL, props.amount),
+      }),
+    ),
+    addLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
     simulateWithdraw: vi.fn(
       (props: { amount: bigint; tokenIn?: Address }): PoolSimulation => ({
         tokenIn: amount(props.tokenIn ?? POOL, 100n),
@@ -94,11 +117,16 @@ function buildApi() {
       pools,
       marketRegister: {
         findByPool: () => ({
+          // `prepare` reads the pool's own state before it hands back a
+          // signable transaction, so the fake has to state it.
+          sunset,
           pool: {
             underlying: UNDERLYING,
             pool: {
               getShareBalance,
               sharesToUnderlying: (shares: bigint) => shares,
+              isPaused,
+              availableLiquidity,
             },
           },
           curator: CURATOR,
@@ -189,6 +217,97 @@ describe("PrepareApi.withdraw", () => {
     expect(result).toMatchObject({
       ok: false,
       error: { code: "unexpectedFailure" },
+    });
+  });
+});
+
+/**
+ * The pool's own state, which the simulation cannot see: it converts at a rate
+ * and reports no verdict, so without these the refusals would only be found
+ * once the transaction reverted. The credit walk has had the same guard all
+ * along, in `assertMarketOperable`.
+ */
+describe("PrepareApi — the pool's own state refuses before the wallet signs", () => {
+  const pool = { chainId: CHAIN_ID, pool: POOL };
+  const params = { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING };
+
+  it("refuses a withdrawal the pool cannot serve", async () => {
+    const { api } = buildApi({ availableLiquidity: 100n });
+
+    const result = await api.withdraw(pool, params);
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "insufficientPoolLiquidity" },
+    });
+  });
+
+  it("serves a withdrawal of exactly one wei under what is left", async () => {
+    const { api } = buildApi({ availableLiquidity: 111n });
+
+    expect(await api.withdraw(pool, params)).toMatchObject({ ok: true });
+  });
+
+  it("refuses every side of a paused pool", async () => {
+    const { api } = buildApi({ isPaused: true });
+
+    const out = await api.withdraw(pool, params);
+    const redeemed = await api.redeem(pool, { ...params, tokenIn: POOL });
+    const inbound = await api.deposit(pool, {
+      amount: 110n,
+      wallet: WALLET,
+      tokenIn: UNDERLYING,
+      tokenOut: POOL,
+    });
+
+    expect(out).toMatchObject({ ok: false, error: { code: "poolPaused" } });
+    expect(redeemed).toMatchObject({
+      ok: false,
+      error: { code: "poolPaused" },
+    });
+    expect(inbound).toMatchObject({ ok: false, error: { code: "poolPaused" } });
+  });
+
+  it("refuses a deposit into a pool winding down, and still serves both exits", async () => {
+    const { api } = buildApi({ sunset: true });
+
+    const inbound = await api.deposit(pool, {
+      amount: 110n,
+      wallet: WALLET,
+      tokenIn: UNDERLYING,
+      tokenOut: POOL,
+    });
+
+    expect(inbound).toMatchObject({ ok: false, error: { code: "poolSunset" } });
+    expect(await api.withdraw(pool, params)).toMatchObject({ ok: true });
+    // Redeem is an exit too, and reads its own `isDeposit`.
+    expect(await api.redeem(pool, { ...params, tokenIn: POOL })).toMatchObject({
+      ok: true,
+    });
+  });
+
+  /**
+   * Redeem is the third caller and the one a copy-paste slip would strand: with
+   * `isDeposit` flipped it would stop weighing liquidity and start refusing a
+   * wind-down, and every assertion above would still pass, because `poolPaused`
+   * is the one code that is the same on both sides.
+   */
+  it("refuses a redeem the pool cannot serve", async () => {
+    const { api } = buildApi({ availableLiquidity: 100n });
+
+    expect(await api.redeem(pool, { ...params, tokenIn: POOL })).toMatchObject({
+      ok: false,
+      error: { code: "insufficientPoolLiquidity" },
+    });
+  });
+
+  /** The boundary the check names: the pool holding exactly it cannot serve it. */
+  it("refuses a withdrawal of exactly what is left", async () => {
+    const { api } = buildApi({ availableLiquidity: 110n });
+
+    expect(await api.withdraw(pool, params)).toMatchObject({
+      ok: false,
+      error: { code: "insufficientPoolLiquidity" },
     });
   });
 });

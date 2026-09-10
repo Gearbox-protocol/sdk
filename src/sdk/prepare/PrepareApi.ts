@@ -36,6 +36,7 @@ import type {
   LeverageBand,
   OnchainSDK,
   OpenStrategyPreviewResult,
+  PoolOperationError,
   PoolSimulation,
   ResumableIntent,
   StartIntent,
@@ -43,6 +44,7 @@ import type {
 } from "../../onchain/index.js";
 import {
   CreditAccountOperationsService,
+  checkPoolOperation,
   hexEq,
   MultichainConstruct,
   type MultichainSDK,
@@ -198,7 +200,10 @@ export class PrepareApi
     pool: PoolInput,
     params: LpParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   > {
     try {
       const chain = await this.#chain(pool.chainId);
@@ -218,6 +223,17 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+
+      const [refusal] = checkPoolOperation({
+        sdk: chain,
+        pool: pool.pool,
+        isDeposit: true,
+        tokenOut: state.tokenOut,
+      });
+      if (refusal) {
+        return sdkErr(refusal);
+      }
+
       const call = pools.addLiquidity({
         collateral: {
           token: state.tokenIn.token.address,
@@ -254,7 +270,10 @@ export class PrepareApi
     pool: PoolInput,
     params: LpParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   > {
     // {@inheritDoc PrepareApi.deposit} — same footing.
     try {
@@ -277,6 +296,17 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+
+      const [refusal] = checkPoolOperation({
+        sdk: chain,
+        pool: pool.pool,
+        isDeposit: false,
+        tokenOut: state.tokenOut,
+      });
+      if (refusal) {
+        return sdkErr(refusal);
+      }
+
       const { calls } = pools.removeLiquidity({
         pool: pool.pool,
         amount: params.amount,
@@ -307,7 +337,10 @@ export class PrepareApi
     pool: PoolInput,
     params: LpRedeemParams,
   ): Promise<
-    SDKReturn<LpResult, UnsupportedTokenPairError | UnexpectedFailureError>
+    SDKReturn<
+      LpResult,
+      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+    >
   > {
     // {@inheritDoc PrepareApi.deposit} — same footing.
     try {
@@ -327,6 +360,17 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+
+      const [refusal] = checkPoolOperation({
+        sdk: chain,
+        pool: pool.pool,
+        isDeposit: false,
+        tokenOut: state.tokenOut,
+      });
+      if (refusal) {
+        return sdkErr(refusal);
+      }
+
       const { calls } = pools.removeLiquidity({
         pool: pool.pool,
         amount: params.amount,
