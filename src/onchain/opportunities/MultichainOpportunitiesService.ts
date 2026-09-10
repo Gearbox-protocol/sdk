@@ -61,11 +61,22 @@ export class MultichainOpportunitiesService<
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
-    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.queryChain({
       network: key.chainId,
-      run: sdk => sdk.opportunities.getStrategy(key, wallet),
+      run: sdk => sdk.opportunities.getStrategy(key),
     });
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesService.isEligibleForStrategy}
+   **/
+  public async isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean> {
+    return this.sdk
+      .chain(key.chainId)
+      .opportunities.isEligibleForStrategy(key, wallet);
   }
 }

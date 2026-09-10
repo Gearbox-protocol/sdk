@@ -8,7 +8,6 @@ import {
 } from "../../../abi/310/generated.js";
 import { ierc4626AdapterAbi } from "../../../abi/ierc4626Adapter.js";
 import { iSecuritizeRWAFactoryAbi } from "../../../abi/rwa/iSecuritizeRWAFactory.js";
-import { RWA_FACTORY_SECURITIZE } from "../../../model/index.js";
 import {
   type CreditAccountData,
   json_parse,
@@ -130,7 +129,7 @@ it("previews RWA account opening with an unwrap call", async () => {
     operation: "RWAOpenCreditAccount",
     creditManager: CREDIT_MANAGER,
     rwaArgs: {
-      type: RWA_FACTORY_SECURITIZE,
+      protocol: "securitize",
       tokensToRegister: [],
       signaturesToCache: [],
     },

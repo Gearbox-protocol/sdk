@@ -5,12 +5,12 @@ import type {
 import type { Address, ContractFunctionParameters } from "viem";
 import type { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
 import {
-  type KycProtocol,
   RWA_FACTORY_SECURITIZE,
   type RWAFactoryType,
   type RWAMissingOpenAccountRequirements,
   type RWAOpenAccountRequirements,
   type RWAOperationArgs,
+  type RWAProtocol,
 } from "../../../model/index.js";
 import type { IBaseContract, Unarray } from "../../base/index.js";
 import type { MultiCall, RawTx } from "../../types/index.js";
@@ -28,10 +28,17 @@ import type {
  **/
 interface RWAFactoryTypeMap {
   [RWA_FACTORY_SECURITIZE]: {
+    protocol: "securitize";
     investorData: SecuritizeInvestorData;
     stateHuman: SecuritizeRWAFactoryStateHuman;
   };
 }
+
+/**
+ * {@link RWAProtocol} of the factory type `T`.
+ **/
+export type RWAFactoryProtocol<T extends RWAFactoryType> =
+  RWAFactoryTypeMap[T]["protocol"];
 
 /**
  * Investor data decoded from the RWA compressor, defaults to union of all factory types
@@ -192,33 +199,8 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
   multicall(
     creditAccount: Address,
     calls: MultiCall[],
-    args?: RWAOperationArgs<T>,
+    args?: RWAOperationArgs<RWAFactoryProtocol<T>>,
   ): RawTx;
-  /**
-   * Checks if the user can open a credit account with this factory.
-   * @param investor - investor address
-   * @param props - {@link GetOpenAccountRequirementsProps}
-   * @returns open account requirements for the investor, or `undefined` if the
-   *   user can open a credit account without any further actions
-   **/
-  getOpenAccountRequirements(
-    investor: Address,
-    props: GetOpenAccountRequirementsProps,
-  ): Promise<RWAOpenAccountRequirements<T> | undefined>;
-  /**
-   * Computes the subset of `requirements` still unfulfilled, given the
-   * factory-specific params already carried by the transaction calldata.
-   *
-   * @param requirements - requirements fetched via {@link getOpenAccountRequirements}
-   * @param providedArgs - params decoded from the transaction calldata, if
-   *   any; e.g. signatures already included there need not be signed again
-   * @returns the missing requirements, or `undefined` when everything is
-   *   satisfied
-   **/
-  getMissingRequirements(
-    requirements: RWAOpenAccountRequirements<T>,
-    providedArgs?: RWAOperationArgs<T>,
-  ): RWAMissingOpenAccountRequirements<T> | undefined;
   /**
    * Creates a raw transaction to open a credit account.
    * Similar to {@link CreditFacadeV310Contract.openCreditAccount}.
@@ -231,28 +213,50 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
   openCreditAccount(
     creditManager: Address,
     calls: MultiCall[],
-    args?: RWAOperationArgs<T>,
+    args?: RWAOperationArgs<RWAFactoryProtocol<T>>,
   ): RawTx;
-}
-
-/**
- * Result of {@link IDegenNFT.checkKyc}.
- */
-export interface KycCheckResult {
-  eligible: boolean;
-  /** Token the wallet must be registered for. */
-  token: Address;
-}
-
-/**
- * Degen NFT that gates credit-account opening behind a KYC provider.
- */
-export interface IDegenNFT extends IBaseContract {
-  readonly protocol: KycProtocol;
   /**
-   * Same predicate the NFT's `burn` reverts on.
+   * Degen NFT this factory deploys as the KYC gate. Midas has no factory;
+   * its NFT is loaded separately via {@link createDegenNFT}.
+   **/
+  readonly degenNFT: IDegenNFT<RWAFactoryProtocol<T>>;
+}
+
+/**
+ * Degen NFT that gates credit-account opening behind an RWA KYC provider.
+ **/
+export interface IDegenNFT<P extends RWAProtocol = RWAProtocol>
+  extends IBaseContract {
+  readonly protocol: P;
+  readonly registrationLink: string;
+  /**
+   * Tokens this gate is about: Securitize DS tokens, or the Midas mToken.
    */
-  checkKyc(wallet: Address, targetCollateral: Address): Promise<KycCheckResult>;
+  getTokens(): Promise<Address[]>;
+  /**
+   * What `wallet` still has to do before this gate lets it open on the
+   * strategy token in `props`.
+   */
+  getOpenAccountRequirements(
+    wallet: Address,
+    props: GetOpenAccountRequirementsProps,
+  ): Promise<RWAOpenAccountRequirements<P>>;
+  /**
+   * Protocol-side KYC is done: registered at Securitize for every requested
+   * DS token, or greenlisted by Midas.
+   *
+   * User might still be required to do additional actions on Gearbox side,
+   * e.g. sign EIP-712 messages for Securitize
+   */
+  isRegistered(requirements: RWAOpenAccountRequirements<P>): boolean;
+  /**
+   * Leftover Gearbox-tx work given `providedArgs` already on the calldata.
+   * Always `undefined` for Midas (no tx args).
+   */
+  getMissingRequirements(
+    requirements: RWAOpenAccountRequirements<P>,
+    providedArgs?: RWAOperationArgs<P>,
+  ): RWAMissingOpenAccountRequirements<P> | undefined;
 }
 
 /**

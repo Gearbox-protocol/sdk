@@ -150,14 +150,23 @@ export class OpportunitiesNamespace
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
-    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.merged("get strategy opportunity", {
       chainIds: [key.chainId],
-      fromChain: source => source.getStrategy(key, wallet),
-      fromBackend: source => source.getStrategy(key, wallet),
+      fromChain: source => source.getStrategy(key),
+      fromBackend: source => source.getStrategy(key),
       merge: this.merge.strategy,
     });
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesOnchainOnly.isEligibleForStrategy}
+   **/
+  public async isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean> {
+    return this.onchain.isEligibleForStrategy(key, wallet);
   }
 
   /**

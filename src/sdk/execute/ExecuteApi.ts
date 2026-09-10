@@ -122,11 +122,11 @@ async function openRwaOptions(
     request.creditManager,
     { tokenOutAddress: request.targetToken },
   );
-  if (!requirements) {
+  if (requirements?.protocol !== "securitize") {
     return undefined;
   }
   return {
-    type: requirements.type,
+    protocol: "securitize",
     tokensToRegister: requirements.tokensToRegister,
     signaturesToCache: request.signaturesToCache ?? [],
   };

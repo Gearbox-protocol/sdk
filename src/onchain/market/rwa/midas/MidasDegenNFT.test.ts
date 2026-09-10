@@ -2,6 +2,7 @@ import type { Address, Hex } from "viem";
 import { encodeAbiParameters, getAddress } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { iMidasAccessControlAbi } from "../../../../abi/rwa/iMidasAccessControl.js";
+import { KYC_REGISTRATION_LINKS } from "../../../../model/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import { iMidasGatewayV311Abi } from "../../adapters/abi/index.js";
 import { DEGEN_NFT_MIDAS } from "../index.js";
@@ -26,11 +27,31 @@ function serializeMidas(
   );
 }
 
-function sdkMock(midas: [boolean, Address]): OnchainSDK {
-  const multicall = vi.fn(async () => midas);
-  return {
-    client: { multicall },
-  } as unknown as OnchainSDK;
+interface ClientMock {
+  multicall: ReturnType<typeof vi.fn>;
+  readContract: ReturnType<typeof vi.fn>;
+}
+
+function sdkMock(over: { greenlisted?: boolean; mToken?: Address }): {
+  sdk: OnchainSDK;
+  client: ClientMock;
+} {
+  const client: ClientMock = {
+    multicall: vi.fn(async () => [
+      over.greenlisted ?? true,
+      over.mToken ?? TARGET,
+    ]),
+    readContract: vi.fn(async ({ functionName }: { functionName: string }) => {
+      if (functionName === "mToken") {
+        return over.mToken ?? TARGET;
+      }
+      if (functionName === "hasRole") {
+        return over.greenlisted ?? true;
+      }
+      throw new Error(`unexpected ${functionName}`);
+    }),
+  };
+  return { sdk: { client } as unknown as OnchainSDK, client };
 }
 
 function nftOf(sdk: OnchainSDK): MidasDegenNFT {
@@ -42,17 +63,22 @@ function nftOf(sdk: OnchainSDK): MidasDegenNFT {
   });
 }
 
-describe("MidasDegenNFT.checkKyc", () => {
+describe("MidasDegenNFT.getOpenAccountRequirements", () => {
   it.each([
-    { name: "greenlisted", eligible: true },
-    { name: "not greenlisted", eligible: false },
-  ])("$name", async ({ eligible }) => {
-    const sdk = sdkMock([eligible, TARGET]);
-    await expect(nftOf(sdk).checkKyc(WALLET, TARGET)).resolves.toEqual({
-      eligible,
+    { name: "greenlisted", greenlisted: true },
+    { name: "not greenlisted", greenlisted: false },
+  ])("$name", async ({ greenlisted }) => {
+    const { sdk, client } = sdkMock({ greenlisted });
+    await expect(
+      nftOf(sdk).getOpenAccountRequirements(WALLET, {
+        tokenOutAddress: TARGET,
+      }),
+    ).resolves.toEqual({
+      protocol: "midas",
       token: TARGET,
+      greenlisted,
     });
-    expect(sdk.client.multicall).toHaveBeenCalledWith({
+    expect(client.multicall).toHaveBeenCalledWith({
       allowFailure: false,
       contracts: [
         {
@@ -68,5 +94,45 @@ describe("MidasDegenNFT.checkKyc", () => {
         },
       ],
     });
+  });
+});
+
+describe("MidasDegenNFT.isRegistered", () => {
+  it.each([
+    { greenlisted: true, expected: true },
+    { greenlisted: false, expected: false },
+  ])("$greenlisted → $expected", ({ greenlisted, expected }) => {
+    const { sdk } = sdkMock({});
+    expect(
+      nftOf(sdk).isRegistered({
+        protocol: "midas",
+        token: TARGET,
+        greenlisted,
+      }),
+    ).toBe(expected);
+  });
+});
+
+describe("MidasDegenNFT.getTokens", () => {
+  it("reads mToken once and caches", async () => {
+    const { sdk, client } = sdkMock({ mToken: TARGET });
+    const nft = nftOf(sdk);
+    await expect(nft.getTokens()).resolves.toEqual([getAddress(TARGET)]);
+    await expect(nft.getTokens()).resolves.toEqual([getAddress(TARGET)]);
+    expect(client.readContract).toHaveBeenCalledTimes(1);
+    expect(client.readContract).toHaveBeenCalledWith({
+      abi: iMidasGatewayV311Abi,
+      address: getAddress(GATEWAY),
+      functionName: "mToken",
+    });
+  });
+});
+
+describe("MidasDegenNFT.getMissingRequirements", () => {
+  it("is always undefined", () => {
+    const { sdk } = sdkMock({});
+    const nft = nftOf(sdk);
+    expect(nft.getMissingRequirements()).toBeUndefined();
+    expect(nft.registrationLink).toBe(KYC_REGISTRATION_LINKS.midas);
   });
 });

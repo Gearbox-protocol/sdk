@@ -1,14 +1,14 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import {
-  RWA_FACTORY_SECURITIZE,
-  type RWAMissingOpenAccountRequirements,
-  type RWAOpenAccountRequirements,
-  type RWAOperationArgs,
+  KYC_REGISTRATION_LINKS,
   SECURITIZE_REGISTER_VAULT_TYPES,
+  type SecuritizeMissingOpenAccountRequirements,
+  type SecuritizeOpenAccountRequirements,
+  type SecuritizeOperationArgs,
   type SecuritizeRegisterVaultMessage,
 } from "../../../model/index.js";
-import type { IRWAFactory } from "../../market/rwa/types.js";
+import type { IDegenNFT } from "../../market/rwa/types.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { CM, OWNER, TOK } from "../testing/tokens.js";
 import { checkRWAOpenRequirements } from "./checkRWAOpenRequirements.js";
@@ -37,44 +37,27 @@ function registerVaultMessage(token: Address): SecuritizeRegisterVaultMessage {
 
 const MESSAGE = registerVaultMessage(TOK.address);
 
-const REQUIREMENTS: RWAOpenAccountRequirements = {
-  type: RWA_FACTORY_SECURITIZE,
+const SECURITIZE_REQUIREMENTS: SecuritizeOpenAccountRequirements = {
+  protocol: "securitize",
+  factory: FACTORY,
   securitizeTokensToRegister: [],
   tokensToRegister: [TOK.address],
   requiredSignatures: [MESSAGE],
 };
 
-const EMPTY_ARGS: RWAOperationArgs = {
-  type: RWA_FACTORY_SECURITIZE,
-  tokensToRegister: [],
-  signaturesToCache: [],
-};
-
 function sdk(over: {
-  requirements?: RWAOpenAccountRequirements | undefined;
-  missing?: ReturnType<IRWAFactory["getMissingRequirements"]>;
-  rwaFactory?: IRWAFactory | undefined;
-  throwOnRead?: Error;
+  nft?: IDegenNFT | undefined;
+  throwOnNft?: Error;
 }): OnchainSDK {
-  const rwaFactory =
-    over.rwaFactory === undefined && !("rwaFactory" in over)
-      ? ({
-          address: FACTORY,
-          getMissingRequirements: vi.fn(() => over.missing),
-        } as unknown as IRWAFactory)
-      : over.rwaFactory;
-
+  const degenNFT = over.throwOnNft
+    ? vi.fn(async () => {
+        throw over.throwOnNft;
+      })
+    : vi.fn(async () => over.nft);
   return {
     chainId: 1,
-    accounts: {
-      getOpenAccountRequirements: over.throwOnRead
-        ? vi.fn(async () => {
-            throw over.throwOnRead;
-          })
-        : vi.fn(async () => over.requirements),
-    },
     marketRegister: {
-      findByCreditManager: () => ({ rwaFactory }),
+      findCreditManager: () => ({ degenNFT }),
     },
     tokensMeta: {
       getToken: (address: Address) =>
@@ -83,9 +66,25 @@ function sdk(over: {
   } as unknown as OnchainSDK;
 }
 
+function nftMock(over: {
+  protocol?: "securitize" | "midas";
+  requirements?: Awaited<ReturnType<IDegenNFT["getOpenAccountRequirements"]>>;
+  missing?: ReturnType<IDegenNFT["getMissingRequirements"]>;
+  registered?: boolean;
+}): IDegenNFT {
+  const protocol = over.protocol ?? "securitize";
+  return {
+    protocol,
+    registrationLink: KYC_REGISTRATION_LINKS[protocol],
+    getOpenAccountRequirements: vi.fn(async () => over.requirements),
+    getMissingRequirements: vi.fn(() => over.missing),
+    isRegistered: vi.fn(() => over.registered ?? false),
+  } as unknown as IDegenNFT;
+}
+
 async function check(
   over: Parameters<typeof sdk>[0],
-  providedArgs: RWAOperationArgs = EMPTY_ARGS,
+  providedArgs?: SecuritizeOperationArgs,
 ) {
   return checkRWAOpenRequirements({
     sdk: sdk(over),
@@ -97,77 +96,124 @@ async function check(
 }
 
 describe("checkRWAOpenRequirements", () => {
-  it("returns nothing when the factory does not gate the token", async () => {
-    expect(await check({ requirements: undefined })).toEqual([]);
+  it("returns nothing when there is no degen NFT", async () => {
+    expect(await check({ nft: undefined })).toEqual([]);
   });
 
-  it("returns nothing when everything is met", async () => {
+  it("returns nothing when Securitize requirements are met", async () => {
     expect(
-      await check({ requirements: REQUIREMENTS, missing: undefined }),
+      await check({
+        nft: nftMock({
+          requirements: SECURITIZE_REQUIREMENTS,
+          missing: undefined,
+          registered: true,
+        }),
+      }),
     ).toEqual([]);
   });
 
-  it("carries token, requirements and missing when signatures are still needed", async () => {
-    const missing: RWAMissingOpenAccountRequirements = {
-      type: RWA_FACTORY_SECURITIZE,
+  it("carries protocol, registrationLink, requirements and missing when signatures are still needed", async () => {
+    const missing: SecuritizeMissingOpenAccountRequirements = {
+      protocol: "securitize",
       requiredSignatures: [MESSAGE],
     };
-    expect(await check({ requirements: REQUIREMENTS, missing })).toEqual([
+    expect(
+      await check({
+        nft: nftMock({
+          requirements: SECURITIZE_REQUIREMENTS,
+          missing,
+          registered: true,
+        }),
+      }),
+    ).toEqual([
       {
         code: "rwaOpenRequirementsNotMet",
         message: expect.any(String),
         token: TOK,
         creditManager: CM,
-        factory: FACTORY,
-        requirements: REQUIREMENTS,
+        protocol: "securitize",
+        registrationLink: KYC_REGISTRATION_LINKS.securitize,
+        requirements: SECURITIZE_REQUIREMENTS,
         missing,
       },
     ]);
   });
 
-  it("passes providedArgs through so a cached signature can clear the requirement", async () => {
-    const getMissingRequirements = vi.fn(() => undefined);
-    const rwaFactory = {
-      address: FACTORY,
-      getMissingRequirements,
-    } as unknown as IRWAFactory;
-    const providedArgs: RWAOperationArgs = {
-      type: RWA_FACTORY_SECURITIZE,
-      tokensToRegister: [TOK.address],
-      signaturesToCache: [
-        { token: TOK.address, signature: { deadline: 1n, signature: "0xab" } },
-      ],
-    };
-    expect(
-      await check({ requirements: REQUIREMENTS, rwaFactory }, providedArgs),
-    ).toEqual([]);
-    expect(getMissingRequirements).toHaveBeenCalledWith(
-      REQUIREMENTS,
-      providedArgs,
-    );
-  });
-
   it("reports the error with missing absent when only issuer-side registration is pending", async () => {
-    const requirements: RWAOpenAccountRequirements = {
-      ...REQUIREMENTS,
+    const requirements: SecuritizeOpenAccountRequirements = {
+      ...SECURITIZE_REQUIREMENTS,
       securitizeTokensToRegister: [TOK.address],
       requiredSignatures: [],
     };
-    expect(await check({ requirements, missing: undefined })).toEqual([
+    expect(
+      await check({
+        nft: nftMock({
+          requirements,
+          missing: undefined,
+          registered: false,
+        }),
+      }),
+    ).toEqual([
       {
         code: "rwaOpenRequirementsNotMet",
         message: expect.any(String),
         token: TOK,
         creditManager: CM,
-        factory: FACTORY,
+        protocol: "securitize",
+        registrationLink: KYC_REGISTRATION_LINKS.securitize,
         requirements,
       },
     ]);
   });
 
-  it("reports unexpectedFailure when the compressor read throws", async () => {
+  it("returns nothing when Midas has greenlisted the wallet", async () => {
+    expect(
+      await check({
+        nft: nftMock({
+          protocol: "midas",
+          requirements: {
+            protocol: "midas",
+            token: TOK.address,
+            greenlisted: true,
+          },
+          missing: undefined,
+          registered: true,
+        }),
+      }),
+    ).toEqual([]);
+  });
+
+  it("reports Midas not greenlisted with no missing", async () => {
+    const requirements = {
+      protocol: "midas" as const,
+      token: TOK.address,
+      greenlisted: false,
+    };
+    expect(
+      await check({
+        nft: nftMock({
+          protocol: "midas",
+          requirements,
+          missing: undefined,
+          registered: false,
+        }),
+      }),
+    ).toEqual([
+      {
+        code: "rwaOpenRequirementsNotMet",
+        message: expect.any(String),
+        token: TOK,
+        creditManager: CM,
+        protocol: "midas",
+        registrationLink: KYC_REGISTRATION_LINKS.midas,
+        requirements,
+      },
+    ]);
+  });
+
+  it("reports unexpectedFailure when the NFT read throws", async () => {
     const cause = new Error("compressor down");
-    expect(await check({ throwOnRead: cause })).toEqual([
+    expect(await check({ throwOnNft: cause })).toEqual([
       {
         code: "unexpectedFailure",
         message:
@@ -175,16 +221,5 @@ describe("checkRWAOpenRequirements", () => {
         cause,
       },
     ]);
-  });
-
-  it("reports unexpectedFailure when the market has no RWA factory", async () => {
-    const [error] = await check({
-      requirements: REQUIREMENTS,
-      rwaFactory: undefined,
-    });
-    expect(error).toMatchObject({
-      code: "unexpectedFailure",
-      message: expect.stringContaining("no RWA factory"),
-    });
   });
 });

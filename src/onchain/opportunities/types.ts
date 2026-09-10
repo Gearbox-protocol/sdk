@@ -32,6 +32,13 @@ export interface IMultichainOpportunitiesService {
    **/
   getStrategy(
     key: StrategyOpportunityKey,
-    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>>;
+  /**
+   * Whether `wallet` may open this strategy today. Throws when that chain
+   * cannot answer.
+   **/
+  isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean>;
 }

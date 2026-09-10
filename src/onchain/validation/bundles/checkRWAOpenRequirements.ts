@@ -14,11 +14,11 @@ export interface CheckRWAOpenRequirementsInput {
   wallet: Address;
   creditManager: Address;
   token: Address;
-  providedArgs: RWAOperationArgs;
+  providedArgs?: RWAOperationArgs;
 }
 
 /**
- * The RWA factory is satisfied that `wallet` may open on `token` with the
+ * The degen NFT is satisfied that `wallet` may open on `token` with the
  * registration args already on the transaction.
  */
 export async function checkRWAOpenRequirements(
@@ -26,33 +26,26 @@ export async function checkRWAOpenRequirements(
 ): Promise<(RWAOpenRequirementsError | UnexpectedFailureError)[]> {
   const { sdk, wallet, creditManager, token, providedArgs } = input;
   try {
-    const requirements = await sdk.accounts.getOpenAccountRequirements(
-      wallet,
-      creditManager,
-      { tokenOutAddress: token },
-    );
-    if (!requirements) {
+    const suite = sdk.marketRegister.findCreditManager(creditManager);
+    const nft = await suite.degenNFT();
+    if (!nft) {
       return [];
     }
-    const { rwaFactory } =
-      sdk.marketRegister.findByCreditManager(creditManager);
-    if (!rwaFactory) {
-      throw new Error(`no RWA factory for credit manager ${creditManager}`);
-    }
-    const missing = rwaFactory.getMissingRequirements(
-      requirements,
-      providedArgs,
-    );
-    if (!missing && requirements.securitizeTokensToRegister.length === 0) {
+    const requirements = await nft.getOpenAccountRequirements(wallet, {
+      tokenOutAddress: token,
+    });
+    const missing = nft.getMissingRequirements(requirements, providedArgs);
+    if (!missing && nft.isRegistered(requirements)) {
       return [];
     }
     return [
       rwaOpenRequirementsNotMet({
         token: toToken(sdk, token),
         creditManager,
-        factory: rwaFactory.address,
+        protocol: nft.protocol,
+        registrationLink: nft.registrationLink,
         requirements,
-        ...(missing === undefined ? {} : { missing }),
+        missing,
       }),
     ];
   } catch (cause) {
