@@ -1,26 +1,16 @@
 ---
-description: Ban catalog words from identifiers; prose only with extreme caution and per-entry notes.
+description: Catalog stems are candidates; do not load the yaml; do not mass-rename.
 alwaysApply: true
 ---
 
 # Banned words
 
-The catalog is the sibling file `banned-words.yaml` (`sdk/.cursor/rules/banned-words.yaml`). **Read it before choosing any identifier or writing domain prose.** 
+Do not Read `banned-words.yaml`. A local hook scans new prose and identifiers.
 
-Never use a catalog word in an **identifier**: type, class, interface, struct, enum or variant, field, local, param, function, method, constant, alias, generic, file, package, module, CLI flag, env var, or similar primitive.
+Findings are candidates. Apply that entry’s note (the hook prints a default when the note is empty). If the note allows the use, or you are unsure, keep the wording and ask.
 
-Matching is case-insensitive **substring**. `bar` matches `Bar`, `isBar`, `FOO_BAR`, `barWidth`, and `embarrass`. Short stems are noisy (`band` → `husband` / `bandwidth`, `bar` → `sidebar`, `solution` → `resolution`); a match still counts unless that entry's note excludes it.
+Do not mass-rename existing names merely to satisfy the scan.
 
-## Prose
+Exception: when the user has `@`-mentioned `@add-banned-word` or `@apply-banned-word`, run `node .cursor/hooks/vocab-inventory.mjs` and use its printed note. `@add-banned-word` may then edit the yaml to append one entry. Do not paste the catalog into chat.
 
-Comments, docs, strings, logs, and commit messages: only with extreme caution, and only when the use fits the entry's free-text note. If the note is silent, do not introduce the word in prose either — pick another word.
-
-## Existing code
-
-Do not mass-rename. Do not add new uses. When you must name an existing violating identifier, keep that name; otherwise use an allowed synonym.
-
-If you would have used a banned word, follow the entry's replacement note, or ask. Do not invent a house synonym here.
-
-## How to add an entry
-
-Add a lowercase key to `banned-words.yaml`. The value is free text: forbidden uses, allowed contexts, replacements, false-positive carve-outs. An empty value uses the defaults above. Reload the window after editing.
+Adding a stem is `@add-banned-word`. Do not append yaml as a drive-by edit. A scoped rename is `@apply-banned-word` with a glob.

@@ -1,6 +1,13 @@
-# Banned identifier substrings (case-insensitive).
-# Key: the word. Value: optional free text (allowed contexts, replacements,
-# false-positive carve-outs). Empty value means the defaults in banned-words.mdc.
+# Catalog of banned stems (case-insensitive).
+# Key: the stem. Value: optional free text (forbidden uses, allowed contexts,
+# replacements, false-positive carve-outs).
+#
+# Matching (local hook, not this file): split prose and identifiers, then a
+# token that starts with the key (longest key wins). Empty value → scanner
+# default: do not introduce this stem in new identifiers or prose; existing
+# names stay.
+#
+# Add an entry: lowercase key, optional note. Do not mass-rename existing code.
 
 refusal:
 band:
