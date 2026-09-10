@@ -1156,6 +1156,22 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(refusal.ceiling?.limit).toBe(lends.limit);
     });
 
+    it("weighs an opening by the caller's thresholds, like any other account", async () => {
+      await fund();
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
+      if (!sim.ok) throw new Error(sim.error.code);
+      const { state } = sim.data;
+
+      const errors = checkSimulation(
+        chain,
+        { chainId: CHAIN_ID, state },
+        { minHealthFactor: state.healthFactor + 1 },
+      );
+
+      expect(errors.map(e => e.code)).toEqual(["insufficientCollateral"]);
+    });
+
     it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
       const { creditAccount } = await openPosition();
       await sync();

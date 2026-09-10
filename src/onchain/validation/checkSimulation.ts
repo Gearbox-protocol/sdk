@@ -4,6 +4,7 @@ import type {
   InsufficientCollateralError,
   QuotaCountExceededError,
 } from "../../model/index.js";
+import type { OpenStrategyState } from "../accounts/intents/open-strategy.js";
 import type { OperationState } from "../accounts/intents/types.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { checkAccountQuotas } from "./bundles/checkAccountQuotas.js";
@@ -11,13 +12,13 @@ import type { HealthFactorThresholds } from "./bundles/checkHealthFactors.js";
 import { checkHealthFactors } from "./bundles/checkHealthFactors.js";
 import type { MarketStateError } from "./bundles/checkMarket.js";
 import { checkMarket } from "./bundles/checkMarket.js";
-import { checkDebtLimits } from "./checks/index.js";
+import { checkDebtLimits, checkQuotaCount } from "./checks/index.js";
 import { toToken } from "./helpers/index.js";
 
 /** A simulated credit operation, as the intents engine reports one. */
 export interface CreditSimulationInput {
   chainId: ChainId;
-  state: OperationState;
+  state: OperationState | OpenStrategyState;
 }
 
 export type CheckSimulationInput = CreditSimulationInput;
@@ -49,8 +50,10 @@ export type SimulationValidationError =
  * touched. The engine performed all three during the walk, so a simulation that
  * came back `ok` has already passed them.
  *
- * A credit account only: a pool operation has no account to weigh, and the
- * three things its own state decides are read by `prepare` before it answers.
+ * A credit account only, opened or adjusted: a pool operation has no account
+ * to weigh, and the three things its own state decides are read by `prepare`
+ * before it answers. An opening names its quotas `averageQuota` — the branch
+ * the planner already weighed it as.
  */
 export function checkSimulation(
   sdk: OnchainSDK,
@@ -71,7 +74,12 @@ export function checkSimulation(
       allowZero: true,
       ceiling: suite.maxBorrowAmount(),
     }),
-    ...checkAccountQuotas(suite, state),
+    ...("averageQuota" in state
+      ? checkQuotaCount({
+          count: state.averageQuota.filter(q => q.balance > 0n).length,
+          max: suite.creditManager.maxEnabledTokens,
+        })
+      : checkAccountQuotas(suite, state)),
     ...checkHealthFactors(state, options),
   ];
 }

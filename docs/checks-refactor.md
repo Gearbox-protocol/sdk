@@ -64,7 +64,9 @@ Deposit/mint/withdraw/redeem.
 ### `checkSimulation` — credit only
 
 Standalone it is sync; on `sdk.preview` it is async. `CheckSimulationInput` is
-`{ chainId, state }` and nothing else.
+`{ chainId, state }` and nothing else; `state` is an adjusted account's
+`OperationState` or an opening's `OpenStrategyState`, whose quotas are counted
+from `averageQuota`.
 
 No funding and no RWA, and no `forbiddenToken` / `quotaLimitReached`:
 `OperationState` is the snapshot *after* the operation, without what the
