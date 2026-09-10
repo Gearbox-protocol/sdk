@@ -1,0 +1,26 @@
+---
+description: Ban catalog words from identifiers; prose only with extreme caution and per-entry notes.
+alwaysApply: true
+---
+
+# Banned words
+
+The catalog is the sibling file `banned-words.yaml` (`sdk/.cursor/rules/banned-words.yaml`). **Read it before choosing any identifier or writing domain prose.** 
+
+Never use a catalog word in an **identifier**: type, class, interface, struct, enum or variant, field, local, param, function, method, constant, alias, generic, file, package, module, CLI flag, env var, or similar primitive.
+
+Matching is case-insensitive **substring**. `bar` matches `Bar`, `isBar`, `FOO_BAR`, `barWidth`, and `embarrass`. Short stems are noisy (`band` → `husband` / `bandwidth`, `bar` → `sidebar`, `solution` → `resolution`); a match still counts unless that entry's note excludes it.
+
+## Prose
+
+Comments, docs, strings, logs, and commit messages: only with extreme caution, and only when the use fits the entry's free-text note. If the note is silent, do not introduce the word in prose either — pick another word.
+
+## Existing code
+
+Do not mass-rename. Do not add new uses. When you must name an existing violating identifier, keep that name; otherwise use an allowed synonym.
+
+If you would have used a banned word, follow the entry's replacement note, or ask. Do not invent a house synonym here.
+
+## How to add an entry
+
+Add a lowercase key to `banned-words.yaml`. The value is free text: forbidden uses, allowed contexts, replacements, false-positive carve-outs. An empty value uses the defaults above. Reload the window after editing.
