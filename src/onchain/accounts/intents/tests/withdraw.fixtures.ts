@@ -30,7 +30,7 @@ const quotaOf = (balance: bigint) => (balance * LT) / 10000n;
 
 /** 100 UND of value leaving the account. */
 export const W = 10000000000n;
-/** Payout plus proportional repayment. */
+/** Withdrawal plus proportional repayment. */
 export const SPEND = 2n * W;
 
 export const TVL_BEFORE = 200000000000n;
@@ -70,7 +70,7 @@ export const case_und_und: WithdrawCase = {
   ],
 };
 
-/** Row 2 — S = U, T = POS: repay, then route the payout out of the underlying. */
+/** Row 2 — S = U, T = POS: repay, then route the withdrawal out of the underlying. */
 export const case_und_pos: WithdrawCase = {
   ...base,
   intent: { type: "WITHDRAW", amount: W, to: WALLET, tokenOut: POS },
@@ -174,8 +174,8 @@ export const case_pos_pos2: WithdrawCase = {
   ],
 };
 
-/** RWA market: the underlying payout is force-unwrapped to the asset. */
-export const case_rwa_payout: WithdrawCase = {
+/** RWA market: the underlying withdrawal is force-unwrapped to the asset. */
+export const case_rwa_pos_und: WithdrawCase = {
   ...base,
   intent: { type: "WITHDRAW", amount: W, to: WALLET, sourceToken: POS },
   tokens: [caToken(POS, TVL_BEFORE, QUOTA_BEFORE)],
@@ -212,19 +212,19 @@ export const case_rwa_payout: WithdrawCase = {
 /** Matrix baseline: 10A of position against 8U of debt (2U collateral at 5x). */
 export const M4_BALANCE = 1000000000n;
 export const M4_DEBT = 800000000n;
-/** Matrix payout W: 1U. */
+/** Matrix withdrawal W: 1U. */
 export const M4_W = 100000000n;
 /** Proportional repayment `dD = D0 * W / C0` = 4U. */
 export const M4_DD = 400000000n;
-/** Payout plus repayment: 5U liquidated in total. */
+/** Withdrawal plus repayment: 5U liquidated in total. */
 export const M4_SPEND = M4_W + M4_DD;
 
 /**
- * Matrix 4.1 — withdraw 1U, source `POS`, payout `UND`.
+ * Matrix 4.1 — withdraw 1U, source `POS`, tokenOut `UND`.
  *
- * MATRIX MISMATCH: the matrix pays out first — `swap → withdrawCollateral →
- * decreaseDebt → changeQuota`. The engine repays before paying out
- * (`repay(dD, keep: W)` precedes the payout leg in `planWithdraw`):
+ * MATRIX MISMATCH: the matrix withdraws first — `swap → withdrawCollateral →
+ * decreaseDebt → changeQuota`. The engine repays before withdrawing
+ * (`repay(dD, keep: W)` precedes the withdrawal leg in `planWithdraw`):
  * `swap → decreaseDebt → withdrawCollateral → changeQuota`. Amounts are
  * identical; only the order differs.
  */
@@ -255,7 +255,7 @@ export const case_matrix_4_1: WithdrawCase = {
 };
 
 /**
- * Matrix 4.2 — 4.1 on the RWA market: the payout is unwrapped on the way out.
+ * Matrix 4.2 — 4.1 on the RWA market: the withdrawal is unwrapped on the way out.
  *
  * MATRIX MISMATCH: same ordering divergence as 4.1 — the matrix expects
  * `swap → unwrapRwaCollateral → withdrawCollateral(RWA) → decreaseDebt →

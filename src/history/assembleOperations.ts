@@ -3,15 +3,15 @@ import type {
   AddressMap,
   ChainContractsRegister,
   ParsedCallV2,
+  TokenTransfer,
 } from "../onchain/index.js";
 import { AbstractAdapterContract } from "../onchain/index.js";
-import type { TokenTransfer } from "../preview/parse/index.js";
+import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
 import {
   extractAdapterCallTraces,
   type FacadeParsedCall,
   type WithdrawCollateralEventInfo,
-} from "../preview/trace/index.js";
-import { classifyMulticallOperations } from "./classifyMulticallOperations.js";
+} from "./trace/index.js";
 import type {
   HistoryFacadeMetadata,
   OuterFacadeOperation,

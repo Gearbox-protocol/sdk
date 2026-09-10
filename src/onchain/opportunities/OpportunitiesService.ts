@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   Opportunity,
   OpportunityFilter,
@@ -52,20 +53,26 @@ export class OpportunitiesService extends SDKConstruct {
    * A single strategy opportunity plus the rate curve of the pool it borrows
    * from and the price feeds its liquidation price depends on.
    *
+   * @param wallet - When given, `kyc` says whether this wallet must register
+   * with the strategy's KYC provider first; `null` otherwise.
+   *
    * @throws If the credit manager is unknown, or does not currently offer a
    * strategy.
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
+    wallet?: Address,
   ): Promise<StrategyOpportunityDetail> {
-    const detail = this.sdk.marketRegister
-      .findCreditManager(key.creditManager)
-      .strategyOpportunityDetail();
+    const suite = this.sdk.marketRegister.findCreditManager(key.creditManager);
+    const detail = suite.strategyOpportunityDetail();
     if (!detail) {
       throw new Error(
         `credit manager ${key.creditManager} does not currently offer a strategy`,
       );
     }
-    return detail;
+    const kyc = wallet
+      ? await suite.kycRequirement(wallet, detail.targetCollateral.address)
+      : null;
+    return { ...detail, kyc };
   }
 }

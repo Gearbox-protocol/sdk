@@ -1,11 +1,15 @@
 import type { Abi, Address, Hex } from "viem";
 import { iZapperAbi } from "../../../abi/iZapper.js";
-import { type SDKReturn, sdkErr, sdkOk } from "../../../model/index.js";
+import {
+  type SDKReturn,
+  sdkErr,
+  sdkOk,
+  type UnsupportedZapperFunctionError,
+} from "../../../model/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { RawTx } from "../../types/index.js";
 import type { ZapperData } from "../types.js";
-import type { UnsupportedZapperFunctionError } from "./errors.js";
 import type { IZapperContract, ParsedZapperOperation } from "./types.js";
 
 /**

@@ -49,7 +49,7 @@ describe("PoolV310Contract.sharesToUnderlying", () => {
     expect(makePool().sharesToUnderlying(120n)).toBe(132n);
   });
 
-  it("leaves the withdrawal fee alone: this is worth, not payout", () => {
+  it("leaves the withdrawal fee alone: this values shares, it does not redeem them", () => {
     expect(makePool({ withdrawFee: 100n }).sharesToUnderlying(120n)).toBe(132n);
   });
 

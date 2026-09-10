@@ -1,5 +1,9 @@
 import type { Address, Hex } from "viem";
-import type { DelayedIntent } from "../../model/index.js";
+import type {
+  DelayedIntent,
+  RWAOpenAccountRequirements,
+  RWAOperationArgs,
+} from "../../model/index.js";
 import type {
   Asset,
   Construct,
@@ -12,12 +16,8 @@ import type {
   PartialLiquidationParams,
   PrepareUpdateQuotasProps,
   PriceUpdate,
-  RWAOperationArgs,
 } from "../market/index.js";
-import type {
-  GetOpenAccountRequirementsProps,
-  RWAOpenAccountRequirements,
-} from "../market/rwa/index.js";
+import type { GetOpenAccountRequirementsProps } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
@@ -237,7 +237,8 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
 
   creditManager: Address;
   /**
-   * Optional address of credit account to reopen
+   * Optional address of an existing credit account to run the opening on,
+   * instead of opening a new one.
    */
   reopenCreditAccount?: Address;
   /**

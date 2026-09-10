@@ -34,7 +34,7 @@ export interface LeverageBandProps {
  * A credit manager's `maxLeverage` follows from the liquidation threshold
  * alone, so it is the same for a hundred dollars and for a million. What a
  * given deposit reaches is decided by the debt it implies —
- * `debt = netValue × (leverage − 1)` — and by the band the market puts that
+ * `debt = netValue × (leverage − 1)` — and by the `debtLimits` the market puts that
  * debt in. This inverts that relation.
  *
  * Rounding is asymmetric because the forward direction truncates: the floor

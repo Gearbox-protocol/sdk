@@ -32,7 +32,10 @@ async function main(): Promise<void> {
   });
 
   const block = sdk.currentBlock;
-  const dir = resolve(import.meta.dirname, "../../src/preview/__fixtures__");
+  const dir = resolve(
+    import.meta.dirname,
+    "../../src/onchain/preview/__fixtures__",
+  );
   const fixturePath = resolve(dir, `Mainnet-${block}-securitize.json`);
   writeFileSync(fixturePath, json_stringify(sdk.state));
 }

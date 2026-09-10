@@ -11,7 +11,7 @@ half lives in [delayed.md](./delayed.md).
 ## Math
 
 ```text
-W       = amount, denominated in T (the payout token)
+W       = amount, denominated in T (the token the wallet receives)
 Wᵤ      = price(T → U, W)
 exit    ⟺ W == MAX_UINT256  or  Wᵤ >= C0
 dD      = D0 · Wᵤ / C0                   partial: keeps leverage flat
@@ -37,6 +37,17 @@ worth only the interest it has accrued above `minDebt` while its `exit` is the
 whole net value — a form reading `partial` alone would tell such a wallet it
 can free a few wei, when in fact it can free everything by leaving.
 
+A third figure, `safePartial`, is `partial` once the safe-price collateral
+check has had its say, and it is the one a form should offer. Because funds
+leave, the facade weighs the result at `min` of each token's two feeds, so a
+reserve feed marking collateral down lowers the ceiling below what the debt
+band alone would allow. Where all the collateral is the marked-down token the
+ceiling collapses to `0n`: holding leverage flat scales collateral and debt
+together, which leaves the safe-price factor exactly where it found it, so no
+smaller request clears the bar either. Such a position can still take `exit` —
+leaving settles the debt rather than shrinking it, and a check with no debt to
+divide by refuses nothing.
+
 ## Case selection
 
 ```mermaid
@@ -52,8 +63,8 @@ flowchart TD
   band{"D0 − dD in band?"}
   tu{"T == U?"}
   exit["EXIT plan"]
-  p1["PARTIAL, payout in U"]
-  p2["PARTIAL, payout in another token"]
+  p1["PARTIAL, withdrawal in U"]
+  p2["PARTIAL, withdrawal in another token"]
 
   in --> pos
   pos -->|"no"| e1["insufficientSourceBalance"]
@@ -75,14 +86,14 @@ flowchart TD
 `S` defaults to the account's most valuable non-phantom balance; `T` defaults to
 the market underlying.
 
-## Partial, payout in the underlying (`T == U`)
+## Partial, withdrawal in the underlying (`T == U`)
 
-One leg raises payout and repayment together; the repayment is told to keep `W`
-back so the payout is not spent on the debt.
+One leg raises the withdrawal and the repayment together; the repayment is told
+to keep `W` back so `W` is not spent on the debt.
 
 ```mermaid
 flowchart TD
-  s["steps: convert(S → U, price(U → S, Wᵤ + dD)), repay(dD, keep W), payout(U, W)"]
+  s["steps: convert(S → U, price(U → S, Wᵤ + dD)), repay(dD, keep W), withdraw(U, W)"]
   s --> c1["swap: S → U, input priced for Wᵤ + dD"]
   c1 --> c2["decreaseDebt(min(dD, U balance − W))"]
   c2 --> r{"RWA market?"}
@@ -95,31 +106,31 @@ flowchart TD
 When `S == U` the swap is an identity convert and disappears: the plan becomes
 `decreaseDebt` + `withdrawCollateral` out of idle underlying.
 
-## Partial, payout in another token (`T ≠ U`)
+## Partial, withdrawal in another token (`T ≠ U`)
 
 Two legs, because the debt wants `U` and the wallet wants `T`.
 
 ```mermaid
 flowchart TD
-  s["steps: convert(S → U, price(U → S, dD)), repay(dD),<br/>convert(S → T, price(U → S, Wᵤ)), payout(T, raised)"]
+  s["steps: convert(S → U, price(U → S, dD)), repay(dD),<br/>convert(S → T, price(U → S, Wᵤ)), withdraw(T, raised)"]
   s --> c1["swap: S → U for the repayment"]
   c1 --> c2["decreaseDebt(dD)"]
-  c2 --> c3["swap: S → T for the payout"]
+  c2 --> c3["swap: S → T for the withdrawal"]
   c3 --> c4["withdrawCollateral(T, swap floor, to)"]
   c4 --> q["updateQuota(S, −), updateQuota(T, ±)"]
 ```
 
-The payout is the **floor** of the second swap, so the wallet is never promised
+The withdrawal is the **floor** of the second swap, so the wallet is never promised
 more than the worst allowed slippage delivers, and the projected state carries
 whatever the route is expected to deliver beyond it — see
 [Two amounts per routed leg](./README.md#two-amounts-per-routed-leg). When
-`S == T` the second convert is an identity and the payout comes straight off the
+`S == T` the second convert is an identity and the withdrawal comes straight off the
 existing balance.
 
 ## Exit (`W == MAX_UINT256`, or `W >= C0`)
 
-Everything is sold in one many-to-one route, the loan is settled out of the
-proceeds, and what is left goes to the wallet. The quotas go first: quota fees
+Everything is sold in one many-to-one route, the loan is settled out of what it
+sells for, and what is left goes to the wallet. The quotas go first: quota fees
 accrue on the quota, not on the loan, so one outliving the debt it backed would
 keep charging an account that owes nothing.
 
@@ -160,8 +171,8 @@ account instead of handing it over, and the projected state reports the leftover
 rather than an empty account. `assembleRedeemDiffCalls` would drain it; nothing
 uses that yet.
 
-`tokenOut` and `sourceToken` are ignored by an exit: everything is sold, and the
-payout is whatever the route produced.
+`tokenOut` and `sourceToken` are ignored by an exit: everything is sold, and
+what the wallet receives is whatever the route produced.
 
 An exit has a delayed route too, and for a position that only redeems through
 its issuer it is the only one — no route exists for the whole account, so this
@@ -180,7 +191,7 @@ disagree with reality.
 | balance actually holds each leg's input  | `insufficientSourceBalance`    |
 | no phantom balance to sell (exit)        | `withdrawalInProgress`         |
 | nothing forbidden or unquotable grew     | `forbiddenToken`, `quotaLimitReached` |
-| HF at **safe prices** — funds leave      | `insufficientCollateral`       |
+| HF at **safe prices** — funds leave      | `insufficientCollateral`, or `reservePriceLimited` where the main feed would have passed |
 
 After an exit the debt is zero, so the health factor reports the no-debt
 sentinel and the check is trivially satisfied.

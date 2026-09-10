@@ -19,6 +19,7 @@ import {
   tokenSchema,
   underlyingTokenSchema,
 } from "./primitives.schema.js";
+import { kycRequirementSchema } from "./rwa.schema.js";
 
 /**
  * Runtime schemas for {@link ./opportunities.js}, see the note in
@@ -284,6 +285,7 @@ export const strategyOpportunityDetailSchema = z.object({
   ...strategyOpportunitySchema.shape,
   rateCurve: rateCurveSchema,
   priceFeeds: priceFeedSummarySchema,
+  kyc: kycRequirementSchema.nullable().optional(),
 });
 
 /**

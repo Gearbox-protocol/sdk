@@ -146,13 +146,14 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
     expect(state.quotas).toEqual([]);
   });
 
-  it("nothing left to route: the claim alone settles and pays out", async () => {
+  it("nothing left to route: the claim alone settles and withdraws", async () => {
     const result = await run({
       redeemed: TVL_BEFORE,
       claimedToken: UND,
       claimedAmount: TVL_BEFORE,
     });
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     expect(result.operations.map(op => op.type)).toEqual([
       "claimDelayedWithdrawal",
@@ -170,7 +171,8 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
       claimedAmount: TVL_BEFORE,
       totalDebt: 0n,
     });
-    if (!result.ok) throw new Error(`expected a preview, got ${result.reason}`);
+    if (!result.ok)
+      throw new Error(`expected a preview, got ${result.error.code}`);
 
     expect(result.operations.map(op => op.type)).not.toContain("decreaseDebt");
     expect(

@@ -337,7 +337,7 @@ export async function buildUnwrapRwaCollateralOperation(
 
 /**
  * The request that starts a redemption: spends the source token and receives
- * the phantom token standing in for the payout until it matures.
+ * the phantom token standing in for the claim until it matures.
  */
 export interface StartDelayedWithdrawalOperation {
   type: "startDelayedWithdrawal";
@@ -345,7 +345,7 @@ export interface StartDelayedWithdrawalOperation {
   token: Address;
   /** Amount of `token` the issuer burns; capped at the account balance. */
   amountIn: bigint;
-  /** Request outputs; a delayed one is the phantom token, not the payout. */
+  /** Request outputs; a delayed one is the phantom token, not the claim. */
   outputs: WithdrawalOutput[];
   /** Whether anything at all has to be waited for. */
   settlement: "instant" | "delayed";

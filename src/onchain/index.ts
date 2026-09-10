@@ -11,6 +11,7 @@ export * from "./options.js";
 export * from "./plugins/index.js";
 export * from "./pools/index.js";
 export * from "./positions/index.js";
+export * from "./preview/index.js";
 export * from "./router/index.js";
 export * from "./types/index.js";
 export * from "./utils/index.js";

@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { MIN_HF_LIMITED } from "../../validation/checks.js";
+import { MIN_HF_LIMITED } from "../../validation/index.js";
 import { CreditAccountOperationsService } from "./index.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
@@ -111,9 +111,9 @@ describe("maxWithdrawCollateral", () => {
     expect(ceiling(ca, POS)).toBe(toBN("100", 8));
   });
 
-  it("reads a quota as a bar to clear, not as a share of the balance", () => {
+  it("reads a quota as a threshold to clear, not as a share of the balance", () => {
     // A quota does not shrink with the balance, so it either covers what the
-    // debt needs or it does not: past that bar a larger one buys nothing.
+    // debt needs or it does not: past that threshold a larger one buys nothing.
     const barelyEnough = account(
       [caToken(POS, toBN("100", 8), toBN("60", 8))],
       toBN("50", 8),
@@ -228,7 +228,7 @@ describe("CreditAccountOperationsService.maxWithdrawCollateral", () => {
     const creditAccount = ca();
     const sdk = buildMarketSdk({ creditAccounts: [creditAccount] });
 
-    // the service adds two basis points of headroom to the bar it is given
+    // the service adds two basis points of margin to the threshold it is given
     expect(
       new CreditAccountOperationsService(sdk).maxWithdrawCollateral({
         creditAccount,

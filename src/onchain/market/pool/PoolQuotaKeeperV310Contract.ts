@@ -64,6 +64,15 @@ export class PoolQuotaKeeperV310Contract
   }
 
   /**
+   * How much more quota the market will take for a token, in the underlying.
+   * `0n` when the market has no quota entry; not the same as {@link hasActiveQuota}.
+   */
+  public quotaAvailable(token: Address): bigint {
+    const quota = this.quotas.get(token);
+    return quota ? quota.limit - quota.totalQuoted : 0n;
+  }
+
+  /**
    * Annual quota rate paid on a quoted token, in basis points, or `0` when the
    * market does not quote it.
    *

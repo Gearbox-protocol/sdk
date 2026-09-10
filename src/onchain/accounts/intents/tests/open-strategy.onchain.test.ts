@@ -5,13 +5,16 @@ import { toBN } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   ANY,
+  CREDIT_ACCOUNT,
   CREDIT_FACADE,
+  CREDIT_MANAGER,
   MAX_DEBT,
   POS,
   UND,
   UND_DECIMALS,
 } from "../testing/market.js";
 import { MOCK_ROUTER_CALL } from "../testing/sdk-mock.js";
+import type { CreditAccountSlice } from "../types.js";
 import {
   buildOpenStrategyProps,
   buildOpenStrategySdk,
@@ -36,7 +39,7 @@ async function expectCase(c: OpenStrategyCase) {
   const { sdk, result } = run(c);
   const outcome = await result;
   if (!outcome.ok) {
-    throw new Error(`expected a state, got error: ${outcome.reason}`);
+    throw new Error(`expected a state, got error: ${outcome.error.code}`);
   }
   const { state } = outcome;
 
@@ -113,7 +116,7 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     );
     const outcome = await result;
     if (!outcome.ok) {
-      throw new Error(`expected a state, got error: ${outcome.reason}`);
+      throw new Error(`expected a state, got error: ${outcome.error.code}`);
     }
 
     expect(outcome.state.safeHealthFactor).toBeLessThan(
@@ -151,21 +154,26 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     const { result } = run({ ...case_underlying_3x, leverage: 50n });
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "leverageOutOfRange") {
+    if (refusal.ok || refusal.error.code !== "leverageOutOfRange") {
       throw new Error("expected leverageOutOfRange");
     }
-    expect(refusal.detail).toEqual({ requested: 50n, min: LEVERAGE_DECIMALS });
+    expect(refusal.error).toMatchObject({
+      code: "leverageOutOfRange",
+      requested: 50n,
+      min: LEVERAGE_DECIMALS,
+    });
   });
 
   it("rejects collateral that is worth nothing in underlying", async () => {
     const { result } = run({ ...case_underlying_3x, collateral: [] });
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "insufficientSourceBalance") {
-      throw new Error("expected insufficientSourceBalance");
+    if (refusal.ok || refusal.error.code !== "insufficientBalance") {
+      throw new Error("expected insufficientBalance");
     }
     // Nothing was supplied, so there is no amount to name.
-    expect(refusal.detail).toBeUndefined();
+    expect(refusal.error.required).toBeUndefined();
+    expect(refusal.error.held).toBeUndefined();
   });
 
   it("rejects a debt above the facade maxDebt, and says what the ceiling is", async () => {
@@ -175,16 +183,16 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     });
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "debtOutOfRange") {
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange") {
       throw new Error("expected debtOutOfRange");
     }
-    expect(refusal.detail.maxDebt).toEqual({
+    expect(refusal.error.maxDebt).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: MAX_DEBT,
       valueUsd: null,
     });
-    expect(refusal.detail.requested.token.address).toBe(UND);
-    expect(refusal.detail.requested.value).toBeGreaterThan(MAX_DEBT);
+    expect(refusal.error.requested.token.address).toBe(UND);
+    expect(refusal.error.requested.value).toBeGreaterThan(MAX_DEBT);
   });
 
   it("rejects a debt below the facade minDebt, and says what the floor is", async () => {
@@ -197,14 +205,65 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     );
     const refusal = await result;
 
-    if (refusal.ok || refusal.reason !== "debtOutOfRange") {
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange") {
       throw new Error("expected debtOutOfRange");
     }
-    expect(refusal.detail.minDebt).toEqual({
+    expect(refusal.error.minDebt).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: MARGIN_UND,
       valueUsd: null,
     });
-    expect(refusal.detail.requested.value).toBeLessThan(MARGIN_UND);
+    expect(refusal.error.requested.value).toBeLessThan(MARGIN_UND);
+  });
+});
+
+describe("openStrategy on a pre-opened empty account", () => {
+  const EMPTY_ACCOUNT: CreditAccountSlice = {
+    creditAccount: CREDIT_ACCOUNT,
+    creditManager: CREDIT_MANAGER,
+    creditFacade: CREDIT_FACADE,
+    underlying: UND,
+    enabledTokensMask: 0n,
+    totalDebtUSD: 0n,
+    totalDebt: 0n,
+    tokens: [],
+  };
+
+  function runReused(sdk: OnchainSDK = buildOpenStrategySdk()) {
+    const service = new CreditAccountOperationsService(sdk);
+    return {
+      sdk,
+      result: service.openStrategyIntent({
+        ...buildOpenStrategyProps(case_underlying_3x, sdk),
+        creditAccount: EMPTY_ACCOUNT,
+      }),
+    };
+  }
+
+  it("reaches the same state, and names the account it will run on", async () => {
+    const plain = await run(case_underlying_3x).result;
+    const reused = await runReused().result;
+    if (!plain.ok || !reused.ok) throw new Error("expected two states");
+
+    expect(reused.state.creditAccount).toBe(CREDIT_ACCOUNT);
+    expect({ ...reused.state, creditAccount: undefined }).toEqual({
+      ...plain.state,
+      creditAccount: undefined,
+    });
+  });
+
+  it("routes the same basket, because the path is quoted for the manager and never for the account", async () => {
+    const { sdk } = runReused();
+    await runReused(sdk).result;
+    const findOpen = vi.mocked(
+      sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
+    );
+
+    expect(findOpen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        expectedBalances: case_underlying_3x.expectedRouterBalances,
+        target: case_underlying_3x.targetToken,
+      }),
+    );
   });
 });

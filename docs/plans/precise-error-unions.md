@@ -88,7 +88,7 @@ DelayedStrategyPlan/StrategyRoutes` → `LpResult/StrategyResult/
 OpenStrategyResult/DelayedStrategyResult/StrategyRoutesResult`. Precision
 extras locked by types: `poolSunset`/`quotaCountExceeded`/
 `malformedTransaction` are unreachable from prepare and leave its
-vocabulary; prepare's `MarketPausedError` has no `pool` variant; `binding`
+vocabulary; prepare's `MarketPausedError` has no `pool` variant; `limit`
 excludes `poolDebtLimit`; routes errors keep `refused` with per-route
 narrowed reason sets.
 
@@ -209,7 +209,7 @@ without it).
   removing a code without moving the raise site fails typecheck.
 - I3. `poolSunset`/`quotaCountExceeded`/`malformedTransaction` not
   assignable to any prepare `E`; `MarketPausedError` (prepare) has no pool
-  variant; no `poolDebtLimit` binding (negative type tests).
+  variant; no `poolDebtLimit` on `limit` (negative type tests).
 - I4. Preview: the six former verdict classes are returned, never thrown —
   a spec drives each construction path and asserts no throw crosses the
   public API; every error `code` (prepare + preview) is a member of

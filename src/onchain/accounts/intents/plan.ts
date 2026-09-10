@@ -1,14 +1,21 @@
 import type { Address } from "viem";
-import type { DelayedIntent } from "../../../model/index.js";
+import {
+  type DelayedIntent,
+  debtOutOfRange,
+  insufficientBalance,
+  leverageOutOfRange,
+  noDelayedRoute,
+  unsupportedCollateralToken,
+} from "../../../model/index.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
-import { toToken, toTokenAmount } from "../../validation/token.js";
+import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
-  assertDebtInBand,
+  assertDebtLimits,
   assertLeverageAtLeastOne,
-  type DebtBand,
+  type DebtLimits,
   debtForLeverage,
   proportionalDebt,
 } from "./math.js";
@@ -98,7 +105,7 @@ export interface AccountView {
   debt: bigint;
   /** TVL − debt, in underlying. */
   collateral: bigint;
-  band: DebtBand;
+  debtLimits: DebtLimits;
   balanceOf(token: Address): bigint;
   /** Oracle conversion; unpriceable tokens contribute 0n. */
   price(from: Address, to: Address, amount: bigint): bigint;
@@ -124,7 +131,7 @@ export function planWithdrawAsset(
   view: AccountView,
 ): Step[] {
   assertPositive(intent.amount, "withdrawAsset");
-  return payout(view, intent.token, intent.amount, intent.to);
+  return withdraw(view, intent.token, intent.amount, intent.to);
 }
 
 /** Intent 6: collateral fixed, debt retargeted to `C0 · (L1 − 1)`. */
@@ -146,11 +153,11 @@ export function planAdjustLeverage(
   const shortfall = -delta - view.balanceOf(U);
   if (shortfall > 0n && eq(T, U)) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      {
+      insufficientBalance({
         required: toTokenAmount(view.sdk, U, -delta),
         held: toTokenAmount(view.sdk, U, view.balanceOf(U)),
-      },
+        holderKind: "creditAccount",
+      }),
       `adjustLeverage: needs ${-delta} underlying, account holds ${view.balanceOf(U)}`,
     );
   }
@@ -173,8 +180,7 @@ export function planDeposit(
     !(view.rwaAsset && eq(intent.token, view.rwaAsset))
   ) {
     throw new IntentPreviewError(
-      "unsupportedCollateralToken",
-      { token: toToken(view.sdk, intent.token) },
+      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
       `deposit: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be deposited, got ${intent.token}`,
     );
   }
@@ -187,14 +193,11 @@ export function planDeposit(
         view.debt;
   if (debtDelta < 0n) {
     throw new IntentPreviewError(
-      "leverageOutOfRange",
-      // The floor is whatever leverage the deposit alone would land on, which
-      // this branch never computes — there is no fixed minimum to report.
-      undefined,
+      leverageOutOfRange(),
       `deposit: target leverage ${intent.targetLeverage} would require repaying debt`,
     );
   }
-  assertDebtInBand(view.sdk, view.debt + debtDelta, view.band, U);
+  assertDebtLimits(view.sdk, view.debt + debtDelta, view.debtLimits, U);
 
   const T = intent.positionToken ?? positionToken(view, "deposit");
   // The deposit is already the position token: convert only what is borrowed.
@@ -231,21 +234,19 @@ export function planRepay(
 
   if (!fundsInU && !(view.rwaAsset && eq(intent.token, view.rwaAsset))) {
     throw new IntentPreviewError(
-      "unsupportedCollateralToken",
-      { token: toToken(view.sdk, intent.token) },
+      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
       `repay: only ${U}${view.rwaAsset ? ` or ${view.rwaAsset}` : ""} can be repaid with, got ${intent.token}`,
     );
   }
   if (view.debt <= 0n) {
     throw new IntentPreviewError(
-      "debtOutOfRange",
-      // Zero debt against a band whose floor is above it: the reading a caller
+      // Zero debt against debtLimits whose floor is above it: the reading a caller
       // needs is that there is no loan here, not that one is mis-sized.
-      {
+      debtOutOfRange({
         requested: toTokenAmount(view.sdk, U, view.debt),
-        minDebt: toTokenAmount(view.sdk, U, view.band.minDebt),
-        maxDebt: toTokenAmount(view.sdk, U, view.band.maxDebt),
-      },
+        minDebt: toTokenAmount(view.sdk, U, view.debtLimits.minDebt),
+        maxDebt: toTokenAmount(view.sdk, U, view.debtLimits.maxDebt),
+      }),
       "repay: the account owes nothing",
     );
   }
@@ -258,7 +259,12 @@ export function planRepay(
   // collateral. That is what lets a caller send the debt plus a buffer and
   // still settle it in full when interest has accrued in the meantime.
   const repaid = min(view.price(intent.token, U, funding), view.debt);
-  assertDebtInBand(view.sdk, view.debt - repaid, view.band, view.underlying);
+  assertDebtLimits(
+    view.sdk,
+    view.debt - repaid,
+    view.debtLimits,
+    view.underlying,
+  );
 
   return [
     add(intent.token, funding, intent.value),
@@ -282,7 +288,7 @@ export function planWithdraw(
 
   // Asking for the whole net value is an exit, not a withdrawal at fixed
   // leverage: there is no leverage left to hold. The position is sold whole in
-  // one many-to-one route, the loan is settled out of the proceeds, and what is
+  // one many-to-one route, the loan is settled out of what it sells for, and what is
   // left goes to the wallet — which is also the order the facade needs, since
   // the debt has to be gone before the collateral can be.
   if (all) {
@@ -294,13 +300,13 @@ export function planWithdraw(
     ];
   }
 
-  // Payout in the underlying: both flows land in U, so one leg raises W + dD and
-  // the repayment takes what is left after the payout is set aside.
+  // Withdrawing the underlying: both flows land in U, so one leg raises W + dD
+  // and the repayment takes what is left once W is set aside.
   if (eq(T, U)) {
     return [
       convert(S, U, view.price(U, S, WU + dD)),
       repay(dD, intent.amount),
-      ...payout(view, U, intent.amount, intent.to),
+      ...withdraw(view, U, intent.amount, intent.to),
     ];
   }
 
@@ -308,7 +314,7 @@ export function planWithdraw(
     convert(S, U, view.price(U, S, dD)),
     repay(dD),
     convert(S, T, view.price(U, S, WU)),
-    ...payout(view, T, RAISED, intent.to),
+    ...withdraw(view, T, RAISED, intent.to),
   ];
 }
 
@@ -321,8 +327,8 @@ export function planWithdraw(
  * Intent 2.1 against a source that cannot be sold on a DEX.
  *
  * Some collateral only converts through its issuer — a Securitize dsToken, a
- * Mellow share — which answers a redemption request now and pays out days
- * later. The trade is unchanged; what changes is that the proceeds do not exist
+ * Mellow share — which answers a redemption request now and settles days
+ * later. The trade is unchanged; what changes is that the money does not exist
  * yet, so this half only requests the redemption:
  *
  * ```
@@ -340,7 +346,7 @@ export function planWithdrawDelayed(
 ): Step[] {
   const { U, T, S, WU, dD, all } = withdrawShape(intent, view);
 
-  // An exit names no payout, so the request has none to record: it redeems the
+  // An exit names no withdrawal, so the request has none to record: it redeems the
   // whole source and writes down only where the leftovers go. The tail derives
   // the exit from the account as it stands when the claim lands, which is the
   // only honest reading of "sell all of it" days in advance — the debt will
@@ -349,8 +355,7 @@ export function planWithdrawDelayed(
     const held = view.balanceOf(S);
     if (held <= 0n) {
       throw new IntentPreviewError(
-        "insufficientSourceBalance",
-        undefined,
+        insufficientBalance(),
         `withdraw: account holds no ${S} to redeem`,
       );
     }
@@ -365,25 +370,24 @@ export function planWithdrawDelayed(
     ];
   }
 
-  // The tail pays out in the underlying, or in the RWA asset it unwraps to;
+  // The tail withdraws in the underlying, or in the RWA asset it unwraps to;
   // anything else it cannot serve, so there is no point starting.
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      { token: toToken(view.sdk, T) },
-      `withdraw: a delayed route cannot pay out in ${T}`,
+      noDelayedRoute(toToken(view.sdk, T)),
+      `withdraw: a delayed route cannot withdraw in ${T}`,
     );
   }
 
-  // A payout in the source token never leaves the account, so only the debt has
-  // to be raised — but the payout has to survive the request.
-  const payoutIsSource = eq(T, S);
+  // A withdrawal in the source token never leaves the account, so only the debt has
+  // to be raised — but the withdrawal has to survive the request.
+  const tokenOutIsSource = eq(T, S);
   return [
     {
       kind: "request",
       token: S,
-      amount: view.price(U, S, payoutIsSource ? dD : WU + dD),
-      reserve: payoutIsSource ? intent.amount : 0n,
+      amount: view.price(U, S, tokenOutIsSource ? dD : WU + dD),
+      reserve: tokenOutIsSource ? intent.amount : 0n,
       record: {
         type: "WITHDRAW_COLLATERAL",
         to: intent.to,
@@ -410,8 +414,7 @@ export function planAdjustLeverageDelayed(
   const { U, delta } = leverageShape(intent, view);
   if (delta >= 0n) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      undefined,
+      noDelayedRoute(),
       "adjustLeverage: only deleveraging can settle with a delay",
     );
   }
@@ -419,8 +422,7 @@ export function planAdjustLeverageDelayed(
   const shortfall = -delta - view.balanceOf(U);
   if (shortfall <= 0n) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      undefined,
+      noDelayedRoute(),
       "adjustLeverage: idle underlying covers the repayment, nothing to redeem",
     );
   }
@@ -455,10 +457,10 @@ export function planFinishDecreaseLeverage(
 }
 
 /**
- * The claim is split between the promised payout `W` and the debt the leading
- * half deferred: the payout is served first, the debt gets what is left, so a
- * routing shortfall shows as leverage a touch above target rather than as a
- * payout the wallet was promised and did not get.
+ * The claim is split between the promised withdrawal `W` and the debt the
+ * leading half deferred: `W` is served first, the debt gets what is left, so a
+ * bad quote shows as leverage a touch above target rather than as a wallet paid
+ * less than it was promised.
  */
 export function planFinishWithdraw(
   intent: {
@@ -478,58 +480,57 @@ export function planFinishWithdraw(
 
   if (!eq(T, U) && !(view.rwaAsset && eq(T, view.rwaAsset))) {
     throw new IntentPreviewError(
-      "noDelayedRoute",
-      { token: toToken(view.sdk, T) },
-      `finishWithdraw: cannot pay out in ${T}`,
+      noDelayedRoute(toToken(view.sdk, T)),
+      `finishWithdraw: cannot withdraw in ${T}`,
     );
   }
 
-  // Nothing owed to the debt: the whole claim is payout.
+  // Nothing owed to the debt: the whole claim is the withdrawal.
   if (intent.debtRepaid === 0n) {
     return [
       claim(claimable),
       convert(claimed.token, T, claimed.amount),
-      ...payout(view, T, { raised: true, max: W }, intent.to),
+      ...withdraw(view, T, { raised: true, max: W }, intent.to),
     ];
   }
 
-  // The source itself was the delayed asset: the payout is already on the
+  // The source itself was the delayed asset: the withdrawal is already on the
   // account, the claim exists purely to repay.
   if (eq(intent.sourceToken, T)) {
     return [
       claim(claimable),
       convert(claimed.token, U, claimed.amount),
       repay({ raised: true, max: intent.debtRepaid }),
-      ...payout(view, T, W, intent.to),
+      ...withdraw(view, T, W, intent.to),
     ];
   }
 
-  // Payout token and debt both want the underlying: convert everything, hold W
+  // Withdrawal token and debt both want the underlying: convert everything, hold W
   // back, repay from the remainder.
   if (eq(T, U)) {
     return [
       claim(claimable),
       convert(claimed.token, U, claimed.amount),
       repay(intent.debtRepaid, W),
-      ...payout(view, U, { raised: true, max: W }, intent.to),
+      ...withdraw(view, U, { raised: true, max: W }, intent.to),
     ];
   }
 
-  // Payout is the RWA asset while the debt wants the underlying: reserve the
-  // payout's worth of the claim, repay from the rest, then convert the reserve.
+  // Withdrawal is the RWA asset while the debt wants the underlying: reserve the
+  // withdrawal's worth of the claim, repay from the rest, then convert the reserve.
   const reserved = min(view.price(T, claimed.token, W), claimed.amount);
   return [
     claim(claimable),
     convert(claimed.token, U, claimed.amount - reserved),
     repay({ raised: true, max: intent.debtRepaid }),
     convert(claimed.token, T, reserved),
-    ...payout(view, T, { raised: true, max: W }, intent.to),
+    ...withdraw(view, T, { raised: true, max: W }, intent.to),
   ];
 }
 
 /**
  * The tail of an exit: the claim lands, everything the account holds is sold
- * into the underlying, the loan is settled out of the proceeds and the rest
+ * into the underlying, the loan is settled out of what it sells for and the rest
  * goes to the wallet. The account survives it, empty and owing nothing.
  *
  * Nothing is quoted from the request — the same shape {@link planWithdraw}
@@ -542,7 +543,7 @@ export function planFinishCloseAccount(
   claimed: { token: Address; amount: bigint },
   view: AccountView,
 ): Step[] {
-  // The claim of an RWA redemption pays out the market's raw asset, which the
+  // The claim of an RWA redemption settles in the market's raw asset, which the
   // loan is not denominated in — so that one leg is named, and everything else
   // is left to the single route `closeAll` builds.
   const wrap =
@@ -576,7 +577,7 @@ export function planFinishClaimOnly(claimable: ClaimableWithdrawal): Step[] {
 // ---------------------------------------------------------------------------
 
 /**
- * What a withdrawal comes down to: the payout `W` of `T` priced in the
+ * What a withdrawal comes down to: the withdrawal `W` of `T` priced in the
  * underlying, the debt `dD` that keeps leverage flat, and the source `S` both
  * are funded from. Shared so that the instant and the delayed leading half
  * cannot disagree on the amounts.
@@ -609,8 +610,7 @@ function withdrawShape(
   const WU = view.price(T, U, intent.amount);
   if (WU <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       `withdraw: cannot price ${intent.amount} of ${T}`,
     );
   }
@@ -622,7 +622,7 @@ function withdrawShape(
   }
 
   const dD = proportionalDebt(view, WU);
-  assertDebtInBand(view.sdk, view.debt - dD, view.band, view.underlying);
+  assertDebtLimits(view.sdk, view.debt - dD, view.debtLimits, view.underlying);
 
   return { U, T, S, WU, dD, all: false };
 }
@@ -639,14 +639,13 @@ function leverageShape(
   assertLeverageAtLeastOne(intent.targetLeverage);
   if (view.collateral <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       "adjustLeverage: account has no collateral to lever",
     );
   }
 
   const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtInBand(view.sdk, target, view.band, view.underlying);
+  assertDebtLimits(view.sdk, target, view.debtLimits, view.underlying);
 
   return { U: view.underlying, delta: target - view.debt };
 }
@@ -694,7 +693,7 @@ const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);
  * Hands `amount` of `token` to `to`. The wrapped underlying of an RWA market
  * cannot leave the account, so it is unwrapped into the raw asset on the way.
  */
-function payout(
+function withdraw(
   view: AccountView,
   token: Address,
   amount: Amount,
@@ -713,8 +712,7 @@ function positionToken(view: AccountView, flow: string): Address {
   const pick = view.fattest([view.underlying]);
   if (!pick) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       `${flow}: no position token on the account`,
     );
   }
@@ -725,8 +723,7 @@ function sourceToken(view: AccountView): Address {
   const pick = view.fattest();
   if (!pick) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       "withdraw: account has no spendable balance",
     );
   }
@@ -737,8 +734,7 @@ function sourceToken(view: AccountView): Address {
 function assertHasValue(view: AccountView): void {
   if (view.collateral <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       `withdraw: nothing to withdraw, net value is ${view.collateral}`,
     );
   }
@@ -747,8 +743,7 @@ function assertHasValue(view: AccountView): void {
 function assertPositive(amount: bigint, flow: string): void {
   if (amount <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       `${flow}: amount must be positive`,
     );
   }

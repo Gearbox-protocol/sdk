@@ -6,7 +6,7 @@ description: Generate and verify Gearbox SDK preview/e2e fixtures (especially RW
 # Fixture generation (SDK maintainer)
 
 Internal workflow for regenerating and verifying fixtures under
-`src/preview/__fixtures__` and related e2e fixtures. Scripts live in `dev/`
+`src/onchain/preview/__fixtures__` and related e2e fixtures. Scripts live in `dev/`
 (not published). Transaction dumps use the shared **TxDump** JSON format
 (`dev/txdiff/types.ts`).
 
@@ -77,7 +77,7 @@ pnpm tx:decode 0x…
 # Diff two TxDump files (composition must match; amounts may drift)
 pnpm tx:diff generated.json frontend-dump.json
 # or, for routine regen self-baseline:
-pnpm tx:diff /tmp/withdraw-usdc-before.json src/preview/__fixtures__/rwa-delayed/withdraw-usdc/txs.json
+pnpm tx:diff /tmp/withdraw-usdc-before.json src/onchain/preview/__fixtures__/rwa-delayed/withdraw-usdc/txs.json
 ```
 
 Other generators: `dev/scripts/generate-e2e-fixtures.ts`,

@@ -77,7 +77,10 @@ async function main(): Promise<void> {
     ignoreUpdateablePrices: true,
   });
 
-  const dir = resolve(import.meta.dirname, "../../src/preview/__fixtures__");
+  const dir = resolve(
+    import.meta.dirname,
+    "../../src/onchain/preview/__fixtures__",
+  );
   const fixturePath = resolve(dir, `Mainnet-${block}-open-credit-account.json`);
   writeFileSync(fixturePath, json_stringify(scopedSdk.state));
   console.log(`Wrote ${fixturePath}`);

@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   DataResponse,
   Opportunity,
@@ -60,10 +61,11 @@ export class MultichainOpportunitiesService<
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
+    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>> {
     return this.queryChain({
       network: key.chainId,
-      run: sdk => sdk.opportunities.getStrategy(key),
+      run: sdk => sdk.opportunities.getStrategy(key, wallet),
     });
   }
 }

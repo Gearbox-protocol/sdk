@@ -3,6 +3,7 @@ import { encodeFunctionData } from "viem";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
+import type { RWAOpenAccountRequirements } from "../../model/index.js";
 import type {
   Asset,
   CreditAccountData,
@@ -21,10 +22,7 @@ import {
   type PrepareUpdateQuotasProps,
   type PriceUpdate,
 } from "../market/index.js";
-import type {
-  GetOpenAccountRequirementsProps,
-  RWAOpenAccountRequirements,
-} from "../market/rwa/index.js";
+import type { GetOpenAccountRequirementsProps } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
@@ -400,7 +398,9 @@ export class CreditAccountsServiceV310
 
     const { creditFacade } = cmSuite;
     let calls = [
-      creditFacade.prepareIncreaseDebt(debt),
+      // A zero-debt open draws nothing, and `increaseDebt(0)` is a call the
+      // facade would run for no reason.
+      ...(debt > 0n ? [creditFacade.prepareIncreaseDebt(debt)] : []),
       ...creditFacade.prepareAddCollateral(collateral, permits),
       ...openPathCalls, // path from underlying to withdrawal token
       ...(tokenToWithdraw
@@ -422,7 +422,7 @@ export class CreditAccountsServiceV310
     calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
     calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
-      ? cmSuite.multicallTx(reopenCreditAccount, calls)
+      ? cmSuite.multicallTx(reopenCreditAccount, calls, rwaOptions)
       : cmSuite.openCreditAccountTx(to, calls, referralCode, rwaOptions);
     tx.value = ethAmount.toString(10);
 

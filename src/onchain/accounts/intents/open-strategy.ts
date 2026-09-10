@@ -1,18 +1,22 @@
 import type { Address } from "viem";
-import type { AccountProjection, TokenAmount } from "../../../model/index.js";
+import {
+  type AccountProjection,
+  insufficientBalance,
+  type TokenAmount,
+} from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { IntentPreviewError } from "../../validation/refusal.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import {
   assertCanBorrow,
   assertCollateralised,
   assertGrowthAllowed,
   assertMarketOperable,
-  assertQuotaHeadroom,
+  assertQuotaAvailable,
 } from "./guards.js";
 import {
-  assertDebtInBand,
+  assertDebtLimits,
   assertLeverageAtLeastOne,
   debtForLeverage,
 } from "./math.js";
@@ -23,10 +27,22 @@ import {
   getQuotasForUpdate,
 } from "./utils/index.js";
 
-/** Stand-in account address: nothing exists on chain until the tx lands. */
+/**
+ * Stand-in account address, used when the opening creates its own account:
+ * nothing exists on chain until the tx lands.
+ */
 const NO_ACCOUNT = "0x0000000000000000000000000000000000000000" as Address;
 
-export interface OpenStrategyProps {
+/**
+ * Opening an account and putting a position on it in one transaction.
+ *
+ * The union says which of the two openings this is: {@link OpenStrategyEmpty}
+ * takes only the market, because an account holding nothing has nothing to
+ * route, no leverage to reach and no target to reach it in.
+ */
+export type OpenStrategyProps = OpenStrategyFunded | OpenStrategyEmpty;
+
+export interface OpenStrategyFunded {
   sdk: OnchainSDK;
   /** Credit manager to open the account in. */
   creditManager: Address;
@@ -42,6 +58,21 @@ export interface OpenStrategyProps {
   quotaReserve: number | undefined;
   /** Balances to leave unswapped; everything else is routed into the target. */
   leftoverBalances?: Asset[];
+  /**
+   * Existing credit account to put the position on, instead of opening one.
+   *
+   * Must carry no debt and no quotas. Growing a position that already exists
+   * is what the `DEPOSIT` intent is for.
+   **/
+  creditAccount?: CreditAccountSlice;
+  empty?: false;
+}
+
+/** Opening an account that holds nothing, for a position to land on later. */
+export interface OpenStrategyEmpty {
+  sdk: OnchainSDK;
+  creditManager: Address;
+  empty: true;
 }
 
 /**
@@ -70,6 +101,15 @@ export interface OpenStrategyState
   minQuota: Asset[];
   /** Router path; feeds `openCA.calls`. */
   calls: MultiCall[];
+  /**
+   * The account this opening was simulated against and must be executed on,
+   * when it reuses one; `undefined` for an opening that creates its own.
+   *
+   * Carried here rather than asked of the caller again at `buildTx`, so the
+   * transaction cannot be built against an account the numbers were not
+   * computed for.
+   **/
+  creditAccount?: Address;
 }
 
 /**
@@ -87,6 +127,9 @@ export interface OpenStrategyState
 export async function buildOpenStrategyState(
   props: OpenStrategyProps,
 ): Promise<OpenStrategyState> {
+  if (props.empty) {
+    return emptyOpenState(props);
+  }
   const {
     sdk,
     creditManager,
@@ -96,6 +139,7 @@ export async function buildOpenStrategyState(
     slippage = 0,
     quotaReserve,
     leftoverBalances = [],
+    creditAccount: existing,
   } = props;
 
   assertLeverageAtLeastOne(leverage);
@@ -113,8 +157,7 @@ export async function buildOpenStrategyState(
   );
   if (margin <= 0n) {
     throw new IntentPreviewError(
-      "insufficientSourceBalance",
-      undefined,
+      insufficientBalance(),
       "openStrategy: collateral is worth nothing in underlying",
     );
   }
@@ -122,8 +165,8 @@ export async function buildOpenStrategyState(
   const debt = debtForLeverage(margin, leverage);
 
   // Synthetic slice so the router helper can be reused even though no account
-  // exists yet.
-  const account: CreditAccountSlice = {
+  // exists yet. A reused one is handed over as it stands.
+  const account: CreditAccountSlice = existing ?? {
     creditAccount: NO_ACCOUNT,
     creditManager: creditManager.toLowerCase() as Address,
     creditFacade: suite.creditFacade.address.toLowerCase() as Address,
@@ -133,7 +176,7 @@ export async function buildOpenStrategyState(
     totalDebt: 0n,
     tokens: [],
   };
-  assertDebtInBand(sdk, debt, suite.creditFacade, underlying);
+  assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
   assertCanBorrow(sdk, suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
@@ -161,8 +204,9 @@ export async function buildOpenStrategyState(
       quotas: market.pool.pqk.quotas,
       maxDebt: suite.creditFacade.maxDebt,
       convert,
-      // A fresh account starts at zero quota, so the increase *is* the level
-      // `openCA` expects.
+      // Zero quota on both paths — a fresh account has none, and a reused one
+      // is required to have none — so the increase *is* the level `openCA`
+      // expects.
     }).quotaIncrease;
 
   const averageQuota = quotasFor(averageAssets);
@@ -170,7 +214,7 @@ export async function buildOpenStrategyState(
   // The expected branch is the one the account is opened on, so it is the one
   // the market has to have room for.
   assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
-  assertQuotaHeadroom(sdk, market, averageQuota);
+  assertQuotaAvailable(sdk, market, averageQuota);
 
   // The expected branch is what the account is weighed as: the floor is what
   // the transaction is signed against, but it is not where the position lands.
@@ -212,6 +256,45 @@ export async function buildOpenStrategyState(
     averageQuota,
     minQuota,
     calls: [...leg.calls],
+    creditAccount: existing?.creditAccount,
+  };
+}
+
+/**
+ * The opening that holds an account and nothing else.
+ *
+ * Taken before the walk rather than threaded through it: the router has no
+ * guard for an empty basket and would still make its `eth_call`, and every
+ * assertion below reads amounts that are not there.
+ */
+async function emptyOpenState(
+  props: OpenStrategyProps,
+): Promise<OpenStrategyState> {
+  const { sdk, creditManager } = props;
+  assertMarketOperable(sdk.marketRegister.findCreditManager(creditManager));
+
+  const snapshot: AccountSnapshot = {
+    creditManager,
+    assets: [],
+    quotas: [],
+    totalDebt: 0n,
+    totalValue: 0n,
+  };
+  const {
+    assets: _assets,
+    quotas: _quotas,
+    ...projection
+  } = sdk.positions.projection(snapshot, { availableLiquidityChange: 0n });
+
+  return {
+    ...projection,
+    currentPrice: sdk.positions.currentPrice(snapshot),
+    priceImpact: undefined,
+    averageAssets: [],
+    minAssets: [],
+    averageQuota: [],
+    minQuota: [],
+    calls: [],
   };
 }
 

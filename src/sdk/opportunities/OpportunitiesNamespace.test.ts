@@ -1,10 +1,14 @@
+import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   DataResponse,
+  KycRequirement,
   Opportunity,
   OpportunityFilter,
   PoolOpportunityDetail,
   PoolOpportunityKey,
+  StrategyOpportunityDetail,
+  StrategyOpportunityKey,
   Timestamp,
 } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
@@ -14,12 +18,14 @@ import {
   AllSourcesFailedError,
   SourceUnavailableError,
 } from "../errors/index.js";
+import { DEFAULT_MAX_OFFCHAIN_LAG } from "../utils/index.js";
 import { OpportunitiesNamespace } from "./OpportunitiesNamespace.js";
 
 const MAINNET = chains.Mainnet.id;
 const PLASMA = chains.Plasma.id;
 const NOW = 1_700_000_000 as Timestamp;
 const BLOCK = 100;
+const WALLET = "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa" as Address;
 
 const onchainSource = {
   list: vi.fn(),
@@ -105,6 +111,23 @@ describe("a read reaches both sources as it was written", () => {
     expect(onchainSource.list).toHaveBeenCalledWith(filter);
     expect(offchainSource.list).toHaveBeenCalledWith(filter);
   });
+
+  it.each([undefined, WALLET])(
+    "hands both sources the strategy key and wallet %s",
+    async wallet => {
+      const key: StrategyOpportunityKey = {
+        chainId: MAINNET,
+        creditManager: "0x3eb9000000000000000000000000000000000000",
+      };
+      onchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
+      offchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
+
+      await namespace().getStrategy(key, wallet);
+
+      expect(onchainSource.getStrategy).toHaveBeenCalledWith(key, wallet);
+      expect(offchainSource.getStrategy).toHaveBeenCalledWith(key, wallet);
+    },
+  );
 });
 
 describe("a source that fails degrades the read instead of failing it", () => {
@@ -270,5 +293,83 @@ describe("filtering an already-read list", () => {
     expect(
       namespace().filter(undefined, { chainIds: [MAINNET] }),
     ).toBeUndefined();
+  });
+});
+
+const KYC: KycRequirement = {
+  protocol: "midas",
+  registrationLink: "https://form.typeform.com/to/DqZaw6kr",
+};
+
+function strategyDetail(
+  source: "onchain" | "offchain",
+  timestamp: Timestamp,
+  extra: Partial<StrategyOpportunityDetail> = {},
+): DataResponse<StrategyOpportunityDetail> {
+  return {
+    data: {
+      chainId: MAINNET,
+      name: source,
+      ...extra,
+    } as StrategyOpportunityDetail,
+    meta: {
+      chains: [
+        {
+          chainId: MAINNET,
+          status: "success",
+          source,
+          blockNumber: BLOCK,
+          timestamp,
+        },
+      ],
+    },
+  };
+}
+
+describe("merge.strategy keeps freshness but takes kyc from the chain", () => {
+  it("overlays on-chain kyc onto a fresh backend body", () => {
+    const onchain = strategyDetail("onchain", NOW, {
+      kyc: KYC,
+      name: "chain",
+    });
+    const offchain = strategyDetail("offchain", (NOW - 5) as Timestamp, {
+      name: "backend",
+    });
+
+    const merged = namespace().merge.strategy(onchain, offchain);
+
+    expect(merged?.data).toEqual({ ...offchain.data, kyc: KYC });
+    expect(merged?.meta).toEqual(offchain.meta);
+  });
+
+  it("returns the chain whole when the backend is too far behind", () => {
+    const onchain = strategyDetail("onchain", NOW, { kyc: KYC });
+    const offchain = strategyDetail(
+      "offchain",
+      (NOW - DEFAULT_MAX_OFFCHAIN_LAG - 1) as Timestamp,
+      { name: "backend" },
+    );
+
+    expect(namespace().merge.strategy(onchain, offchain)).toBe(onchain);
+  });
+
+  it("leaves the backend as it is when the chain did not answer", () => {
+    const offchain = strategyDetail("offchain", NOW, { name: "backend" });
+    const failed: DataResponse<StrategyOpportunityDetail> = {
+      data: { chainId: MAINNET } as StrategyOpportunityDetail,
+      meta: {
+        chains: [
+          {
+            chainId: MAINNET,
+            status: "error",
+            source: "onchain",
+            error: new Error("not attached"),
+          },
+        ],
+      },
+    };
+
+    expect(namespace().merge.strategy(failed, offchain)).toBe(offchain);
+    expect(namespace().merge.strategy(undefined, offchain)).toBe(offchain);
   });
 });

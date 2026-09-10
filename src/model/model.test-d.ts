@@ -192,6 +192,8 @@ import type {
   responseMetadataSchema,
   responseSchema,
 } from "./response.schema.js";
+import type { KycProtocol, KycRequirement } from "./rwa.js";
+import type { kycProtocolSchema, kycRequirementSchema } from "./rwa.schema.js";
 import type {
   PositionClaimableWithdrawal,
   PositionPendingWithdrawal,
@@ -336,6 +338,12 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof strategyOpportunityDetailSchema>
     >().toEqualTypeOf<StrategyOpportunityDetail>();
+    expectTypeOf<
+      z.infer<typeof kycProtocolSchema>
+    >().toEqualTypeOf<KycProtocol>();
+    expectTypeOf<
+      z.infer<typeof kycRequirementSchema>
+    >().toEqualTypeOf<KycRequirement>();
     expectTypeOf<
       z.infer<typeof opportunityDetailSchema>
     >().toEqualTypeOf<OpportunityDetail>();

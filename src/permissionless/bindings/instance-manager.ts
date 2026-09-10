@@ -228,7 +228,22 @@ export class InstanceManagerContract extends BaseContract<typeof abi> {
           saveVersion: saveVersion ? "true" : "false",
         };
       }
-
+      case "setGlobalAddress": {
+        const [key, address, saveVersion] = params.args;
+        return {
+          key: hexToString(key, { size: 32 }),
+          address,
+          saveVersion: saveVersion ? "true" : "false",
+        };
+      }
+      case "setLocalAddress": {
+        const [key, address, saveVersion] = params.args;
+        return {
+          key: hexToString(key, { size: 32 }),
+          address,
+          saveVersion: saveVersion ? "true" : "false",
+        };
+      }
       default:
         return super.parseFunctionParams(params);
     }

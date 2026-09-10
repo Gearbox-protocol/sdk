@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import type { OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/index.js";
-import { MIN_HEALTH_FACTOR_FACADE } from "../../validation/checks.js";
+import { MIN_HEALTH_FACTOR_FACADE } from "../../validation/index.js";
 import { collateralMoney } from "./collateral-money.js";
 import { maxProportionalWithdrawal } from "./math.js";
 import type { CreditAccountSlice, WithdrawCeilings } from "./types.js";
@@ -36,7 +36,7 @@ export function withdrawCeilings(
 ): WithdrawCeilings {
   const { creditAccount, sdk } = props;
   const view = accountView(creditAccount, sdk);
-  const partial = maxProportionalWithdrawal(view, view.band);
+  const partial = maxProportionalWithdrawal(view, view.debtLimits);
   const safe = safeWithdrawCeiling({
     ...props,
     targetHF: BigInt(MIN_HEALTH_FACTOR_FACADE),

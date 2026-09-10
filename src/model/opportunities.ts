@@ -12,6 +12,7 @@ import type {
   Token,
   UnderlyingToken,
 } from "./primitives.js";
+import type { KycRequirement } from "./rwa.js";
 
 /**
  * Discriminator of the two opportunity kinds.
@@ -50,7 +51,7 @@ export interface PointsProgram {
 }
 
 /**
- * Rewards paid out in a token, e.g. a liquidity mining program.
+ * Rewards in a token, e.g. a liquidity mining program.
  **/
 export interface TokenRewards {
   kind: "token";
@@ -356,7 +357,8 @@ export interface StrategyOpportunity extends OpportunityBase {
   /**
    * Largest debt a single new position can take on right now: the tightest of
    * the credit manager's remaining debt limit, the pool's free liquidity and
-   * the facade's per-account maximum.
+   * the facade's per-account `maxDebt`. Zero while borrowing is frozen
+   * (`maxDebtPerBlockMultiplier == 0`).
    **/
   maxBorrowAmount: Amount;
   /**
@@ -663,6 +665,14 @@ export interface StrategyOpportunityDetail extends StrategyOpportunity {
    * Prices and feeds of the underlying and the target collateral.
    **/
   priceFeeds: PriceFeedSummary;
+  /**
+   * Registration the wallet passed to `getStrategy` still needs before it may
+   * open this strategy. `null` when the strategy is not KYC-gated, when no
+   * wallet was given, or when the wallet is already eligible. `undefined`
+   * only in `offchain` mode, where the backend does not evaluate it. In
+   * `both` mode `kyc` is taken from the chain whenever that leg succeeded.
+   **/
+  kyc?: KycRequirement | null;
 }
 
 /**

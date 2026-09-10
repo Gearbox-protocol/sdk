@@ -1,8 +1,8 @@
+import type { RWAOperationArgs } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
   OnchainSDK,
   RawTx,
-  RWAOperationArgs,
 } from "../../onchain/index.js";
 import type { ChainOf } from "../prepare/index.js";
 import type {
@@ -98,6 +98,7 @@ async function openTx(
     calls: state.calls,
     averageQuota: state.averageQuota,
     minQuota: state.minQuota,
+    reopenCreditAccount: state.creditAccount,
     permits: {},
     referralCode: 0n,
     rwaOptions: await openRwaOptions(sdk, request),

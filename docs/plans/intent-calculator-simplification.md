@@ -49,7 +49,7 @@ formula; `adjust-leverage.ts` — 234 lines, both branches duplicating the RWA l
 
 Notation (all in underlying `U`): `TVL0`, `D0` debt, `C0 = TVL0 − D0` own funds,
 `L` total leverage (`LEVERAGE_DECIMALS`, 300n = 3x), `T` position token, `S` source,
-`W` payout.
+`W` withdrawal.
 
 **Formulas:**
 
@@ -131,18 +131,18 @@ Example — withdraw (was 346 lines / 5 branches):
 ```ts
 function planWithdraw(i, v): Step[] {
   const T = i.tokenOut ?? v.underlying, S = i.sourceToken ?? v.fattest();
-  const WU = v.price(T, v.underlying, i.amount);            // payout priced in U
+  const WU = v.price(T, v.underlying, i.amount);            // withdrawal priced in U
   assert(WU > 0 && WU < v.collateral, "insufficientSourceBalance");
   const dD = proportionalDebt(v, WU);
   assertDebtInBand(v.debt − dD, v.band);
   if (eq(T, U)) return [                                     // both flows land in U: one leg
     convert(S, U, price(U, S, WU + dD)),
-    repay(dD, keep = W),                                     // payout first, debt takes the rest
-    ...payout(U, W),
+    repay(dD, keep = W),                                     // withdrawal first, debt takes the rest
+    ...withdraw(U, W),
   ];
   return [
     convert(S, U, price(U, S, dD)),  repay(dD),              // identity if S = U
-    convert(S, T, price(U, S, WU)),  ...payout(T, RAISED),   // identity if S = T
+    convert(S, T, price(U, S, WU)),  ...withdraw(T, RAISED),   // identity if S = T
   ];
 }
 ```
@@ -181,7 +181,7 @@ both start and resume.
 - `utils/simulate-adjust-state.ts`, `utils/with-quota-update.ts`,
   `utils/assemble-operation-calls.ts` → inside `realize.ts`.
 - `operations/*/index.ts` (13 directories) → one `operations.ts`; RWA forced-unwrap moved
-  from `withdraw-collateral` into the plan (`payout` helper).
+  from `withdraw-collateral` into the plan (`withdraw` helper).
 - Per-intent `amount <= 0` checks → one `assertPositive`.
 
 ## 6. Invariants (TDD)

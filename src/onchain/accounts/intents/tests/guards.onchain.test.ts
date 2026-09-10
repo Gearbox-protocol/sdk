@@ -66,14 +66,14 @@ describe("market guards — what no plan can talk its way past", () => {
   it("a paused facade stops everything, withdrawals included", async () => {
     expectPreviewError(
       await run(withdraw, { facadePaused: true }),
-      "marketPaused",
+      "creditManagerPaused",
     );
   });
 
   it("a paused pool pauses the suite that borrows from it", async () => {
     expectPreviewError(
       await run(withdraw, { poolPaused: true }),
-      "marketPaused",
+      "creditManagerPaused",
     );
   });
 
@@ -230,14 +230,14 @@ describe("collateral check — where the transaction has to end", () => {
 
   it("does not judge the underlying at its reserve feed", async () => {
     // 600 UND left is comfortable at the main price of 2, and the credit
-    // manager always prices the underlying at main even on a payout.
+    // manager always prices the underlying at main even on a withdrawal.
     const result = await withUnderlying(40000000000n, {
       reservePrices: { [UND]: toBN("1.5", 8) },
     });
     expect(result.ok).toBe(true);
   });
 
-  it("judges a non-underlying payout at the lower of the two feeds", async () => {
+  it("judges a non-underlying withdrawal at the lower of the two feeds", async () => {
     // POS at $2 main covers the debt; at $1 reserve it does not, so even a
     // wei leaving is refused — and the refusal names the feed that decided it
     // rather than the account's size, which is not what is wrong.
@@ -247,19 +247,21 @@ describe("collateral check — where the transaction has to end", () => {
     );
 
     expectPreviewError(result, "reservePriceLimited");
-    if (result.ok || result.reason !== "reservePriceLimited") {
+    if (result.ok || result.error.code !== "reservePriceLimited") {
       throw new Error("expected the reserve-price refusal");
     }
     // The main feed clears the bar the safe one does not: that gap is the
     // whole evidence for blaming the reserve feed.
-    expect(result.detail.atMainPrices).toBeGreaterThanOrEqual(
-      result.detail.required,
+    expect(result.error.atMainPrices).toBeGreaterThanOrEqual(
+      result.error.healthFactorThreshold,
     );
-    expect(result.detail.healthFactor).toBeLessThan(result.detail.required);
+    expect(result.error.healthFactor).toBeLessThan(
+      result.error.healthFactorThreshold,
+    );
     // Nothing is on offer instead: a proportional withdrawal holds the
     // safe-price factor where it is, so no smaller request clears the bar.
-    expect(result.detail.withdrawable.value).toBe(0n);
-    expect(result.detail.withdrawable.token.address).toBe(UND);
+    expect(result.error.withdrawable.value).toBe(0n);
+    expect(result.error.withdrawable.token.address).toBe(UND);
   });
 
   it("keeps the main price where the reserve feed agrees", async () => {
@@ -289,27 +291,25 @@ describe("openStrategy — the same market, read before there is an account", ()
   it("refuses to open in a paused market", async () => {
     expect(await open({ facadePaused: true })).toMatchObject({
       ok: false,
-      reason: "marketPaused",
-      detail: { creditManager: CREDIT_MANAGER },
+      error: { code: "creditManagerPaused", creditManager: CREDIT_MANAGER },
     });
   });
 
   it("refuses to open beyond what the pool can lend", async () => {
     expect(await open({ availableLiquidity: DEBT - 1n })).toMatchObject({
       ok: false,
-      reason: "insufficientPoolLiquidity",
+      error: { code: "insufficientPoolLiquidity" },
     });
   });
 
   it("refuses to open a position the market forbids holding", async () => {
     expect(await open({ forbiddenTokens: [POS] })).toMatchObject({
       ok: false,
-      reason: "forbiddenToken",
-      detail: { token: { address: POS } },
+      error: { code: "forbiddenToken", token: { address: POS } },
     });
   });
 
-  it("opens when the market has room, which the debt band still bounds", async () => {
+  it("opens when the market has room, which debtLimits still bounds", async () => {
     const result = await open();
 
     expect(result.ok).toBe(true);
@@ -325,10 +325,11 @@ describe("refusal details", () => {
       timestamp: 2000,
     });
 
-    if (result.ok || result.reason !== "marketExpired") {
+    if (result.ok || result.error.code !== "marketExpired") {
       throw new Error("expected marketExpired");
     }
-    expect(result.detail).toEqual({
+    expect(result.error).toMatchObject({
+      code: "marketExpired",
       creditManager: CREDIT_MANAGER,
       expirationDate: 1000,
     });
@@ -337,17 +338,17 @@ describe("refusal details", () => {
   it("a dry pool names what was asked for and what is there", async () => {
     const result = await run(lever, { maxDebtPerBlockMultiplier: 0 });
 
-    if (result.ok || result.reason !== "insufficientPoolLiquidity") {
+    if (result.ok || result.error.code !== "insufficientPoolLiquidity") {
       throw new Error("expected insufficientPoolLiquidity");
     }
-    expect(result.detail.available).toEqual({
+    expect(result.error.available).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: 0n,
       valueUsd: null,
     });
-    expect(result.detail.requested.token.address).toBe(UND);
-    expect(result.detail.requested.value).toBeGreaterThan(0n);
-    expect(result.detail.binding).toBe("facadePerBlockCap");
+    expect(result.error.requested.token.address).toBe(UND);
+    expect(result.error.requested.value).toBeGreaterThan(0n);
+    expect(result.error.limit).toBe("debtPerBlockLimit");
   });
 
   it("a spent quota names the token, and the room in underlying", async () => {
@@ -358,18 +359,18 @@ describe("refusal details", () => {
       },
     });
 
-    if (result.ok || result.reason !== "quotaLimitReached") {
+    if (result.ok || result.error.code !== "quotaLimitReached") {
       throw new Error("expected quotaLimitReached");
     }
     // The quoted token and the amounts are different tokens: a quota is
     // measured in the underlying.
-    expect(result.detail.token.address).toBe(POS);
-    expect(result.detail.available).toEqual({
+    expect(result.error.token.address).toBe(POS);
+    expect(result.error.available).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: 0n,
       valueUsd: null,
     });
-    expect(result.detail.requested?.token.address).toBe(UND);
+    expect(result.error.requested?.token.address).toBe(UND);
   });
 
   it("a token the market quotes nothing for reports no ceiling at all", async () => {
@@ -377,11 +378,11 @@ describe("refusal details", () => {
       quotas: { ...QUOTAS, [POS]: { ...QUOTAS[POS], isActive: false } },
     });
 
-    if (result.ok || result.reason !== "quotaLimitReached") {
+    if (result.ok || result.error.code !== "quotaLimitReached") {
       throw new Error("expected quotaLimitReached");
     }
-    expect(result.detail.requested).toBeUndefined();
-    expect(result.detail.available).toEqual({
+    expect(result.error.requested).toBeUndefined();
+    expect(result.error.available).toEqual({
       token: expect.objectContaining({ address: UND }),
       value: 0n,
       valueUsd: null,
@@ -391,10 +392,11 @@ describe("refusal details", () => {
   it("a forbidden token names itself", async () => {
     const result = await run(lever, { forbiddenTokens: [POS] });
 
-    if (result.ok || result.reason !== "forbiddenToken") {
+    if (result.ok || result.error.code !== "forbiddenToken") {
       throw new Error("expected forbiddenToken");
     }
-    expect(result.detail).toEqual({
+    expect(result.error).toMatchObject({
+      code: "forbiddenToken",
       token: expect.objectContaining({ address: POS }),
     });
   });
@@ -419,11 +421,13 @@ describe("refusal details", () => {
       slippage: undefined,
     });
 
-    if (result.ok || result.reason !== "insufficientCollateral") {
+    if (result.ok || result.error.code !== "insufficientCollateral") {
       throw new Error("expected insufficientCollateral");
     }
-    expect(result.detail.safePrices).toBe(true);
-    expect(result.detail.required).toBe(Number(PERCENTAGE_FACTOR));
-    expect(result.detail.healthFactor).toBeLessThan(result.detail.required);
+    expect(result.error.safePrices).toBe(true);
+    expect(result.error.healthFactorThreshold).toBe(Number(PERCENTAGE_FACTOR));
+    expect(result.error.healthFactor).toBeLessThan(
+      result.error.healthFactorThreshold,
+    );
   });
 });
