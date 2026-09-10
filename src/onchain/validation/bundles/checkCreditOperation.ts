@@ -79,6 +79,7 @@ export async function checkCreditOperation(
       maxDebt: suite.creditFacade.maxDebt,
       underlying,
       allowZero: !isOpening,
+      ceiling: suite.maxBorrowAmount(),
     }),
     ...checkDraw(suite, preview, underlying),
     ...checkObtained(suite, preview),

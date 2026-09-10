@@ -139,6 +139,11 @@ export interface DebtOutOfRangeError extends IGearboxError {
   requested: TokenAmount;
   minDebt: TokenAmount;
   maxDebt: TokenAmount;
+  /** What the market will really lend; absent where the raiser only throws. */
+  ceiling?: {
+    amount: TokenAmount;
+    limit: BorrowLimitCause;
+  };
 }
 
 /** {@inheritDoc DebtOutOfRangeError} */

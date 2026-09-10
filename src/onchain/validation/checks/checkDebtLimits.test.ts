@@ -25,6 +25,24 @@ describe("checkDebtLimits", () => {
     expect(at(99n, true)[0]?.code).toBe("debtOutOfRange");
   });
 
+  it("carries the ceiling the caller supplied, in the same underlying", () => {
+    const [error] = checkDebtLimits({
+      ...limits,
+      debt: 10_001n,
+      allowZero: true,
+      ceiling: { value: 50n, limit: "poolAvailableLiquidity" },
+    });
+
+    expect(error?.ceiling).toEqual({
+      amount: { token: UND, value: 50n, valueUsd: null },
+      limit: "poolAvailableLiquidity",
+    });
+  });
+
+  it("leaves it out for a caller that raises to throw", () => {
+    expect(at(10_001n, true)[0]?.ceiling).toBeUndefined();
+  });
+
   it("exempts a zero debt only where the caller says so", () => {
     // An adjustment may end owing nothing; an opening may not.
     expect(at(0n, true)).toEqual([]);
