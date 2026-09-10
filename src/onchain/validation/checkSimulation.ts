@@ -72,7 +72,7 @@ export function checkSimulation(
       underlying: toToken(sdk, suite.market.pool.underlying),
       // A simulated adjustment may end owing nothing, as one being previewed may.
       allowZero: true,
-      ceiling: suite.maxBorrowAmount(),
+      maxBorrowAmount: suite.maxBorrowAmount(),
     }),
     ...("averageQuota" in state
       ? checkQuotaCount({

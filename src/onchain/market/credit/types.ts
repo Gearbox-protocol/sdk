@@ -1,5 +1,10 @@
 import type { Address, Hex } from "viem";
-import type { BorrowLimitCause, Bps, Leverage } from "../../../model/index.js";
+import type {
+  BorrowLimitCause,
+  Bps,
+  Leverage,
+  TokenAmount,
+} from "../../../model/index.js";
 import type {
   AssertAssignable,
   Asset,
@@ -32,7 +37,7 @@ export interface ICreditConfiguratorContract extends IBaseContract {
  **/
 export interface MaxBorrowAmount {
   /** In the pool's underlying. */
-  value: bigint;
+  amount: TokenAmount;
   /** The limit {@link value} ran into; see {@link BorrowLimitCause}. */
   limit: BorrowLimitCause;
 }

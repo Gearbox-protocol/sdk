@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { MaxBorrowAmount } from "../../onchain/index.js";
 import type { Bps, Token, TokenAmount } from "../primitives.js";
 import type {
   RWAMissingOpenAccountRequirements,
@@ -140,10 +141,7 @@ export interface DebtOutOfRangeError extends IGearboxError {
   minDebt: TokenAmount;
   maxDebt: TokenAmount;
   /** What the market will really lend; absent where the raiser only throws. */
-  ceiling?: {
-    amount: TokenAmount;
-    limit: BorrowLimitCause;
-  };
+  maxBorrowAmount?: MaxBorrowAmount;
 }
 
 /** {@inheritDoc DebtOutOfRangeError} */

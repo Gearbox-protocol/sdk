@@ -384,22 +384,28 @@ export class CreditSuite extends SDKConstruct {
     const { pool } = this.market.pool;
     const { maxDebtPerBlockMultiplier, maxDebt } = this.creditFacade;
     if (maxDebtPerBlockMultiplier === 0) {
-      return { value: 0n, limit: "debtPerBlockLimit" };
+      return {
+        amount: this.market.toUnderlyingAmount(0n),
+        limit: "debtPerBlockLimit",
+      };
     }
     const available = pool.creditManagerDebtParams.get(
       this.creditManager.address,
     )?.available;
 
     // Ties keep the earlier term.
-    const terms: MaxBorrowAmount[] = [
+    const terms: { value: bigint; limit: MaxBorrowAmount["limit"] }[] = [
       { value: pool.availableLiquidity, limit: "poolAvailableLiquidity" },
       ...(available === undefined
         ? []
         : [{ value: available, limit: "managerDebtAvailable" as const }]),
       { value: maxDebt, limit: "maxDebt" },
     ];
+    const { value, limit } = terms.reduce((a, b) =>
+      b.value < a.value ? b : a,
+    );
 
-    return terms.reduce((a, b) => (b.value < a.value ? b : a));
+    return { amount: this.market.toUnderlyingAmount(value), limit };
   }
 
   /**
@@ -484,7 +490,7 @@ export class CreditSuite extends SDKConstruct {
   public strategyOpportunity(): StrategyOpportunity | undefined {
     // Same number the read model exposes below; 0 while borrowing is frozen
     // (maxDebtPerBlockMultiplier == 0), which hides the strategy entirely.
-    const maxBorrowAmount = this.maxBorrowAmount().value;
+    const maxBorrowAmount = this.maxBorrowAmount().amount.value;
     if (maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
       return undefined;
     }

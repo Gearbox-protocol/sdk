@@ -1120,9 +1120,9 @@ describe("prepare → execute on a mainnet fork", () => {
       if (refusal?.code !== "debtOutOfRange") {
         throw new Error("expected debtOutOfRange");
       }
-      expect(refusal.ceiling?.amount.value).toBe(lends.value);
-      expect(refusal.ceiling?.limit).toBe(lends.limit);
-      expect(refusal.ceiling?.amount.token.address).toBe(
+      expect(refusal.maxBorrowAmount?.amount.value).toBe(lends.amount.value);
+      expect(refusal.maxBorrowAmount?.limit).toBe(lends.limit);
+      expect(refusal.maxBorrowAmount?.amount.token.address).toBe(
         refusal.maxDebt.token.address,
       );
     });
@@ -1152,8 +1152,8 @@ describe("prepare → execute on a mainnet fork", () => {
       if (refusal?.code !== "debtOutOfRange") {
         throw new Error("expected debtOutOfRange");
       }
-      expect(refusal.ceiling?.amount.value).toBe(lends.value);
-      expect(refusal.ceiling?.limit).toBe(lends.limit);
+      expect(refusal.maxBorrowAmount?.amount.value).toBe(lends.amount.value);
+      expect(refusal.maxBorrowAmount?.limit).toBe(lends.limit);
     });
 
     it("weighs an opening by the caller's thresholds, like any other account", async () => {

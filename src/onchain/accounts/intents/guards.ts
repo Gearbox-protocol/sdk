@@ -56,15 +56,15 @@ export function assertCanBorrow(
   suite: CreditSuite,
   amount: bigint,
 ): void {
-  const { value, limit } = suite.maxBorrowAmount();
+  const maxBorrowAmount = suite.maxBorrowAmount();
   raise(
     checkBorrowLimit({
       requested: amount,
-      available: value,
-      limit,
+      available: maxBorrowAmount.amount.value,
+      limit: maxBorrowAmount.limit,
       underlying: toToken(sdk, suite.market.pool.underlying),
     }),
-    `borrow: ${amount} exceeds what the pool can lend now (${value})`,
+    `borrow: ${amount} exceeds what the pool can lend now (${maxBorrowAmount.amount.value})`,
   );
 }
 

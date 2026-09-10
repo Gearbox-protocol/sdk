@@ -29,11 +29,11 @@ export function checkDraw(
   if (drawn <= 0n) {
     return [];
   }
-  const { value, limit } = suite.maxBorrowAmount();
+  const maxBorrowAmount = suite.maxBorrowAmount();
   return checkBorrowLimit({
     requested: drawn,
-    available: value,
-    limit,
+    available: maxBorrowAmount.amount.value,
+    limit: maxBorrowAmount.limit,
     underlying,
   });
 }

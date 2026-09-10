@@ -16,12 +16,13 @@ export interface DebtLimitsArgs {
    */
   allowZero: boolean;
   /** From the caller's suite; a caller that raises to throw advises nobody. */
-  ceiling?: MaxBorrowAmount;
+  maxBorrowAmount?: MaxBorrowAmount;
 }
 
 /** A debt the facade would revert on. */
 export function checkDebtLimits(args: DebtLimitsArgs): DebtOutOfRangeError[] {
-  const { debt, minDebt, maxDebt, underlying, allowZero, ceiling } = args;
+  const { debt, minDebt, maxDebt, underlying, allowZero, maxBorrowAmount } =
+    args;
   const outOfRange =
     debt > maxDebt || (debt < minDebt && !(allowZero && debt === 0n));
   if (!outOfRange) {
@@ -32,10 +33,7 @@ export function checkDebtLimits(args: DebtLimitsArgs): DebtOutOfRangeError[] {
       requested: amountOf(underlying, debt),
       minDebt: amountOf(underlying, minDebt),
       maxDebt: amountOf(underlying, maxDebt),
-      ceiling: ceiling && {
-        amount: amountOf(underlying, ceiling.value),
-        limit: ceiling.limit,
-      },
+      maxBorrowAmount,
     }),
   ];
 }
