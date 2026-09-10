@@ -36,7 +36,7 @@ approve and sign steps out by `code`.
 |---|---|---|
 | `creditManagerPaused` | `marketPaused` + `{ creditManager }` | No `"pool" in detail`. |
 | `marketExpired` | `marketExpired` | |
-| `debtOutOfRange` | `debtOutOfRange` | Open/adjust. |
+| `debtOutOfRange` | `debtOutOfRange` | Open/adjust; gains `ceiling` — what the market will lend, and the limit capping it. |
 | `insufficientPoolLiquidity` | `insufficientPoolLiquidity` | Open/adjust; fields renamed: `binding` → `limit`, `solutionAmount` → `maxBorrowAmount`. |
 | `forbiddenToken` | `forbiddenToken` | Open/adjust. |
 | `quotaCountExceeded` | `quotaCountExceeded` | Open/adjust. |

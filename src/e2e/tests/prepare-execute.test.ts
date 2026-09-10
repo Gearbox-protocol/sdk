@@ -14,7 +14,9 @@ import { createAnvilClient } from "../../dev/createAnvilClient.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
+  checkCreditOperation,
   checkOperation,
+  checkSimulation,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
@@ -1100,6 +1102,58 @@ describe("prepare → execute on a mainnet fork", () => {
       // instead of asking again to find out where it is.
       expect(sim.error.maxDebt.value).toBe(ceiling);
       expect(sim.error.requested.value).toBeGreaterThan(ceiling);
+    });
+
+    it("hands the debt refusal the ceiling the suite would actually lend", async () => {
+      await sync();
+      const suite = chain.marketRegister.findCreditManager(CREDIT_MANAGER);
+      const lends = suite.maxBorrowAmount();
+
+      const [refusal] = checkSimulation(chain, {
+        state: {
+          creditManager: CREDIT_MANAGER,
+          totalDebt: { token: USDC, value: suite.creditFacade.maxDebt * 2n },
+          quotas: [],
+        },
+      } as never).filter(e => e.code === "debtOutOfRange");
+
+      if (refusal?.code !== "debtOutOfRange") {
+        throw new Error("expected debtOutOfRange");
+      }
+      expect(refusal.ceiling?.amount.value).toBe(lends.value);
+      expect(refusal.ceiling?.limit).toBe(lends.limit);
+      expect(refusal.ceiling?.amount.token.address).toBe(
+        refusal.maxDebt.token.address,
+      );
+    });
+
+    it("hands a parsed transaction's debt refusal the same ceiling", async () => {
+      await sync();
+      const suite = chain.marketRegister.findCreditManager(CREDIT_MANAGER);
+      const lends = suite.maxBorrowAmount();
+
+      const errors = await checkCreditOperation({
+        sdk: chain,
+        sender: borrower,
+        preview: {
+          operation: "AdjustCreditAccount",
+          creditManager: CREDIT_MANAGER,
+          creditAccount: borrower,
+          totalDebt: { token: USDC, value: suite.creditFacade.maxDebt * 2n },
+          totalDebtChange: { token: USDC, value: 0n },
+          assetsChange: [],
+          quotasChange: [],
+          quotas: [],
+          collateralAdded: [],
+        },
+      } as never);
+      const refusal = errors.find(e => e.code === "debtOutOfRange");
+
+      if (refusal?.code !== "debtOutOfRange") {
+        throw new Error("expected debtOutOfRange");
+      }
+      expect(refusal.ceiling?.amount.value).toBe(lends.value);
+      expect(refusal.ceiling?.limit).toBe(lends.limit);
     });
 
     it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
