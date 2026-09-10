@@ -54,10 +54,12 @@ const mockSDK = {
     execute: {
       buildTx: notImplemented,
     },
+    isEligibleForStrategy: notImplemented,
     onchain: {
       list: notImplemented,
       getPool: notImplemented,
       getStrategy: notImplemented,
+      isEligibleForStrategy: notImplemented,
     },
     offchain: {
       list: notImplemented,

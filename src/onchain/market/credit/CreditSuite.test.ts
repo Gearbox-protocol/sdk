@@ -360,6 +360,9 @@ function kycSuite(degenNFT: Address, token?: Token): CreditSuite {
           : undefined,
       ),
     },
+    marketRegister: {
+      findByCreditManager: () => ({ rwaFactory: undefined }),
+    },
   } as unknown as OnchainSDK;
   return new CreditSuite(sdk, {
     creditManager: { name: "TestCM", pool: ADDRESS_0X0 },
@@ -386,57 +389,97 @@ describe("CreditSuite.degenNFT", () => {
 describe("CreditSuite.kycRequirement", () => {
   it("returns null without RPC when the facade has no degen NFT", async () => {
     await expect(
-      kycSuite(ADDRESS_0X0).kycRequirement(WALLET, TARGET),
+      kycSuite(ADDRESS_0X0).kycRequirement(TARGET),
     ).resolves.toBeNull();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("returns null when the degen NFT is not a KYC gate", async () => {
     create.mockResolvedValue(undefined);
-    await expect(
-      kycSuite(DEGEN).kycRequirement(WALLET, TARGET),
-    ).resolves.toBeNull();
+    await expect(kycSuite(DEGEN).kycRequirement(TARGET)).resolves.toBeNull();
   });
 
   it.each([
     {
-      name: "eligible",
-      eligible: true,
+      name: "Midas mToken",
+      protocol: "midas" as const,
+      tokens: [TARGET],
       token: TOKEN,
-      expected: null,
+      expectedToken: TOKEN,
     },
     {
-      name: "not eligible, token known",
-      eligible: false,
+      name: "Securitize target is DS",
+      protocol: "securitize" as const,
+      tokens: [TARGET],
       token: TOKEN,
-      expected: {
-        protocol: "midas" as const,
-        token: TOKEN,
-        registrationLink: KYC_REGISTRATION_LINKS.midas,
-      },
+      expectedToken: TOKEN,
     },
     {
-      name: "not eligible, token unknown",
-      eligible: false,
+      name: "Securitize target is not DS → first DS token",
+      protocol: "securitize" as const,
+      tokens: [TARGET],
+      target: getAddress("0x6666666666666666666666666666666666666666"),
+      token: TOKEN,
+      expectedToken: TOKEN,
+    },
+    {
+      name: "token unknown to registry",
+      protocol: "midas" as const,
+      tokens: [TARGET],
       token: undefined,
-      expected: {
-        protocol: "midas" as const,
-        token: undefined,
-        registrationLink: KYC_REGISTRATION_LINKS.midas,
-      },
+      expectedToken: undefined,
     },
-  ])("$name", async ({ eligible, token, expected }) => {
-    const checkKyc = vi.fn(async () => ({
-      eligible,
-      token: TARGET,
-    }));
+  ])("$name", async ({ protocol, tokens, target, token, expectedToken }) => {
     create.mockResolvedValue({
-      protocol: "midas",
-      checkKyc,
+      protocol,
+      registrationLink: KYC_REGISTRATION_LINKS[protocol],
+      getTokens: vi.fn(async () => tokens),
     } as unknown as IDegenNFT);
     await expect(
-      kycSuite(DEGEN, token).kycRequirement(WALLET, TARGET),
-    ).resolves.toEqual(expected);
-    expect(checkKyc).toHaveBeenCalledWith(WALLET, TARGET);
+      kycSuite(DEGEN, token).kycRequirement(target ?? TARGET),
+    ).resolves.toEqual({
+      protocol,
+      token: expectedToken,
+      registrationLink: KYC_REGISTRATION_LINKS[protocol],
+    });
+  });
+});
+
+describe("CreditSuite.isEligibleForStrategy", () => {
+  it.each([
+    {
+      name: "no NFT → true",
+      degenNFT: ADDRESS_0X0,
+      nft: undefined,
+      registered: undefined,
+      expected: true,
+    },
+    {
+      name: "registered",
+      degenNFT: DEGEN,
+      nft: true,
+      registered: true,
+      expected: true,
+    },
+    {
+      name: "not registered",
+      degenNFT: DEGEN,
+      nft: true,
+      registered: false,
+      expected: false,
+    },
+  ])("$name", async ({ degenNFT, nft, registered, expected }) => {
+    if (nft) {
+      create.mockResolvedValue({
+        getOpenAccountRequirements: vi.fn(async () => ({})),
+        isRegistered: vi.fn(() => registered),
+      } as unknown as IDegenNFT);
+    }
+    await expect(
+      kycSuite(degenNFT).isEligibleForStrategy(WALLET, TARGET),
+    ).resolves.toBe(expected);
+    if (degenNFT === ADDRESS_0X0) {
+      expect(create).not.toHaveBeenCalled();
+    }
   });
 });

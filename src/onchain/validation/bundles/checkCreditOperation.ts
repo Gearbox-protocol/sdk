@@ -98,6 +98,7 @@ export async function checkCreditOperation(
 
   const [funding, rwa] = await Promise.all([
     checkCollateralFunding({ sdk, preview, sender, blockNumber }),
+    preview.operation === "OpenCreditAccount" ||
     preview.operation === "RWAOpenCreditAccount"
       ? checkRWAOpening({ sdk, preview, sender })
       : [],

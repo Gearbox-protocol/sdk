@@ -357,12 +357,10 @@ export class CreditAccountsServiceV310
     creditManager: Address,
     props: GetOpenAccountRequirementsProps,
   ): Promise<RWAOpenAccountRequirements | undefined> {
-    const { rwaFactory } =
-      this.sdk.marketRegister.findCreditManager(creditManager);
-    if (!rwaFactory) {
-      return undefined;
-    }
-    return rwaFactory.getOpenAccountRequirements(borrower, props);
+    const nft = await this.sdk.marketRegister
+      .findCreditManager(creditManager)
+      .degenNFT();
+    return nft?.getOpenAccountRequirements(borrower, props);
   }
 
   /**

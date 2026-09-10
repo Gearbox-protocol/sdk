@@ -536,11 +536,13 @@ export interface ICreditAccountsService extends Construct {
   getApprovalAddress(props: GetApprovalAddressProps): Promise<Address>;
 
   /**
-   * Returns open account requirements for a borrower
+   * Returns open account requirements for a borrower. `undefined` when the
+   * credit manager has no KYC gate.
+   *
    * @param borrower - Borrower address
    * @param creditManager - Credit manager address
    * @param props - {@link GetOpenAccountRequirementsProps} you can pass StrategyConfigPayload here
-   * @returns Open account requirements or undefined if the user can open a credit account without any further actions
+   * @returns Open account requirements, or `undefined` when there is no KYC gate
    */
   getOpenAccountRequirements(
     borrower: Address,

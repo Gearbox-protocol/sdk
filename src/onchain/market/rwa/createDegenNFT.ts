@@ -35,6 +35,9 @@ export async function createDegenNFT(
   }
   switch (bytes32ToString(contractType.result)) {
     case DEGEN_NFT_MIDAS:
+      // Midas is an RWA protocol without a factory — accounts open through
+      // the plain facade, and only a Permissioned-mode gateway deploys a
+      // degen NFT, so a Midas strategy without KYC has no NFT at all.
       return new MidasDegenNFT(sdk, {
         addr: address,
         version: version.result,

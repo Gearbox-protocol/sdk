@@ -4,6 +4,7 @@ import type { Bps, Token, TokenAmount } from "../primitives.js";
 import type {
   RWAMissingOpenAccountRequirements,
   RWAOpenAccountRequirements,
+  RWAProtocol,
 } from "../rwa.js";
 import type { IGearboxError } from "./base.js";
 
@@ -353,17 +354,19 @@ export function insufficientAllowance(
 }
 
 /**
- * The RWA factory still wants something from the borrower before this token
+ * The RWA protocol still wants something from the borrower before this token
  * can be opened on.
  **/
 export interface RWAOpenRequirementsError extends IGearboxError {
   code: "rwaOpenRequirementsNotMet";
   token: Token;
   creditManager: Address;
-  factory: Address;
+  protocol: RWAProtocol;
+  /** Where the wallet completes registration with {@link protocol}. */
+  registrationLink: string;
   /** Always present on the error. */
   requirements: RWAOpenAccountRequirements;
-  /** Absent when only issuer-side registration is pending. */
+  /** Absent when only issuer-side registration is pending (or Midas greenlist). */
   missing?: RWAMissingOpenAccountRequirements;
 }
 
@@ -373,7 +376,7 @@ export function rwaOpenRequirementsNotMet(
 ): RWAOpenRequirementsError {
   return {
     code: "rwaOpenRequirementsNotMet",
-    message: `The RWA factory still wants something from the borrower before ${args.token.symbol} can be opened on.`,
+    message: `${args.protocol} still wants something from the borrower before ${args.token.symbol} can be opened on.`,
     ...args,
   };
 }

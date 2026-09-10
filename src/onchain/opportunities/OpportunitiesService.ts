@@ -53,15 +53,13 @@ export class OpportunitiesService extends SDKConstruct {
    * A single strategy opportunity plus the rate curve of the pool it borrows
    * from and the price feeds its liquidation price depends on.
    *
-   * @param wallet - When given, `kyc` says whether this wallet must register
-   * with the strategy's KYC provider first; `null` otherwise.
+   * `kyc` is the strategy's KYC gate, independent of any wallet.
    *
    * @throws If the credit manager is unknown, or does not currently offer a
    * strategy.
    **/
   public async getStrategy(
     key: StrategyOpportunityKey,
-    wallet?: Address,
   ): Promise<StrategyOpportunityDetail> {
     const suite = this.sdk.marketRegister.findCreditManager(key.creditManager);
     const detail = suite.strategyOpportunityDetail();
@@ -70,9 +68,31 @@ export class OpportunitiesService extends SDKConstruct {
         `credit manager ${key.creditManager} does not currently offer a strategy`,
       );
     }
-    const kyc = wallet
-      ? await suite.kycRequirement(wallet, detail.targetCollateral.address)
-      : null;
+    const kyc = await suite.kycRequirement(detail.targetCollateral.address);
     return { ...detail, kyc };
+  }
+
+  /**
+   * Whether `wallet` may open this strategy today: `true` when it is not
+   * KYC-gated or the wallet already passed the gate.
+   *
+   * @throws If the credit manager is unknown, or does not currently offer a
+   * strategy.
+   **/
+  public async isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean> {
+    const suite = this.sdk.marketRegister.findCreditManager(key.creditManager);
+    const opportunity = suite.strategyOpportunity();
+    if (!opportunity) {
+      throw new Error(
+        `credit manager ${key.creditManager} does not currently offer a strategy`,
+      );
+    }
+    return suite.isEligibleForStrategy(
+      wallet,
+      opportunity.targetCollateral.address,
+    );
   }
 }

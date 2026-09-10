@@ -1,9 +1,10 @@
 import type { Address } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import {
-  RWA_FACTORY_SECURITIZE,
+  KYC_REGISTRATION_LINKS,
   SECURITIZE_REGISTER_VAULT_TYPES,
   type SecuritizeOpenAccountRequirements,
+  type SecuritizeRegisterVaultMessage,
 } from "../../../../model/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { SecuritizeRWAFactory } from "./index.js";
@@ -15,112 +16,233 @@ const TARGET = "0x5555555555555555555555555555555555555555" as Address;
 const OTHER = "0x6666666666666666666666666666666666666666" as Address;
 const FACTORY = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Address;
 
+const MESSAGE: SecuritizeRegisterVaultMessage = {
+  types: SECURITIZE_REGISTER_VAULT_TYPES,
+  primaryType: "RegisterVault",
+  domain: {
+    name: "VaultRegistrar",
+    version: "1",
+    chainId: 1n,
+    verifyingContract: FACTORY,
+  },
+  message: {
+    investor: WALLET,
+    operator: DEGEN,
+    token: TARGET,
+    nonce: 0n,
+    deadline: 1n,
+  },
+};
+
 function factoryMock(over: {
   tokens?: Address[];
-  requirements?: Awaited<
-    ReturnType<SecuritizeRWAFactory["getOpenAccountRequirements"]>
-  >;
+  investorData?: {
+    registeredTokens: Address[];
+    cachedSignatures: { token: Address }[];
+    registerVaultMessages: SecuritizeRegisterVaultMessage[];
+  };
   throwOnRead?: Error;
 }): SecuritizeRWAFactory {
   return {
     address: FACTORY,
     getTokens: vi.fn(() => over.tokens ?? [TARGET]),
-    getOpenAccountRequirements: over.throwOnRead
-      ? vi.fn(async () => {
-          throw over.throwOnRead;
-        })
-      : vi.fn(async () => over.requirements),
   } as unknown as SecuritizeRWAFactory;
 }
 
-function nftOf(factory: SecuritizeRWAFactory): SecuritizeDegenNFT {
-  return new SecuritizeDegenNFT(
-    { client: {} } as unknown as OnchainSDK,
-    DEGEN,
-    factory,
-  );
+function nftOf(
+  factory: SecuritizeRWAFactory,
+  over: {
+    investorData?: {
+      registeredTokens: Address[];
+      cachedSignatures: { token: Address }[];
+      registerVaultMessages: SecuritizeRegisterVaultMessage[];
+    };
+    throwOnRead?: Error;
+  } = {},
+): { nft: SecuritizeDegenNFT; getInvestorData: ReturnType<typeof vi.fn> } {
+  const getInvestorData = over.throwOnRead
+    ? vi.fn(async () => {
+        throw over.throwOnRead;
+      })
+    : vi.fn(async () => [
+        {
+          registeredTokens: over.investorData?.registeredTokens ?? [],
+          cachedSignatures: over.investorData?.cachedSignatures ?? [],
+          registerVaultMessages: over.investorData?.registerVaultMessages ?? [],
+        },
+      ]);
+  return {
+    nft: new SecuritizeDegenNFT(
+      { rwa: { getInvestorData } } as unknown as OnchainSDK,
+      DEGEN,
+      factory,
+    ),
+    getInvestorData,
+  };
 }
 
-describe("SecuritizeDegenNFT.checkKyc", () => {
-  const message = {
-    types: SECURITIZE_REGISTER_VAULT_TYPES,
-    primaryType: "RegisterVault" as const,
-    domain: {
-      name: "VaultRegistrar",
-      version: "1",
-      chainId: 1n,
-      verifyingContract: FACTORY,
+describe("SecuritizeDegenNFT.getOpenAccountRequirements", () => {
+  it.each([
+    {
+      name: "non-DS target → empty, no compressor read",
+      tokens: [OTHER],
+      tokenOut: TARGET,
+      investorData: undefined,
+      expected: {
+        protocol: "securitize" as const,
+        factory: FACTORY,
+        securitizeTokensToRegister: [],
+        tokensToRegister: [],
+        requiredSignatures: [],
+      },
+      expectRead: false,
     },
-    message: {
-      investor: WALLET,
-      operator: DEGEN,
-      token: TARGET,
-      nonce: 0n,
-      deadline: 1n,
+    {
+      name: "registered and signed",
+      tokens: [TARGET],
+      tokenOut: TARGET,
+      investorData: {
+        registeredTokens: [TARGET],
+        cachedSignatures: [{ token: TARGET }],
+        registerVaultMessages: [MESSAGE],
+      },
+      expected: {
+        protocol: "securitize" as const,
+        factory: FACTORY,
+        securitizeTokensToRegister: [],
+        tokensToRegister: [TARGET],
+        requiredSignatures: [],
+      },
+      expectRead: true,
     },
-  };
+    {
+      name: "registered but unsigned → requiredSignatures",
+      tokens: [TARGET],
+      tokenOut: TARGET,
+      investorData: {
+        registeredTokens: [TARGET],
+        cachedSignatures: [],
+        registerVaultMessages: [MESSAGE],
+      },
+      expected: {
+        protocol: "securitize" as const,
+        factory: FACTORY,
+        securitizeTokensToRegister: [],
+        tokensToRegister: [TARGET],
+        requiredSignatures: [MESSAGE],
+      },
+      expectRead: true,
+    },
+    {
+      name: "unregistered → securitizeTokensToRegister",
+      tokens: [TARGET],
+      tokenOut: TARGET,
+      investorData: {
+        registeredTokens: [],
+        cachedSignatures: [],
+        registerVaultMessages: [MESSAGE],
+      },
+      expected: {
+        protocol: "securitize" as const,
+        factory: FACTORY,
+        securitizeTokensToRegister: [TARGET],
+        tokensToRegister: [TARGET],
+        requiredSignatures: [MESSAGE],
+      },
+      expectRead: true,
+    },
+  ])(
+    "$name",
+    async ({ tokens, tokenOut, investorData, expected, expectRead }) => {
+      const factory = factoryMock({ tokens });
+      const { nft, getInvestorData } = nftOf(factory, { investorData });
+      await expect(
+        nft.getOpenAccountRequirements(WALLET, { tokenOutAddress: tokenOut }),
+      ).resolves.toEqual(expected);
+      if (expectRead) {
+        expect(getInvestorData).toHaveBeenCalledWith(WALLET, [FACTORY]);
+      } else {
+        expect(getInvestorData).not.toHaveBeenCalled();
+      }
+    },
+  );
 
-  const pendingSignatures: SecuritizeOpenAccountRequirements = {
-    type: RWA_FACTORY_SECURITIZE,
+  it("does not swallow a rejected investor-data read", async () => {
+    const factory = factoryMock({ tokens: [TARGET] });
+    const { nft } = nftOf(factory, {
+      throwOnRead: new Error("compressor down"),
+    });
+    await expect(
+      nft.getOpenAccountRequirements(WALLET, { tokenOutAddress: TARGET }),
+    ).rejects.toThrow("compressor down");
+  });
+});
+
+describe("SecuritizeDegenNFT.isRegistered", () => {
+  it.each([
+    { pending: [] as Address[], expected: true },
+    { pending: [TARGET], expected: false },
+  ])("$pending → $expected", ({ pending, expected }) => {
+    const { nft } = nftOf(factoryMock({}));
+    const requirements: SecuritizeOpenAccountRequirements = {
+      protocol: "securitize",
+      factory: FACTORY,
+      securitizeTokensToRegister: pending,
+      tokensToRegister: [TARGET],
+      requiredSignatures: [],
+    };
+    expect(nft.isRegistered(requirements)).toBe(expected);
+  });
+});
+
+describe("SecuritizeDegenNFT.getMissingRequirements", () => {
+  const requirements: SecuritizeOpenAccountRequirements = {
+    protocol: "securitize",
+    factory: FACTORY,
     securitizeTokensToRegister: [],
     tokensToRegister: [TARGET],
-    requiredSignatures: [message],
-  };
-
-  const mustRegister: SecuritizeOpenAccountRequirements = {
-    type: RWA_FACTORY_SECURITIZE,
-    securitizeTokensToRegister: [TARGET],
-    tokensToRegister: [TARGET],
-    requiredSignatures: [],
+    requiredSignatures: [MESSAGE],
   };
 
   it.each([
     {
-      name: "strategy token is not DS-gated",
-      tokens: [OTHER],
-      requirements: undefined,
-      expectRead: false,
-      expected: { eligible: true, token: TARGET },
+      name: "none missing when the signature is on the tx",
+      provided: {
+        protocol: "securitize" as const,
+        tokensToRegister: [TARGET],
+        signaturesToCache: [
+          {
+            token: TARGET,
+            signature: { deadline: 1n, signature: "0xab" as const },
+          },
+        ],
+      },
+      expected: undefined,
     },
     {
-      name: "already registered",
-      tokens: [TARGET],
-      requirements: undefined,
-      expectRead: true,
-      expected: { eligible: true, token: TARGET },
+      name: "still missing without a provided signature",
+      provided: {
+        protocol: "securitize" as const,
+        tokensToRegister: [TARGET],
+        signaturesToCache: [],
+      },
+      expected: {
+        protocol: "securitize" as const,
+        requiredSignatures: [MESSAGE],
+      },
     },
     {
-      name: "pending signatures are not KYC",
-      tokens: [TARGET],
-      requirements: pendingSignatures,
-      expectRead: true,
-      expected: { eligible: true, token: TARGET },
+      name: "none missing when there is nothing to sign",
+      provided: undefined,
+      expected: undefined,
+      emptyRequirements: true,
     },
-    {
-      name: "must register on Securitize",
-      tokens: [TARGET],
-      requirements: mustRegister,
-      expectRead: true,
-      expected: { eligible: false, token: TARGET },
-    },
-  ])("$name", async ({ tokens, requirements, expectRead, expected }) => {
-    const factory = factoryMock({ tokens, requirements });
-    await expect(nftOf(factory).checkKyc(WALLET, TARGET)).resolves.toEqual(
-      expected,
-    );
-    if (expectRead) {
-      expect(factory.getOpenAccountRequirements).toHaveBeenCalledWith(WALLET, {
-        tokenOutAddress: TARGET,
-      });
-    } else {
-      expect(factory.getOpenAccountRequirements).not.toHaveBeenCalled();
-    }
-  });
-
-  it("does not swallow a rejected open-account requirements read", async () => {
-    const factory = factoryMock({ throwOnRead: new Error("compressor down") });
-    await expect(nftOf(factory).checkKyc(WALLET, TARGET)).rejects.toThrow(
-      "compressor down",
-    );
+  ])("$name", ({ provided, expected, emptyRequirements }) => {
+    const { nft } = nftOf(factoryMock({}));
+    const req = emptyRequirements
+      ? { ...requirements, requiredSignatures: [] }
+      : requirements;
+    expect(nft.getMissingRequirements(req, provided)).toEqual(expected);
+    expect(nft.registrationLink).toBe(KYC_REGISTRATION_LINKS.securitize);
   });
 });

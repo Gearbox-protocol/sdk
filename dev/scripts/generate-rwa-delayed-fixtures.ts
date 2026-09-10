@@ -101,10 +101,9 @@ import {
   seedSecuritizePoolLiquidity,
   signRegisterVaultMessages,
 } from "../../src/e2e/helpers/securitize.js";
-import {
-  type DelayedIntent,
-  RWA_FACTORY_SECURITIZE,
-  type SecuritizeOperationArgs,
+import type {
+  DelayedIntent,
+  SecuritizeOperationArgs,
 } from "../../src/model/index.js";
 import {
   AbstractAdapterContract,
@@ -523,16 +522,17 @@ async function openLeveragedAccount({
     cfg.creditManager,
     { tokenOutAddress: cfg.collateralToken },
   );
-  const rwaOptions: SecuritizeOperationArgs | undefined = requirements
-    ? {
-        type: RWA_FACTORY_SECURITIZE,
-        tokensToRegister: requirements.tokensToRegister,
-        signaturesToCache: await signRegisterVaultMessages(
-          wallet,
-          requirements.requiredSignatures,
-        ),
-      }
-    : undefined;
+  const rwaOptions: SecuritizeOperationArgs | undefined =
+    requirements?.protocol === "securitize"
+      ? {
+          protocol: "securitize",
+          tokensToRegister: requirements.tokensToRegister,
+          signaturesToCache: await signRegisterVaultMessages(
+            wallet,
+            requirements.requiredSignatures,
+          ),
+        }
+      : undefined;
 
   // Debt worth 80k USDC, denominated in the underlying. On Securitize
   // markets the borrowed amount is passed to the router in the vault-share
