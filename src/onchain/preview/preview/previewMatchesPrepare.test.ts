@@ -533,7 +533,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
         value: parseEther("2"),
       },
     ]);
-    // 2x levered, so 2 of collateral draws ~2 of debt and the position grows by
+    // 2x levered, so 2 of collateral borrows ~2 of debt and the position grows by
     // both — the proportion is what the preview has to arrive at independently
     expect(preview.totalDebtChange.value).toBeGreaterThan(parseEther("1.9"));
     expect(preview.assetsChange[0]?.value).toBe(
@@ -558,7 +558,7 @@ describe("the preview of what prepare built agrees with what prepare projected",
     }
 
     expectAgreement(preview, projected, NO_DUST);
-    // the whole point of the variant: more debt than the proportional draw
+    // the whole point of the variant: more debt than the proportional borrow
     expect(preview.totalDebtChange.value).toBeGreaterThan(parseEther("10"));
     expect(preview.estLeverage).toBeCloseTo(2.5, 2);
   });

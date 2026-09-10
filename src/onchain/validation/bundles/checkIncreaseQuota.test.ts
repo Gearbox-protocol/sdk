@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { MarketSuite } from "../../market/MarketSuite.js";
 import { TOK, UND } from "../testing/tokens.js";
 import type { CreditOperationPreview } from "./checkCreditOperation.js";
-import { checkQuotasAsked } from "./checkQuotasAsked.js";
+import { checkIncreaseQuota } from "./checkIncreaseQuota.js";
 
 const quota = (value: bigint) => ({
   token: TOK,
@@ -20,10 +20,10 @@ const market = (quoted: boolean, available = 500n) =>
     },
   }) as unknown as MarketSuite;
 
-describe("checkQuotasAsked", () => {
+describe("checkIncreaseQuota", () => {
   it("weighs only an increase", () => {
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(true),
         {
           operation: "AdjustCreditAccount",
@@ -36,7 +36,7 @@ describe("checkQuotasAsked", () => {
 
   it("forwards requested and available for a quoted token", () => {
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(true, 500n),
         {
           operation: "AdjustCreditAccount",
@@ -47,7 +47,7 @@ describe("checkQuotasAsked", () => {
     ).toEqual([]);
 
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(true, 500n),
         {
           operation: "AdjustCreditAccount",
@@ -66,7 +66,7 @@ describe("checkQuotasAsked", () => {
 
   it("forwards requested: undefined for an unquoted token", () => {
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(false),
         {
           operation: "AdjustCreditAccount",
@@ -85,7 +85,7 @@ describe("checkQuotasAsked", () => {
 
   it("reads quotas on open and quotasChange on adjust", () => {
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(false),
         {
           operation: "OpenCreditAccount",
@@ -96,7 +96,7 @@ describe("checkQuotasAsked", () => {
     ).toMatchObject([{ code: "quotaLimitReached" }]);
 
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(false),
         {
           operation: "AdjustCreditAccount",
@@ -108,7 +108,7 @@ describe("checkQuotasAsked", () => {
     ).toMatchObject([{ code: "quotaLimitReached" }]);
 
     expect(
-      checkQuotasAsked(
+      checkIncreaseQuota(
         market(false),
         {
           operation: "AdjustCreditAccount",

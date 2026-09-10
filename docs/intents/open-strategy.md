@@ -93,7 +93,7 @@ flowchart LR
 ## The empty opening
 
 `params.empty` opens the account and stops there: no collateral leaves the
-wallet, no debt is drawn, no route is quoted, and no quota is bought. It exists
+wallet, no debt is borrowed, no route is quoted, and no quota is bought. It exists
 so a wallet can hold an account ahead of being allowed to use one — which
 markets want that is the caller's decision, and the SDK does not gate it.
 

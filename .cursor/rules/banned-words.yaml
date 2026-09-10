@@ -37,3 +37,19 @@ ceiling: |
   maxDebt, quotaAvailable, maxLeverage), or "upper limit" / "max value"
   when there isn't one. Math.ceil / ceilDiv rounding is fine
   ("rounds to the ceiling", "ceiling of a/b").
+draw: |
+  Ban when it means borrowing or increasing debt (checkDraw, drawn,
+  "what the plan draws", "debt drawn from the pool").
+  Contracts say increaseDebt / borrow / borrowed. Prefer those, or
+  debtIncrease for the signed delta this transaction applies.
+  withdraw* is the facade method and stays.
+  Chart/diagram "draw" is fine ("the chart draws", "drawn from window").
+  Idiom "draw the line" — pick another wording.
+ask: |
+  Ban as a name for the protocol amount being requested (checkQuotasAsked,
+  "quotas asked", "what the operation asks for" meaning borrow/quota).
+  The comparison fields are already requested / available — keep those.
+  For a quota the operation raises, say quota increase (updateQuota with
+  quotaChange > 0, quotaIncreaseFee).
+  The English verb is fine: ask a source, caller, form, or router.
+  #ask (ask a data source) stays. task / basket contain the stem; ignore.

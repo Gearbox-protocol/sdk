@@ -11,7 +11,7 @@ describe("checkBorrowLimit", () => {
       underlying: UND,
     });
 
-  it("accepts a draw that exactly exhausts the available amount", () => {
+  it("accepts a borrow that exactly exhausts the available amount", () => {
     expect(at(100n, 100n)).toEqual([]);
   });
 

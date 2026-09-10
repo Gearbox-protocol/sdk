@@ -4,7 +4,7 @@ import { checkQuotaLimit } from "../checks/index.js";
 import type { CreditOperationPreview } from "./checkCreditOperation.js";
 
 /** Every quota the operation raises, against the room the keeper has left. */
-export function checkQuotasAsked(
+export function checkIncreaseQuota(
   market: MarketSuite,
   preview: CreditOperationPreview,
   underlying: Token,

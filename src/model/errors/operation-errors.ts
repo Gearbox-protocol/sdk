@@ -102,7 +102,7 @@ export function poolSunset(pool: Address): PoolSunsetError {
 }
 
 /**
- * The pool cannot lend what the operation asks for.
+ * The pool cannot lend what the operation wants to borrow.
  **/
 export interface InsufficientPoolLiquidityError extends IGearboxError {
   code: "insufficientPoolLiquidity";
@@ -243,7 +243,7 @@ export function forbiddenToken(token: Token): ForbiddenTokenError {
  **/
 export interface QuotaLimitReachedError extends IGearboxError {
   code: "quotaLimitReached";
-  /** The token whose quota is asked for. */
+  /** The token whose quota is increased. */
   token: Token;
   /**
    * In the **underlying**, which is what a quota is measured in. Absent for a

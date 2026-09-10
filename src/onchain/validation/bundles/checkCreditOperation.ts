@@ -15,13 +15,13 @@ import { checkDebtLimits } from "../checks/index.js";
 import { toToken } from "../helpers/index.js";
 import { checkAccountQuotas } from "./checkAccountQuotas.js";
 import { checkCollateralFunding } from "./checkCollateralFunding.js";
-import { checkDraw } from "./checkDraw.js";
 import type { HealthFactorThresholds } from "./checkHealthFactors.js";
 import { checkHealthFactors } from "./checkHealthFactors.js";
+import { checkIncreaseDebt } from "./checkIncreaseDebt.js";
+import { checkIncreaseQuota } from "./checkIncreaseQuota.js";
 import type { MarketStateError } from "./checkMarket.js";
 import { checkMarket } from "./checkMarket.js";
 import { checkObtained } from "./checkObtained.js";
-import { checkQuotasAsked } from "./checkQuotasAsked.js";
 import { checkRWAOpening } from "./checkRWAOpening.js";
 import type { WalletFundingError } from "./checkWallet.js";
 
@@ -55,8 +55,9 @@ export interface CreditOperationArgs extends HealthFactorThresholds {
  * has to hold, approve or sign.
  *
  * The array is in check order, most fundamental first: the market's own state,
- * then what the facade would revert on, then what the operation asks the
- * market for, then the account it leaves behind, and last the wallet's side.
+ * then what the facade would revert on, then what the operation borrows and the
+ * quota it increases, then the account it leaves behind, and last the wallet's
+ * side.
  */
 export async function checkCreditOperation(
   args: CreditOperationArgs,
@@ -81,10 +82,10 @@ export async function checkCreditOperation(
       allowZero: !isOpening,
       maxBorrowAmount: suite.maxBorrowAmount(),
     }),
-    ...checkDraw(suite, preview, underlying),
+    ...checkIncreaseDebt(suite, preview, underlying),
     ...checkObtained(suite, preview),
     ...checkAccountQuotas(suite, preview),
-    ...checkQuotasAsked(market, preview, underlying),
+    ...checkIncreaseQuota(market, preview, underlying),
     // The floor branch, since that is the only one a parsed transaction carries.
     ...checkHealthFactors(
       {

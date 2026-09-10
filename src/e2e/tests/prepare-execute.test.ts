@@ -1088,7 +1088,7 @@ describe("prepare → execute on a mainnet fork", () => {
         chain.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade
           .maxDebt;
       const sim = await prepare().depositStrategy(position(creditAccount), {
-        // at the leverage held, this much collateral draws more than maxDebt
+        // at the leverage held, this much collateral borrows more than maxDebt
         token: USDC,
         amount: maxDebt * 2n,
         positionToken: TARGET_TOKEN,
