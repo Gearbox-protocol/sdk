@@ -30,17 +30,20 @@ describe("checkDebtLimits", () => {
       ...limits,
       debt: 10_001n,
       allowZero: true,
-      ceiling: { value: 50n, limit: "poolAvailableLiquidity" },
+      maxBorrowAmount: {
+        amount: { token: UND, value: 50n, valueUsd: null },
+        limit: "poolAvailableLiquidity",
+      },
     });
 
-    expect(error?.ceiling).toEqual({
+    expect(error?.maxBorrowAmount).toEqual({
       amount: { token: UND, value: 50n, valueUsd: null },
       limit: "poolAvailableLiquidity",
     });
   });
 
   it("leaves it out for a caller that raises to throw", () => {
-    expect(at(10_001n, true)[0]?.ceiling).toBeUndefined();
+    expect(at(10_001n, true)[0]?.maxBorrowAmount).toBeUndefined();
   });
 
   it("exempts a zero debt only where the caller says so", () => {

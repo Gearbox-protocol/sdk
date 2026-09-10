@@ -230,6 +230,7 @@ function maxBorrowOf(args: {
       maxDebtPerBlockMultiplier: args.multiplier,
     },
     market: {
+      toUnderlyingAmount: (value: bigint) => ({ value }),
       pool: {
         pool: {
           availableLiquidity: args.availableLiquidity,
@@ -255,7 +256,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
         multiplier: 1,
         managerAvailable: 500n,
       }),
-    ).toEqual({ value: 100n, limit: "poolAvailableLiquidity" });
+    ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
   });
 
   it("reports the facade's per-account maxDebt when it is the tightest", () => {
@@ -266,7 +267,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
         multiplier: 2,
         managerAvailable: 500n,
       }),
-    ).toEqual({ value: 50n, limit: "maxDebt" });
+    ).toEqual({ amount: { value: 50n }, limit: "maxDebt" });
   });
 
   it("reports the manager's remaining allowance when it is the tightest", () => {
@@ -277,7 +278,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
         multiplier: 1,
         managerAvailable: 7n,
       }),
-    ).toEqual({ value: 7n, limit: "managerDebtAvailable" });
+    ).toEqual({ amount: { value: 7n }, limit: "managerDebtAvailable" });
   });
 
   it("keeps the earlier term when two limits tie", () => {
@@ -288,13 +289,13 @@ describe("CreditSuite.maxBorrowAmount", () => {
         multiplier: 1,
         managerAvailable: 100n,
       }),
-    ).toEqual({ value: 100n, limit: "poolAvailableLiquidity" });
+    ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
   });
 
   it("omits the manager's allowance when the pool reports none for it", () => {
     expect(
       maxBorrowOf({ availableLiquidity: 1000n, maxDebt: 40n, multiplier: 1 }),
-    ).toEqual({ value: 40n, limit: "maxDebt" });
+    ).toEqual({ amount: { value: 40n }, limit: "maxDebt" });
   });
 
   it("is zero when borrowing is switched off for the block", () => {
@@ -305,14 +306,17 @@ describe("CreditSuite.maxBorrowAmount", () => {
         multiplier: 0,
         managerAvailable: 1000n,
       }),
-    ).toEqual({ value: 0n, limit: "debtPerBlockLimit" });
+    ).toEqual({ amount: { value: 0n }, limit: "debtPerBlockLimit" });
   });
 });
 
 describe("CreditSuite.strategyOpportunity", () => {
   it("is absent while borrowing is frozen", () => {
     const suite = {
-      maxBorrowAmount: () => ({ value: 0n, limit: "debtPerBlockLimit" }),
+      maxBorrowAmount: () => ({
+        amount: { value: 0n },
+        limit: "debtPerBlockLimit",
+      }),
     } as unknown as CreditSuite;
     expect(
       CreditSuite.prototype.strategyOpportunity.call(suite),
