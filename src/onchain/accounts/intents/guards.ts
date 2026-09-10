@@ -1,3 +1,4 @@
+import type { Bps, TokenAmount } from "../../../model/index.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { MarketSuite } from "../../market/MarketSuite.js";
@@ -8,6 +9,7 @@ import {
   checkForbiddenToken,
   checkMarketExpired,
   checkQuotaLimit,
+  checkReservePriceLimited,
   MIN_HEALTH_FACTOR_FACADE,
 } from "../../validation/checks.js";
 import { type BorrowLimitBinding, raise } from "../../validation/refusal.js";
@@ -193,17 +195,54 @@ export function assertGrowthAllowed(args: {
 export function assertCollateralised(
   healthFactorBps: number,
   safePrices: boolean,
+  atSafePrices?: SafePriceEvidence,
 ): void {
   const required = MIN_HEALTH_FACTOR_FACADE;
+  const issue = checkCollateralised({
+    healthFactor: healthFactorBps,
+    required,
+    safePrices,
+  });
+  if (!issue) {
+    return;
+  }
+
+  // A refusal that blames the reserve feed has to show the main feed would have
+  // passed, and both numbers cost a full valuation — so they are read here,
+  // once the plain check has already turned the plan down.
+  if (safePrices && atSafePrices) {
+    const { atMainPrices, withdrawable } = atSafePrices();
+    raise(
+      checkReservePriceLimited({
+        healthFactor: healthFactorBps,
+        atMainPrices,
+        required,
+        withdrawable,
+      }),
+      `the account covers its debt at ${atMainPrices} on the main feed and only ${healthFactorBps} at the reserve one, below ${required}`,
+    );
+  }
+
   raise(
-    checkCollateralised({
-      healthFactor: healthFactorBps,
-      required,
-      safePrices,
-    }),
+    issue,
     `the account would end at a health factor of ${healthFactorBps}, below ${required}`,
   );
 }
+
+/**
+ * What tells a reserve feed marking collateral down apart from a position that
+ * is simply too small, read only when the collateral check has already failed.
+ *
+ * A thunk because both halves are expensive: the account has to be valued a
+ * second time at the main feed, and the ceiling solved for the amount that
+ * would still clear the check.
+ */
+export type SafePriceEvidence = () => {
+  /** The plan's end state weighed at the main feed. */
+  atMainPrices: Bps;
+  /** What the account can still take out, in the market's underlying. */
+  withdrawable: TokenAmount;
+};
 
 /**
  * A quota can only be raised as far as the market still has room for: past the

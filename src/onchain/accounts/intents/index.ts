@@ -15,7 +15,6 @@ import {
   type LeverageBand,
   type LeverageBandProps,
 } from "./leverage-band.js";
-import { maxProportionalWithdrawal } from "./math.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
   buildOpenStrategyState,
@@ -55,6 +54,7 @@ import type {
   WithdrawCeilings,
 } from "./types.js";
 import { accountView } from "./view.js";
+import { withdrawCeilings } from "./withdraw-ceilings.js";
 
 export type { LeverageBand } from "./leverage-band.js";
 export type {
@@ -159,30 +159,33 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Both ends of what a `WITHDRAW` can take out, in underlying: the largest
-   * partial withdrawal that keeps leverage and stays inside the facade's debt
-   * band, and the net value an exit hands over. They are reported together
-   * because a withdraw form needs both — the range it may offer, and the one
-   * amount past it that is allowed — and because the distance between them is
-   * the account's own, not a constant a caller could assume.
+   * partial withdrawal that keeps leverage, and the net value an exit hands
+   * over. They are reported together because a withdraw form needs both — the
+   * range it may offer, and the one amount past it that is allowed — and
+   * because the distance between them is the account's own, not a constant a
+   * caller could assume.
    *
-   * Takes no target health factor, unlike {@link maxWithdrawCollateral}: a
-   * proportional withdrawal leaves the factor where it found it, and the
-   * facade's `minDebt` is what bounds it.
+   * Two rules bound the partial end and both are reported: the facade's debt
+   * band as `partial`, and the safe-price collateral check on top of it as
+   * `safePartial`. The second is the one to offer — see
+   * {@link WithdrawCeilings}.
    *
-   * @param props - Account slice and the SDK holding its market
-   * @returns The two ceilings, see {@link WithdrawCeilings} for the gap between
+   * Takes no target health factor, unlike {@link maxWithdrawCollateral}. A
+   * proportional withdrawal leaves the factor where it found it, so there is no
+   * headroom to choose: what the ceilings answer to is the facade's own bar,
+   * which is also what {@link startIntent} refuses against.
+   *
+   * @param props - Account slice, the SDK holding its market, and optionally
+   * the collateral the withdrawal would be funded from
+   * @returns The ceilings, see {@link WithdrawCeilings} for the gap between
    * them
    */
   maxWithdraw(
-    props: Pick<StartIntentProps, "creditAccount" | "sdk">,
+    props: Pick<StartIntentProps, "creditAccount" | "sdk"> & {
+      sourceToken?: Address;
+    },
   ): WithdrawCeilings {
-    const view = accountView(props.creditAccount, props.sdk);
-    return {
-      partial: maxProportionalWithdrawal(view, view.band),
-      // an account underwater owes more than it holds, and has nothing to hand
-      // over on the way out
-      exit: view.collateral > 0n ? view.collateral : 0n,
-    };
+    return withdrawCeilings(props);
   }
 
   /**

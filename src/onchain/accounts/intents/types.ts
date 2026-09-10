@@ -448,12 +448,34 @@ export interface WithdrawStrategyIntent {
  */
 export interface WithdrawCeilings {
   /**
-   * Largest partial withdrawal {@link WithdrawStrategyIntent} accepts: the one
-   * whose proportional repayment leaves the debt at `minDebt`. `0n` when the
-   * debt already sits below the floor, and always at least one unit under
-   * `exit` — the last unit closes the account rather than shrinking it.
+   * Largest partial withdrawal the facade's debt band accepts: the one whose
+   * proportional repayment leaves the debt at `minDebt`. `0n` when the debt
+   * already sits below the floor, and always at least one unit under `exit` —
+   * the last unit closes the account rather than shrinking it.
+   *
+   * The band is not the only rule a withdrawal answers to, so this is a
+   * ceiling rather than the ceiling: {@link safePartial} is the one to offer.
    */
   partial: bigint;
+  /**
+   * Largest partial withdrawal {@link WithdrawStrategyIntent} actually accepts
+   * — {@link partial} once the safe-price collateral check has had its say,
+   * and never above it.
+   *
+   * A withdrawal hands funds over, and the facade weighs what it leaves behind
+   * at safe prices: `min` of a token's two feeds, or nothing at all where
+   * governance registered no reserve feed. Collateral the reserve feed marks
+   * down therefore backs less than a projection at main prices suggests, and
+   * the withdrawal stops earlier than the debt band alone would say. This is
+   * the figure a slider and a Max button belong on.
+   *
+   * `0n` on an account already under the bar at safe prices. That is not a
+   * rounding artefact and a smaller request does not help: a proportional
+   * withdrawal leaves the safe-price factor exactly where it found it, so no
+   * amount clears a bar the account is already under. Such a position can
+   * still leave — see {@link exit}, which the check never refuses.
+   */
+  safePartial: bigint;
   /**
    * What leaving hands over: the account's net value, which is also the amount
    * at which a withdrawal turns into an exit. `0n` on an account whose debt

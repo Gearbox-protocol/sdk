@@ -23,6 +23,7 @@ import type {
   PoolSunsetError,
   QuotaCountExceededError,
   QuotaLimitReachedError,
+  ReservePriceLimitedError,
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
@@ -96,6 +97,7 @@ describe("every prepare method names exactly its own refusals", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientSourceBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -117,6 +119,7 @@ describe("every prepare method names exactly its own refusals", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientSourceBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -135,6 +138,7 @@ describe("every prepare method names exactly its own refusals", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientSourceBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -148,6 +152,7 @@ describe("every prepare method names exactly its own refusals", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientSourceBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -165,6 +170,7 @@ describe("every prepare method names exactly its own refusals", () => {
           | ForbiddenTokenError
           | QuotaLimitReachedError
           | InsufficientCollateralError
+          | ReservePriceLimitedError
           | InsufficientSourceBalanceError
           | CreditAccountNotFoundError
           | UnexpectedFailureError
@@ -189,6 +195,7 @@ describe("every prepare method names exactly its own refusals", () => {
           | ForbiddenTokenError
           | QuotaLimitReachedError
           | InsufficientCollateralError
+          | ReservePriceLimitedError
           | InsufficientSourceBalanceError
           | CreditAccountNotFoundError
           | UnexpectedFailureError
@@ -214,6 +221,7 @@ describe("every prepare method names exactly its own refusals", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientSourceBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError

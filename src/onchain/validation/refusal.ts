@@ -60,6 +60,12 @@ export type PreviewErrorReason =
    * worth under liquidation thresholds, which the facade refuses to allow.
    */
   | "insufficientCollateral"
+  /**
+   * The same refusal, traced to the reserve price feed: the account covers its
+   * debt at the main feed and does not at the safe one, which is the feed a
+   * call handing funds over is weighed at.
+   */
+  | "reservePriceLimited"
   /** The pool is winding down: it still pays out, but takes no more deposits. */
   | "poolSunset"
   /**
@@ -151,6 +157,25 @@ export interface PreviewErrorDetails {
     healthFactor: Bps;
     required: Bps;
     safePrices: boolean;
+  };
+  /**
+   * `healthFactor` is the safe-price factor the plan would have ended at and
+   * `atMainPrices` the same account at the main feed — the pair is the evidence
+   * that the reserve feed is what stands in the way, since only the first is
+   * under `required`.
+   *
+   * `withdrawable` is what the account can still take out under the same
+   * check, in the market's underlying: the `safePartial` of
+   * `WithdrawCeilings`, computed by the same code that answers `maxWithdraw`,
+   * so a form can offer it without asking again. `0n` says no partial
+   * withdrawal clears the bar at all and only leaving entirely does — a
+   * proportional withdrawal cannot lift a factor it holds constant.
+   */
+  reservePriceLimited: {
+    healthFactor: Bps;
+    atMainPrices: Bps;
+    required: Bps;
+    withdrawable: TokenAmount;
   };
   poolSunset: { pool: Address };
   /** How many quoted tokens the account would end with, against the cap. */

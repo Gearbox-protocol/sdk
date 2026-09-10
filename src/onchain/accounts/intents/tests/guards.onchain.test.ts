@@ -239,14 +239,27 @@ describe("collateral check — where the transaction has to end", () => {
 
   it("judges a non-underlying payout at the lower of the two feeds", async () => {
     // POS at $2 main covers the debt; at $1 reserve it does not, so even a
-    // wei leaving is refused.
-    expectPreviewError(
-      await run(
-        { type: "WITHDRAW_ASSET", token: POS, amount: 1n, to: WALLET },
-        { reservePrices: { [POS]: toBN("1", 8), [UND]: toBN("2", 8) } },
-      ),
-      "insufficientCollateral",
+    // wei leaving is refused — and the refusal names the feed that decided it
+    // rather than the account's size, which is not what is wrong.
+    const result = await run(
+      { type: "WITHDRAW_ASSET", token: POS, amount: 1n, to: WALLET },
+      { reservePrices: { [POS]: toBN("1", 8), [UND]: toBN("2", 8) } },
     );
+
+    expectPreviewError(result, "reservePriceLimited");
+    if (result.ok || result.reason !== "reservePriceLimited") {
+      throw new Error("expected the reserve-price refusal");
+    }
+    // The main feed clears the bar the safe one does not: that gap is the
+    // whole evidence for blaming the reserve feed.
+    expect(result.detail.atMainPrices).toBeGreaterThanOrEqual(
+      result.detail.required,
+    );
+    expect(result.detail.healthFactor).toBeLessThan(result.detail.required);
+    // Nothing is on offer instead: a proportional withdrawal holds the
+    // safe-price factor where it is, so no smaller request clears the bar.
+    expect(result.detail.withdrawable.value).toBe(0n);
+    expect(result.detail.withdrawable.token.address).toBe(UND);
   });
 
   it("keeps the main price where the reserve feed agrees", async () => {

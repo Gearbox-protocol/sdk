@@ -1,7 +1,8 @@
 import type { Address } from "viem";
-import { DUST_THRESHOLD, PERCENTAGE_FACTOR } from "../../constants/math.js";
-import type { IPriceOracleContract, OnchainSDK } from "../../index.js";
+import { DUST_THRESHOLD } from "../../constants/math.js";
+import type { OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/index.js";
+import { collateralMoney } from "./collateral-money.js";
 import type { CreditAccountSlice } from "./types.js";
 import { eq } from "./utils/common.js";
 
@@ -19,14 +20,9 @@ export interface MaxWithdrawCollateralProps {
  * factor stays at or above `targetHF`.
  *
  * This is the collateral check solved for one balance, and it counts what that
- * check counts: a holding backed by a quota contributes the lesser of the
- * quota and its threshold-weighted value, an unquoted one — the underlying —
- * its weighted value alone, and dust or a disabled balance nothing at all.
- * Collateral is valued at the protocol safe price (`min` of the two feeds,
- * 0 when there is no reserve), the way the facade values a call that hands
- * funds over; the underlying is exempt and is valued at the main feed, as
- * `CreditManagerV3._safeConvertToUSD` does. The debt is valued at the main
- * feed, as the check does. Zero debt frees the whole balance.
+ * check counts — see {@link collateralMoney} for the valuation, safe prices
+ * included. The debt is valued at the main feed, as the check does. Zero debt
+ * frees the whole balance.
  *
  * Rounding always favours the account, so the answer clears the check rather
  * than landing a wei short of it.
@@ -39,12 +35,6 @@ export function maxWithdrawCollateral(
   props: MaxWithdrawCollateralProps,
 ): bigint {
   const { creditAccount, sdk, token, targetHF } = props;
-  const { market, creditManager } = sdk.marketRegister.findCreditManager(
-    creditAccount.creditManager,
-  );
-  const { priceOracle } = market;
-  const { pqk } = market.pool;
-  const underlying = market.pool.underlying;
 
   const target = creditAccount.tokens.find(t => eq(t.token, token));
   if (!target || target.balance <= DUST_THRESHOLD) {
@@ -54,45 +44,19 @@ export function maxWithdrawCollateral(
     return target.balance;
   }
 
-  // A slice assembled for a `prepare` call carries no mask, and that means
-  // "unknown" rather than "everything disabled".
-  const masked = creditAccount.enabledTokensMask !== 0n;
-  const counts = (t: CreditAccountSlice["tokens"][number]): boolean =>
-    t.balance > DUST_THRESHOLD &&
-    (!masked || (t.mask & creditAccount.enabledTokensMask) !== 0n);
-
-  /** What a holding backs, in the check's units: USD × PERCENTAGE_FACTOR. */
-  const weigh = (t: CreditAccountSlice["tokens"][number]): bigint => {
-    const lt = BigInt(creditManager.liquidationThresholds.get(t.token) ?? 0);
-    const valueUsd = eq(t.token, underlying)
-      ? (usd(priceOracle, t.token, t.balance) ?? 0n)
-      : priceOracle.safeConvertMinUSD(t.token, t.balance).value;
-    const weighted = valueUsd * lt;
-    // no quota bought is how an unquoted token reads, and the underlying is
-    // the one every account holds
-    if (t.quota === 0n) {
-      return weighted;
-    }
-    return BigIntMath.min(quotaUsd(t) * PERCENTAGE_FACTOR, weighted);
-  };
-
-  /** A quota is underlying-denominated, and a closed market backs nothing. */
-  const quotaUsd = (t: CreditAccountSlice["tokens"][number]): bigint =>
-    pqk.hasActiveQuota(t.token)
-      ? (usd(priceOracle, underlying, t.quota) ?? 0n)
-      : 0n;
+  const money = collateralMoney(creditAccount, sdk);
 
   let otherMoney = 0n;
   for (const t of creditAccount.tokens) {
-    if (eq(t.token, token) || !counts(t)) {
+    if (eq(t.token, token) || !money.counts(t)) {
       continue;
     }
-    otherMoney += weigh(t);
+    otherMoney += money.weigh(t);
   }
 
   // The debt is what the check divides by: without a price for it there is no
   // ceiling to offer, rather than an unbounded one.
-  const borrowed = usd(priceOracle, underlying, creditAccount.totalDebt);
+  const borrowed = money.mainUsd(money.underlying, creditAccount.totalDebt);
   if (borrowed === undefined || borrowed <= 0n) {
     return 0n;
   }
@@ -105,16 +69,12 @@ export function maxWithdrawCollateral(
 
   // A quoted holding backs at most its quota, so a quota short of the
   // shortfall cannot be helped by keeping more of the token.
-  if (target.quota > 0n && quotaUsd(target) * PERCENTAGE_FACTOR < shortfall) {
+  if (target.quota > 0n && money.quotaMoney(target) < shortfall) {
     return 0n;
   }
 
-  const targetLt = BigInt(
-    creditManager.liquidationThresholds.get(target.token) ?? 0,
-  );
-  const targetUsd = eq(target.token, underlying)
-    ? (usd(priceOracle, target.token, target.balance) ?? 0n)
-    : priceOracle.safeConvertMinUSD(target.token, target.balance).value;
+  const targetLt = money.lt(target.token);
+  const targetUsd = money.checkedUsd(target);
   if (targetLt === 0n || targetUsd === 0n) {
     return 0n;
   }
@@ -126,17 +86,4 @@ export function maxWithdrawCollateral(
   const kept = BigIntMath.ceilDiv(target.balance * keptUsd, targetUsd);
 
   return kept >= target.balance ? 0n : target.balance - kept;
-}
-
-/** USD value at the main feed, or `undefined` when the token has no price. */
-function usd(
-  oracle: IPriceOracleContract,
-  token: Address,
-  amount: bigint,
-): bigint | undefined {
-  try {
-    return oracle.convertToUSD(token, amount);
-  } catch {
-    return undefined;
-  }
 }

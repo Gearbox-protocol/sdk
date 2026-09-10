@@ -43,6 +43,7 @@ import {
   quotasAfterUpdate,
 } from "./utils/quotas-for-update.js";
 import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
+import { withdrawCeilings } from "./withdraw-ceilings.js";
 
 export interface RealizeProps {
   creditAccount: CreditAccountSlice;
@@ -523,12 +524,22 @@ export async function realize(
   // the transaction can be signed against. A call that hands funds over is
   // checked against safe prices on-chain, so the factor that decides it is not
   // the one reported either.
+  const settled = { ...snapshot, assets, totalValue: floor.totalValue };
   assertCollateralised(
-    sdk.positions.healthFactor(
-      { ...snapshot, assets, totalValue: floor.totalValue },
-      { safePrices: paysOut },
-    ),
+    sdk.positions.healthFactor(settled, { safePrices: paysOut }),
     paysOut,
+    () => ({
+      atMainPrices: sdk.positions.healthFactor(settled, { safePrices: false }),
+      // The ceiling is read off the account as it stands, not off the state the
+      // plan failed to reach — a caller asking "how much then" means the
+      // request it should send instead, and that is the same number
+      // `maxWithdraw` answers.
+      withdrawable: toTokenAmount(
+        sdk,
+        underlying,
+        withdrawCeilings({ creditAccount, sdk }).safePartial,
+      ),
+    }),
   );
 
   // After the guards, so a refusal never waits on a measurement it will not report.

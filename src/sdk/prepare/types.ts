@@ -599,26 +599,36 @@ export interface IOpportunitiesPrepare {
   >;
 
   /**
-   * How much {@link withdrawStrategy} can take out, both ends of it, in
-   * underlying units: `partial` is the largest withdrawal that keeps leverage
-   * and leaves the debt at the credit manager's `minDebt`, `exit` is the net
-   * value leaving entirely hands over.
+   * How much {@link withdrawStrategy} can take out, every end of it, in
+   * underlying units: `safePartial` is the largest partial withdrawal the flow
+   * accepts, `partial` the same figure before the safe-price collateral check
+   * has had its say, and `exit` the net value leaving entirely hands over.
    *
-   * Two numbers rather than one because the range has a hole in it: between
-   * them the flow refuses with `debtOutOfRange`, since the leftover loan would
-   * sit below the floor. A form driving a slider off `partial` and a Max
-   * button off `exit` describes what the account can actually do; a form using
-   * either alone will misstate one of them — see {@link WithdrawCeilings},
-   * which spells out how far apart they can be.
+   * More than one number because the range has a hole in it: between the
+   * partial ceiling and `exit` the flow refuses with `debtOutOfRange`, since
+   * the leftover loan would sit below the floor. A form driving a slider off
+   * `safePartial` and a Max button off `exit` describes what the account can
+   * actually do; a form using either alone will misstate one of them — see
+   * {@link WithdrawCeilings}, which spells out how far apart they can be and
+   * why the two partial figures differ.
    *
-   * Taking everything out needs neither figure: send `MAX_UINT256` to
+   * `sourceToken` is the collateral the withdrawal would be funded from, the
+   * same argument {@link withdrawStrategy} takes. It matters because selling
+   * one collateral and selling another cost the safe-price check different
+   * amounts; omitted, both this and the flow itself reach for the account's
+   * fattest non-phantom balance.
+   *
+   * Taking everything out needs none of the figures: send `MAX_UINT256` to
    * {@link withdrawStrategy} and the exit is what runs, named rather than
    * priced.
    *
    * A bare read: it answers its numbers, and throws on an account or a chain
    * the SDK does not hold.
    **/
-  maxWithdraw(position: PositionInput): Promise<WithdrawCeilings>;
+  maxWithdraw(
+    position: PositionInput,
+    sourceToken?: Address,
+  ): Promise<WithdrawCeilings>;
 
   /**
    * Paying debt down with funds from the wallet: collateral stays where it is,

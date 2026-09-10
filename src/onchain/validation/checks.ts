@@ -232,6 +232,40 @@ export function checkCollateralised(args: {
   };
 }
 
+/**
+ * Whether a failed collateral check is the reserve price feed's doing.
+ *
+ * A call that hands funds over is weighed at safe prices — `min` of a token's
+ * two feeds, and nothing at all where governance registered no reserve feed —
+ * so an account that covers its debt at the main feed can still be refused. The
+ * two are worth telling apart: a position that is genuinely too small is fixed
+ * by adding collateral or asking for less, while this one is a valuation the
+ * account does not control, and asking for less only helps as far as
+ * `withdrawable` says it does.
+ *
+ * Runs after {@link checkCollateralised} and answers only when that one
+ * refused, so the caller keeps its own bar rather than restating it here.
+ */
+export function checkReservePriceLimited(args: {
+  /** The safe-price factor, the one the check compared. */
+  healthFactor: Bps;
+  /** The same account at the main feed. */
+  atMainPrices: Bps;
+  required: Bps;
+  /** What the account can still take out, in the market's underlying. */
+  withdrawable: TokenAmount;
+}): PreviewIssue | null {
+  const { healthFactor, atMainPrices, required, withdrawable } = args;
+  // Under the bar at both feeds: the reserve one is not what decided it.
+  if (healthFactor >= required || atMainPrices < required) {
+    return null;
+  }
+  return {
+    reason: "reservePriceLimited",
+    detail: { healthFactor, atMainPrices, required, withdrawable },
+  };
+}
+
 /** A token the market will not let the account hold. */
 export function checkForbiddenToken(args: {
   token: Token;
