@@ -1318,13 +1318,8 @@ describe("prepare → execute on a mainnet fork", () => {
   // block mined before them costs three wei of accrual and breaks their
   // exact-value assertions.
   describe("openNewStrategy — the empty opening", () => {
-    // Nothing here is read; the three of them are what the flag has to agree
-    // with.
-    const EMPTY_OPEN = {
-      empty: true,
-      collateral: [],
-      leverage: 0n,
-    };
+    // The market is the whole request; the union has no room for anything else.
+    const EMPTY_OPEN = { empty: true } as const;
 
     /** Opens the empty account on the synced state and returns its address. */
     async function openEmpty(): Promise<Address> {
