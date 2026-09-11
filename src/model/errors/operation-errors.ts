@@ -222,6 +222,56 @@ export function insufficientCollateral(
 }
 
 /**
+ * The same failure as {@link InsufficientCollateralError}, traced to the
+ * reserve price feed rather than to the size of the position.
+ *
+ * A call that hands funds over is weighed at safe prices — `min` of a token's
+ * two feeds, and nothing at all for collateral governance registered no
+ * reserve feed for — so an account that covers its debt at the main feed can
+ * still be refused. Worth its own code because the two call for opposite
+ * words: an under-collateralised position is fixed by adding collateral or
+ * requesting less, while this is a valuation the account does not control, and
+ * requesting less only helps as far as {@link withdrawable} says it does.
+ **/
+export interface ReservePriceLimitedError extends IGearboxError {
+  code: "reservePriceLimited";
+  /** The safe-price factor the operation would have ended at. */
+  healthFactor: Bps;
+  /**
+   * The same account at the main feed. Above {@link healthFactorThreshold} by
+   * definition — that is what makes the reserve feed the thing in the way, and
+   * the gap between the two is how far it marks the collateral down.
+   **/
+  atMainPrices: Bps;
+  /** The threshold both were weighed against, the facade's own `1.0`. */
+  healthFactorThreshold: Bps;
+  /**
+   * What the account can still take out under the same check, in the market's
+   * underlying — the request to offer instead of the refused one. It is the
+   * `safePartial` of `WithdrawCeilings`, from the same code that answers
+   * `maxWithdraw`, so the two never disagree.
+   *
+   * `0n` says no partial withdrawal clears the threshold at all, and a smaller
+   * request will not help: holding leverage flat scales collateral and debt
+   * together, which leaves the safe-price factor exactly where it found it.
+   * Such a position can still leave entirely — an exit settles the debt rather
+   * than shrinking it, and a check with no debt to divide by refuses nothing.
+   **/
+  withdrawable: TokenAmount;
+}
+
+/** {@inheritDoc ReservePriceLimitedError} */
+export function reservePriceLimited(
+  args: Omit<ReservePriceLimitedError, "code" | "message">,
+): ReservePriceLimitedError {
+  return {
+    code: "reservePriceLimited",
+    message: `The reserve price feed values this collateral below what the operation pays out: the account covers its debt at ${args.atMainPrices} on the main feed and only ${args.healthFactor} at the reserve one, below ${args.healthFactorThreshold}.`,
+    ...args,
+  };
+}
+
+/**
  * The operation would increase the balance of a token the market forbids.
  **/
 export interface ForbiddenTokenError extends IGearboxError {

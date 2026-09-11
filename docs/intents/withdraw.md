@@ -37,6 +37,17 @@ worth only the interest it has accrued above `minDebt` while its `exit` is the
 whole net value — a form reading `partial` alone would tell such a wallet it
 can free a few wei, when in fact it can free everything by leaving.
 
+A third figure, `safePartial`, is `partial` once the safe-price collateral
+check has had its say, and it is the one a form should offer. Because funds
+leave, the facade weighs the result at `min` of each token's two feeds, so a
+reserve feed marking collateral down puts it below what `debtLimits` alone
+would allow. Where all the collateral is the marked-down token it collapses to
+`0n`: holding leverage flat scales collateral and debt together, which leaves
+the safe-price factor exactly where it found it, so no smaller request clears
+the threshold either. Such a position can still take `exit` — leaving settles
+the debt rather than shrinking it, and a check with no debt to divide by
+refuses nothing.
+
 ## Case selection
 
 ```mermaid
@@ -180,7 +191,7 @@ disagree with reality.
 | balance actually holds each leg's input  | `insufficientSourceBalance`    |
 | no phantom balance to sell (exit)        | `withdrawalInProgress`         |
 | nothing forbidden or unquotable grew     | `forbiddenToken`, `quotaLimitReached` |
-| HF at **safe prices** — funds leave      | `insufficientCollateral`       |
+| HF at **safe prices** — funds leave      | `insufficientCollateral`, or `reservePriceLimited` where the main feed would have passed |
 
 After an exit the debt is zero, so the health factor reports the no-debt
 sentinel and the check is trivially satisfied.

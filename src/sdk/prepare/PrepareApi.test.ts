@@ -594,6 +594,50 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(prepared.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
+  it("maxWithdraw stops at the safe-price limit, and names the feed when it refuses", async () => {
+    // The whole position is POS, and the reserve feed halves it: the account
+    // covers its debt at the main feed and does not at the safe one, which is
+    // the feed a call that pays out is weighed at.
+    const marked = {
+      reservePrices: { [POS]: 100000000n, [UND]: 200000000n },
+    };
+    const { api, position } = buildStrategyApi(marked);
+
+    const { partial, safePartial, exit } = await api.maxWithdraw(position);
+    // `debtLimits` would still allow a withdrawal; the collateral check does
+    // not, and it is the second figure that says so.
+    expect(partial).toBeGreaterThan(0n);
+    expect(safePartial).toBe(0n);
+
+    const refused = await api.withdrawStrategy(position, {
+      amount: partial,
+      to: WALLET,
+    });
+    expect(!refused.ok && refused.error.code).toBe("reservePriceLimited");
+    if (refused.ok || refused.error.code !== "reservePriceLimited") {
+      throw new Error("expected the reserve-price error");
+    }
+    // What a form should offer instead — nothing here, and the same figure the
+    // read above answered with.
+    expect(refused.error.withdrawable.value).toBe(safePartial);
+    expect(refused.error.atMainPrices).toBeGreaterThanOrEqual(
+      refused.error.healthFactorThreshold,
+    );
+
+    // Leaving entirely settles the debt rather than shrinking it, so the check
+    // has nothing to divide by and never refuses it.
+    plan(await api.withdrawStrategy(position, { amount: exit, to: WALLET }));
+  });
+
+  it("maxWithdraw leaves the debtLimits figure alone where the feeds agree", async () => {
+    const { api, position } = buildStrategyApi({
+      reservePrices: { [POS]: 200000000n, [UND]: 200000000n },
+    });
+
+    const { partial, safePartial } = await api.maxWithdraw(position);
+    expect(safePartial).toBe(partial);
+  });
+
   it("maxWithdraw's exit is the net value, and it is the far side of a gap", async () => {
     const { api, position } = buildStrategyApi();
 

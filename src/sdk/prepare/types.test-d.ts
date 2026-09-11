@@ -26,6 +26,7 @@ import type {
   PositionCollateral,
   QuotaCountExceededError,
   QuotaLimitReachedError,
+  ReservePriceLimitedError,
   SDKReturn,
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
@@ -115,6 +116,7 @@ describe("every prepare method names exactly its own errors", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -136,6 +138,7 @@ describe("every prepare method names exactly its own errors", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -154,6 +157,7 @@ describe("every prepare method names exactly its own errors", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -167,6 +171,7 @@ describe("every prepare method names exactly its own errors", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError
@@ -184,6 +189,7 @@ describe("every prepare method names exactly its own errors", () => {
           | ForbiddenTokenError
           | QuotaLimitReachedError
           | InsufficientCollateralError
+          | ReservePriceLimitedError
           | InsufficientBalanceError
           | CreditAccountNotFoundError
           | UnexpectedFailureError
@@ -208,6 +214,7 @@ describe("every prepare method names exactly its own errors", () => {
           | ForbiddenTokenError
           | QuotaLimitReachedError
           | InsufficientCollateralError
+          | ReservePriceLimitedError
           | InsufficientBalanceError
           | CreditAccountNotFoundError
           | UnexpectedFailureError
@@ -233,6 +240,7 @@ describe("every prepare method names exactly its own errors", () => {
         | ForbiddenTokenError
         | QuotaLimitReachedError
         | InsufficientCollateralError
+        | ReservePriceLimitedError
         | InsufficientBalanceError
         | CreditAccountNotFoundError
         | UnexpectedFailureError

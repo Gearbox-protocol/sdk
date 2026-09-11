@@ -533,10 +533,13 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.maxWithdraw}
    **/
-  public async maxWithdraw(position: PositionInput): Promise<WithdrawCeilings> {
+  public async maxWithdraw(
+    position: PositionInput,
+    sourceToken?: Address,
+  ): Promise<WithdrawCeilings> {
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
-    return service(sdk).maxWithdraw({ creditAccount, sdk });
+    return service(sdk).maxWithdraw({ creditAccount, sdk, sourceToken });
   }
 
   /**
