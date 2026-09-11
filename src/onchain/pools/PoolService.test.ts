@@ -171,7 +171,7 @@ describe("PoolService.simulateDeposit", () => {
 const LIQUIDITY = 999_990n;
 
 describe("PoolService.simulateWithdraw", () => {
-  it("prices the shares an exact underlying payout would cost", () => {
+  it("prices the shares an exact underlying withdrawal would cost", () => {
     expect(
       buildService().simulateWithdraw({ pool: POOL, amount: 120n }),
     ).toEqual({

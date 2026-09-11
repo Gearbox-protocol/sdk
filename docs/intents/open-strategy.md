@@ -42,9 +42,9 @@ flowchart TD
   in --> lev
   lev -->|"no"| e1["leverageOutOfRange"]
   lev --> op
-  op -->|"no"| e2["marketPaused / marketExpired"]
+  op -->|"no"| e2["creditManagerPaused / marketExpired"]
   op --> m --> mz
-  mz -->|"no"| e3["insufficientSourceBalance"]
+  mz -->|"no"| e3["insufficientBalance"]
   mz --> d --> band
   band -->|"no"| e4["debtOutOfRange"]
   band --> bor
@@ -93,7 +93,7 @@ flowchart LR
 ## The empty opening
 
 `params.empty` opens the account and stops there: no collateral leaves the
-wallet, no debt is drawn, no route is quoted, and no quota is bought. It exists
+wallet, no debt is borrowed, no route is quoted, and no quota is bought. It exists
 so a wallet can hold an account ahead of being allowed to use one — which
 markets want that is the caller's decision, and the SDK does not gate it.
 

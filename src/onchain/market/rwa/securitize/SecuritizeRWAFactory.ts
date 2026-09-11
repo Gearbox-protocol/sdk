@@ -4,27 +4,26 @@ import {
   decodeAbiParameters,
 } from "viem";
 import { iSecuritizeRWAFactoryAbi } from "../../../../abi/rwa/iSecuritizeRWAFactory.js";
+import {
+  RWA_FACTORY_SECURITIZE,
+  SECURITIZE_REGISTER_VAULT_TYPES,
+  type SecuritizeOperationArgs,
+} from "../../../../model/index.js";
 import { BaseContract } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { MultiCall, RawTx } from "../../../types/index.js";
-import { AddressMap, AddressSet } from "../../../utils/index.js";
+import { AddressMap } from "../../../utils/index.js";
 import type {
   GetInvestorOptions,
-  GetOpenAccountRequirementsProps,
   IRWAFactory,
   RWACompressorInvestorData,
   RWAFactoryData,
 } from "../types.js";
-import { RWA_FACTORY_SECURITIZE } from "./constants.js";
 import { SecuritizeDegenNFT } from "./SecuritizeDegenNFT.js";
-import {
-  type DStokenData,
-  SECURITIZE_REGISTER_VAULT_TYPES,
-  type SecuritizeInvestorData,
-  type SecuritizeMissingOpenAccountRequirements,
-  type SecuritizeOpenAccountRequirements,
-  type SecuritizeOperationArgs,
-  type SecuritizeRWAFactoryStateHuman,
+import type {
+  DStokenData,
+  SecuritizeInvestorData,
+  SecuritizeRWAFactoryStateHuman,
 } from "./types.js";
 
 const abi = iSecuritizeRWAFactoryAbi;
@@ -34,7 +33,6 @@ export class SecuritizeRWAFactory
   extends BaseContract<abi>
   implements IRWAFactory<typeof RWA_FACTORY_SECURITIZE>
 {
-  readonly #sdk: OnchainSDK;
   #investorCache = new AddressMap<Address>();
   public readonly degenNFT: SecuritizeDegenNFT;
   public readonly owner: Address;
@@ -47,7 +45,6 @@ export class SecuritizeRWAFactory
       name: "SecuritizeRWAFactory",
       abi,
     });
-    this.#sdk = sdk;
     const decoded = decodeAbiParameters(
       [
         { name: "owner", type: "address" },
@@ -65,7 +62,7 @@ export class SecuritizeRWAFactory
       data.baseParams.serializedParams,
     );
     this.owner = decoded[0];
-    this.degenNFT = new SecuritizeDegenNFT(sdk, decoded[1]);
+    this.degenNFT = new SecuritizeDegenNFT(sdk, decoded[1], this);
     for (const t of data.tokens) {
       this.tokensMeta.upsert(t.addr, t);
     }
@@ -235,65 +232,6 @@ export class SecuritizeRWAFactory
       functionName: "multicall",
       args: [creditAccount, calls, tokensToRegister, signaturesToCache],
     });
-  }
-
-  /**
-   * {@inheritDoc IRWAFactory.getOpenAccountRequirements}
-   */
-  public async getOpenAccountRequirements(
-    investor: Address,
-    props: GetOpenAccountRequirementsProps,
-  ): Promise<SecuritizeOpenAccountRequirements | undefined> {
-    const [investorData] = await this.#sdk.rwa.getInvestorData(investor, [
-      this.address,
-    ]);
-    // desired tokens, coming from strategy configuration
-    const tokensToRegister = new AddressSet([props.tokenOutAddress]);
-
-    const registredTokens = new AddressSet(investorData.registeredTokens);
-    const signedTokens = new AddressSet(
-      investorData.cachedSignatures.map(s => s.token),
-    );
-    const unsignedTokens = tokensToRegister.difference(signedTokens);
-
-    const securitizeTokensToRegister =
-      tokensToRegister.difference(registredTokens);
-    const requiredSignatures = investorData.registerVaultMessages.filter(m =>
-      unsignedTokens.has(m.message.token),
-    );
-
-    return {
-      type: RWA_FACTORY_SECURITIZE,
-      securitizeTokensToRegister: Array.from(securitizeTokensToRegister),
-      tokensToRegister: Array.from(tokensToRegister),
-      requiredSignatures,
-    };
-  }
-
-  /**
-   * {@inheritDoc IRWAFactory.getMissingRequirements}
-   *
-   * A required signature is omitted when `providedArgs.signaturesToCache`
-   * already carries a signature for the same token: the transaction caches it
-   * on-chain as part of the operation.
-   */
-  public getMissingRequirements(
-    requirements: SecuritizeOpenAccountRequirements,
-    providedArgs?: SecuritizeOperationArgs,
-  ): SecuritizeMissingOpenAccountRequirements | undefined {
-    const providedTokens = new AddressSet(
-      (providedArgs?.signaturesToCache ?? []).map(s => s.token),
-    );
-    const requiredSignatures = requirements.requiredSignatures.filter(
-      message => !providedTokens.has(message.message.token),
-    );
-    if (requiredSignatures.length === 0) {
-      return undefined;
-    }
-    return {
-      type: RWA_FACTORY_SECURITIZE,
-      requiredSignatures,
-    };
   }
 
   /**

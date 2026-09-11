@@ -3,6 +3,7 @@ import { encodeFunctionData } from "viem";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
+import type { RWAOpenAccountRequirements } from "../../model/index.js";
 import type {
   Asset,
   CreditAccountData,
@@ -21,10 +22,7 @@ import {
   type PrepareUpdateQuotasProps,
   type PriceUpdate,
 } from "../market/index.js";
-import type {
-  GetOpenAccountRequirementsProps,
-  RWAOpenAccountRequirements,
-} from "../market/rwa/index.js";
+import type { GetOpenAccountRequirementsProps } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice } from "../router/index.js";
 import type { RouterRewardsResult } from "../router/types.js";
@@ -359,12 +357,10 @@ export class CreditAccountsServiceV310
     creditManager: Address,
     props: GetOpenAccountRequirementsProps,
   ): Promise<RWAOpenAccountRequirements | undefined> {
-    const { rwaFactory } =
-      this.sdk.marketRegister.findCreditManager(creditManager);
-    if (!rwaFactory) {
-      return undefined;
-    }
-    return rwaFactory.getOpenAccountRequirements(borrower, props);
+    const nft = await this.sdk.marketRegister
+      .findCreditManager(creditManager)
+      .degenNFT();
+    return nft?.getOpenAccountRequirements(borrower, props);
   }
 
   /**
@@ -400,7 +396,7 @@ export class CreditAccountsServiceV310
 
     const { creditFacade } = cmSuite;
     let calls = [
-      // A zero-debt open draws nothing, and `increaseDebt(0)` is a call the
+      // A zero-debt open borrows nothing, and `increaseDebt(0)` is a call the
       // facade would run for no reason.
       ...(debt > 0n ? [creditFacade.prepareIncreaseDebt(debt)] : []),
       ...creditFacade.prepareAddCollateral(collateral, permits),

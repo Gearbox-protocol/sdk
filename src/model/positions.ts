@@ -28,7 +28,7 @@ import type {
 export type PositionKind = "pool" | "strategy" | "liquidation";
 
 /**
- * Earnings paid out in a token, as an amount rather than a rate.
+ * Earnings in a token, as an amount rather than a rate.
  **/
 export interface TokenRewardsPnL extends TokenAmount {
   kind: "token";
@@ -473,7 +473,7 @@ export interface PositionFilter extends ChainScopedFilter {
  * A condition that does not apply to a position's kind keeps the row rather
  * than dropping it: `isZeroDebt` says nothing about a pool position, and
  * `underlyingType` says nothing about a liquidation position, which is
- * denominated in whatever its withdrawal pays out.
+ * denominated in whatever its withdrawal settles in.
  *
  * @param position - Row to test.
  * @param filter - Conditions to test against. An absent filter matches

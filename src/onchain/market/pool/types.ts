@@ -134,7 +134,7 @@ export interface IPoolContract extends IBaseContract {
   readonly rwaFactory: IRWAFactory | undefined;
 
   /**
-   * Liquidity currently drawn by credit managers, i.e. the part of the
+   * Liquidity currently borrowed by credit managers, i.e. the part of the
    * expected liquidity that is not sitting in the pool. Never negative.
    */
   readonly borrowed: bigint;

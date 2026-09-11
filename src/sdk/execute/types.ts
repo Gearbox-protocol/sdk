@@ -1,10 +1,10 @@
 import type { Address } from "viem";
-import type { ChainId, SDKResult } from "../../model/index.js";
 import type {
-  Asset,
-  RawTx,
+  ChainId,
+  SDKResult,
   SecuritizeRegisterMessage,
-} from "../../onchain/index.js";
+} from "../../model/index.js";
+import type { Asset, RawTx } from "../../onchain/index.js";
 import type {
   LpResult,
   OpenStrategyResult,
@@ -81,7 +81,7 @@ export type PrepareRequest =
  * The write side of the opportunities namespace: turns what `prepare`
  * answered into the transaction to sign. Sending, and whatever the wallet has
  * to do first (allowances, permits, RWA signatures), stays with the caller —
- * `checkPrerequisites` reports the former on the built transaction.
+ * `checkOperation` reports the former on the built transaction's preview.
  **/
 export interface IOpportunitiesExecute {
   /**

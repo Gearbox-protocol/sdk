@@ -1,6 +1,7 @@
 import type { Address } from "abitype";
 import { decodeAbiParameters, type Hex } from "viem";
 import { iRWACompressorAbi } from "../../../abi/rwa/iRWACompressor.js";
+import { RWA_FACTORY_SECURITIZE } from "../../../model/index.js";
 import {
   RWA_ON_DEMAND_LP_MONOPOLIZED,
   RWA_UNDERLYING_DEFAULT,
@@ -16,10 +17,7 @@ import type { GearboxChain } from "../../chain/index.js";
 import { AP_RWA_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
 import { AddressMap, bytes32ToString } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
-import {
-  RWA_FACTORY_SECURITIZE,
-  SecuritizeRWAFactory,
-} from "./securitize/index.js";
+import { SecuritizeRWAFactory } from "./securitize/index.js";
 import type {
   RWACompressorResponse,
   RWAFactoryData,

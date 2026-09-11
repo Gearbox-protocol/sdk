@@ -1,3 +1,8 @@
-export * from "./errors.js";
+export {
+  creditAccountNotEmpty,
+  creditAccountNotFound,
+  noStrategyTargetCollateral,
+  unexpectedFailure,
+} from "../../model/index.js";
 export * from "./PrepareApi.js";
 export * from "./types.js";

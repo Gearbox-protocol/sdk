@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   ChartBundle,
   ChartRange,
@@ -38,7 +39,9 @@ export interface IOpportunitiesBase {
     key: PoolOpportunityKey,
   ): Promise<DataResponse<PoolOpportunityDetail>>;
   /**
-   * Detailed view of one strategy opportunity.
+   * Detailed view of one strategy opportunity. `kyc` is the strategy's KYC
+   * gate, independent of any wallet. Use {@link IOpportunitiesOnchainOnly.isEligibleForStrategy}
+   * for a wallet verdict.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
@@ -110,6 +113,14 @@ export interface IOpportunitiesOnchainOnly {
    * same reason as {@link prepare}: it encodes against live chain state.
    **/
   readonly execute: IOpportunitiesExecute;
+  /**
+   * Whether `wallet` may open this strategy today: `true` when it is not
+   * KYC-gated or the wallet already passed the gate. Chain-only.
+   **/
+  isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean>;
 }
 
 /**
@@ -135,6 +146,10 @@ export interface IOpportunitiesOffchainBranch {
 export interface IOpportunityMergers {
   list: ListMerger<Opportunity[]>;
   pool: EntityMerger<PoolOpportunityDetail>;
+  /**
+   * Same freshness rule as {@link pool}, except `kyc` is taken from the chain
+   * whenever that leg succeeded — the backend does not evaluate it.
+   **/
   strategy: EntityMerger<StrategyOpportunityDetail>;
 }
 

@@ -64,9 +64,9 @@ flowchart LR
   end
 ```
 
-The wrapped underlying of an RWA market cannot leave the account, so the payout
-is unwrapped into the raw asset on the way out — the same `payout` helper every
-flow that pays a wallet goes through.
+The wrapped underlying of an RWA market cannot leave the account, so the
+withdrawal is unwrapped into the raw asset on the way out — the same `withdraw`
+helper every flow that pays a wallet goes through.
 
 ## Notes
 

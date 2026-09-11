@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   DataResponse,
   Opportunity,
@@ -65,5 +66,17 @@ export class MultichainOpportunitiesService<
       network: key.chainId,
       run: sdk => sdk.opportunities.getStrategy(key),
     });
+  }
+
+  /**
+   * {@inheritDoc OpportunitiesService.isEligibleForStrategy}
+   **/
+  public async isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean> {
+    return this.sdk
+      .chain(key.chainId)
+      .opportunities.isEligibleForStrategy(key, wallet);
   }
 }

@@ -3,4 +3,5 @@ export * from "./contracts/index.js";
 export * from "./createAdapter.js";
 export * from "./legacyAdapterOperations.js";
 export * from "./transferHelpers.js";
+export * from "./transfers.js";
 export * from "./types.js";

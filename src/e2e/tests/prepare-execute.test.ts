@@ -11,19 +11,20 @@ import {
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { createAnvilClient } from "../../dev/createAnvilClient.js";
-import { isSDKError } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   type CreditAccountDataPayload,
+  checkCreditOperation,
+  checkOperation,
+  checkSimulation,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
   PERCENTAGE_FACTOR,
+  previewOperation,
   type RawTx,
   sendRawTx,
 } from "../../onchain/index.js";
-import { checkPrerequisites } from "../../preview/index.js";
-import { previewOperation } from "../../preview/preview/previewOperation.js";
 import type { PrepareRequest } from "../../sdk/index.js";
 import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
@@ -62,6 +63,9 @@ const X2 = 200n;
 const X3 = 300n;
 const COLLATERAL = parseUnits("1000", 6);
 const WALLET_USDC = parseUnits("5000", 6);
+/** The LP flows trade the WETH pool, the one still open on this block. */
+const POOL_WALLET = parseUnits("5", 18);
+const POOL_DEPOSIT = parseUnits("1", 18);
 
 describe("prepare → execute on a mainnet fork", () => {
   let multichain: MultichainSDK;
@@ -134,18 +138,26 @@ describe("prepare → execute on a mainnet fork", () => {
 
   async function send(request: PrepareRequest): Promise<RawTx> {
     const tx = await execute().buildTx(request);
-    const prerequisites = await checkPrerequisites({
-      sdk: chain,
+    const preview = await previewOperation(chain, {
+      chainId: chain.chainId,
       to: tx.to,
       calldata: tx.callData,
       sender: borrower,
       value: BigInt(tx.value),
     });
-    expect(isSDKError(prerequisites), "prerequisites must parse").toBe(false);
-    if (isSDKError(prerequisites)) throw new Error("unreachable");
+    expect(preview.ok, "preview must parse").toBe(true);
+    if (!preview.ok) throw new Error("unreachable");
+    const errors = await checkOperation({
+      sdk: chain,
+      preview: preview.data,
+      sender: borrower,
+    });
+    // Sunset lists are current; this suite pins BLOCK, when the pool was still live.
+    // checkOperation therefore reports poolSunset on deposits into it, but the
+    // fork still mines them.
     expect(
-      prerequisites.data.filter(p => p.satisfied !== true),
-      "prerequisites the send still needs",
+      errors.filter(e => e.code !== "poolSunset"),
+      "the send still needs",
     ).toEqual([]);
     await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
     return tx;
@@ -214,7 +226,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
   /**
    * `min ≤ actual ≤ min · (1 + S / (10000 − S))` — floor and pre-slippage
-   * ceiling.
+   * upper limit.
    *
    * The floor gets a millionth of slack because both sides price the position
    * with the oracle, and the price the SDK holds can sit one unit of the feed's
@@ -270,7 +282,7 @@ describe("prepare → execute on a mainnet fork", () => {
     if (!sim.ok) throw new Error(`sim failed: ${sim.error.code}`);
     const { instant } = sim.data;
     if (!instant) {
-      throw new Error(`no instant route: ${sim.data.refused.instant}`);
+      throw new Error(`no instant route: ${sim.data.errors.instant?.code}`);
     }
     return {
       // the route, back in the envelope `buildTx` takes
@@ -302,7 +314,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(before.totalValue).toBeGreaterThanOrEqual(floor);
     });
 
-    it("without the allowance, checkPrerequisites reports it and the send reverts before any block", async () => {
+    it("without the allowance, checkOperation reports it and the send reverts before any block", async () => {
       await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
       await sync();
       const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
@@ -317,19 +329,20 @@ describe("prepare → execute on a mainnet fork", () => {
         ethAmount: 0n,
       });
 
-      const prerequisites = await checkPrerequisites({
-        sdk: chain,
+      const preview = await previewOperation(chain, {
+        chainId: chain.chainId,
         to: tx.to,
         calldata: tx.callData,
         sender: borrower,
       });
-      expect(isSDKError(prerequisites), "prerequisites must parse").toBe(false);
-      if (isSDKError(prerequisites)) throw new Error("unreachable");
-      expect(
-        prerequisites.data.some(
-          p => p.kind === "allowance" && p.satisfied === false,
-        ),
-      ).toBe(true);
+      expect(preview.ok, "preview must parse").toBe(true);
+      if (!preview.ok) throw new Error("unreachable");
+      const errors = await checkOperation({
+        sdk: chain,
+        preview: preview.data,
+        sender: borrower,
+      });
+      expect(errors.some(e => e.code === "insufficientAllowance")).toBe(true);
       await expect(sendRawTx(wallet, { tx })).rejects.toThrow();
     });
   });
@@ -679,17 +692,17 @@ describe("prepare → execute on a mainnet fork", () => {
           slippage: S,
         }),
       );
-      // one route for the whole position, and the payout is the underlying it
+      // one route for the whole position, and the withdrawal is the underlying it
       // was sold into
       const swaps = sim.data.operations.filter(op => op.type === "swap");
       expect(swaps).toHaveLength(1);
       expect(swaps[0]?.from.map(a => a.token.toLowerCase())).toEqual([
         TARGET_TOKEN.toLowerCase(),
       ]);
-      const payouts = sim.data.operations.filter(
+      const withdrawals = sim.data.operations.filter(
         op => op.type === "withdrawCollateral",
       );
-      expect(payouts.map(op => op.token.toLowerCase())).toEqual([
+      expect(withdrawals.map(op => op.token.toLowerCase())).toEqual([
         underlying.toLowerCase(),
       ]);
       expect(preview.totalDebt.value).toBe(0n);
@@ -707,10 +720,10 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
       expect(after.tokens.filter(t => t.quota > 0n)).toEqual([]);
       expect(after.tokens.filter(t => t.balance > 1n)).toEqual([]);
-      // the payout names no amount, so the wallet gets whatever is left once the
+      // the withdrawal names no amount, so the wallet gets whatever is left once the
       // loan is settled. The projection is a floor twice over — the route's
       // slippage and the interest the `full` repayment reserves — so the only
-      // ceiling that holds is the position's own worth before it was sold
+      // upper limit that holds is the position's own worth before it was sold
       const paid =
         (await chain.client.readContract({
           address: underlying,
@@ -718,7 +731,7 @@ describe("prepare → execute on a mainnet fork", () => {
           functionName: "balanceOf",
           args: [borrower],
         })) - before;
-      expect(paid).toBeGreaterThanOrEqual(payouts[0]?.amount ?? 0n);
+      expect(paid).toBeGreaterThanOrEqual(withdrawals[0]?.amount ?? 0n);
       expect(paid).toBeLessThanOrEqual(totalValue);
     });
   });
@@ -1048,7 +1061,7 @@ describe("prepare → execute on a mainnet fork", () => {
 
   /**
    * The refusals the engine reads off the live market rather than off its
-   * arguments: the underlying this manager was configured with, the debt band
+   * arguments: the underlying this manager was configured with, the debtLimits
    * it enforces, the balances the account actually holds. The reasons are
    * values, so nothing here sends or throws.
    */
@@ -1071,13 +1084,13 @@ describe("prepare → execute on a mainnet fork", () => {
     it("refuses a deposit whose debt would pass the manager's own maxDebt", async () => {
       const { creditAccount } = await openPosition();
       await sync();
-      const ceiling =
+      const maxDebt =
         chain.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade
           .maxDebt;
       const sim = await prepare().depositStrategy(position(creditAccount), {
-        // at the leverage held, this much collateral draws more than the ceiling
+        // at the leverage held, this much collateral borrows more than maxDebt
         token: USDC,
-        amount: ceiling * 2n,
+        amount: maxDebt * 2n,
         positionToken: TARGET_TOKEN,
         slippage: S,
       });
@@ -1085,10 +1098,78 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.ok || sim.error.code !== "debtOutOfRange") {
         throw new Error("expected debtOutOfRange");
       }
-      // The ceiling comes back with the refusal, so a form can clamp to it
+      // maxDebt comes back with the refusal, so a form can clamp to it
       // instead of asking again to find out where it is.
-      expect(sim.error.maxDebt.value).toBe(ceiling);
-      expect(sim.error.requested.value).toBeGreaterThan(ceiling);
+      expect(sim.error.maxDebt.value).toBe(maxDebt);
+      expect(sim.error.requested.value).toBeGreaterThan(maxDebt);
+    });
+
+    it("hands the debt refusal the maxBorrowAmount the suite would actually lend", async () => {
+      await sync();
+      const suite = chain.marketRegister.findCreditManager(CREDIT_MANAGER);
+      const lends = suite.maxBorrowAmount();
+
+      const [refusal] = checkSimulation(chain, {
+        state: {
+          creditManager: CREDIT_MANAGER,
+          totalDebt: { token: USDC, value: suite.creditFacade.maxDebt * 2n },
+          quotas: [],
+        },
+      } as never).filter(e => e.code === "debtOutOfRange");
+
+      if (refusal?.code !== "debtOutOfRange") {
+        throw new Error("expected debtOutOfRange");
+      }
+      expect(refusal.maxBorrowAmount?.amount.value).toBe(lends.amount.value);
+      expect(refusal.maxBorrowAmount?.limit).toBe(lends.limit);
+      expect(refusal.maxBorrowAmount?.amount.token.address).toBe(
+        refusal.maxDebt.token.address,
+      );
+    });
+
+    it("hands a parsed transaction's debt refusal the same maxBorrowAmount", async () => {
+      await sync();
+      const suite = chain.marketRegister.findCreditManager(CREDIT_MANAGER);
+      const lends = suite.maxBorrowAmount();
+
+      const errors = await checkCreditOperation({
+        sdk: chain,
+        sender: borrower,
+        preview: {
+          operation: "AdjustCreditAccount",
+          creditManager: CREDIT_MANAGER,
+          creditAccount: borrower,
+          totalDebt: { token: USDC, value: suite.creditFacade.maxDebt * 2n },
+          totalDebtChange: { token: USDC, value: 0n },
+          assetsChange: [],
+          quotasChange: [],
+          quotas: [],
+          collateralAdded: [],
+        },
+      } as never);
+      const refusal = errors.find(e => e.code === "debtOutOfRange");
+
+      if (refusal?.code !== "debtOutOfRange") {
+        throw new Error("expected debtOutOfRange");
+      }
+      expect(refusal.maxBorrowAmount?.amount.value).toBe(lends.amount.value);
+      expect(refusal.maxBorrowAmount?.limit).toBe(lends.limit);
+    });
+
+    it("weighs an opening by the caller's thresholds, like any other account", async () => {
+      await fund();
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, OPEN_PARAMS);
+      if (!sim.ok) throw new Error(sim.error.code);
+      const { state } = sim.data;
+
+      const errors = checkSimulation(
+        chain,
+        { chainId: CHAIN_ID, state },
+        { minHealthFactor: state.healthFactor + 1 },
+      );
+
+      expect(errors.map(e => e.code)).toEqual(["insufficientCollateral"]);
     });
 
     it("refuses a leverage the collateral cannot carry, and reports it per route", async () => {
@@ -1105,11 +1186,11 @@ describe("prepare → execute on a mainnet fork", () => {
       if (sim.ok || sim.error.code !== "insufficientCollateral") {
         throw new Error("expected insufficientCollateral");
       }
-      expect(sim.error.refused).toEqual({
-        instant: "insufficientCollateral",
-        delayed: "noDelayedRoute",
-      });
-      expect(sim.error.healthFactor).toBeLessThan(sim.error.required);
+      expect(sim.error.errors.instant?.code).toBe("insufficientCollateral");
+      expect(sim.error.errors.delayed?.code).toBe("noDelayedRoute");
+      expect(sim.error.healthFactor).toBeLessThan(
+        sim.error.healthFactorThreshold,
+      );
     });
 
     it("refuses to move out collateral the account does not hold", async () => {
@@ -1121,8 +1202,8 @@ describe("prepare → execute on a mainnet fork", () => {
         to: borrower,
       });
 
-      if (sim.ok || sim.error.code !== "insufficientSourceBalance") {
-        throw new Error("expected insufficientSourceBalance");
+      if (sim.ok || sim.error.code !== "insufficientBalance") {
+        throw new Error("expected insufficientBalance");
       }
       // The amounts are optional on this code because most of its sites refuse
       // before there is a balance to compare. This one is the ledger walk, so
@@ -1144,7 +1225,19 @@ describe("prepare → execute on a mainnet fork", () => {
     let shares: Address;
 
     beforeAll(() => {
-      const market = chain.marketRegister.findByCreditManager(CREDIT_MANAGER);
+      // Not this file's own manager: every USDC pool on this block is on the
+      // sunset list, and `prepare` refuses a deposit into one. The WETH market
+      // is still taking liquidity; resolving it through the register rather
+      // than pinning an address keeps the test honest the day that changes.
+      const market = chain.marketRegister.markets.find(
+        m =>
+          !m.sunset &&
+          !m.pool.pool.isPaused &&
+          isAddressEqual(m.pool.underlying, WETH),
+      );
+      if (!market) {
+        throw new Error("no open WETH pool on this fork");
+      }
       pool = market.pool.pool.address;
       shares = pool;
     });
@@ -1170,12 +1263,12 @@ describe("prepare → execute on a mainnet fork", () => {
     }
 
     it("deposit: shares received are at most what the loaded-block rate promised", async () => {
-      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
-      await approve(USDC, pool);
+      await anvil.deal({ erc20: WETH, account: borrower, amount: POOL_WALLET });
+      await approve(WETH, pool);
       await sync();
       const sim = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL, wallet: borrower },
+        { amount: POOL_DEPOSIT, wallet: borrower },
       );
       if (!sim.ok) {
         throw new Error(`deposit sim failed: ${sim.error.code}`);
@@ -1199,12 +1292,12 @@ describe("prepare → execute on a mainnet fork", () => {
     });
 
     it("withdraw: underlying received is at least what the loaded-block rate promised", async () => {
-      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
-      await approve(USDC, pool);
+      await anvil.deal({ erc20: WETH, account: borrower, amount: POOL_WALLET });
+      await approve(WETH, pool);
       await sync();
       const deposit = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL, wallet: borrower },
+        { amount: POOL_DEPOSIT, wallet: borrower },
       );
       if (!deposit.ok) {
         throw new Error(`deposit sim failed: ${deposit.error.code}`);
@@ -1220,12 +1313,12 @@ describe("prepare → execute on a mainnet fork", () => {
       await sync();
       const sim = await prepare().withdraw(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL / 2n, wallet: borrower },
+        { amount: POOL_DEPOSIT / 2n, wallet: borrower },
       );
       if (!sim.ok) {
         throw new Error(`withdraw sim failed: ${sim.error.code}`);
       }
-      const before = await balance(USDC);
+      const before = await balance(WETH);
       await send({
         kind: "pool",
         chainId: CHAIN_ID,
@@ -1235,18 +1328,18 @@ describe("prepare → execute on a mainnet fork", () => {
         sim,
       });
 
-      expect((await balance(USDC)) - before).toBeGreaterThanOrEqual(
+      expect((await balance(WETH)) - before).toBeGreaterThanOrEqual(
         sim.data.state.tokenOut.value,
       );
     });
 
     it("redeem: the shares asked for are burned, and the underlying they were worth arrives", async () => {
-      await anvil.deal({ erc20: USDC, account: borrower, amount: WALLET_USDC });
-      await approve(USDC, pool);
+      await anvil.deal({ erc20: WETH, account: borrower, amount: POOL_WALLET });
+      await approve(WETH, pool);
       await sync();
       const deposit = await prepare().deposit(
         { chainId: CHAIN_ID, pool },
-        { amount: COLLATERAL, wallet: borrower },
+        { amount: POOL_DEPOSIT, wallet: borrower },
       );
       if (!deposit.ok) {
         throw new Error(`deposit sim failed: ${deposit.error.code}`);
@@ -1269,7 +1362,7 @@ describe("prepare → execute on a mainnet fork", () => {
       if (!sim.ok) {
         throw new Error(`redeem sim failed: ${sim.error.code}`);
       }
-      const before = await balance(USDC);
+      const before = await balance(WETH);
       await send({
         kind: "pool",
         chainId: CHAIN_ID,
@@ -1282,9 +1375,9 @@ describe("prepare → execute on a mainnet fork", () => {
       // redeem is denominated in shares, so that side of it is exact
       expect(held - (await balance(shares))).toBe(burned);
       // the underlying is the loaded-block rate applied to those shares. The
-      // send lands a block later, and a share only ever grows, so the payout is
+      // send lands a block later, and a share only ever grows, so the withdrawal is
       // that figure or a hair above it — never below.
-      const paid = (await balance(USDC)) - before;
+      const paid = (await balance(WETH)) - before;
       const promised = sim.data.state.tokenOut.value;
       expect(paid).toBeGreaterThanOrEqual(promised);
       expect(paid).toBeLessThanOrEqual(promised + promised / 1_000_000n + 1n);
@@ -1295,13 +1388,8 @@ describe("prepare → execute on a mainnet fork", () => {
   // block mined before them costs three wei of accrual and breaks their
   // exact-value assertions.
   describe("openNewStrategy — the empty opening", () => {
-    // Nothing here is read; the three of them are what the flag has to agree
-    // with.
-    const EMPTY_OPEN = {
-      empty: true,
-      collateral: [],
-      leverage: 0n,
-    };
+    // The market is the whole request; the union has no room for anything else.
+    const EMPTY_OPEN = { empty: true } as const;
 
     /** Opens the empty account on the synced state and returns its address. */
     async function openEmpty(): Promise<Address> {
@@ -1433,14 +1521,14 @@ describe("prepare → execute on a mainnet fork", () => {
         ethAmount: 0n,
       });
 
-      const preview = await previewOperation({
-        sdk: chain,
+      const preview = await previewOperation(chain, {
+        chainId: chain.chainId,
         to: tx.to,
         calldata: tx.callData,
         sender: borrower,
       });
-      expect(isSDKError(preview), "the reuse must parse").toBe(false);
-      if (isSDKError(preview)) throw new Error("unreachable");
+      expect(preview.ok, "the reuse must parse").toBe(true);
+      if (!preview.ok) throw new Error("unreachable");
       // What a caller's confirm screen will be handed: the transaction really
       // is a deposit into an account that already exists.
       expect(preview.data.operation).toBe("AdjustCreditAccount");

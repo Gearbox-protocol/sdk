@@ -1,5 +1,9 @@
 import type { Address, Hex } from "viem";
-import type { DelayedIntent } from "../../model/index.js";
+import type {
+  DelayedIntent,
+  RWAOpenAccountRequirements,
+  RWAOperationArgs,
+} from "../../model/index.js";
 import type {
   Asset,
   Construct,
@@ -12,12 +16,8 @@ import type {
   PartialLiquidationParams,
   PrepareUpdateQuotasProps,
   PriceUpdate,
-  RWAOperationArgs,
 } from "../market/index.js";
-import type {
-  GetOpenAccountRequirementsProps,
-  RWAOpenAccountRequirements,
-} from "../market/rwa/index.js";
+import type { GetOpenAccountRequirementsProps } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
@@ -536,11 +536,13 @@ export interface ICreditAccountsService extends Construct {
   getApprovalAddress(props: GetApprovalAddressProps): Promise<Address>;
 
   /**
-   * Returns open account requirements for a borrower
+   * Returns open account requirements for a borrower. `undefined` when the
+   * credit manager has no KYC gate.
+   *
    * @param borrower - Borrower address
    * @param creditManager - Credit manager address
    * @param props - {@link GetOpenAccountRequirementsProps} you can pass StrategyConfigPayload here
-   * @returns Open account requirements or undefined if the user can open a credit account without any further actions
+   * @returns Open account requirements, or `undefined` when there is no KYC gate
    */
   getOpenAccountRequirements(
     borrower: Address,

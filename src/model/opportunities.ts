@@ -12,6 +12,7 @@ import type {
   Token,
   UnderlyingToken,
 } from "./primitives.js";
+import type { KycRequirement } from "./rwa.js";
 
 /**
  * Discriminator of the two opportunity kinds.
@@ -50,7 +51,7 @@ export interface PointsProgram {
 }
 
 /**
- * Rewards paid out in a token, e.g. a liquidity mining program.
+ * Rewards in a token, e.g. a liquidity mining program.
  **/
 export interface TokenRewards {
   kind: "token";
@@ -238,7 +239,7 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   targetCollateral: Token;
   /**
-   * Debt principal this credit manager has drawn from the pool
+   * Debt principal this credit manager has borrowed from the pool
    * (`pool.creditManagerBorrowed(creditManager)`). Denominated in the
    * underlying.
    **/
@@ -348,7 +349,7 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   minDebt: Amount;
   /**
-   * Cap on the total debt this credit manager may draw from the pool, shared
+   * Cap on the total debt this credit manager may borrow from the pool, shared
    * by all of its accounts and denominated in the underlying
    * (`creditManagerDebtParams.limit`).
    **/
@@ -356,7 +357,8 @@ export interface StrategyOpportunity extends OpportunityBase {
   /**
    * Largest debt a single new position can take on right now: the tightest of
    * the credit manager's remaining debt limit, the pool's free liquidity and
-   * the facade's per-account maximum.
+   * the facade's per-account `maxDebt`. Zero while borrowing is frozen
+   * (`maxDebtPerBlockMultiplier == 0`).
    **/
   maxBorrowAmount: Amount;
   /**
@@ -663,6 +665,13 @@ export interface StrategyOpportunityDetail extends StrategyOpportunity {
    * Prices and feeds of the underlying and the target collateral.
    **/
   priceFeeds: PriceFeedSummary;
+  /**
+   * KYC gate of this strategy, independent of any wallet. `null` when the
+   * strategy is not KYC-gated. `undefined` only in `offchain` mode, until the
+   * backend serves it. In `both` mode `kyc` is taken from the chain whenever
+   * that leg succeeded.
+   **/
+  kyc?: KycRequirement | null;
 }
 
 /**

@@ -344,10 +344,11 @@ describe("buildTx — open", () => {
 
   it("attaches RWA requirements and the caller's cached signatures when a target token is named", async () => {
     const requirements = {
-      type: "RWA_FACTORY::SECURITIZE",
+      protocol: "securitize" as const,
       tokensToRegister: [DIESEL],
-      securitizeTokensToRegister: [],
+      securitizeTokensToRegister: [] as Address[],
       requiredSignatures: [],
+      factory: CREDIT_MANAGER,
     };
     const { execute, sdk } = mockChain({ requirements });
     const signature = {
@@ -375,11 +376,36 @@ describe("buildTx — open", () => {
     expect(sdk.accounts.openCA).toHaveBeenCalledWith(
       expect.objectContaining({
         rwaOptions: {
-          type: "RWA_FACTORY::SECURITIZE",
+          protocol: "securitize",
           tokensToRegister: [DIESEL],
           signaturesToCache: [signature],
         },
       }),
+    );
+  });
+
+  it("passes no rwaOptions when Midas requirements come back", async () => {
+    const { execute, sdk } = mockChain({
+      requirements: {
+        protocol: "midas",
+        token: DIESEL,
+        greenlisted: false,
+      },
+    });
+
+    await execute.buildTx({
+      kind: "open",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      collateral,
+      ethAmount: 0n,
+      targetToken: DIESEL,
+    });
+
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({ rwaOptions: undefined }),
     );
   });
 

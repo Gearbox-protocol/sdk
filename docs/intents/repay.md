@@ -110,7 +110,7 @@ transaction is refused if it does not finish above 1.0.
 
 ## Notes
 
-- Position untouched: no router call, no swap, no payout. The only reason a
+- Position untouched: no router call, no swap, no withdrawal. The only reason a
   quota moves is a settlement, which drops all of them.
 - `value` rides along on `addCollateral` for a wrapped-native market paid in the
   coin.

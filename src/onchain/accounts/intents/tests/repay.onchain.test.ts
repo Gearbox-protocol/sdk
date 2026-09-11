@@ -71,7 +71,7 @@ function expectOk(
   result: IntentPreviewResult,
 ): Extract<IntentPreviewResult, { ok: true }> {
   if (!result.ok) {
-    throw new Error(`expected a preview, got ${result.reason}`);
+    throw new Error(`expected a preview, got ${result.error.code}`);
   }
   return result;
 }
@@ -304,7 +304,7 @@ describe("repay.start — debt down, position untouched", () => {
   });
 
   it("rejects a non-positive amount", async () => {
-    expectPreviewError(await run(repay(UND, 0n)), "insufficientSourceBalance");
+    expectPreviewError(await run(repay(UND, 0n)), "insufficientBalance");
   });
 
   it("rejects an account that owes nothing", async () => {

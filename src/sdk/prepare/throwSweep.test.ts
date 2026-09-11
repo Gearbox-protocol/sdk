@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { StartDelayedWithdrawalOperation } from "../../onchain/accounts/intents/operations.js";
 import { projectTail } from "../../onchain/accounts/intents/tail.js";
-import { IntentPreviewError } from "../../onchain/validation/refusal.js";
+import { IntentPreviewError } from "../../onchain/validation/raise.js";
 
 const ROOT = join(__dirname, "..", "..", "..");
 
@@ -102,7 +102,7 @@ describe("throw sweep: engine", () => {
       }),
     ).rejects.toSatisfy(error => {
       expect(error).toBeInstanceOf(IntentPreviewError);
-      expect((error as IntentPreviewError).reason).toBe("noRecordedIntent");
+      expect((error as IntentPreviewError).error.code).toBe("noRecordedIntent");
       return true;
     });
   });

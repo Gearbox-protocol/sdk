@@ -49,7 +49,10 @@ async function main(): Promise<void> {
     throw new Error(`credit account ${CREDIT_ACCOUNT} not found`);
   }
 
-  const dir = resolve(import.meta.dirname, "../../src/preview/__fixtures__");
+  const dir = resolve(
+    import.meta.dirname,
+    "../../src/onchain/preview/__fixtures__",
+  );
   const statePath = resolve(dir, `Mainnet-${block}-adjust-credit-account.json`);
   writeFileSync(statePath, json_stringify(sdk.state));
   const caPath = resolve(

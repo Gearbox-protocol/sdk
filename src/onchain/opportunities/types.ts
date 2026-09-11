@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   DataResponse,
   Opportunity,
@@ -27,9 +28,17 @@ export interface IMultichainOpportunitiesService {
     key: PoolOpportunityKey,
   ): Promise<DataResponse<PoolOpportunityDetail>>;
   /**
-   * Detailed view of one strategy opportunity. See {@link getPool}.
+   * Detailed view of one strategy opportunity.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
   ): Promise<DataResponse<StrategyOpportunityDetail>>;
+  /**
+   * Whether `wallet` may open this strategy today. Throws when that chain
+   * cannot answer.
+   **/
+  isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean>;
 }

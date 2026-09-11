@@ -287,16 +287,16 @@ export function expectAdjustPreview(
   return result.state;
 }
 
-/** Asserts the preview failed for a specific reason. */
+/** Asserts the preview failed with a specific error code. */
 export function expectPreviewError(
   result: IntentPreviewResult | DelayedStartResult,
-  reason: Extract<IntentPreviewResult, { ok: false }>["reason"],
+  code: Extract<IntentPreviewResult, { ok: false }>["error"]["code"],
 ): void {
   expect(result.ok, "preview should fail").toBe(false);
   if (result.ok) {
     return;
   }
-  expect(result.reason, "failure reason").toBe(reason);
+  expect(result.error.code, "error code").toBe(code);
 }
 
 /**

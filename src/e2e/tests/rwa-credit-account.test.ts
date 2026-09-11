@@ -18,7 +18,6 @@ import {
   chains,
   MAX_UINT256,
   OnchainSDK,
-  RWA_FACTORY_SECURITIZE,
   sendRawTx,
 } from "../../onchain/index.js";
 import { GAS_LIMIT } from "../constants.js";
@@ -131,7 +130,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         creditManager,
         { tokenOutAddress: dsToken },
       );
-      if (!requirements) {
+      if (requirements?.protocol !== "securitize") {
         throw new Error(
           `getOpenAccountRequirements returned undefined for ${label}`,
         );
@@ -163,7 +162,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         permits: {},
         referralCode: 0n,
         rwaOptions: {
-          type: RWA_FACTORY_SECURITIZE,
+          protocol: "securitize",
           tokensToRegister: [dsToken],
           signaturesToCache,
         },
@@ -230,7 +229,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         creditManager,
         { tokenOutAddress: dsToken },
       );
-      if (!requirements) {
+      if (requirements?.protocol !== "securitize") {
         throw new Error(
           `getOpenAccountRequirements returned undefined for ${label}`,
         );
@@ -269,7 +268,7 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         permits: {},
         referralCode: 0n,
         rwaOptions: {
-          type: RWA_FACTORY_SECURITIZE,
+          protocol: "securitize",
           tokensToRegister: [dsToken],
           signaturesToCache,
         },

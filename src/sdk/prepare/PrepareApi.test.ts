@@ -7,7 +7,6 @@ import type {
   SDKReturn,
   TokenAmount,
 } from "../../model/index.js";
-import { isSDKError } from "../../model/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -33,7 +32,7 @@ import { PrepareApi } from "./PrepareApi.js";
  * envelope narrowing every assertion below would otherwise have to repeat.
  */
 function plan<D, E extends IGearboxError>(result: SDKReturn<D, E>): D {
-  if (isSDKError(result)) {
+  if (!result.ok) {
     throw new Error(`prepare refused: ${result.error.code}`);
   }
   return result.data;
@@ -49,6 +48,8 @@ const LP_BLOCK = 5n;
 const LP_TIMESTAMP = 1_700_000_000n;
 /** Pool shares the wallet holds before the operation, in the LP fake. */
 const HELD_SHARES = 200n;
+/** Underlying the fake pool can hand over — ample for every amount below. */
+const POOL_LIQUIDITY = 1_000_000n;
 
 const CURATOR = {
   address: "0xc0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0" as Address,
@@ -69,11 +70,32 @@ const amount = (address: Address, value: bigint): TokenAmount => ({
   valueUsd: null,
 });
 
-function buildApi() {
+/** The pool's own state, which `prepare` now reads before it prepares. */
+interface FakePoolState {
+  isPaused?: boolean;
+  sunset?: boolean;
+  availableLiquidity?: bigint;
+}
+
+function buildApi(state: FakePoolState = {}) {
+  const {
+    isPaused = false,
+    sunset = false,
+    availableLiquidity = POOL_LIQUIDITY,
+  } = state;
   const getShareBalance = vi.fn(async () => HELD_SHARES);
   const pools = {
     getWithdrawalTokensOut: vi.fn(() => [UNDERLYING]),
     getWithdrawalMetadata: vi.fn(() => ({})),
+    getDepositTokensOut: vi.fn(() => [POOL]),
+    getDepositMetadata: vi.fn(() => ({})),
+    simulateDeposit: vi.fn(
+      (props: { amount: bigint; tokenIn?: Address }): PoolSimulation => ({
+        tokenIn: amount(props.tokenIn ?? UNDERLYING, props.amount),
+        tokenOut: amount(POOL, props.amount),
+      }),
+    ),
+    addLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
     simulateWithdraw: vi.fn(
       (props: { amount: bigint; tokenIn?: Address }): PoolSimulation => ({
         tokenIn: amount(props.tokenIn ?? POOL, 100n),
@@ -95,11 +117,16 @@ function buildApi() {
       pools,
       marketRegister: {
         findByPool: () => ({
+          // `prepare` reads the pool's own state before it hands back a
+          // signable transaction, so the fake has to state it.
+          sunset,
           pool: {
             underlying: UNDERLYING,
             pool: {
               getShareBalance,
               sharesToUnderlying: (shares: bigint) => shares,
+              isPaused,
+              availableLiquidity,
             },
           },
           curator: CURATOR,
@@ -156,7 +183,7 @@ describe("PrepareApi.withdraw", () => {
       ),
     );
 
-    // the fake burns 100 shares for the payout, off the 200 held
+    // the fake burns 100 shares for the withdrawal, off the 200 held
     expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
     expect(prepared.state.curator).toEqual(CURATOR);
   });
@@ -190,6 +217,97 @@ describe("PrepareApi.withdraw", () => {
     expect(result).toMatchObject({
       ok: false,
       error: { code: "unexpectedFailure" },
+    });
+  });
+});
+
+/**
+ * The pool's own state, which the simulation cannot see: it converts at a rate
+ * and reports no verdict, so without these the refusals would only be found
+ * once the transaction reverted. The credit walk has had the same guard all
+ * along, in `assertMarketOperable`.
+ */
+describe("PrepareApi — the pool's own state refuses before the wallet signs", () => {
+  const pool = { chainId: CHAIN_ID, pool: POOL };
+  const params = { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING };
+
+  it("refuses a withdrawal the pool cannot serve", async () => {
+    const { api } = buildApi({ availableLiquidity: 100n });
+
+    const result = await api.withdraw(pool, params);
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "insufficientPoolLiquidity" },
+    });
+  });
+
+  it("serves a withdrawal of exactly one wei under what is left", async () => {
+    const { api } = buildApi({ availableLiquidity: 111n });
+
+    expect(await api.withdraw(pool, params)).toMatchObject({ ok: true });
+  });
+
+  it("refuses every side of a paused pool", async () => {
+    const { api } = buildApi({ isPaused: true });
+
+    const out = await api.withdraw(pool, params);
+    const redeemed = await api.redeem(pool, { ...params, tokenIn: POOL });
+    const inbound = await api.deposit(pool, {
+      amount: 110n,
+      wallet: WALLET,
+      tokenIn: UNDERLYING,
+      tokenOut: POOL,
+    });
+
+    expect(out).toMatchObject({ ok: false, error: { code: "poolPaused" } });
+    expect(redeemed).toMatchObject({
+      ok: false,
+      error: { code: "poolPaused" },
+    });
+    expect(inbound).toMatchObject({ ok: false, error: { code: "poolPaused" } });
+  });
+
+  it("refuses a deposit into a pool winding down, and still serves both exits", async () => {
+    const { api } = buildApi({ sunset: true });
+
+    const inbound = await api.deposit(pool, {
+      amount: 110n,
+      wallet: WALLET,
+      tokenIn: UNDERLYING,
+      tokenOut: POOL,
+    });
+
+    expect(inbound).toMatchObject({ ok: false, error: { code: "poolSunset" } });
+    expect(await api.withdraw(pool, params)).toMatchObject({ ok: true });
+    // Redeem is an exit too, and reads its own `isDeposit`.
+    expect(await api.redeem(pool, { ...params, tokenIn: POOL })).toMatchObject({
+      ok: true,
+    });
+  });
+
+  /**
+   * Redeem is the third caller and the one a copy-paste slip would strand: with
+   * `isDeposit` flipped it would stop weighing liquidity and start refusing a
+   * wind-down, and every assertion above would still pass, because `poolPaused`
+   * is the one code that is the same on both sides.
+   */
+  it("refuses a redeem the pool cannot serve", async () => {
+    const { api } = buildApi({ availableLiquidity: 100n });
+
+    expect(await api.redeem(pool, { ...params, tokenIn: POOL })).toMatchObject({
+      ok: false,
+      error: { code: "insufficientPoolLiquidity" },
+    });
+  });
+
+  /** The boundary the check names: the pool holding exactly it cannot serve it. */
+  it("refuses a withdrawal of exactly what is left", async () => {
+    const { api } = buildApi({ availableLiquidity: 110n });
+
+    expect(await api.withdraw(pool, params)).toMatchObject({
+      ok: false,
+      error: { code: "insufficientPoolLiquidity" },
     });
   });
 });
@@ -236,7 +354,7 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
 
 describe("PrepareApi.openNewStrategy — the empty opening", () => {
   const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
-  const EMPTY = { empty: true, collateral: [], leverage: 0n };
+  const EMPTY = { empty: true } as const;
 
   function api(extras?: MarketSdkExtras) {
     const sdk = buildMarketSdk({ minDebt: MIN_DEBT, ...extras });
@@ -272,31 +390,6 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("refuses when the flag and the arguments disagree", async () => {
-    const withCollateral = await api().api.openNewStrategy(STRATEGY, {
-      ...EMPTY,
-      collateral: [{ token: UND, balance: 20000000000n }],
-    });
-    const withAccount = await api().api.openNewStrategy(STRATEGY, {
-      ...EMPTY,
-      creditAccount: CREDIT_ACCOUNT,
-    });
-    const withLeverage = await api().api.openNewStrategy(STRATEGY, {
-      ...EMPTY,
-      leverage: LEVERAGE_DECIMALS * 3n,
-    });
-
-    expect(withCollateral.ok).toBe(false);
-    expect(withAccount.ok).toBe(false);
-    expect(withLeverage.ok).toBe(false);
-    if (withCollateral.ok || withAccount.ok || withLeverage.ok) {
-      throw new Error("unreachable");
-    }
-    expect(withCollateral.error.code).toBe("emptyOpenTakesNothing");
-    expect(withAccount.error.code).toBe("emptyOpenTakesNothing");
-    expect(withLeverage.error.code).toBe("emptyOpenTakesNothing");
-  });
-
   it("still refuses an ordinary opening that supplies nothing", async () => {
     const result = await api().api.openNewStrategy(STRATEGY, {
       collateral: [],
@@ -305,7 +398,7 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
-    expect(result.error.code).toBe("insufficientSourceBalance");
+    expect(result.error.code).toBe("insufficientBalance");
   });
 
   it("refuses a paused market, the one guard it does run", async () => {
@@ -316,7 +409,7 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
-    expect(result.error.code).toBe("marketPaused");
+    expect(result.error.code).toBe("creditManagerPaused");
   });
 });
 
@@ -498,7 +591,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     const prepared = plan(result);
     // this market has no redemption venue, so only the instant route answers
     expect(prepared.instant).toBeDefined();
-    expect(prepared.refused.delayed).toBe("noDelayedRoute");
+    expect(prepared.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("maxWithdraw's exit is the net value, and it is the far side of a gap", async () => {
@@ -514,7 +607,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       amount: between,
       to: WALLET,
     });
-    expect(isSDKError(refused) && refused.error.code).toBe("debtOutOfRange");
+    expect(!refused.ok && refused.error.code).toBe("debtOutOfRange");
 
     // at the exit itself the flow accepts, and empties the account
     const result = await api.withdrawStrategy(position, {
@@ -564,7 +657,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(exit.state.assets).toEqual([]);
     expect(exit.state.quotas).toEqual([]);
     // an exit is the router's business; the issuer cannot serve one
-    expect(prepared.refused.delayed).toBe("noDelayedRoute");
+    expect(prepared.errors.delayed?.code).toBe("noDelayedRoute");
   });
 
   it("repayStrategy with MAX_UINT256 settles the debt and drops the quotas", async () => {
@@ -696,7 +789,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       { token: UND, amount: 1n },
     );
 
-    if (!isSDKError(result)) throw new Error("expected a refusal");
+    if (result.ok) throw new Error("expected a refusal");
     expect(result.error.code).toBe("unexpectedFailure");
     expect(
       result.error.code === "unexpectedFailure" && result.error.cause.message,
@@ -715,7 +808,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       { amount: 1n, wallet: WALLET },
     );
 
-    if (!isSDKError(result)) throw new Error("expected a refusal");
+    if (result.ok) throw new Error("expected a refusal");
     expect(result.error.code).toBe("unexpectedFailure");
   });
 
@@ -759,7 +852,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(result).toEqual({
       ok: false,
       error: {
-        code: "marketPaused",
+        code: "creditManagerPaused",
         message: expect.any(String),
         creditManager: CREDIT_MANAGER,
       },
@@ -809,7 +902,7 @@ describe("PrepareApi — the two-transaction route", () => {
     const prepared = plan(result);
     const start = prepared.delayed;
     if (!start)
-      throw new Error(`no delayed route: ${prepared.refused.delayed}`);
+      throw new Error(`no delayed route: ${prepared.errors.delayed?.code}`);
 
     expect(start.delayed).toMatchObject({
       record: {

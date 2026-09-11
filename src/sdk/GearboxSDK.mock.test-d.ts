@@ -54,10 +54,12 @@ const mockSDK = {
     execute: {
       buildTx: notImplemented,
     },
+    isEligibleForStrategy: notImplemented,
     onchain: {
       list: notImplemented,
       getPool: notImplemented,
       getStrategy: notImplemented,
+      isEligibleForStrategy: notImplemented,
     },
     offchain: {
       list: notImplemented,
@@ -93,9 +95,12 @@ const mockSDK = {
     getLiquidationDetails: notImplemented,
     buildLiquidationTx: notImplemented,
     getLiquidationPositions: notImplemented,
+    checkLiquidation: notImplemented,
   },
   preview: {
     previewOperation: notImplemented,
+    checkOperation: notImplemented,
+    checkSimulation: notImplemented,
   },
   notices: notImplemented,
 } as const satisfies IGearboxSDK<"both">;

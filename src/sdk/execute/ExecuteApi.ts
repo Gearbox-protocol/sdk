@@ -1,8 +1,8 @@
+import type { RWAOperationArgs } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
   OnchainSDK,
   RawTx,
-  RWAOperationArgs,
 } from "../../onchain/index.js";
 import type { ChainOf } from "../prepare/index.js";
 import type {
@@ -122,11 +122,11 @@ async function openRwaOptions(
     request.creditManager,
     { tokenOutAddress: request.targetToken },
   );
-  if (!requirements) {
+  if (requirements?.protocol !== "securitize") {
     return undefined;
   }
   return {
-    type: requirements.type,
+    protocol: "securitize",
     tokensToRegister: requirements.tokensToRegister,
     signaturesToCache: request.signaturesToCache ?? [],
   };
