@@ -239,7 +239,7 @@ describe("collateral check — where the transaction has to end", () => {
 
   it("judges a non-underlying withdrawal at the lower of the two feeds", async () => {
     // POS at $2 main covers the debt; at $1 reserve it does not, so even a
-    // wei leaving is refused — and the refusal names the feed that decided it
+    // wei leaving is refused — and the error names the feed that decided it
     // rather than the account's size, which is not what is wrong.
     const result = await run(
       { type: "WITHDRAW_ASSET", token: POS, amount: 1n, to: WALLET },
@@ -248,10 +248,10 @@ describe("collateral check — where the transaction has to end", () => {
 
     expectPreviewError(result, "reservePriceLimited");
     if (result.ok || result.error.code !== "reservePriceLimited") {
-      throw new Error("expected the reserve-price refusal");
+      throw new Error("expected the reserve-price error");
     }
-    // The main feed clears the bar the safe one does not: that gap is the
-    // whole evidence for blaming the reserve feed.
+    // The main feed clears the threshold the safe one does not: that gap is
+    // the whole evidence for blaming the reserve feed.
     expect(result.error.atMainPrices).toBeGreaterThanOrEqual(
       result.error.healthFactorThreshold,
     );
@@ -259,7 +259,7 @@ describe("collateral check — where the transaction has to end", () => {
       result.error.healthFactorThreshold,
     );
     // Nothing is on offer instead: a proportional withdrawal holds the
-    // safe-price factor where it is, so no smaller request clears the bar.
+    // safe-price factor where it is, so no smaller request clears it either.
     expect(result.error.withdrawable.value).toBe(0n);
     expect(result.error.withdrawable.token.address).toBe(UND);
   });

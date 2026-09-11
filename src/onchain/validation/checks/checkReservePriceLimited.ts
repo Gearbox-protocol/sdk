@@ -23,8 +23,8 @@ export interface ReservePriceLimitedArgs {
  * two feeds, and nothing at all where governance registered no reserve feed —
  * so an account that covers its debt at the main feed can still be refused.
  * The two are worth telling apart: a position that is genuinely too small is
- * fixed by adding collateral or asking for less, while this one is a valuation
- * the account does not control, and asking for less only helps as far as
+ * fixed by adding collateral or requesting less, while this one is a valuation
+ * the account does not control, and requesting less only helps as far as
  * `withdrawable` says it does.
  *
  * Runs after `checkCollateralised` and answers only when that one refused, so

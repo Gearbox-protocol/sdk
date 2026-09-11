@@ -8,11 +8,11 @@ import type { CreditAccountSlice, WithdrawCeilings } from "./types.js";
 import { eq } from "./utils/common.js";
 import { accountView } from "./view.js";
 
-export interface WithdrawCeilingsProps {
+export interface WithdrawLimitsProps {
   creditAccount: CreditAccountSlice;
   sdk: OnchainSDK;
   /**
-   * Token the withdrawal liquidates. Defaults to the account's fattest
+   * Token the withdrawal liquidates. Defaults to the account's largest
    * non-phantom balance, which is what the planner reaches for when the intent
    * names none.
    */
@@ -20,24 +20,22 @@ export interface WithdrawCeilingsProps {
 }
 
 /**
- * Every ceiling a `WITHDRAW` answers to, in underlying units.
+ * Every limit a `WITHDRAW` answers to, in underlying units.
  *
  * The one place they are assembled, so the figure a form is offered and the
- * figure a refusal names cannot drift apart: `CreditAccountOperationsService`
- * reports this, and the collateral guard quotes it back when it turns a
- * withdrawal down.
+ * figure the collateral guard names when it turns a withdrawal down cannot
+ * drift apart: `CreditAccountOperationsService` reports this, and the guard
+ * quotes it back.
  *
  * @param props - Account slice, the SDK holding its market, and optionally the
  * collateral the withdrawal would be funded from
- * @returns The ceilings, see {@link WithdrawCeilings}
+ * @returns The three limits, see {@link WithdrawCeilings}
  **/
-export function withdrawCeilings(
-  props: WithdrawCeilingsProps,
-): WithdrawCeilings {
+export function withdrawLimits(props: WithdrawLimitsProps): WithdrawCeilings {
   const { creditAccount, sdk } = props;
   const view = accountView(creditAccount, sdk);
   const partial = maxProportionalWithdrawal(view, view.debtLimits);
-  const safe = safeWithdrawCeiling({
+  const safe = maxSafeWithdrawal({
     ...props,
     targetHF: BigInt(MIN_HEALTH_FACTOR_FACADE),
   });
@@ -50,19 +48,19 @@ export function withdrawCeilings(
   };
 }
 
-export interface SafeWithdrawCeilingProps {
+export interface MaxSafeWithdrawalProps {
   creditAccount: CreditAccountSlice;
   sdk: OnchainSDK;
   /**
-   * Token the withdrawal liquidates. Defaults to the account's fattest
+   * Token the withdrawal liquidates. Defaults to the account's largest
    * non-phantom balance, which is what the planner reaches for when the intent
    * names none.
    */
   sourceToken?: Address;
   /**
    * Health factor the withdrawal has to leave behind, in basis points. The
-   * facade's own bar answers "would this land"; a form holding the account to
-   * something stricter passes its own.
+   * facade's own threshold answers "would this land"; a form holding the
+   * account to something stricter passes its own.
    */
   targetHF: bigint;
 }
@@ -73,7 +71,7 @@ export interface SafeWithdrawCeilingProps {
  *
  * A withdrawal hands funds over, so the facade weighs the account it leaves
  * behind at safe prices rather than main ones — see {@link collateralMoney}.
- * That is a second ceiling on top of the facade's debt band, and the two are
+ * That is a second limit on top of the facade's `debtLimits`, and the two are
  * independent: a caller wanting the amount a form may actually offer takes the
  * lesser of this and `maxProportionalWithdrawal`.
  *
@@ -88,28 +86,28 @@ export interface SafeWithdrawCeilingProps {
  * Two consequences worth stating, because they surprise:
  *
  * - An account whose collateral is entirely a token the reserve feed marks
- *   down cannot withdraw at all once it is under the bar. A proportional
+ *   down cannot withdraw at all once it is under the threshold. A proportional
  *   withdrawal scales collateral and debt together, so it leaves the safe-price
- *   factor exactly where it found it — no amount climbs back over the bar.
+ *   factor exactly where it found it — no amount climbs back over.
  * - Leaving entirely is never refused for this reason: the exit settles the
  *   debt instead of shrinking it, and a check with no debt to divide by has
  *   nothing to refuse.
  *
  * @returns Amount in underlying units. The account's net value when safe prices
- * put no ceiling on the withdrawal at all, so the caller's `min` is a no-op;
- * `0n` when the account already sits below `targetHF` at safe prices, and only
- * the exit is left
+ * do not limit the withdrawal at all, so the caller's `min` is a no-op; `0n`
+ * when the account already sits below `targetHF` at safe prices, and only the
+ * exit is left
  **/
-export function safeWithdrawCeiling(props: SafeWithdrawCeilingProps): bigint {
+export function maxSafeWithdrawal(props: MaxSafeWithdrawalProps): bigint {
   const { creditAccount, sdk, targetHF } = props;
 
   const view = accountView(creditAccount, sdk);
-  // An account underwater owes more than it holds; there is no ceiling to size
+  // An account underwater owes more than it holds; there is no amount to size
   // and nothing to hand over either way.
   if (view.collateral <= 0n) {
     return 0n;
   }
-  // No loan, no collateral check: the debt band is the only thing in the way.
+  // No loan, no collateral check: `debtLimits` is the only thing in the way.
   if (view.debt === 0n) {
     return view.collateral;
   }
@@ -132,8 +130,8 @@ export function safeWithdrawCeiling(props: SafeWithdrawCeilingProps): bigint {
   }
 
   const debtUsd = money.mainUsd(money.underlying, view.debt);
-  // The check divides by the debt: without a price for it there is no ceiling
-  // to state, and inventing one either way would be a guess.
+  // The check divides by the debt: without a price for it there is no limit to
+  // state, and inventing one either way would be a guess.
   if (debtUsd === undefined || debtUsd <= 0n) {
     return view.collateral;
   }
@@ -146,7 +144,7 @@ export function safeWithdrawCeiling(props: SafeWithdrawCeilingProps): bigint {
   // What one dollar of the source's value is worth to the check, as a ratio
   // rather than a rate, so the division below stays exact. A quota-capped
   // holding gives up less than its threshold when it is sold, so this
-  // over-states the cost and the ceiling errs low.
+  // over-states the cost and the answer errs low.
   const sourceMainUsd = money.mainUsd(holding.token, holding.balance);
   if (sourceMainUsd === undefined || sourceMainUsd <= 0n) {
     return view.collateral;
@@ -171,6 +169,6 @@ export function safeWithdrawCeiling(props: SafeWithdrawCeilingProps): bigint {
 
   // Rounds down, so the answer clears the check rather than sitting a wei past
   // it.
-  const ceiling = (view.collateral * slack * sourceMainUsd) / drain;
-  return ceiling < view.collateral ? ceiling : view.collateral;
+  const limit = (view.collateral * slack * sourceMainUsd) / drain;
+  return limit < view.collateral ? limit : view.collateral;
 }

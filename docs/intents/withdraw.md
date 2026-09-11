@@ -40,13 +40,13 @@ can free a few wei, when in fact it can free everything by leaving.
 A third figure, `safePartial`, is `partial` once the safe-price collateral
 check has had its say, and it is the one a form should offer. Because funds
 leave, the facade weighs the result at `min` of each token's two feeds, so a
-reserve feed marking collateral down lowers the ceiling below what the debt
-band alone would allow. Where all the collateral is the marked-down token the
-ceiling collapses to `0n`: holding leverage flat scales collateral and debt
-together, which leaves the safe-price factor exactly where it found it, so no
-smaller request clears the bar either. Such a position can still take `exit` —
-leaving settles the debt rather than shrinking it, and a check with no debt to
-divide by refuses nothing.
+reserve feed marking collateral down puts it below what `debtLimits` alone
+would allow. Where all the collateral is the marked-down token it collapses to
+`0n`: holding leverage flat scales collateral and debt together, which leaves
+the safe-price factor exactly where it found it, so no smaller request clears
+the threshold either. Such a position can still take `exit` — leaving settles
+the debt rather than shrinking it, and a check with no debt to divide by
+refuses nothing.
 
 ## Case selection
 

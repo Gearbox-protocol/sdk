@@ -11,7 +11,7 @@ export type Holding = CreditAccountSlice["tokens"][number];
 /**
  * The collateral check's own valuation of an account, as a handful of lookups.
  *
- * Shared by every ceiling that solves that check for an amount, so the rules it
+ * Shared by everything that solves that check for an amount, so the rules it
  * encodes are written once: a holding backed by a quota counts the lesser of the
  * quota and its threshold-weighted value, an unquoted one its weighted value
  * alone, and dust or a disabled balance nothing at all. Collateral is valued at

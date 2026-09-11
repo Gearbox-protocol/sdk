@@ -222,7 +222,7 @@ export function insufficientCollateral(
 }
 
 /**
- * The same refusal as {@link InsufficientCollateralError}, traced to the
+ * The same failure as {@link InsufficientCollateralError}, traced to the
  * reserve price feed rather than to the size of the position.
  *
  * A call that hands funds over is weighed at safe prices — `min` of a token's
@@ -230,8 +230,8 @@ export function insufficientCollateral(
  * reserve feed for — so an account that covers its debt at the main feed can
  * still be refused. Worth its own code because the two call for opposite
  * words: an under-collateralised position is fixed by adding collateral or
- * asking for less, while this is a valuation the account does not control, and
- * asking for less only helps as far as {@link withdrawable} says it does.
+ * requesting less, while this is a valuation the account does not control, and
+ * requesting less only helps as far as {@link withdrawable} says it does.
  **/
 export interface ReservePriceLimitedError extends IGearboxError {
   code: "reservePriceLimited";
@@ -266,7 +266,7 @@ export function reservePriceLimited(
 ): ReservePriceLimitedError {
   return {
     code: "reservePriceLimited",
-    message: `The reserve price feed values this collateral below what the payout needs: the account covers its debt at ${args.atMainPrices} on the main feed and only ${args.healthFactor} at the reserve one, below ${args.healthFactorThreshold}.`,
+    message: `The reserve price feed values this collateral below what the operation pays out: the account covers its debt at ${args.atMainPrices} on the main feed and only ${args.healthFactor} at the reserve one, below ${args.healthFactorThreshold}.`,
     ...args,
   };
 }

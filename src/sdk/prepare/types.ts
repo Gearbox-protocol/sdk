@@ -716,7 +716,7 @@ export interface IOpportunitiesPrepare {
    * has had its say, and `exit` the net value leaving entirely hands over.
    *
    * More than one number because the range has a hole in it: between the
-   * partial ceiling and `exit` the flow refuses with `debtOutOfRange`, since
+   * largest partial and `exit` the flow refuses with `debtOutOfRange`, since
    * the leftover loan would sit below the floor. A form driving a slider off
    * `safePartial` and a Max button off `exit` describes what the account can
    * actually do; a form using either alone will misstate one of them — see
@@ -727,7 +727,7 @@ export interface IOpportunitiesPrepare {
    * same argument {@link withdrawStrategy} takes. It matters because selling
    * one collateral and selling another cost the safe-price check different
    * amounts; omitted, both this and the flow itself reach for the account's
-   * fattest non-phantom balance.
+   * largest non-phantom balance.
    *
    * Taking everything out needs none of the figures: send `MAX_UINT256` to
    * {@link withdrawStrategy} and the exit is what runs, named rather than

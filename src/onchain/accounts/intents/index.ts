@@ -56,7 +56,7 @@ import type {
   WithdrawCeilings,
 } from "./types.js";
 import { accountView } from "./view.js";
-import { withdrawCeilings } from "./withdraw-ceilings.js";
+import { withdrawLimits } from "./withdraw-limits.js";
 
 export type { LeverageBand } from "./leverage-band.js";
 export type {
@@ -173,21 +173,21 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * {@link WithdrawCeilings}.
    *
    * Takes no target health factor, unlike {@link maxWithdrawCollateral}. A
-   * proportional withdrawal leaves the factor where it found it, so there is no
-   * headroom to choose: what the ceilings answer to is the facade's own bar,
+   * proportional withdrawal leaves the factor where it found it, so there is
+   * no room to choose: what these answer to is the facade's own threshold,
    * which is also what {@link startIntent} refuses against.
    *
    * @param props - Account slice, the SDK holding its market, and optionally
    * the collateral the withdrawal would be funded from
-   * @returns The ceilings, see {@link WithdrawCeilings} for the gap between
-   * them
+   * @returns The three limits, see {@link WithdrawCeilings} for the gap
+   * between them
    */
   maxWithdraw(
     props: Pick<StartIntentProps, "creditAccount" | "sdk"> & {
       sourceToken?: Address;
     },
   ): WithdrawCeilings {
-    return withdrawCeilings(props);
+    return withdrawLimits(props);
   }
 
   /**

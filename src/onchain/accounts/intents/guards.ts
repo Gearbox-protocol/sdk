@@ -168,9 +168,9 @@ export function assertCollateralised(
     return;
   }
 
-  // A refusal that blames the reserve feed has to show the main feed would have
-  // passed, and both numbers cost a full valuation — so they are read here,
-  // once the plain check has already turned the plan down.
+  // Blaming the reserve feed means showing the main feed would have passed,
+  // and both numbers cost a full valuation — so they are read here, once the
+  // plain check has already turned the plan down.
   if (safePrices && atSafePrices) {
     const { atMainPrices, withdrawable } = atSafePrices();
     raise(
@@ -195,8 +195,8 @@ export function assertCollateralised(
  * is simply too small, read only when the collateral check has already failed.
  *
  * A thunk because both halves are expensive: the account has to be valued a
- * second time at the main feed, and the ceiling solved for the amount that
- * would still clear the check.
+ * second time at the main feed, and the check solved for the amount that would
+ * still clear it.
  */
 export type SafePriceEvidence = () => {
   /** The plan's end state weighed at the main feed. */

@@ -49,7 +49,7 @@ import {
   quotasAfterUpdate,
 } from "./utils/quotas-for-update.js";
 import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
-import { withdrawCeilings } from "./withdraw-ceilings.js";
+import { withdrawLimits } from "./withdraw-limits.js";
 
 export interface RealizeProps {
   creditAccount: CreditAccountSlice;
@@ -540,14 +540,14 @@ export async function realize(
     withdrawsCollateral,
     () => ({
       atMainPrices: sdk.positions.healthFactor(settled, { safePrices: false }),
-      // The ceiling is read off the account as it stands, not off the state the
+      // The amount is read off the account as it stands, not off the state the
       // plan failed to reach — a caller asking "how much then" means the
       // request it should send instead, and that is the same number
       // `maxWithdraw` answers.
       withdrawable: toTokenAmount(
         sdk,
         underlying,
-        withdrawCeilings({ creditAccount, sdk }).safePartial,
+        withdrawLimits({ creditAccount, sdk }).safePartial,
       ),
     }),
   );
