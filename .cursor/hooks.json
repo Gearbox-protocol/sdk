@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/vocab-gate.mjs"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "node .cursor/hooks/vocab-gate.mjs"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "node .cursor/hooks/vocab-gate.mjs"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "node .cursor/hooks/vocab-gate.mjs"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/vocab-gate.mjs",
+        "loop_limit": 3
+      }
+    ]
+  }
+}

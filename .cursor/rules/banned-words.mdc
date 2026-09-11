@@ -1,0 +1,16 @@
+---
+description: Catalog stems are candidates; do not load the yaml; do not mass-rename.
+alwaysApply: true
+---
+
+# Banned words
+
+Do not Read `banned-words.yaml`. A local hook scans new prose and identifiers.
+
+Findings are candidates. Apply that entry’s note (the hook prints a default when the note is empty). If the note allows the use, or you are unsure, keep the wording and ask.
+
+Do not mass-rename existing names merely to satisfy the scan.
+
+Exception: when the user has `@`-mentioned `@add-banned-word` or `@apply-banned-word`, run `node .cursor/hooks/vocab-inventory.mjs` and use its printed note. `@add-banned-word` may then edit the yaml to append one entry. Do not paste the catalog into chat.
+
+Adding a stem is `@add-banned-word`. Do not append yaml as a drive-by edit. A scoped rename is `@apply-banned-word` with a glob.

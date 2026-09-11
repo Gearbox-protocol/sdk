@@ -7,7 +7,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!node_modules", "!dist", "!tmp"],
+    "includes": ["**", "!node_modules", "!dist", "!tmp", "!.cursor"],
     "ignoreUnknown": true
   },
   "linter": {

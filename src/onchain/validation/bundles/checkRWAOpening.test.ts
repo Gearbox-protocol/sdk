@@ -4,7 +4,9 @@ import type { Address } from "viem";
 import { custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  KYC_REGISTRATION_LINKS,
   type OpenRWAStrategyPositionPreview,
+  type OpenStrategyPositionPreview,
   RWA_FACTORY_SECURITIZE,
   type RWAOperationArgs,
   SECURITIZE_REGISTER_VAULT_TYPES,
@@ -12,7 +14,7 @@ import {
   type TokenAmount,
 } from "../../../model/index.js";
 import { json_parse, OnchainSDK } from "../../index.js";
-import type { IRWAFactory } from "../../market/rwa/types.js";
+import type { IDegenNFT } from "../../market/rwa/types.js";
 import { CM, OWNER, TOK } from "../testing/tokens.js";
 import { checkRWAOpening } from "./checkRWAOpening.js";
 
@@ -76,7 +78,7 @@ function preview(
     collateralAdded: [amount(DS_TOKEN, 1n)],
     quotas: [amount(DS_TOKEN, 1n)],
     rwaArgs: {
-      type: RWA_FACTORY_SECURITIZE,
+      protocol: "securitize",
       tokensToRegister: [],
       signaturesToCache: [],
     },
@@ -86,10 +88,12 @@ function preview(
 
 describe("checkRWAOpening", () => {
   describe("routing", () => {
-    it("returns nothing when the market has no RWA factory", async () => {
+    it("returns nothing when there is no degen NFT", async () => {
       const sdk = {
         marketRegister: {
-          findByCreditManager: () => ({ rwaFactory: undefined }),
+          findCreditManager: () => ({
+            degenNFT: async () => undefined,
+          }),
         },
       } as unknown as OnchainSDK;
 
@@ -102,17 +106,25 @@ describe("checkRWAOpening", () => {
       ).toEqual([]);
     });
 
-    it("asks only for factory-gated tokens from collateralAdded and quotas", async () => {
-      const getOpenAccountRequirements = vi.fn(async () => undefined);
-      const rwaFactory = {
-        address: FACTORY,
-        getTokens: () => [TOK.address],
-        getMissingRequirements: vi.fn(),
-      } as unknown as IRWAFactory;
+    it("asks only for gated tokens from collateralAdded and quotas", async () => {
+      const getOpenAccountRequirements = vi.fn(async () => ({
+        protocol: "securitize",
+        factory: FACTORY,
+        securitizeTokensToRegister: [],
+        tokensToRegister: [TOK.address],
+        requiredSignatures: [],
+      }));
+      const nft = {
+        getTokens: async () => [TOK.address],
+        getOpenAccountRequirements,
+        getMissingRequirements: vi.fn(() => undefined),
+        isRegistered: vi.fn(() => true),
+        protocol: "securitize",
+        registrationLink: KYC_REGISTRATION_LINKS.securitize,
+      } as unknown as IDegenNFT;
       const sdk = {
-        accounts: { getOpenAccountRequirements },
         marketRegister: {
-          findByCreditManager: () => ({ rwaFactory }),
+          findCreditManager: () => ({ degenNFT: async () => nft }),
         },
         tokensMeta: { getToken: () => TOK },
       } as unknown as OnchainSDK;
@@ -128,9 +140,50 @@ describe("checkRWAOpening", () => {
       });
 
       expect(getOpenAccountRequirements).toHaveBeenCalledTimes(1);
-      expect(getOpenAccountRequirements).toHaveBeenCalledWith(OWNER, CM, {
+      expect(getOpenAccountRequirements).toHaveBeenCalledWith(OWNER, {
         tokenOutAddress: TOK.address,
       });
+    });
+
+    it("checks a facade OpenCreditAccount with providedArgs undefined", async () => {
+      const getMissingRequirements = vi.fn(() => undefined);
+      const nft = {
+        getTokens: async () => [TOK.address],
+        getOpenAccountRequirements: vi.fn(async () => ({
+          protocol: "midas",
+          token: TOK.address,
+          greenlisted: true,
+        })),
+        getMissingRequirements,
+        isRegistered: vi.fn(() => true),
+        protocol: "midas",
+        registrationLink: KYC_REGISTRATION_LINKS.midas,
+      } as unknown as IDegenNFT;
+      const sdk = {
+        marketRegister: {
+          findCreditManager: () => ({ degenNFT: async () => nft }),
+        },
+        tokensMeta: { getToken: () => TOK },
+      } as unknown as OnchainSDK;
+
+      const facadePreview: OpenStrategyPositionPreview = {
+        operation: "OpenCreditAccount",
+        creditManager: CM,
+        collateralAdded: [amount(TOK.address, 1n)],
+        quotas: [amount(TOK.address, 1n)],
+      } as OpenStrategyPositionPreview;
+
+      expect(
+        await checkRWAOpening({
+          sdk,
+          preview: facadePreview,
+          sender: OWNER,
+        }),
+      ).toEqual([]);
+      expect(getMissingRequirements).toHaveBeenCalledWith(
+        expect.objectContaining({ protocol: "midas" }),
+        undefined,
+      );
     });
   });
 
@@ -160,7 +213,7 @@ describe("checkRWAOpening", () => {
 
     it("is satisfied when the required signature is already in rwaArgs", async () => {
       const rwaArgs: RWAOperationArgs = {
-        type: RWA_FACTORY_SECURITIZE,
+        protocol: "securitize",
         tokensToRegister: [DS_TOKEN],
         signaturesToCache: [
           {
@@ -191,13 +244,14 @@ describe("checkRWAOpening", () => {
         {
           code: "rwaOpenRequirementsNotMet",
           requirements: {
-            type: RWA_FACTORY_SECURITIZE,
+            protocol: "securitize",
+            factory: FACTORY,
             securitizeTokensToRegister: [],
             tokensToRegister: [DS_TOKEN],
             requiredSignatures: [{ message: { token: DS_TOKEN } }],
           },
           missing: {
-            type: RWA_FACTORY_SECURITIZE,
+            protocol: "securitize",
             requiredSignatures: [{ message: { token: DS_TOKEN } }],
           },
         },

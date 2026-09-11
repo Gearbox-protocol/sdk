@@ -1,15 +1,14 @@
 import { type Address, isAddressEqual } from "viem";
-import {
-  type Bps,
-  type CreditOperationMarket,
-  KYC_REGISTRATION_LINKS,
-  type KycRequirement,
-  type RWAOperationArgs,
-  type StrategyOpportunity,
-  type StrategyOpportunityDetail,
-  type Timestamp,
-  type Token,
-  type UnderlyingToken,
+import type {
+  Bps,
+  CreditOperationMarket,
+  KycRequirement,
+  RWAOperationArgs,
+  StrategyOpportunity,
+  StrategyOpportunityDetail,
+  Timestamp,
+  Token,
+  UnderlyingToken,
 } from "../../../model/index.js";
 import type { CreditAccountData, CreditSuiteState } from "../../base/index.js";
 import { SDKConstruct } from "../../base/index.js";
@@ -182,6 +181,10 @@ export class CreditSuite extends SDKConstruct {
     if (isAddressEqual(address, ADDRESS_0X0)) {
       return Promise.resolve(undefined);
     }
+    const factoryNft = this.rwaFactory?.degenNFT;
+    if (factoryNft && isAddressEqual(factoryNft.address, address)) {
+      return Promise.resolve(factoryNft as IDegenNFT);
+    }
     if (!this.#degenNFT) {
       this.#degenNFT = createDegenNFT(this.sdk, address);
     }
@@ -189,26 +192,42 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * What `wallet` still has to do before the facade lets it open an account;
-   * `null` when nothing (no degen NFT, not a KYC gate, or already eligible).
+   * The KYC gate of this suite's strategy; `null` when there is none.
+   * Wallet-independent.
    */
   public async kycRequirement(
-    wallet: Address,
     targetCollateral: Address,
   ): Promise<KycRequirement | null> {
     const nft = await this.degenNFT();
     if (!nft) {
       return null;
     }
-    const { eligible, token } = await nft.checkKyc(wallet, targetCollateral);
-    if (eligible) {
-      return null;
-    }
+    const tokens = await nft.getTokens();
+    const token =
+      tokens.find(t => isAddressEqual(t, targetCollateral)) ?? tokens[0];
     return {
       protocol: nft.protocol,
-      token: this.tokensMeta.getToken(token),
-      registrationLink: KYC_REGISTRATION_LINKS[nft.protocol],
+      token: token ? this.tokensMeta.getToken(token) : undefined,
+      registrationLink: nft.registrationLink,
     };
+  }
+
+  /**
+   * Whether `wallet` may open this suite's strategy today; `true` when there
+   * is no KYC gate.
+   */
+  public async isEligibleForStrategy(
+    wallet: Address,
+    targetCollateral: Address,
+  ): Promise<boolean> {
+    const nft = await this.degenNFT();
+    if (!nft) {
+      return true;
+    }
+    const requirements = await nft.getOpenAccountRequirements(wallet, {
+      tokenOutAddress: targetCollateral,
+    });
+    return nft.isRegistered(requirements);
   }
 
   /**

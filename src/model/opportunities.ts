@@ -239,7 +239,7 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   targetCollateral: Token;
   /**
-   * Debt principal this credit manager has drawn from the pool
+   * Debt principal this credit manager has borrowed from the pool
    * (`pool.creditManagerBorrowed(creditManager)`). Denominated in the
    * underlying.
    **/
@@ -349,7 +349,7 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   minDebt: Amount;
   /**
-   * Cap on the total debt this credit manager may draw from the pool, shared
+   * Cap on the total debt this credit manager may borrow from the pool, shared
    * by all of its accounts and denominated in the underlying
    * (`creditManagerDebtParams.limit`).
    **/
@@ -666,11 +666,10 @@ export interface StrategyOpportunityDetail extends StrategyOpportunity {
    **/
   priceFeeds: PriceFeedSummary;
   /**
-   * Registration the wallet passed to `getStrategy` still needs before it may
-   * open this strategy. `null` when the strategy is not KYC-gated, when no
-   * wallet was given, or when the wallet is already eligible. `undefined`
-   * only in `offchain` mode, where the backend does not evaluate it. In
-   * `both` mode `kyc` is taken from the chain whenever that leg succeeded.
+   * KYC gate of this strategy, independent of any wallet. `null` when the
+   * strategy is not KYC-gated. `undefined` only in `offchain` mode, until the
+   * backend serves it. In `both` mode `kyc` is taken from the chain whenever
+   * that leg succeeded.
    **/
   kyc?: KycRequirement | null;
 }

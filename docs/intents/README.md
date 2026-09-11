@@ -10,7 +10,7 @@ surface: `sdk.opportunities.prepare` (see
 
 | Intent            | Public API                     | Planner                  | Debt    | Graph                                     |
 | ----------------- | ------------------------------ | ------------------------ | ------- | ----------------------------------------- |
-| —                 | `prepare.openNewStrategy`     | `buildOpenStrategyState` | drawn   | [open-strategy.md](./open-strategy.md)     |
+| —                 | `prepare.openNewStrategy`     | `buildOpenStrategyState` | borrowed | [open-strategy.md](./open-strategy.md)     |
 | `DEPOSIT`         | `prepare.depositStrategy`     | `planDeposit`            | grows   | [deposit.md](./deposit.md)                 |
 | `WITHDRAW`        | `prepare.withdrawStrategy`    | `planWithdraw`           | shrinks | [withdraw.md](./withdraw.md)               |
 | `REPAY`           | `prepare.repayStrategy`       | `planRepay`              | shrinks | [repay.md](./repay.md)                     |
@@ -191,7 +191,7 @@ on the error beside it — `error.maxDebt`, `error.token`.
 | `withdrawalInProgress`      | a redemption of the asset is already in flight                              | `inFlight` |
 | `noRecordedIntent`          | a claim naming no operation to resume                                       | — |
 | `creditManagerPaused` / `marketExpired` | the facade takes no multicall at all                             | `creditManager`, plus `expirationDate` |
-| `insufficientPoolLiquidity` | the pool cannot lend what the plan draws in this block                      | `requested`, `available`, `limit`, in underlying |
+| `insufficientPoolLiquidity` | the pool cannot lend what the plan borrows in this block                    | `requested`, `available`, `limit`, in underlying |
 | `quotaLimitReached`         | no quota left for a token the plan wants to hold, or the token takes none    | `token`, plus `requested`/`available` **in underlying** — a quota is measured there, not in the token it is held against |
 | `forbiddenToken`            | the plan would grow the balance of a forbidden token                        | `token` |
 | `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `healthFactorThreshold`, `safePrices` |

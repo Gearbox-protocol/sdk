@@ -15,7 +15,7 @@ export interface PoolLiquidityArgs {
  * What the pool holds, against what is being taken out of it.
  *
  * The operator is not `checkBorrowLimit`'s: a pool holding exactly the amount
- * asked for still cannot serve it, so equality is already a refusal. That is
+ * requested still cannot serve it, so equality is already a refusal. That is
  * the rule the legacy withdrawal validator enforced and it is preserved to the
  * unit.
  */

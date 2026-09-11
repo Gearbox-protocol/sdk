@@ -4,6 +4,7 @@ import type { Bps, Token, TokenAmount } from "../primitives.js";
 import type {
   RWAMissingOpenAccountRequirements,
   RWAOpenAccountRequirements,
+  RWAProtocol,
 } from "../rwa.js";
 import type { IGearboxError } from "./base.js";
 
@@ -101,7 +102,7 @@ export function poolSunset(pool: Address): PoolSunsetError {
 }
 
 /**
- * The pool cannot lend what the operation asks for.
+ * The pool cannot lend what the operation wants to borrow.
  **/
 export interface InsufficientPoolLiquidityError extends IGearboxError {
   code: "insufficientPoolLiquidity";
@@ -292,7 +293,7 @@ export function forbiddenToken(token: Token): ForbiddenTokenError {
  **/
 export interface QuotaLimitReachedError extends IGearboxError {
   code: "quotaLimitReached";
-  /** The token whose quota is asked for. */
+  /** The token whose quota is increased. */
   token: Token;
   /**
    * In the **underlying**, which is what a quota is measured in. Absent for a
@@ -403,17 +404,19 @@ export function insufficientAllowance(
 }
 
 /**
- * The RWA factory still wants something from the borrower before this token
+ * The RWA protocol still wants something from the borrower before this token
  * can be opened on.
  **/
 export interface RWAOpenRequirementsError extends IGearboxError {
   code: "rwaOpenRequirementsNotMet";
   token: Token;
   creditManager: Address;
-  factory: Address;
+  protocol: RWAProtocol;
+  /** Where the wallet completes registration with {@link protocol}. */
+  registrationLink: string;
   /** Always present on the error. */
   requirements: RWAOpenAccountRequirements;
-  /** Absent when only issuer-side registration is pending. */
+  /** Absent when only issuer-side registration is pending (or Midas greenlist). */
   missing?: RWAMissingOpenAccountRequirements;
 }
 
@@ -423,7 +426,7 @@ export function rwaOpenRequirementsNotMet(
 ): RWAOpenRequirementsError {
   return {
     code: "rwaOpenRequirementsNotMet",
-    message: `The RWA factory still wants something from the borrower before ${args.token.symbol} can be opened on.`,
+    message: `${args.protocol} still wants something from the borrower before ${args.token.symbol} can be opened on.`,
     ...args,
   };
 }

@@ -200,7 +200,7 @@ sentinel and the check is trivially satisfied.
 
 - The partial flow never touches quotas explicitly; the closing update sizes
   them to the balances left behind, with `quotaReserve` on top.
-- Between the two ceilings `maxWithdraw` reports the flow refuses rather than
+- Between the two `maxWithdraw` amounts the flow refuses rather than
   clamping: the caller gets a reason it can show, not a number it did not ask
   for. A Max button belongs on `MAX_UINT256`, not on `exit` — the exit is then
   named rather than priced, and no rounding in `price(T → U, W)` can drop the

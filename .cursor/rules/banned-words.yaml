@@ -1,0 +1,62 @@
+# Catalog of banned stems (case-insensitive).
+# Key: the stem. Value: optional free text (forbidden uses, allowed contexts,
+# replacements, false-positive carve-outs).
+#
+# Matching (local hook, not this file): split prose and identifiers, then a
+# token that starts with the key (longest key wins). Empty value → scanner
+# default: do not introduce this stem in new identifiers or prose; existing
+# names stay.
+#
+# Add an entry: lowercase key, optional note. Do not mass-rename existing code.
+
+refusal:
+band:
+ladder:
+bar:
+binding:
+headroom:
+solution:
+issue:
+payout: |
+  Ban as noun only (payout), verbs are fine ("pays out"/"is paid out" is ok)
+proceeds: |
+  Ban as noun only (the proceeds, claim proceeds). The verb is fine
+  ("the walk proceeds", "proceeds best-effort"). For what a matured
+  redemption brings in, say "the claim" / "what the claim brings".
+venue:
+haircut:
+shortfall:
+short:
+shave:
+hair:
+fattest:
+credit: |
+  Ban as a verb only (to credit, crediting, credited, credits-as-action).
+  Nouns are fine in identifiers and prose: credit account, CreditFacade, etc. 
+  Do not name the action itself `credit` / `creditX` / `crediting` 
+  (e.g. a function that means "apply a credit").
+debit: |
+  Ban as a verb only (to debit, debiting, debited, debits-as-action).
+  Nouns are fine in identifiers and prose. Do not name the action itself
+  `debit` / `debitX` / `debiting` (e.g. a function that means "apply a debit").
+ceiling: |
+  Prefer the concrete term the call site already names (maxBorrowAmount,
+  maxDebt, quotaAvailable, maxLeverage), or "upper limit" / "max value"
+  when there isn't one. Math.ceil / ceilDiv rounding is fine
+  ("rounds to the ceiling", "ceiling of a/b").
+draw: |
+  Ban when it means borrowing or increasing debt (checkDraw, drawn,
+  "what the plan draws", "debt drawn from the pool").
+  Contracts say increaseDebt / borrow / borrowed. Prefer those, or
+  debtIncrease for the signed delta this transaction applies.
+  withdraw* is the facade method and stays.
+  Chart/diagram "draw" is fine ("the chart draws", "drawn from window").
+  Idiom "draw the line" — pick another wording.
+ask: |
+  Ban as a name for the protocol amount being requested (checkQuotasAsked,
+  "quotas asked", "what the operation asks for" meaning borrow/quota).
+  The comparison fields are already requested / available — keep those.
+  For a quota the operation raises, say quota increase (updateQuota with
+  quotaChange > 0, quotaIncreaseFee).
+  The English verb is fine: ask a source, caller, form, or router.
+  #ask (ask a data source) stays. task / basket contain the stem; ignore.

@@ -74,11 +74,24 @@ export type SecuritizeRegisterVaultMessage = TypedDataDefinition<
 >;
 
 /**
+ * RWA protocols that require dedicated flows
+ **/
+export const RWA_PROTOCOLS = ["securitize", "midas"] as const;
+
+/** String literal union of {@link RWA_PROTOCOLS}. */
+export type RWAProtocol = (typeof RWA_PROTOCOLS)[number];
+
+/**
+ * KYC is only ever an RWA concern today, so the two names coincide.
+ **/
+export type KycProtocol = RWAProtocol;
+
+/**
  * Factory-specific args for a Securitize RWA factory `multicall` /
  * `openCreditAccount`.
  **/
 export interface SecuritizeOperationArgs {
-  type: typeof RWA_FACTORY_SECURITIZE;
+  protocol: "securitize";
   /** DSToken addresses to register for this operation. */
   tokensToRegister: Address[];
   /** Cached EIP-712 registration signatures to store on-chain. */
@@ -87,12 +100,11 @@ export interface SecuritizeOperationArgs {
 
 /**
  * Subset of {@link SecuritizeOpenAccountRequirements} still unfulfilled given
- * the params already carried by the transaction calldata. Returned by
- * `SecuritizeRWAFactory.getMissingRequirements`; `undefined` there means the
+ * the params already carried by the transaction calldata. `undefined` there means the
  * requirements are satisfied.
  **/
 export interface SecuritizeMissingOpenAccountRequirements {
-  type: typeof RWA_FACTORY_SECURITIZE;
+  protocol: "securitize";
   /**
    * EIP-712 messages the investor still has to sign (not covered by
    * calldata-provided signatures). Once signed, they become the
@@ -103,7 +115,12 @@ export interface SecuritizeMissingOpenAccountRequirements {
 }
 
 export interface SecuritizeOpenAccountRequirements {
-  type: typeof RWA_FACTORY_SECURITIZE;
+  protocol: "securitize";
+  /**
+   * RWA Factory contract address whose `openCreditAccount`/`multicall`
+   * consume `tokensToRegister` and the signatures.
+   */
+  factory: Address;
   /**
    * User must visit securitize website to register these tokens
    * May be empty if user already registered all required tokens
@@ -123,39 +140,48 @@ export interface SecuritizeOpenAccountRequirements {
 }
 
 /**
- * Open-account requirements for a RWA factory, defaults to union of all factory types.
- * Can be discriminated by type.
+ * What a wallet still has to do before a Permissioned Midas market lets it
+ * open. There are no tx args: Midas grants a role off-chain.
  **/
-export type RWAOpenAccountRequirements<
-  T extends RWAFactoryType = RWAFactoryType,
-> = Extract<SecuritizeOpenAccountRequirements, { type: T }>;
+export interface MidasOpenAccountRequirements {
+  protocol: "midas";
+  /** mToken the gateway greenlists wallets for. */
+  token: Address;
+  /** `false` until Midas grants the greenlisted role; there is nothing else to do and no tx args. */
+  greenlisted: boolean;
+}
 
 /**
- * Subset of {@link RWAOpenAccountRequirements} that is still unfulfilled,
- * defaults to union of all factory types.
- * Can be discriminated by type.
+ * Open-account requirements for an RWA protocol, defaults to the union of all
+ * protocols. Discriminated by {@link RWAProtocol}.
+ **/
+export type RWAOpenAccountRequirements<P extends RWAProtocol = RWAProtocol> =
+  Extract<
+    SecuritizeOpenAccountRequirements | MidasOpenAccountRequirements,
+    { protocol: P }
+  >;
+
+/**
+ * Subset of {@link RWAOpenAccountRequirements} that is still unfulfilled given
+ * the params already on the transaction. Midas has none (`never`).
  **/
 export type RWAMissingOpenAccountRequirements<
-  T extends RWAFactoryType = RWAFactoryType,
-> = Extract<SecuritizeMissingOpenAccountRequirements, { type: T }>;
+  P extends RWAProtocol = RWAProtocol,
+> = Extract<SecuritizeMissingOpenAccountRequirements, { protocol: P }>;
 
 /**
- * Open credit account/Multicall extra params type for a RWA factory, defaults to union of all factory types.
- * Can be discriminated by type.
+ * Open credit account/Multicall extra params for an RWA protocol. Midas has
+ * none (`never`): accounts open through the plain facade.
  **/
-export type RWAOperationArgs<T extends RWAFactoryType = RWAFactoryType> =
-  Extract<SecuritizeOperationArgs, { type: T }>;
+export type RWAOperationArgs<P extends RWAProtocol = RWAProtocol> = Extract<
+  SecuritizeOperationArgs,
+  { protocol: P }
+>;
 
 /**
- * KYC providers a strategy may be gated by
- **/
-export const KYC_PROTOCOLS = ["securitize", "midas"] as const;
-
-/** String literal union of {@link KYC_PROTOCOLS}. */
-export type KycProtocol = (typeof KYC_PROTOCOLS)[number];
-
-/**
- * What a wallet still has to do before it may open a KYC-gated strategy.
+ * What a wallet still has to do before it may open a KYC-gated strategy —
+ * the gate itself, independent of any particular wallet. `null` on a
+ * strategy that is not gated.
  **/
 export interface KycRequirement {
   protocol: KycProtocol;
@@ -169,9 +195,9 @@ export interface KycRequirement {
 }
 
 /**
- * Hardcoded registration URLs for each {@link KycProtocol}.
+ * Hardcoded registration URLs for each {@link RWAProtocol}.
  **/
-export const KYC_REGISTRATION_LINKS: Record<KycProtocol, string> = {
+export const KYC_REGISTRATION_LINKS: Record<RWAProtocol, string> = {
   securitize: "https://securitize.io/",
   midas: "https://form.typeform.com/to/DqZaw6kr",
 };

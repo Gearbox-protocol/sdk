@@ -59,7 +59,7 @@ function parseSecuritizeOperationCalldata(
 
   const innerCalls = (rawArgs.calls ?? []) as ParsedCallV2[];
   const args: RWAOperationArgs = {
-    type: RWA_FACTORY_SECURITIZE,
+    protocol: "securitize",
     tokensToRegister: [
       ...((rawArgs.tokensToRegister ?? []) as readonly Address[]),
     ],

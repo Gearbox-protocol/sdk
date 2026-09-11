@@ -31,6 +31,7 @@ const onchainSource = {
   list: vi.fn(),
   getPool: vi.fn(),
   getStrategy: vi.fn(),
+  isEligibleForStrategy: vi.fn(),
 };
 const offchainSource = {
   list: vi.fn(),
@@ -112,22 +113,19 @@ describe("a read reaches both sources as it was written", () => {
     expect(offchainSource.list).toHaveBeenCalledWith(filter);
   });
 
-  it.each([undefined, WALLET])(
-    "hands both sources the strategy key and wallet %s",
-    async wallet => {
-      const key: StrategyOpportunityKey = {
-        chainId: MAINNET,
-        creditManager: "0x3eb9000000000000000000000000000000000000",
-      };
-      onchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
-      offchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
+  it("hands both sources the strategy key", async () => {
+    const key: StrategyOpportunityKey = {
+      chainId: MAINNET,
+      creditManager: "0x3eb9000000000000000000000000000000000000",
+    };
+    onchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
+    offchainSource.getStrategy.mockResolvedValue(detail(MAINNET));
 
-      await namespace().getStrategy(key, wallet);
+    await namespace().getStrategy(key);
 
-      expect(onchainSource.getStrategy).toHaveBeenCalledWith(key, wallet);
-      expect(offchainSource.getStrategy).toHaveBeenCalledWith(key, wallet);
-    },
-  );
+    expect(onchainSource.getStrategy).toHaveBeenCalledWith(key);
+    expect(offchainSource.getStrategy).toHaveBeenCalledWith(key);
+  });
 });
 
 describe("a source that fails degrades the read instead of failing it", () => {
@@ -210,6 +208,35 @@ describe("a mode with one source has nothing to degrade to", () => {
     // would otherwise have rejected
     expect(() => offchainOnly().onchain).toThrow(SourceUnavailableError);
     expect(offchainOnly().offchain).toBe(offchainSource);
+  });
+});
+
+describe("isEligibleForStrategy", () => {
+  const key: StrategyOpportunityKey = {
+    chainId: MAINNET,
+    creditManager: "0x3eb9000000000000000000000000000000000000",
+  };
+
+  it("delegates to the chain", async () => {
+    onchainSource.isEligibleForStrategy.mockResolvedValue(true);
+    await expect(namespace().isEligibleForStrategy(key, WALLET)).resolves.toBe(
+      true,
+    );
+    expect(onchainSource.isEligibleForStrategy).toHaveBeenCalledWith(
+      key,
+      WALLET,
+    );
+  });
+
+  it("raises SourceUnavailableError in offchain mode", async () => {
+    const offchainOnly = new OpportunitiesNamespace(
+      undefined,
+      { opportunities: offchainSource } as unknown as GearboxAPI,
+      { maxOffchainLagSeconds: 120 },
+    );
+    await expect(
+      offchainOnly.isEligibleForStrategy(key, WALLET),
+    ).rejects.toBeInstanceOf(SourceUnavailableError);
   });
 });
 

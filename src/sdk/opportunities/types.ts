@@ -39,12 +39,12 @@ export interface IOpportunitiesBase {
     key: PoolOpportunityKey,
   ): Promise<DataResponse<PoolOpportunityDetail>>;
   /**
-   * Detailed view of one strategy opportunity. With `wallet`, `kyc` tells whether
-   * that wallet must register with the strategy's KYC provider before opening.
+   * Detailed view of one strategy opportunity. `kyc` is the strategy's KYC
+   * gate, independent of any wallet. Use {@link IOpportunitiesOnchainOnly.isEligibleForStrategy}
+   * for a wallet verdict.
    **/
   getStrategy(
     key: StrategyOpportunityKey,
-    wallet?: Address,
   ): Promise<DataResponse<StrategyOpportunityDetail>>;
   /**
    * Narrows an already-read list, rows and metadata alike. `undefined` passes
@@ -113,6 +113,14 @@ export interface IOpportunitiesOnchainOnly {
    * same reason as {@link prepare}: it encodes against live chain state.
    **/
   readonly execute: IOpportunitiesExecute;
+  /**
+   * Whether `wallet` may open this strategy today: `true` when it is not
+   * KYC-gated or the wallet already passed the gate. Chain-only.
+   **/
+  isEligibleForStrategy(
+    key: StrategyOpportunityKey,
+    wallet: Address,
+  ): Promise<boolean>;
 }
 
 /**

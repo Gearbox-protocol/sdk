@@ -16,7 +16,7 @@ describe("checkQuotaLimit", () => {
     expect(at(501n)[0]?.code).toBe("quotaLimitReached");
   });
 
-  it("reports no ceiling at all for a token the market quotes nothing for", () => {
+  it("reports no quota available at all for a token the market quotes nothing for", () => {
     expect(
       checkQuotaLimit({
         token: TOK,

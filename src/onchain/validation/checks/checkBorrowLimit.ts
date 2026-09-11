@@ -15,7 +15,7 @@ export interface BorrowLimitArgs {
 }
 
 /**
- * What the pool will hand over, against what is asked for.
+ * What the pool will hand over, against the amount requested.
  *
  * `available` and `limit` are the caller's reading of which limit is in the
  * way; this check only compares. `maxBorrowAmount` is the largest debt still
