@@ -8,8 +8,6 @@ import {
   MultichainSDK,
 } from "../src/onchain/index.js";
 import { AccountsPlugin } from "../src/plugins/accounts/index.js";
-import { BotsPlugin } from "../src/plugins/bots/index.js";
-import { DegenDistributorsPlugin } from "../src/plugins/degen-distributors/index.js";
 import { GearboxSDK } from "../src/sdk/GearboxSDK.js";
 
 const logger = pino({
@@ -51,8 +49,6 @@ async function example(): Promise<void> {
       },
     },
     plugins: {
-      bots: () => new BotsPlugin(true),
-      degen: () => new DegenDistributorsPlugin(true),
       accounts: () => new AccountsPlugin({ includeZeroDebt: true }, true),
     },
     logger,
