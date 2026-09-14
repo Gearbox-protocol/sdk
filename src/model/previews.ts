@@ -444,6 +444,10 @@ export interface OpenStrategyPositionPreview
   extends OpenStrategyPositionProjection {
   operation: "OpenCreditAccount";
   /**
+   * Existing zero-debt, zero-quota account this operation reopens.
+   */
+  creditAccount?: Address;
+  /**
    * Registration args the factory received (Securitize: `tokensToRegister`,
    * `signaturesToCache`). Present on RWA-factory accounts only.
    */

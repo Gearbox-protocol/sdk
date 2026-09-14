@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type {
   OperationPreview,
   PreviewOperationInput,
@@ -35,7 +36,6 @@ import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategy
 import { previewOpenStrategyPosition } from "./previewOpenStrategyPosition.js";
 import { previewPoolPositionOperation } from "./previewPoolPositionOperation.js";
 import {
-  type ReplayableOperation,
   type ReplayMulticallResult,
   replayMulticall,
 } from "./replayMulticall.js";
@@ -88,13 +88,17 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     operation.operation === "OpenCreditAccount" ||
     operation.operation === "RWAOpenCreditAccount"
   ) {
-    return previewOpenStrategyPosition(sdk, input, operation);
+    const replayed = replayMulticall(sdk, operation);
+    if (!replayed.ok) {
+      return replayed;
+    }
+    return previewOpenStrategyPosition(sdk, input, operation, replayed.data);
   }
 
   if (operation.operation === "CloseCreditAccount") {
     const resolved = await resolveCreditAccount(
       sdk,
-      operation,
+      operation.creditAccount,
       options,
       creditAccount,
     );
@@ -135,7 +139,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
   ) {
     const resolved = await resolveCreditAccount(
       sdk,
-      operation,
+      operation.creditAccount,
       options,
       creditAccount,
     );
@@ -169,29 +173,32 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
  */
 async function resolveCreditAccount<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
-  operation: ReplayableOperation,
+  address: Address,
   options?: PreviewOperationOptions,
-  creditAccount?: CreditAccountData,
+  data?: CreditAccountData,
 ): Promise<SDKReturn<CreditAccountData, CreditAccountNotFoundError>> {
-  let resolved = creditAccount;
+  let resolved = data;
   if (!resolved) {
     resolved = await sdk.accounts.getCreditAccountData(
-      operation.creditAccount,
+      address,
       options?.blockNumber,
     );
   }
   if (!resolved) {
-    return sdkErr(creditAccountNotFound(operation.creditAccount));
+    return sdkErr(creditAccountNotFound(address));
   }
   return sdkOk(resolved);
 }
 
 /**
  * Previews a plain/bot/RWA multicall: classifies the instant preview
- * (zero-debt closure/repay vs adjustment) and, when the multicall requests a
- * delayed withdrawal, wraps the instant preview into a
- * `DelayedCreditAccountOperation` together with the best-effort preview of
- * the state after the withdrawal is claimed.
+ * (reopening a zero-debt account, zero-debt closure/repay, or adjustment)
+ * and, when the multicall requests a delayed withdrawal, wraps the instant
+ * preview into a `DelayedCreditAccountOperation` together with the
+ * best-effort preview of the state after the withdrawal is claimed.
+ *
+ * A reopening is reported as `OpenCreditAccount` and never as a delayed
+ * withdrawal: an opening requests no redemption.
  */
 async function previewMulticallOperation<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
@@ -200,6 +207,15 @@ async function previewMulticallOperation<P extends PluginsMap>(
   replay: ReplayMulticallResult,
   blockNumber?: bigint,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
+  const isReopen =
+    replay.before.totalDebt === 0n &&
+    replay.before.quotas.toAssets(0n).length === 0 &&
+    replay.after.account.totalDebt > 0n;
+
+  if (isReopen) {
+    return previewOpenStrategyPosition(sdk, input, operation, replay);
+  }
+
   // A multicall that fully repays the debt (`decreaseDebt(MAX)`) is a
   // zero-debt closure/repay: the account stays open but debt is cleared.
   let instantPreview: InstantStrategyPositionOperationPreview;

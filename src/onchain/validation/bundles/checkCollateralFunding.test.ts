@@ -234,6 +234,28 @@ describe("checkCollateralFunding", () => {
     });
   });
 
+  it("resolves the spender with creditAccount on a reopen", async () => {
+    const creditAccount =
+      "0x1234123412341234123412341234123412341234" as Address;
+    getApprovalAddress.mockResolvedValueOnce(SPENDER);
+    getAddress.mockReturnValueOnce(WETH.address);
+    readContract.mockResolvedValue(parseEther("1"));
+
+    await checkCollateralFunding({
+      sdk: sdk(),
+      preview: {
+        ...opening([amount(WETH, parseEther("1"))]),
+        creditAccount,
+      },
+      sender: OWNER,
+    });
+
+    expect(getApprovalAddress).toHaveBeenCalledWith({
+      creditManager: CM,
+      creditAccount,
+    });
+  });
+
   it("reports unexpectedFailure when getApprovalAddress throws", async () => {
     const cause = new Error("unknown credit manager");
     getApprovalAddress.mockRejectedValueOnce(cause);
