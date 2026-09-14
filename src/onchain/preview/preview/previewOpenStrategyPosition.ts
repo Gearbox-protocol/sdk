@@ -93,16 +93,12 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     warning,
   };
 
-  if (operation.operation === "RWAOpenCreditAccount") {
-    return sdkOk({
-      ...projection,
-      operation: "RWAOpenCreditAccount",
-      rwaArgs: operation.args,
-    });
-  }
   return sdkOk({
     ...projection,
     operation: "OpenCreditAccount",
+    ...(operation.operation === "RWAOpenCreditAccount"
+      ? { rwaArgs: operation.args }
+      : {}),
   });
 }
 

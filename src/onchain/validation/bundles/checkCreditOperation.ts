@@ -66,9 +66,7 @@ export async function checkCreditOperation(
   const suite = sdk.marketRegister.findCreditManager(preview.creditManager);
   const market = suite.market;
   const underlying = toToken(sdk, market.pool.underlying);
-  const isOpening =
-    preview.operation === "OpenCreditAccount" ||
-    preview.operation === "RWAOpenCreditAccount";
+  const isOpening = preview.operation === "OpenCreditAccount";
 
   const protocol: CreditOperationError[] = [
     ...checkMarket(suite),
@@ -99,10 +97,7 @@ export async function checkCreditOperation(
 
   const [funding, rwa] = await Promise.all([
     checkCollateralFunding({ sdk, preview, sender, blockNumber }),
-    preview.operation === "OpenCreditAccount" ||
-    preview.operation === "RWAOpenCreditAccount"
-      ? checkRWAOpening({ sdk, preview, sender })
-      : [],
+    isOpening ? checkRWAOpening({ sdk, preview, sender }) : [],
   ]);
   return [...protocol, ...funding, ...rwa];
 }

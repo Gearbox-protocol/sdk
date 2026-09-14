@@ -34,9 +34,6 @@ export async function checkRWAOpening(
     ...preview.collateralAdded.map(a => a.token.address),
     ...preview.quotas.map(q => q.token.address),
   ]);
-  const providedArgs =
-    preview.operation === "RWAOpenCreditAccount" ? preview.rwaArgs : undefined;
-
   const results = await Promise.all(
     [...candidates]
       .filter(token => gated.has(token))
@@ -46,7 +43,7 @@ export async function checkRWAOpening(
           wallet: sender,
           creditManager: preview.creditManager,
           token,
-          providedArgs,
+          providedArgs: preview.rwaArgs,
         }),
       ),
   );

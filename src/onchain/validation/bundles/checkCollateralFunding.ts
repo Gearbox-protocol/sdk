@@ -50,10 +50,7 @@ export async function checkCollateralFunding(
 
   let spender: Address;
   try {
-    if (
-      preview.operation === "OpenCreditAccount" ||
-      preview.operation === "RWAOpenCreditAccount"
-    ) {
+    if (preview.operation === "OpenCreditAccount") {
       spender = await sdk.accounts.getApprovalAddress({
         creditManager: preview.creditManager,
         borrower: sender,
