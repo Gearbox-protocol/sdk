@@ -1502,7 +1502,7 @@ describe("prepare → execute on a mainnet fork", () => {
       expect(data.debt).toBe(sim.data.state.totalDebt.value);
     });
 
-    it("decodes the reuse as an adjust, since the facade call is a multicall", async () => {
+    it("decodes the reuse as an opening", async () => {
       const creditAccount = await openEmpty();
       await fund();
       await sync();
@@ -1529,9 +1529,14 @@ describe("prepare → execute on a mainnet fork", () => {
       });
       expect(preview.ok, "the reuse must parse").toBe(true);
       if (!preview.ok) throw new Error("unreachable");
-      // What a caller's confirm screen will be handed: the transaction really
-      // is a deposit into an account that already exists.
-      expect(preview.data.operation).toBe("AdjustCreditAccount");
+      expect(preview.data.operation).toBe("OpenCreditAccount");
+      if (preview.data.operation !== "OpenCreditAccount") {
+        throw new Error("unreachable");
+      }
+      const reused = preview.data.creditAccount;
+      expect(reused, "reuse names the existing account").toBeDefined();
+      if (!reused) throw new Error("unreachable");
+      expect(isAddressEqual(reused, creditAccount)).toBe(true);
     });
 
     it("refuses to reuse an account that already holds a position", async () => {

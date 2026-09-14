@@ -99,9 +99,12 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   return sdkOk({
     ...projection,
     operation: "OpenCreditAccount",
-    creditAccount:
-      "creditAccount" in operation ? operation.creditAccount : undefined,
-    rwaArgs: "args" in operation ? operation.args : undefined,
+    ...(operation.operation === "MultiCall" ||
+    operation.operation === "BotMulticall" ||
+    operation.operation === "RWAMulticall"
+      ? { creditAccount: operation.creditAccount }
+      : {}),
+    ...("args" in operation ? { rwaArgs: operation.args } : {}),
   });
 }
 
