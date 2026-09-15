@@ -10,6 +10,7 @@ import type {
   AccountPrepareRequest,
   BorrowPrepareRequest,
   IOpportunitiesExecute,
+  OpenEmptyPrepareRequest,
   OpenPrepareRequest,
   PoolPrepareRequest,
   PrepareRequest,
@@ -42,6 +43,8 @@ export class ExecuteApi implements IOpportunitiesExecute {
         return poolTx(sdk, request);
       case "open":
         return openTx(sdk, request);
+      case "openEmpty":
+        return openEmptyTx(sdk, request);
       case "borrow":
         return borrowTx(sdk, request);
       case "account":
@@ -110,6 +113,32 @@ async function openTx(
 }
 
 /**
+ * The opening with nothing in it: no debt to draw, no collateral to take, no
+ * path to run and no quota to buy, so `openCA` is left with the price updates
+ * the market demands and the facade's own `openCreditAccount`.
+ *
+ * Nothing is read off the preparation because there is nothing on it. The
+ * account holds no token, so an RWA market has none to gate on either.
+ **/
+function openEmptyTx(
+  sdk: OnchainSDK,
+  request: OpenEmptyPrepareRequest,
+): Promise<RawTx> {
+  return sdk.accounts.openCA({
+    creditManager: request.creditManager,
+    to: request.wallet,
+    collateral: [],
+    ethAmount: 0n,
+    debt: 0n,
+    calls: [],
+    averageQuota: [],
+    minQuota: [],
+    permits: {},
+    referralCode: 0n,
+  });
+}
+
+/**
  * A loan is an opening whose debt leaves again, so it is the same `openCA`
  * with `withdrawToken` set: the facade draws the debt, takes the collateral,
  * runs whatever path buys the payout, and sweeps that payout to the wallet.
@@ -125,10 +154,6 @@ async function borrowTx(
 ): Promise<RawTx> {
   const { creditManager, wallet, ethAmount, sim } = request;
   const { state } = sim.data;
-  // An empty borrow is an empty opening: there is nothing to put up, nothing
-  // to draw and nothing to sweep out. The zero debt is what says so — a loan
-  // of nothing is refused at `prepare`, so no funded state reaches here.
-  const empty = state.totalDebt.value === 0n;
   const collateral = {
     token: state.collateral.token.address,
     balance: state.collateral.value,
@@ -136,21 +161,17 @@ async function borrowTx(
   return sdk.accounts.openCA({
     creditManager,
     to: wallet,
-    collateral: empty ? [] : [collateral],
+    collateral: [collateral],
     ethAmount,
     debt: state.totalDebt.value,
     calls: state.calls,
-    withdrawToken: empty ? undefined : state.borrowed.token.address,
+    withdrawToken: state.borrowed.token.address,
     averageQuota: state.quotaIncrease,
     minQuota: state.quotaIncrease,
     reopenCreditAccount: state.creditAccount,
     permits: {},
     referralCode: 0n,
-    rwaOptions: await openRwaOptions(
-      sdk,
-      request,
-      empty ? undefined : collateral.token,
-    ),
+    rwaOptions: await openRwaOptions(sdk, request, collateral.token),
   });
 }
 

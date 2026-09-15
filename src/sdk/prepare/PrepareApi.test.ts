@@ -352,9 +352,8 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
   };
 }
 
-describe("PrepareApi.openNewStrategy — the empty opening", () => {
+describe("PrepareApi.openEmptyCreditAccount", () => {
   const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
-  const EMPTY = { empty: true } as const;
 
   function api(extras?: MarketSdkExtras) {
     const sdk = buildMarketSdk({ minDebt: MIN_DEBT, ...extras });
@@ -364,24 +363,22 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     };
   }
 
-  it("reaches a state that owes nothing, holds nothing and routes nothing", async () => {
-    const result = await api().api.openNewStrategy(STRATEGY, EMPTY);
+  it("answers the block it cleared the request at, and nothing else", async () => {
+    const { api: prepare, sdk } = api();
+
+    const result = await prepare.openEmptyCreditAccount(STRATEGY);
 
     if (!result.ok) throw new Error(result.error.code);
-    const { state } = result.data;
-    expect(state.totalDebt.value).toBe(0n);
-    expect(state.totalValue.value).toBe(0n);
-    expect(state.averageAssets).toEqual([]);
-    expect(state.minAssets).toEqual([]);
-    expect(state.averageQuota).toEqual([]);
-    expect(state.minQuota).toEqual([]);
-    expect(state.calls).toEqual([]);
+    expect(result.data).toEqual({
+      blockNumber: Number(sdk.currentBlock),
+      timestamp: Number(sdk.timestamp),
+    });
   });
 
   it("never asks the router, which has no answer for an empty basket", async () => {
     const { api: prepare, sdk } = api();
 
-    await prepare.openNewStrategy(STRATEGY, EMPTY);
+    await prepare.openEmptyCreditAccount(STRATEGY);
 
     expect(
       vi.mocked(
@@ -390,7 +387,17 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("still refuses an ordinary opening that supplies nothing", async () => {
+  it("refuses a paused market, the one guard it does run", async () => {
+    const result = await api({ facadePaused: true }).api.openEmptyCreditAccount(
+      STRATEGY,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditManagerPaused");
+  });
+
+  it("does not stand in for an opening that supplies nothing", async () => {
     const result = await api().api.openNewStrategy(STRATEGY, {
       collateral: [],
       leverage: 300n,
@@ -399,17 +406,6 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
     expect(result.error.code).toBe("insufficientBalance");
-  });
-
-  it("refuses a paused market, the one guard it does run", async () => {
-    const result = await api({ facadePaused: true }).api.openNewStrategy(
-      STRATEGY,
-      EMPTY,
-    );
-
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("unreachable");
-    expect(result.error.code).toBe("creditManagerPaused");
   });
 });
 
@@ -560,7 +556,7 @@ describe("PrepareApi.borrow", () => {
   });
 });
 
-describe("PrepareApi.borrow — an empty account, and one already held", () => {
+describe("PrepareApi.borrow — an account already held", () => {
   const COLLATERAL = 100000000000n;
   const LOAN = 40000000000n;
   const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
@@ -583,23 +579,6 @@ describe("PrepareApi.borrow — an empty account, and one already held", () => {
     });
     return new PrepareApi({ chain: () => sdk } as unknown as MultichainSDK);
   }
-
-  it("hands out an account that owes nothing and holds nothing", async () => {
-    const sdk = buildMarketSdk({ minDebt: MIN_DEBT });
-    const api = new PrepareApi({
-      chain: () => sdk,
-    } as unknown as MultichainSDK);
-
-    const { state } = plan(await api.borrow(STRATEGY, { empty: true }));
-
-    expect(state.totalDebt.value).toBe(0n);
-    expect(state.collateral.value).toBe(0n);
-    expect(state.borrowed.value).toBe(0n);
-    expect(state.quotaIncrease).toEqual([]);
-    expect(state.calls).toEqual([]);
-    // an empty request names no account, so there is none to reopen
-    expect(state.creditAccount).toBeUndefined();
-  });
 
   it("draws the loan on an account with no debt and no quotas", async () => {
     const api = apiWith({ totalDebt: 0n, tokens: [] });

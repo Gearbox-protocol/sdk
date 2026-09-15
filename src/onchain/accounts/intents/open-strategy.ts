@@ -28,16 +28,8 @@ import {
   unopenedAccountSlice,
 } from "./utils/index.js";
 
-/**
- * Opening an account and putting a position on it in one transaction.
- *
- * The union says which of the two openings this is: {@link OpenStrategyEmpty}
- * takes only the market, because an account holding nothing has nothing to
- * route, no leverage to reach and no target to reach it in.
- */
-export type OpenStrategyProps = OpenStrategyFunded | OpenStrategyEmpty;
-
-export interface OpenStrategyFunded {
+/** Opening an account and putting a position on it in one transaction. */
+export interface OpenStrategyProps {
   sdk: OnchainSDK;
   /** Credit manager to open the account in. */
   creditManager: Address;
@@ -60,14 +52,6 @@ export interface OpenStrategyFunded {
    * is what the `DEPOSIT` intent is for.
    **/
   creditAccount?: CreditAccountSlice;
-  empty?: false;
-}
-
-/** Opening an account that holds nothing, for a position to land on later. */
-export interface OpenStrategyEmpty {
-  sdk: OnchainSDK;
-  creditManager: Address;
-  empty: true;
 }
 
 /**
@@ -122,9 +106,6 @@ export interface OpenStrategyState
 export async function buildOpenStrategyState(
   props: OpenStrategyProps,
 ): Promise<OpenStrategyState> {
-  if (props.empty) {
-    return emptyOpenState(props);
-  }
   const {
     sdk,
     creditManager,
@@ -249,44 +230,6 @@ export async function buildOpenStrategyState(
     minQuota,
     calls: [...leg.calls],
     creditAccount: existing?.creditAccount,
-  };
-}
-
-/**
- * The opening that holds an account and nothing else.
- *
- * Taken before the walk rather than threaded through it: the router has no
- * guard for an empty basket and would still make its `eth_call`, and every
- * assertion below reads amounts that are not there.
- */
-async function emptyOpenState(
-  props: OpenStrategyProps,
-): Promise<OpenStrategyState> {
-  const { sdk, creditManager } = props;
-  assertMarketOperable(sdk.marketRegister.findCreditManager(creditManager));
-
-  const snapshot: AccountSnapshot = {
-    creditManager,
-    assets: [],
-    quotas: [],
-    totalDebt: 0n,
-    totalValue: 0n,
-  };
-  const {
-    assets: _assets,
-    quotas: _quotas,
-    ...projection
-  } = sdk.positions.projection(snapshot, { availableLiquidityChange: 0n });
-
-  return {
-    ...projection,
-    currentPrice: sdk.positions.currentPrice(snapshot),
-    priceImpact: undefined,
-    averageAssets: [],
-    minAssets: [],
-    averageQuota: [],
-    minQuota: [],
-    calls: [],
   };
 }
 

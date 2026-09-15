@@ -7,6 +7,7 @@ import type {
 import type { Asset, RawTx } from "../../onchain/index.js";
 import type {
   BorrowResult,
+  EmptyCreditAccountResult,
   LpResult,
   OpenStrategyResult,
   StrategyResult,
@@ -78,6 +79,28 @@ export interface BorrowPrepareRequest {
 }
 
 /**
+ * Opening an account that holds nothing, from a viable
+ * {@link IOpportunitiesPrepare.openEmptyCreditAccount} result.
+ *
+ * The market and the wallet are the whole request. Nothing is put up, drawn or
+ * routed, so there is nothing for a caller to hand over and nothing for the
+ * preparation to carry — which is also why this is its own kind rather than an
+ * `open` with empty arguments: a collateral passed by mistake has nowhere to
+ * land.
+ **/
+export interface OpenEmptyPrepareRequest {
+  kind: "openEmpty";
+  chainId: ChainId;
+  creditManager: Address;
+  wallet: Address;
+  /**
+   * The preparation this is built from. It carries no numbers; what it says is
+   * that the market took the request at the block it names.
+   **/
+  sim: SDKResult<EmptyCreditAccountResult>;
+}
+
+/**
  * Any of the five operations on an existing account, from a viable
  * {@link StrategyResult}: the facade multicall is the result's `calls`.
  **/
@@ -97,6 +120,7 @@ export interface AccountPrepareRequest {
 export type PrepareRequest =
   | PoolPrepareRequest
   | OpenPrepareRequest
+  | OpenEmptyPrepareRequest
   | BorrowPrepareRequest
   | AccountPrepareRequest;
 
@@ -110,8 +134,9 @@ export interface IOpportunitiesExecute {
   /**
    * The transaction to sign, from a `prepare` result. No second round of math:
    * `account` requests submit the result's own multicall, `open` and `borrow`
-   * requests hand the state's router path and quotas to `openCA`, `pool`
-   * requests encode the deposit / redeem the result priced.
+   * requests hand the state's router path and quotas to `openCA`, `openEmpty`
+   * requests open on nothing at all, and `pool` requests encode the deposit /
+   * redeem the result priced.
    *
    * @throws on a refused `prepare` result; when a `pool` request names a route
    * the pool has no metadata for, or one the pool does not accept a transaction

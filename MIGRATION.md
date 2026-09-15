@@ -4,6 +4,56 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — an empty account is its own method
+
+`openNewStrategy({ empty: true })` is gone. Opening an account that holds
+nothing is `prepare.openEmptyCreditAccount(strategy)`, which takes the market
+and nothing else, and `execute.buildTx` takes the matching
+`kind: "openEmpty"` request.
+
+**Before:**
+
+```typescript
+const sim = await prepare.openNewStrategy(strategy, { empty: true });
+if (!sim.ok) return;
+const tx = await execute.buildTx({
+  kind: "open",
+  chainId,
+  creditManager,
+  wallet,
+  sim,
+  collateral: [],
+  ethAmount: 0n,
+});
+```
+
+**After:**
+
+```typescript
+const sim = await prepare.openEmptyCreditAccount(strategy);
+if (!sim.ok) return;
+const tx = await execute.buildTx({
+  kind: "openEmpty",
+  chainId,
+  creditManager,
+  wallet,
+  sim,
+});
+```
+
+The result carries no state, only the block it was computed at: an account that
+holds nothing and owes nothing has no collateral to value, no debt to weigh and
+no health factor to read. Its failure half is narrower for the same reason —
+`creditManagerPaused`, `marketExpired` and `unexpectedFailure`, and nothing
+else.
+
+`OpenStrategyParams` is a plain interface again rather than a union, so
+`collateral` and `leverage` are always required. `params.creditAccount` is
+untouched: an opening still runs on an account the wallet already holds, and
+what it requires of one has not changed.
+
+---
+
 ## v16.x — borrowing against collateral
 
 `prepare.borrow` opens an account, puts up collateral, draws a loan and pays it
@@ -12,11 +62,9 @@ out to the wallet in one transaction, and `execute.buildTx` takes the matching
 collateral carries, synchronously and outside the `SDKReturn` envelope, the way
 `leverageBand` does. All three are additions: no existing method changed.
 
-`borrow` takes the same two shapes as `openNewStrategy`: `{ empty: true }` hands
-out an account and draws nothing, and `creditAccount` draws the loan on one the
-wallet already holds. An account handed out by either flow is accepted by
-either, so `BorrowParams` is a union and the method can now answer
-`creditAccountNotFound` and `creditAccountNotEmpty`.
+`borrow` takes `creditAccount` as `openNewStrategy` does, drawing the loan on an
+account the wallet already holds instead of opening another, so it can answer
+`creditAccountNotFound` and `creditAccountNotEmpty` too.
 
 Only a consumer that *implements* `IOpportunitiesPrepare` or switches
 exhaustively over `PrepareRequest["kind"]` has anything to do — two methods and

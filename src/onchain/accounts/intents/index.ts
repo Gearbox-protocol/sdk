@@ -64,12 +64,7 @@ import type {
 import { accountView } from "./view.js";
 import { withdrawLimits } from "./withdraw-limits.js";
 
-export type {
-  BorrowEmpty,
-  BorrowFunded,
-  BorrowProps,
-  BorrowState,
-} from "./borrow.js";
+export type { BorrowProps, BorrowState } from "./borrow.js";
 export type { LeverageBand } from "./leverage-band.js";
 export type {
   OpenStrategyProps,
@@ -126,6 +121,15 @@ export type OpenStrategyPreviewResult =
  */
 export type BorrowPreviewResult =
   | { ok: true; state: BorrowState }
+  | SDKError<IntentValidationError>;
+
+/**
+ * Empty-account preview outcome: the thinnest of the three, since an account
+ * that holds nothing has no state to project — only the market's own refusal
+ * to open one at all.
+ */
+export type EmptyAccountPreviewResult =
+  | { ok: true }
   | SDKError<IntentValidationError>;
 
 /** An intent plus everything previewing it needs. */
@@ -507,6 +511,31 @@ export class CreditAccountOperationsService extends SDKConstruct {
   }
 
   /**
+   * Previews opening an account that holds nothing.
+   *
+   * Nothing is put up, drawn or routed, so there is no state to build and no
+   * guard to run beyond the market's own: a paused or expired facade takes no
+   * multicall, and an opening is a multicall like any other. Answers the same
+   * envelope its two neighbours do so a caller branches on `ok` throughout.
+   *
+   * @param props - The SDK holding the market, and the manager to open in
+   * @returns `{ ok: true }`, or `{ ok: false, error }` when the market takes
+   * no transaction right now
+   */
+  async openEmptyAccountIntent(
+    props: Pick<StartIntentProps, "sdk"> & { creditManager: Address },
+  ): Promise<EmptyAccountPreviewResult> {
+    try {
+      assertMarketOperable(
+        props.sdk.marketRegister.findCreditManager(props.creditManager),
+      );
+      return { ok: true };
+    } catch (e) {
+      return asSDKError(e);
+    }
+  }
+
+  /**
    * Previews opening a brand-new leveraged position.
    *
    * Sits apart from {@link startIntent} because there is no account yet: nothing
@@ -539,9 +568,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * the debt is named outright instead of following from a leverage, and the
    * collateral is the only thing the account is left holding.
    *
-   * Takes the same two shapes an opening does: `empty` hands out an account
-   * and draws nothing, and `creditAccount` draws the loan on one the wallet
-   * already holds instead of opening another.
+   * `creditAccount` draws the loan on one the wallet already holds instead of
+   * opening another, as an opening takes one.
    *
    * @param props - Credit manager, the collateral the wallet puts up and the
    * payout it asks for

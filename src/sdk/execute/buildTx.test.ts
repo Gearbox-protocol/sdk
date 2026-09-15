@@ -9,6 +9,7 @@ import type {
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
   BorrowResult,
+  EmptyCreditAccountResult,
   LpResult,
   OpenStrategyResult,
   StrategyResult,
@@ -558,43 +559,52 @@ describe("buildTx — borrow", () => {
       expect.objectContaining({ reopenCreditAccount: CREDIT_ACCOUNT }),
     );
   });
+});
 
-  it("an empty borrow puts nothing up, draws nothing and sweeps nothing out", async () => {
-    const { execute, sdk } = mockChain();
-    const empty = {
-      ...state,
-      totalValue: amount(UNDERLYING, 0n),
-      totalDebt: amount(UNDERLYING, 0n),
-      netValue: amount(UNDERLYING, 0n),
-      assets: [],
-      collateral: amount(UNDERLYING, 0n),
-      borrowed: amount(UNDERLYING, 0n),
-      minBorrowed: amount(UNDERLYING, 0n),
-      quotaIncrease: [],
-      calls: [],
-    };
+describe("buildTx — openEmpty", () => {
+  const sim: SDKResult<EmptyCreditAccountResult> = { ok: true, data: AT };
 
-    await execute.buildTx({
-      kind: "borrow",
+  it("opens on nothing: no collateral, no debt, no path, no quota", async () => {
+    const { execute, sdk, txs } = mockChain();
+
+    const tx = await execute.buildTx({
+      kind: "openEmpty",
       chainId: CHAIN_ID,
       creditManager: CREDIT_MANAGER,
       wallet: WALLET,
-      sim: { ok: true, data: { state: empty, ...AT } },
-      ethAmount: 0n,
+      sim,
     });
 
-    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collateral: [],
-        debt: 0n,
-        calls: [],
-        withdrawToken: undefined,
-        averageQuota: [],
-        minQuota: [],
-      }),
-    );
-    // no token for an RWA market to gate on, so there is nothing to ask it
+    expect(tx).toBe(txs.open);
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith({
+      creditManager: CREDIT_MANAGER,
+      to: WALLET,
+      collateral: [],
+      ethAmount: 0n,
+      debt: 0n,
+      calls: [],
+      averageQuota: [],
+      minQuota: [],
+      permits: {},
+      referralCode: 0n,
+    });
+    // the account holds no token, so an RWA market has none to gate on
     expect(sdk.accounts.getOpenAccountRequirements).not.toHaveBeenCalled();
+  });
+
+  it("throws on a refused preparation", async () => {
+    const { execute, sdk } = mockChain();
+
+    await expect(
+      execute.buildTx({
+        kind: "openEmpty",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: WALLET,
+        sim: { ok: false, error: { code: "creditManagerPaused" } } as never,
+      }),
+    ).rejects.toThrow(/failed openEmpty preparation/);
+    expect(sdk.accounts.openCA).not.toHaveBeenCalled();
   });
 });
 

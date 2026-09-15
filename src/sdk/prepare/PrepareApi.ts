@@ -2,10 +2,12 @@ import { type Address, isAddressEqual } from "viem";
 import type {
   Bps,
   ChainId,
+  CreditManagerPausedError,
   DebtOutOfRangeError,
   IGearboxError,
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
+  MarketExpiredError,
   PositionClaimableWithdrawal,
   PositionCollateral,
   SDKError,
@@ -61,6 +63,7 @@ import type {
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   DepositStrategyParams,
+  EmptyCreditAccountResult,
   FinalizeParams,
   FinalizeResult,
   IOpportunitiesPrepare,
@@ -397,6 +400,32 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc IOpportunitiesPrepare.openEmptyCreditAccount}
+   **/
+  public async openEmptyCreditAccount(
+    strategy: StrategyInput,
+  ): Promise<
+    SDKReturn<
+      EmptyCreditAccountResult,
+      CreditManagerPausedError | MarketExpiredError | UnexpectedFailureError
+    >
+  > {
+    try {
+      const sdk = await this.#chain(strategy.chainId);
+      const at = stateBlock(sdk);
+      const result = await service(sdk).openEmptyAccountIntent({
+        sdk,
+        creditManager: strategy.creditManager,
+      });
+      // The block stamp is the whole result: there is no state to report, so
+      // what the preparation answers is that the market took the request.
+      return result.ok ? sdkOk(at) : methodError(result);
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
+  }
+
+  /**
    * {@inheritDoc IOpportunitiesPrepare.openNewStrategy}
    **/
   public async openNewStrategy(
@@ -418,18 +447,6 @@ export class PrepareApi
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
-      if (params.empty) {
-        // Nothing is routed, so a market with no strategy target can still
-        // hand out an account.
-        return opened(
-          await service(sdk).openStrategyIntent({
-            sdk,
-            creditManager: strategy.creditManager,
-            empty: true,
-          }),
-          at,
-        );
-      }
       const targetToken =
         params.targetToken ??
         sdk.marketRegister.findCreditManager(strategy.creditManager)
@@ -482,18 +499,6 @@ export class PrepareApi
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
-      if (params.empty) {
-        // Nothing is borrowed and nothing is routed, so none of the loan's
-        // limits apply — the market only has to be open for business.
-        return borrowed(
-          await service(sdk).borrowIntent({
-            sdk,
-            creditManager: strategy.creditManager,
-            empty: true,
-          }),
-          at,
-        );
-      }
       const reused = await reusable(sdk, strategy, params.creditAccount);
       if (reused && "error" in reused) {
         return reused;
@@ -887,10 +892,10 @@ async function slice(
  * The pre-opened account a request asks to be run on, held to what "pre-opened"
  * means: this manager's, owing nothing and holding no quota.
  *
- * Shared by the two flows that open an account — an opening and a borrow — so
- * that an account handed out by either is accepted by either on the same
- * terms. Whatever balances sit on it are left to the flow: an opening routes
- * them, a borrow leaves them where they are.
+ * Shared by the two flows that put something on a fresh account — an opening
+ * and a borrow — so both hold a reused one to the same terms. Whatever
+ * balances sit on it are left to the flow: an opening routes them, a borrow
+ * leaves them where they are.
  *
  * @returns Nothing when the request named no account, the refusal to answer
  * with when it named one that does not qualify, and the slice otherwise

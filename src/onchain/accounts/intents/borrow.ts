@@ -30,21 +30,12 @@ import {
 /**
  * Taking a loan against collateral, in one transaction that opens the account.
  *
- * The union says which of the two borrows this is, as opening does:
- * {@link BorrowEmpty} takes only the market, because an account holding
- * nothing has no collateral to weigh and no loan to route.
- */
-export type BorrowProps = BorrowFunded | BorrowEmpty;
-
-/**
- * The loan itself.
- *
  * The plainest thing a credit account can do, and the one shape of it the
  * leveraged flows cannot express: the borrowed funds do not stay on the
  * account to be traded, they go to the wallet. What is left behind is the
  * collateral and the debt it backs.
  */
-export interface BorrowFunded {
+export interface BorrowProps {
   sdk: OnchainSDK;
   /** Credit manager to open the account in. */
   creditManager: Address;
@@ -70,14 +61,6 @@ export interface BorrowFunded {
    * an account that already owes is what the `ADJUST_LEVERAGE` intent is for.
    **/
   creditAccount?: CreditAccountSlice;
-  empty?: false;
-}
-
-/** Opening an account that holds nothing, for a loan to be drawn on later. */
-export interface BorrowEmpty {
-  sdk: OnchainSDK;
-  creditManager: Address;
-  empty: true;
 }
 
 /**
@@ -90,12 +73,7 @@ export interface BorrowEmpty {
  * why that one is reported twice.
  */
 export interface BorrowState extends AccountProjection, SimulationPrices {
-  /**
-   * What the wallet puts up, as it will sit on the account.
-   *
-   * Zero in the market underlying for an empty opening, the way `totalDebt`
-   * and `totalValue` beside it are: nothing is put up and nothing is owed.
-   */
+  /** What the wallet puts up, as it will sit on the account. */
   collateral: TokenAmount;
   /**
    * What the wallet is expected to receive, in the token it asked for. Equal
@@ -149,9 +127,6 @@ export interface BorrowState extends AccountProjection, SimulationPrices {
 export async function buildBorrowState(
   props: BorrowProps,
 ): Promise<BorrowState> {
-  if (props.empty) {
-    return emptyBorrowState(props);
-  }
   const {
     sdk,
     creditManager,
@@ -280,43 +255,6 @@ export async function buildBorrowState(
     quotaIncrease,
     calls: leg ? [...leg.calls] : [],
     creditAccount: existing?.creditAccount,
-  };
-}
-
-/**
- * The borrow that holds an account and nothing else.
- *
- * Taken before the walk rather than threaded through it, as an empty opening
- * is: there is no amount to route, no collateral to weigh and no debt to hold
- * to the market's limits, so every assertion below reads numbers that are not
- * there. The three token amounts come back as zero in the underlying, beside
- * the `totalDebt` and `totalValue` the projection already reports that way.
- */
-async function emptyBorrowState(props: BorrowEmpty): Promise<BorrowState> {
-  const { sdk, creditManager } = props;
-  const suite = sdk.marketRegister.findCreditManager(creditManager);
-  assertMarketOperable(suite);
-  const market = sdk.marketRegister.findByCreditManager(creditManager);
-
-  const snapshot: AccountSnapshot = {
-    creditManager,
-    assets: [],
-    quotas: [],
-    totalDebt: 0n,
-    totalValue: 0n,
-  };
-  const nothing = market.priceOracle.toTokenAmount(market.pool.underlying, 0n);
-
-  return {
-    ...sdk.positions.projection(snapshot, { availableLiquidityChange: 0n }),
-    currentPrice: sdk.positions.currentPrice(snapshot),
-    priceImpact: undefined,
-    collateral: nothing,
-    borrowed: nothing,
-    minBorrowed: nothing,
-    slippage: 0,
-    quotaIncrease: [],
-    calls: [],
   };
 }
 

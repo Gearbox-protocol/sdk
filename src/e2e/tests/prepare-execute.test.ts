@@ -1387,23 +1387,18 @@ describe("prepare → execute on a mainnet fork", () => {
   // timestamp, and `setNextBlockTimestamp` cannot wind the clock back, so any
   // block mined before them costs three wei of accrual and breaks their
   // exact-value assertions.
-  describe("openNewStrategy — the empty opening", () => {
-    // The market is the whole request; the union has no room for anything else.
-    const EMPTY_OPEN = { empty: true } as const;
-
+  describe("openEmptyCreditAccount", () => {
     /** Opens the empty account on the synced state and returns its address. */
     async function openEmpty(): Promise<Address> {
       await sync();
-      const sim = await prepare().openNewStrategy(OPEN_KEY, EMPTY_OPEN);
+      const sim = await prepare().openEmptyCreditAccount(OPEN_KEY);
       if (!sim.ok) throw new Error(`empty open sim failed: ${sim.error.code}`);
       const tx = await execute().buildTx({
-        kind: "open",
+        kind: "openEmpty",
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
         wallet: borrower,
         sim,
-        collateral: [],
-        ethAmount: 0n,
       });
       const receipt = await mined(
         await sendRawTx(wallet, { tx, gas: GAS_LIMIT }),
@@ -1427,16 +1422,14 @@ describe("prepare → execute on a mainnet fork", () => {
 
     it("encodes no increaseDebt call", async () => {
       await sync();
-      const sim = await prepare().openNewStrategy(OPEN_KEY, EMPTY_OPEN);
+      const sim = await prepare().openEmptyCreditAccount(OPEN_KEY);
       if (!sim.ok) throw new Error(sim.error.code);
       const tx = await execute().buildTx({
-        kind: "open",
+        kind: "openEmpty",
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
         wallet: borrower,
         sim,
-        collateral: [],
-        ethAmount: 0n,
       });
 
       expect(tx.callData).not.toContain(
@@ -1446,16 +1439,14 @@ describe("prepare → execute on a mainnet fork", () => {
 
     it("is not refused for owing less than the market's minimum debt", async () => {
       await sync();
-      const sim = await prepare().openNewStrategy(OPEN_KEY, EMPTY_OPEN);
+      const sim = await prepare().openEmptyCreditAccount(OPEN_KEY);
       if (!sim.ok) throw new Error(sim.error.code);
       const tx = await execute().buildTx({
-        kind: "open",
+        kind: "openEmpty",
         chainId: CHAIN_ID,
         creditManager: CREDIT_MANAGER,
         wallet: borrower,
         sim,
-        collateral: [],
-        ethAmount: 0n,
       });
       const preview = await previewOperation(chain, {
         chainId: chain.chainId,

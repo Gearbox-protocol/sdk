@@ -10,6 +10,7 @@ surface: `sdk.opportunities.prepare` (see
 
 | Intent            | Public API                     | Planner                  | Debt    | Graph                                     |
 | ----------------- | ------------------------------ | ------------------------ | ------- | ----------------------------------------- |
+| —                 | `prepare.openEmptyCreditAccount` | —                     | none    | [empty-account.md](./empty-account.md)     |
 | —                 | `prepare.openNewStrategy`     | `buildOpenStrategyState` | borrowed | [open-strategy.md](./open-strategy.md)     |
 | —                 | `prepare.borrow`              | `buildBorrowState`       | borrowed, then paid out | [borrow.md](./borrow.md)     |
 | `DEPOSIT`         | `prepare.depositStrategy`     | `planDeposit`            | grows   | [deposit.md](./deposit.md)                 |
