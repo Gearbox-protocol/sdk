@@ -31,6 +31,12 @@ import type {
   WithdrawalInProgressError,
 } from "../../model/index.js";
 import type {
+  BorrowState,
+  CheckSimulationInput,
+  OpenStrategyState,
+  OperationState,
+} from "../../onchain/index.js";
+import type {
   BorrowResult,
   EmptyCreditAccountResult,
   FinalizeResult,
@@ -336,6 +342,27 @@ describe("narrowing the envelope settles which half is there", () => {
     expectTypeOf<StrategyRoutesResult["timestamp"]>().toEqualTypeOf<number>();
     expectTypeOf<OpenStrategyResult["blockNumber"]>().toEqualTypeOf<number>();
     expectTypeOf<BorrowResult["timestamp"]>().toEqualTypeOf<number>();
+  });
+});
+
+/**
+ * `checkSimulation` weighs what the engine projected, and takes the two shapes
+ * a projection comes in. A borrow is the first of them rather than a third:
+ * everything the check reads — the market, the debt, the quotas and both
+ * factors — a borrow reports where an operation on an existing account does,
+ * `executionCost` included, which it answers `undefined` for.
+ */
+describe("a borrow result is weighable where every other state is", () => {
+  it("is the operation state itself, so the checker takes it unchanged", () => {
+    expectTypeOf<BorrowState>().toExtend<OperationState>();
+    expectTypeOf<BorrowState>().toExtend<CheckSimulationInput["state"]>();
+    expectTypeOf<BorrowState["executionCost"]>().toEqualTypeOf<
+      bigint | undefined
+    >();
+  });
+
+  it("so does an opening, by the other branch of the same union", () => {
+    expectTypeOf<OpenStrategyState>().toExtend<CheckSimulationInput["state"]>();
   });
 });
 

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PERCENTAGE_FACTOR } from "../../../constants/math.js";
 import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
+import { checkSimulation } from "../../../validation/index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   buildFixtureCreditAccount,
@@ -132,6 +133,51 @@ describe("borrow — a loan against collateral, on an account it opens itself", 
   it("echoes the slippage the route was quoted at, defaulting to none", async () => {
     expect((await state()).slippage).toBe(0);
     expect((await state({ slippage: 50 })).slippage).toBe(50);
+  });
+
+  it("does not measure execution cost, which has no before to compare to", async () => {
+    // The payout leaves the account, so there is no second state of it to
+    // weigh the first against. What the route cost is `borrowed` against
+    // `totalDebt`, in the tokens rather than as a rate.
+    expect((await state()).executionCost).toBeUndefined();
+    expect((await state({ borrowToken: POS2 })).executionCost).toBeUndefined();
+  });
+});
+
+describe("borrow — the state a caller can weigh for themselves", () => {
+  it("goes to checkSimulation as it stands, and clears the market's own limits", async () => {
+    const sdk = buildMarketSdk({ minDebt: LOAN / 2n });
+
+    const errors = checkSimulation(sdk, {
+      chainId: sdk.chainId,
+      state: await state(),
+    });
+
+    expect(errors).toEqual([]);
+  });
+
+  it("is refused by the threshold a form asks for above the facade's own", async () => {
+    const sdk = buildMarketSdk();
+    const s = await state();
+
+    const errors = checkSimulation(
+      sdk,
+      { chainId: sdk.chainId, state: s },
+      { minHealthFactor: s.healthFactor + 1 },
+    );
+
+    expect(errors.map(e => e.code)).toEqual(["insufficientCollateral"]);
+  });
+
+  it("carries the debt to the check, which holds it to the market's floor", async () => {
+    const sdk = buildMarketSdk({ minDebt: LOAN * 2n });
+
+    const errors = checkSimulation(sdk, {
+      chainId: sdk.chainId,
+      state: await state(),
+    });
+
+    expect(errors.map(e => e.code)).toEqual(["debtOutOfRange"]);
   });
 });
 

@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 import {
-  type AccountProjection,
   insufficientBalance,
   type TokenAmount,
   unsupportedCollateralToken,
@@ -18,7 +17,7 @@ import {
   assertQuotaAvailable,
 } from "./guards.js";
 import { assertDebtLimits } from "./math.js";
-import type { CreditAccountSlice, SimulationPrices } from "./types.js";
+import type { CreditAccountSlice, OperationState } from "./types.js";
 import {
   collectPriceImpact,
   createRouterPaths,
@@ -66,13 +65,18 @@ export interface BorrowProps {
 /**
  * Where a borrow leaves the wallet and the account it opens.
  *
- * Carries the whole {@link AccountProjection} the other flows report, holdings
- * included: unlike an opening, a borrow has no second branch of balances to
- * choose between — the collateral is the only thing left on the account and
- * its amount is known exactly. Slippage lands on the payout instead, which is
- * why that one is reported twice.
+ * A whole {@link OperationState}, holdings included: unlike an opening, a
+ * borrow has no second branch of balances to choose between — the collateral
+ * is the only thing left on the account and its amount is known exactly.
+ * Slippage lands on the payout instead, which is why that one is reported
+ * twice.
+ *
+ * Being that state rather than merely resembling it is what lets a borrow
+ * result go straight to `checkSimulation`, which weighs whatever the engine
+ * projected: the market, the debt, the quotas and the two factors, all of
+ * which a borrow reports where an operation on an existing account does.
  */
-export interface BorrowState extends AccountProjection, SimulationPrices {
+export interface BorrowState extends OperationState {
   /** What the wallet puts up, as it will sit on the account. */
   collateral: TokenAmount;
   /**
@@ -242,6 +246,12 @@ export async function buildBorrowState(
   return {
     ...projection,
     currentPrice: sdk.positions.currentPrice(snapshot),
+    // Not measured here. The field answers what an operation gave up on its
+    // way between two states of the same account, which a borrow has no
+    // second of: the payout leaves, and what it cost on the way out is
+    // `borrowed` against `totalDebt` — reported in the tokens themselves
+    // rather than as a rate, with `priceImpact` beside them for the depth.
+    executionCost: undefined,
     priceImpact: await collectPriceImpact(leg?.probe ? [leg.probe] : [], {
       totalValue: margin,
       // Nothing of the loan stays behind, so the collateral is the equity.

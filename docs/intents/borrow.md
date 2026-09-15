@@ -138,6 +138,18 @@ the collateral token, or a manager the SDK does not hold yet.
   where one was reused. `execute.buildTx` reads it rather than asking the caller
   again, so the transaction cannot be built against an account the numbers were
   not computed for. It feeds `openCA.reopenCreditAccount`.
+- `BorrowState` **is** an `OperationState`, not a shape resembling one, so the
+  result goes to
+  [`checkSimulation`](../../src/onchain/validation/checkSimulation.ts) as it
+  stands — a caller holding a borrow can ask for a stricter health factor than
+  the facade's `1.0` without unwrapping anything. An opening is taken by the
+  other branch of the same union, which names its quotas `averageQuota`.
+- `executionCost` is `undefined` here, the third case that field allows. The
+  rate compares an account against itself before and after an operation, and a
+  borrow has no second state of it to compare: the payout goes to the wallet.
+  What the route cost is on the state already — `borrowed` against `totalDebt`,
+  in the tokens rather than as a rate, with `priceImpact` beside them for the
+  depth the probe found.
 
 ## Reusing a pre-opened account
 

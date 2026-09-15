@@ -148,6 +148,8 @@ interface BuildMockSdkArgs {
   baseInterestRate?: bigint;
   /** Credit manager interest fee in Bps; feeds position metrics. */
   feeInterest?: number;
+  /** Quoted tokens the facade enables at once; feeds `checkQuotaCount`. */
+  maxEnabledTokens?: number;
   creditManager: Address;
   creditFacade: Address;
   /** Market underlying token (`market.pool.underlying`). */
@@ -386,6 +388,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       liquidationThresholds,
       collateralTokens,
       feeInterest: args.feeInterest ?? 0,
+      maxEnabledTokens: args.maxEnabledTokens ?? 4,
       maxLeverage: (collateral: Address, targetHF?: Bps) =>
         calcMaxLeverage(liquidationThresholds.get(collateral) ?? 0, targetHF),
     },

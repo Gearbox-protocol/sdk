@@ -468,6 +468,7 @@ describe("buildTx — borrow", () => {
     liquidationPrice: null,
     currentPrice: null,
     priceImpact: undefined,
+    executionCost: undefined,
     collateral: amount(DIESEL, 3_000n),
     borrowed: amount(UNDERLYING, 2_000n),
     minBorrowed: amount(UNDERLYING, 2_000n),
