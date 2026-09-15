@@ -20,9 +20,11 @@ Otherwise the two are the same flow, `creditAccount` included.
 ```text
 margin = price(collateral → U)              what the wallet puts up, in underlying
 D      = borrowAmount                       when the payout is U
+       = rescale(borrowAmount)              when the payout is an RWA asset of U
        = price(payout → U, borrowAmount)    otherwise
 TVL    = margin                             the loan is gone by the end of the call
-route  : D of U ─▶ payout                   only when the payout is not U
+route  : D of U ─▶ payout                   only when the payout is neither
+unwrap : redeem(D) ─▶ asset                 instead of the route, on an RWA market
 sweep  : withdrawCollateral(payout, MAX_UINT256, wallet)
 ```
 
@@ -86,7 +88,32 @@ flowchart LR
   subgraph c["collateral is the underlying"]
     c1["the loan sits beside it on the account"] --> c2["the route keeps the collateral back"] --> c3["only the loan is swapped and swept"]
   end
+  subgraph d["payout is an RWA market's asset"]
+    d1["D = borrowAmount rescaled by decimals"] --> d2["vault redemption, not a route"] --> d3["openCA: calls = redeem(D), withdrawToken = asset"]
+  end
 ```
+
+## An RWA market pays out in the asset, not the wrapper
+
+The underlying of an RWA market is a compliance wrapper — `dcUSDC` over
+`USDC` — and it **cannot leave the account**. So a loan drawn from one is paid
+in the asset behind it: `borrowToken` is the `USDC`, `borrowAmount` counts in
+its units, and that is what arrives in the wallet. Asking for the wrapper is
+refused with `unsupportedCollateralToken`, and `maxBorrow` answers `0n` for it.
+
+The leg between the two is not a trade. They convert one for one, so the debt
+is `borrowAmount` rescaled by decimals (`toTargetDecimals`, the same helper
+`realize` uses) rather than priced through the oracle, the calls come from
+`assembleRWAUnwrapCalls` rather than the router, and `minBorrowed` equals
+`borrowed` — there is no quote to miss and no floor to sign against.
+
+The redemption is sized to the debt just drawn, not to the balance, so
+collateral put up in the wrapper stays wrapped and goes on backing the loan.
+
+This is the rule the rest of the SDK already follows: `plan.ts` unwraps before
+every `withdraw`, `assembleCloseCreditAccountCalls` redeems before the sweep of
+an exit, and the delayed-withdrawal preview reports the asset as what was
+received.
 
 ## The ceiling: `prepare.maxBorrow`
 
@@ -121,8 +148,8 @@ the collateral token, or a manager the SDK does not hold yet.
 
 - `borrowed` and `minBorrowed` are the two halves of the payout: what the route
   is expected to return and the floor it guarantees. They coincide when the
-  payout is the underlying, since then nothing is traded — the debt drawn is the
-  amount handed over. See
+  payout is the underlying, or the asset an RWA market unwraps it into, since
+  then nothing is traded — the debt drawn is the amount handed over. See
   [Two amounts per routed leg](./README.md#two-amounts-per-routed-leg).
 - The collateral check is made at **safe prices**, unlike an opening's. The
   transaction hands funds to the wallet, so that is the feed the credit manager

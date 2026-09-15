@@ -15,11 +15,12 @@ import {
   type MarketSdkExtras,
   POS,
   POS2,
+  RWA_ASSET,
   UND,
   UND_DECIMALS,
   valueInUnd,
 } from "../testing/market.js";
-import { MOCK_ROUTER_CALL } from "../testing/sdk-mock.js";
+import { MOCK_ROUTER_CALL, MOCK_RWA_UNWRAP_CALL } from "../testing/sdk-mock.js";
 
 /** Liquidation threshold of every non-underlying token in the fixture market. */
 const LT = 9200n;
@@ -229,6 +230,76 @@ describe("borrow — a payout the market does not lend in", () => {
         target: POS,
       }),
     );
+  });
+});
+
+describe("borrow — a market whose underlying cannot leave the account", () => {
+  /** The fixture market turned RWA: `UND` is the wrapper over `RWA_ASSET`. */
+  const rwa: MarketSdkExtras = { rwaAssets: { [UND]: RWA_ASSET } };
+
+  it("pays out the asset behind the wrapper, through the vault rather than a route", async () => {
+    const { sdk, result } = run(
+      { borrowToken: RWA_ASSET },
+      buildMarketSdk(rwa),
+    );
+    const outcome = await result;
+    if (!outcome.ok) throw new Error(outcome.error.code);
+    const s = outcome.state;
+
+    // the loan is drawn in the wrapper the pool lends and handed over as the
+    // asset, one for one — so the debt is the amount asked for
+    expect(s.totalDebt.value).toBe(LOAN);
+    // checksummed by the token registry, as every reported token is
+    expect(s.borrowed.token.address.toLowerCase()).toBe(RWA_ASSET);
+    expect(s.borrowed.value).toBe(LOAN);
+    // an unwrap has no floor to quote and nothing to lose on the way
+    expect(s.minBorrowed).toEqual(s.borrowed);
+    expect(s.priceImpact).toBeUndefined();
+    expect(s.calls).toEqual([MOCK_RWA_UNWRAP_CALL]);
+    expect(
+      vi.mocked(
+        sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOneTokenPath,
+      ),
+    ).not.toHaveBeenCalled();
+    // sized to the debt just drawn: an account that put the wrapper up as
+    // collateral keeps it, where a diff redemption would take that too
+    expect(vi.mocked(sdk.accounts.assembleRWAUnwrapCalls)).toHaveBeenCalledWith(
+      LOAN,
+      CREDIT_MANAGER,
+    );
+  });
+
+  it("rescales the debt by decimals, not by price, when the two differ", async () => {
+    const sdk = buildMarketSdk({
+      ...rwa,
+      extraDecimals: { [RWA_ASSET]: UND_DECIMALS + 2 },
+    });
+    const asked = toBN("400", UND_DECIMALS + 2);
+    const outcome = await run(
+      { borrowToken: RWA_ASSET, borrowAmount: asked },
+      sdk,
+    ).result;
+    if (!outcome.ok) throw new Error(outcome.error.code);
+
+    // 400 of the asset is 400 of the wrapper whatever either counts in
+    expect(outcome.state.totalDebt.value).toBe(LOAN);
+    expect(outcome.state.borrowed.value).toBe(asked);
+  });
+
+  it("leaves the collateral on the account, as any other payout does", async () => {
+    const s = await state({ borrowToken: RWA_ASSET }, rwa);
+
+    expect(s.assets.map(a => [a.token.address, a.value])).toEqual([
+      [POS, COLLATERAL],
+    ]);
+    expect(s.totalValue.value).toBe(COLLATERAL);
+    expect(s.netValue.value).toBe(COLLATERAL - LOAN);
+  });
+
+  it("refuses a payout in the wrapper itself, which the facade cannot hand over", async () => {
+    const error = await refusal({ borrowToken: UND }, rwa);
+
+    expect(error.code).toBe("unsupportedCollateralToken");
   });
 });
 

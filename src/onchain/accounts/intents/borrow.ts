@@ -23,6 +23,7 @@ import {
   createRouterPaths,
   eq,
   getQuotasForUpdate,
+  toTargetDecimals,
   unopenedAccountSlice,
 } from "./utils/index.js";
 
@@ -45,6 +46,10 @@ export interface BorrowProps {
   /**
    * Token the loan is paid out in. The market underlying needs no trade;
    * anything else is bought with the borrowed underlying on the way out.
+   *
+   * On an RWA market the underlying is a compliance wrapper that cannot leave
+   * the account, so the payout there is the asset behind it — USDC rather than
+   * dcUSDC — and the wrapper itself is refused.
    */
   borrowToken: Address;
   /** Amount of {@link borrowToken} the wallet asks for, in its own units. */
@@ -81,8 +86,9 @@ export interface BorrowState extends OperationState {
   collateral: TokenAmount;
   /**
    * What the wallet is expected to receive, in the token it asked for. Equal
-   * to the debt when that token is the market underlying, since then nothing
-   * is traded.
+   * to the debt when that token is the market underlying, and to the debt
+   * rescaled where an RWA payout unwraps it one for one; in neither case is
+   * anything traded.
    */
   borrowed: TokenAmount;
   /**
@@ -103,7 +109,12 @@ export interface BorrowState extends OperationState {
    * {@link calls} below.
    */
   quotaIncrease: Asset[];
-  /** Router path buying the payout token; feeds `openCA.calls`. */
+  /**
+   * The leg that turns the borrowed underlying into the payout: a router path
+   * where it is bought, the vault redemption where an RWA market unwraps it,
+   * empty where the payout is the underlying itself. Feeds `openCA.calls`,
+   * which places it before the withdrawal.
+   */
   calls: MultiCall[];
   /**
    * The account this loan was simulated against and must be executed on, when
@@ -161,6 +172,23 @@ export async function buildBorrowState(
       "borrow: the payout token cannot also be the collateral",
     );
   }
+
+  // An RWA market lends a compliance wrapper (dcUSDC) that cannot leave the
+  // account, so a loan paid out of one is paid in the asset behind it (USDC).
+  // The leg between them is not a trade: the two convert one for one and the
+  // vault adapter is what does it, which is why nothing is quoted and there is
+  // no floor to report. `plan.ts` withdraws by the same rule and `realize`
+  // rescales with the same helper.
+  const rwaAsset = sdk.tokensMeta.rwaUnderlyings
+    .get(underlying)
+    ?.asset?.toLowerCase() as Address | undefined;
+  const unwrapsPayout = !!rwaAsset && eq(borrowToken, rwaAsset);
+  if (rwaAsset && eq(borrowToken, underlying)) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(sdk, borrowToken)),
+      `borrow: ${underlying} cannot leave the account, ask for the payout in ${rwaAsset}`,
+    );
+  }
   if (collateralAmount <= 0n) {
     throw new IntentPreviewError(
       insufficientBalance(),
@@ -185,9 +213,13 @@ export async function buildBorrowState(
   // A loan is denominated in the pool underlying whatever the wallet is paid
   // in, so a payout in another token is priced back into it. The oracle is
   // what sizes the debt; the router then says what that debt actually buys.
+  // The wrapper's own asset is the exception: it converts by decimals alone,
+  // which is the arithmetic the vault will do on chain.
   const debt = eq(borrowToken, underlying)
     ? borrowAmount
-    : convert(borrowToken, underlying, borrowAmount);
+    : unwrapsPayout
+      ? toTargetDecimals(borrowAmount, borrowToken, underlying, sdk)
+      : convert(borrowToken, underlying, borrowAmount);
   assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
   assertCanBorrow(sdk, suite, debt);
 
@@ -200,16 +232,31 @@ export async function buildBorrowState(
       creditFacade: suite.creditFacade.address,
       underlying,
     });
-  const leg = eq(borrowToken, underlying)
-    ? undefined
-    : await createRouterPaths({ sdk, creditAccount: account, slippage }).swap({
-        tokenIn: underlying,
-        tokenOut: borrowToken,
-        amount: debt,
-        // Underlying collateral sits beside the loan and must survive the
-        // trade; anything else is untouched by it anyway.
-        keep: eq(collateralToken, underlying) ? collateralAmount : 0n,
-      });
+  const leg =
+    eq(borrowToken, underlying) || unwrapsPayout
+      ? undefined
+      : await createRouterPaths({ sdk, creditAccount: account, slippage }).swap(
+          {
+            tokenIn: underlying,
+            tokenOut: borrowToken,
+            amount: debt,
+            // Underlying collateral sits beside the loan and must survive the
+            // trade; anything else is untouched by it anyway.
+            keep: eq(collateralToken, underlying) ? collateralAmount : 0n,
+          },
+        );
+
+  // The vault call the payout leaves through, sized to the debt just drawn
+  // rather than to the balance — collateral put up in the wrapper stays
+  // wrapped and backs the loan, where a diff redemption would take it too.
+  const unwrap = unwrapsPayout
+    ? await sdk.accounts.assembleRWAUnwrapCalls(debt, creditManager)
+    : undefined;
+  if (unwrapsPayout && !unwrap) {
+    // The market says its underlying is RWA-gated, so the only way here is a
+    // vault with no adapter configured: nothing a caller can answer for.
+    throw new Error(`borrow: no unwrap calls found for ${borrowToken}`);
+  }
 
   const assets: Asset[] = [
     { token: collateralToken, balance: collateralAmount },
@@ -243,6 +290,14 @@ export async function buildBorrowState(
   const priced = (token: Address, balance: bigint): TokenAmount =>
     market.priceOracle.toTokenAmount(token, balance);
 
+  // What the wallet ends up holding: the route's quote, the rescale the unwrap
+  // performs, or the debt itself where the payout is the underlying.
+  const payout = unwrapsPayout
+    ? toTargetDecimals(debt, underlying, borrowToken, sdk)
+    : leg
+      ? leg.amount
+      : debt;
+
   return {
     ...projection,
     currentPrice: sdk.positions.currentPrice(snapshot),
@@ -259,11 +314,11 @@ export async function buildBorrowState(
       toUnderlying: (from, amount) => convert(from, underlying, amount),
     }),
     collateral: priced(collateralToken, collateralAmount),
-    borrowed: priced(borrowToken, leg ? leg.amount : debt),
-    minBorrowed: priced(borrowToken, leg ? leg.minAmount : debt),
+    borrowed: priced(borrowToken, payout),
+    minBorrowed: priced(borrowToken, leg ? leg.minAmount : payout),
     slippage,
     quotaIncrease,
-    calls: leg ? [...leg.calls] : [],
+    calls: leg ? [...leg.calls] : (unwrap ?? []),
     creditAccount: existing?.creditAccount,
   };
 }

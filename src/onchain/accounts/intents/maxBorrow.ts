@@ -4,7 +4,7 @@ import type { Asset, OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/index.js";
 import { borrowCollateralQuota } from "./borrow.js";
 import { collateralValuation, type Holding } from "./collateral-valuation.js";
-import { eq, resolveCreditManager } from "./utils/common.js";
+import { eq, resolveCreditManager, toTargetDecimals } from "./utils/common.js";
 import { unopenedAccountSlice } from "./utils/index.js";
 
 export interface MaxBorrowProps {
@@ -67,8 +67,15 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
   const borrowToken = props.borrowToken.toLowerCase() as Address;
 
   // The shapes `buildBorrowState` refuses outright: borrowing the collateral
-  // token, and a deposit too small to be counted as one.
+  // token, a payout in the wrapper an RWA market cannot let leave the account,
+  // and a deposit too small to be counted as one.
+  const rwaAsset = sdk.tokensMeta.rwaUnderlyings
+    .get(underlying)
+    ?.asset?.toLowerCase() as Address | undefined;
   if (eq(collateralToken, borrowToken)) {
+    return 0n;
+  }
+  if (rwaAsset && eq(borrowToken, underlying)) {
     return 0n;
   }
   if (collateralAmount <= DUST_THRESHOLD || targetHF <= 0n) {
@@ -124,16 +131,25 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
     suite.maxBorrowAmount().amount.value,
   );
 
-  const amount = eq(borrowToken, underlying)
-    ? ceiling
-    : priceOracle.safeConvert(underlying, borrowToken, ceiling).value;
+  // An RWA payout is the asset behind the underlying, and the unwrap that
+  // hands it over converts by decimals alone — the same arithmetic the borrow
+  // itself does, so the ceiling this offers is one it will accept.
+  const unwrapsPayout = !!rwaAsset && eq(borrowToken, rwaAsset);
+  const intoPayout = (value: bigint): bigint =>
+    unwrapsPayout
+      ? toTargetDecimals(value, underlying, borrowToken, sdk)
+      : priceOracle.safeConvert(underlying, borrowToken, value).value;
+  const intoUnderlying = (value: bigint): bigint =>
+    unwrapsPayout
+      ? toTargetDecimals(value, borrowToken, underlying, sdk)
+      : priceOracle.safeConvert(borrowToken, underlying, value).value;
+
+  const amount = eq(borrowToken, underlying) ? ceiling : intoPayout(ceiling);
 
   // What a borrow for that amount would put on the account, priced back the
   // way it prices it. Rounding only ever loses wei here, so this is the debt
   // `minDebt` has to admit — not the ceiling it was cut from.
-  const debt = eq(borrowToken, underlying)
-    ? amount
-    : priceOracle.safeConvert(borrowToken, underlying, amount).value;
+  const debt = eq(borrowToken, underlying) ? amount : intoUnderlying(amount);
 
   return debt < suite.creditFacade.minDebt ? 0n : amount;
 }

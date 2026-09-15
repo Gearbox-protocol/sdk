@@ -12,6 +12,7 @@ import {
   type MarketSdkExtras,
   POS,
   POS2,
+  RWA_ASSET,
   UND,
   UND_DECIMALS,
 } from "../testing/market.js";
@@ -137,6 +138,53 @@ describe("maxBorrow — the payout token decides the units", () => {
     expect(outcome.state.safeHealthFactor).toBeGreaterThanOrEqual(
       Number(MIN_HF_LIMITED),
     );
+  });
+});
+
+describe("maxBorrow — a market whose underlying cannot leave the account", () => {
+  /** The fixture market turned RWA: `UND` is the wrapper over `RWA_ASSET`. */
+  const rwa: MarketSdkExtras = { rwaAssets: { [UND]: RWA_ASSET } };
+
+  it("answers in the asset behind the wrapper, which it converts one for one", () => {
+    // the unwrap rescales by decimals rather than by price, and the two share
+    // them here — so the ceiling is the one any other market would name
+    expect(maxBorrow({ borrowToken: RWA_ASSET }, rwa)).toBe(CEILING);
+  });
+
+  it("answers an amount the borrow itself accepts", async () => {
+    const sdk = buildMarketSdk(rwa);
+    const service = new CreditAccountOperationsService(sdk);
+    const amount = service.maxBorrow({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: RWA_ASSET,
+      targetHF: undefined,
+      quotaReserve: undefined,
+    });
+    const outcome = await service.borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: RWA_ASSET,
+      borrowAmount: amount,
+      slippage: undefined,
+      quotaReserve: undefined,
+    });
+
+    if (!outcome.ok) {
+      throw new Error(`expected a state, got error: ${outcome.error.code}`);
+    }
+    expect(outcome.state.borrowed.value).toBe(amount);
+    expect(outcome.state.safeHealthFactor).toBeGreaterThanOrEqual(
+      Number(MIN_HF_LIMITED),
+    );
+  });
+
+  it("answers nothing for a payout in the wrapper, which the borrow refuses", () => {
+    expect(maxBorrow({ borrowToken: UND }, rwa)).toBe(0n);
   });
 });
 

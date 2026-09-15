@@ -503,13 +503,20 @@ export interface BorrowParams extends PrepareOptions {
    * as it is borrowed; anything else the router has a path to is bought with
    * the borrowed underlying first, and then {@link BorrowResult} reports both
    * what that trade is expected to return and its floor.
+   *
+   * An RWA market is paid in the asset its underlying wraps — `USDC`, not the
+   * `dcUSDC` the pool lends — because the wrapper cannot leave the account.
+   * The two convert one for one through the market's vault, so that payout is
+   * exact like the underlying's. Naming the wrapper is refused with
+   * `unsupportedCollateralToken`.
    **/
   borrowToken: Address;
   /**
    * Amount of {@link borrowToken} the wallet asks for. It is the debt exactly
-   * when `borrowToken` is the market underlying; otherwise the debt is what
-   * the oracle prices that much of it at, and what actually arrives is the
-   * router's answer.
+   * when `borrowToken` is the market underlying, and the same amount in the
+   * underlying's own decimals when it is the asset an RWA market unwraps into;
+   * otherwise the debt is what the oracle prices that much of it at, and what
+   * actually arrives is the router's answer.
    **/
   borrowAmount: bigint;
   /**
