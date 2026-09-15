@@ -67,17 +67,22 @@ export async function checkCreditOperation(
   const market = suite.market;
   const underlying = toToken(sdk, market.pool.underlying);
   const isOpening = preview.operation === "OpenCreditAccount";
+  const isEmptyOpening =
+    preview.operation === "OpenCreditAccount" &&
+    preview.totalDebt.value === 0n &&
+    preview.collateralAdded.length === 0 &&
+    preview.quotas.length === 0;
 
   const protocol: CreditOperationError[] = [
     ...checkMarket(suite),
-    // An account being opened has to carry a real loan; one being adjusted may
-    // end owing nothing at all.
+    // An account being opened has to carry a real loan, unless it is opened
+    // empty to be funded later; one being adjusted may end owing nothing at all.
     ...checkDebtLimits({
       debt: preview.totalDebt.value,
       minDebt: suite.creditFacade.minDebt,
       maxDebt: suite.creditFacade.maxDebt,
       underlying,
-      allowZero: !isOpening,
+      allowZero: !isOpening || isEmptyOpening,
       maxBorrowAmount: suite.maxBorrowAmount(),
     }),
     ...checkIncreaseDebt(suite, preview, underlying),

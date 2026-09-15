@@ -1444,6 +1444,36 @@ describe("prepare → execute on a mainnet fork", () => {
       );
     });
 
+    it("is not refused for owing less than the market's minimum debt", async () => {
+      await sync();
+      const sim = await prepare().openNewStrategy(OPEN_KEY, EMPTY_OPEN);
+      if (!sim.ok) throw new Error(sim.error.code);
+      const tx = await execute().buildTx({
+        kind: "open",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: borrower,
+        sim,
+        collateral: [],
+        ethAmount: 0n,
+      });
+      const preview = await previewOperation(chain, {
+        chainId: chain.chainId,
+        to: tx.to,
+        calldata: tx.callData,
+        sender: borrower,
+        value: BigInt(tx.value),
+      });
+      if (!preview.ok) throw new Error(preview.error.code);
+      const errors = await checkOperation({
+        sdk: chain,
+        preview: preview.data,
+        sender: borrower,
+      });
+
+      expect(errors.map(e => e.code)).not.toContain("debtOutOfRange");
+    });
+
     it("lists the empty account as a position", async () => {
       const creditAccount = await openEmpty();
       const { data } = await gearbox.positions.onchain.list({
