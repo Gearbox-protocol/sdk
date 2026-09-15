@@ -25,13 +25,8 @@ import {
   collectPriceImpact,
   createRouterPaths,
   getQuotasForUpdate,
+  unopenedAccountSlice,
 } from "./utils/index.js";
-
-/**
- * Stand-in account address, used when the opening creates its own account:
- * nothing exists on chain until the tx lands.
- */
-const NO_ACCOUNT = "0x0000000000000000000000000000000000000000" as Address;
 
 /**
  * Opening an account and putting a position on it in one transaction.
@@ -166,16 +161,13 @@ export async function buildOpenStrategyState(
 
   // Synthetic slice so the router helper can be reused even though no account
   // exists yet. A reused one is handed over as it stands.
-  const account: CreditAccountSlice = existing ?? {
-    creditAccount: NO_ACCOUNT,
-    creditManager: creditManager.toLowerCase() as Address,
-    creditFacade: suite.creditFacade.address.toLowerCase() as Address,
-    underlying,
-    enabledTokensMask: 0n,
-    totalDebtUSD: 0n,
-    totalDebt: 0n,
-    tokens: [],
-  };
+  const account: CreditAccountSlice =
+    existing ??
+    unopenedAccountSlice({
+      creditManager,
+      creditFacade: suite.creditFacade.address,
+      underlying,
+    });
   assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
   assertCanBorrow(sdk, suite, debt);
 

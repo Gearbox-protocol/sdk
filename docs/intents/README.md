@@ -11,6 +11,7 @@ surface: `sdk.opportunities.prepare` (see
 | Intent            | Public API                     | Planner                  | Debt    | Graph                                     |
 | ----------------- | ------------------------------ | ------------------------ | ------- | ----------------------------------------- |
 | —                 | `prepare.openNewStrategy`     | `buildOpenStrategyState` | borrowed | [open-strategy.md](./open-strategy.md)     |
+| —                 | `prepare.borrow`              | `buildBorrowState`       | borrowed, then paid out | [borrow.md](./borrow.md)     |
 | `DEPOSIT`         | `prepare.depositStrategy`     | `planDeposit`            | grows   | [deposit.md](./deposit.md)                 |
 | `WITHDRAW`        | `prepare.withdrawStrategy`    | `planWithdraw`           | shrinks | [withdraw.md](./withdraw.md)               |
 | `REPAY`           | `prepare.repayStrategy`       | `planRepay`              | shrinks | [repay.md](./repay.md)                     |
@@ -106,6 +107,7 @@ debt including accrued interest and fees, `L` total leverage scaled by
 | `quota = floor(balanceInUnderlying · LT · (1 + reserve))`, rounded down to a `PERCENTAGE_FACTOR` step, increases capped by `2 · maxDebt` minus quota already bought | closing quota update | `calcQuotaUpdate`, `getQuotasForUpdate` |
 | `HF = Σ min(quotaᵤ, valueᵤ · LT) / debtᵤ`, balances at or below `DUST_THRESHOLD` ignored, `65535` when there is no debt | the collateral guard | `healthFactor` |
 | `A_max`: largest `A` with `HF` at or above `MIN_HF_LIMITED + 2` once `A` of one token leaves — the same `HF` above, at safe prices, solved for that balance | `maxWithdrawCollateral` | `calcMaxWithdrawCollateral` |
+| `D_max = min(min(quotaᵤ, valueᵤ · LT) / targetHF, maxBorrowAmount)`, priced into the payout token — the same `HF` at safe prices, solved for the debt a fresh account can carry | `maxBorrow` | `maxBorrow` |
 
 Prices come from the market oracle, RWA-aware (a wrapper and its asset convert
 1:1 up to decimals). A call that hands funds over is judged at **safe prices** —
@@ -184,7 +186,7 @@ on the error beside it — `error.maxDebt`, `error.token`.
 | `debtOutOfRange`            | the resulting debt would sit outside `[minDebt, maxDebt]` and is not zero    | `requested`, `minDebt`, `maxDebt`, in underlying |
 | `leverageOutOfRange`        | target below 1x, or a deposit target that would require repaying            | `requested`, `min`, scaled by `LEVERAGE_DECIMALS` |
 | `insufficientBalance`       | non-positive amount, nothing to sell, net value already eaten by the debt   | `required`, `held`, `holderKind` where known |
-| `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take                      | `token` |
+| `unsupportedCollateralToken`| deposit or repayment in a token the flow does not take, or a borrow whose payout is its own collateral | `token` |
 | `unsupportedTokenPair`      | no pool route for the requested pair, or the pathfinder found no path        | `from`, `to` where the market named one |
 | `noDelayedRoute`            | no redemption venue, a leverage move that settles at once, a withdrawal the tail cannot serve | `token` |
 | `multipleDelayedWithdrawals`| several venues for the source and nothing says which                        | `token`, `venues` |

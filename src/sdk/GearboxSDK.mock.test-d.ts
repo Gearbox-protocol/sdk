@@ -38,6 +38,7 @@ const mockSDK = {
       withdraw: notImplemented,
       redeem: notImplemented,
       openNewStrategy: notImplemented,
+      borrow: notImplemented,
       depositStrategy: notImplemented,
       withdrawStrategy: notImplemented,
       maxWithdraw: notImplemented,
@@ -49,6 +50,7 @@ const mockSDK = {
       leverageBand: notImplemented,
       withdrawableCollaterals: notImplemented,
       maxWithdrawCollateral: notImplemented,
+      maxBorrow: notImplemented,
       finalize: notImplemented,
     },
     execute: {

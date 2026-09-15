@@ -35,6 +35,7 @@ import type {
 import type {
   AccountCalculatorOperation,
   Asset,
+  BorrowState,
   ClaimRemainder,
   DelayedStart,
   LeverageBand,
@@ -61,6 +62,7 @@ export type {
   WithdrawalInProgressError,
 } from "../../model/index.js";
 export type {
+  BorrowState,
   LeverageBand,
   OperationState,
   PathLossRate,
@@ -305,6 +307,26 @@ export interface OpenStrategyResult {
 }
 
 /**
+ * What taking a loan against collateral comes to.
+ *
+ * Shaped like {@link OpenStrategyResult} — a borrow opens its account too, so
+ * there is no chain of steps to report — with the whole projection on the
+ * state rather than two branches of balances, see {@link BorrowState}.
+ **/
+export interface BorrowResult {
+  /**
+   * Everything the loan arrives at: the collateral and the debt it backs, the
+   * payout expected and its floor, the position metrics a screen shows beside
+   * them, and the router path `openCA` is handed.
+   **/
+  state: BorrowState;
+  /** Block of the chain state this result was computed from. */
+  blockNumber: number;
+  /** Unix seconds of {@link blockNumber}. */
+  timestamp: Timestamp;
+}
+
+/**
  * Shared knobs. Both default to the SDK's own defaults when omitted.
  **/
 export interface PrepareOptions {
@@ -493,6 +515,55 @@ export interface OpenStrategyEmptyParams {
   leftoverBalances?: never;
 }
 
+export interface BorrowParams extends PrepareOptions {
+  /**
+   * Token the wallet puts up as collateral. Must be a collateral token of the
+   * market, and cannot be {@link borrowToken} — the payout is swept off the
+   * account, and a sweep takes the whole balance of the token it names.
+   **/
+  collateralToken: Address;
+  /** Amount of {@link collateralToken} that leaves the wallet. */
+  collateralAmount: bigint;
+  /**
+   * Token the wallet is paid the loan in. The market underlying is handed over
+   * as it is borrowed; anything else the router has a path to is bought with
+   * the borrowed underlying first, and then {@link BorrowResult} reports both
+   * what that trade is expected to return and its floor.
+   **/
+  borrowToken: Address;
+  /**
+   * Amount of {@link borrowToken} the wallet asks for. It is the debt exactly
+   * when `borrowToken` is the market underlying; otherwise the debt is what
+   * the oracle prices that much of it at, and what actually arrives is the
+   * router's answer.
+   **/
+  borrowAmount: bigint;
+}
+
+/**
+ * What a borrow form knows before it knows the amount: everything
+ * {@link BorrowParams} carries except the loan itself, which is the answer.
+ **/
+export interface MaxBorrowParams {
+  /** Token the wallet would put up, as in {@link BorrowParams}. */
+  collateralToken: Address;
+  /** Amount of {@link collateralToken} that would leave the wallet. */
+  collateralAmount: bigint;
+  /** Token the loan would be paid in; the ceiling comes back in its units. */
+  borrowToken: Address;
+  /**
+   * Health factor the loan should leave the account at, in basis points.
+   * Omitted, the SDK holds it to the threshold a form would.
+   **/
+  targetHF?: bigint;
+  /**
+   * Extra quota headroom in PERCENTAGE_FORMAT. Pass what the borrow itself
+   * will pass: a quota short of the collateral's weighted value is what caps
+   * the loan, so a different reserve here answers about a different loan.
+   **/
+  quotaReserve?: number;
+}
+
 export interface LpParams {
   /**
    * On deposit: amount of `tokenIn`. On withdraw: amount of `tokenOut`, which
@@ -567,11 +638,11 @@ export interface FinalizeParams extends PrepareOptions {
  * throws: a chain that cannot be reached or a crash on the way arrives as
  * `unexpectedFailure` with the cause attached.
  *
- * The bare readers stay outside the envelope: the `max*` ceilings answer their
- * number and throw on an account or chain the SDK does not hold, and the two
- * synchronous readers ({@link leverageBand}, {@link withdrawableCollaterals})
- * weigh state already loaded and say "nothing available" with `undefined` or
- * an empty list.
+ * The bare readers stay outside the envelope. The ones that read an account
+ * answer their number and throw on an account or chain the SDK does not hold;
+ * the synchronous ones ({@link leverageBand}, {@link withdrawableCollaterals},
+ * {@link maxBorrow}) weigh state already loaded and say "nothing available"
+ * with `undefined`, an empty list or `0n`.
  **/
 export interface IOpportunitiesPrepare {
   /**
@@ -642,6 +713,33 @@ export interface IOpportunitiesPrepare {
       | NoStrategyTargetCollateralError
       | CreditAccountNotFoundError
       | CreditAccountNotEmptyError
+    >
+  >;
+
+  /**
+   * Borrowing against collateral: one transaction opens an account, puts the
+   * collateral on it, draws the loan and pays it out to the wallet.
+   *
+   * The account is left holding the collateral and owing the debt, and nothing
+   * else — which is what tells this apart from {@link openNewStrategy}, where
+   * the borrowed funds stay on the account as part of the position. There is
+   * no leverage to name for the same reason: the loan is the amount asked for.
+   *
+   * The payout leaves the account, so the market weighs what is left at safe
+   * prices, and a loan the remaining collateral cannot carry there comes back
+   * as `insufficientCollateral` rather than reverting on arrival.
+   **/
+  borrow(
+    strategy: StrategyInput,
+    params: BorrowParams,
+  ): Promise<
+    SDKReturn<
+      BorrowResult,
+      | OpenFlowError
+      | DebtOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
     >
   >;
 
@@ -890,6 +988,31 @@ export interface IOpportunitiesPrepare {
     token: Address,
     targetHF?: bigint,
   ): Promise<bigint>;
+
+  /**
+   * Largest loan {@link borrow} can draw against a given collateral while the
+   * account stays safely collateralised, in the payout token's units — the
+   * ceiling a borrow form should offer.
+   *
+   * The loan leaves the account, so the collateral alone backs the debt and
+   * the market weighs it at safe prices, under its liquidation threshold and
+   * capped by the quota the borrow buys for it. The answer is then held to
+   * what the market will actually lend: the pool's free liquidity, the
+   * manager's own allowance and the facade's `maxDebt`.
+   *
+   * `targetHF` names the health factor to land at, in basis points; omitted,
+   * the SDK holds it to the threshold a form would.
+   *
+   * Synchronous, like {@link leverageBand} and for the same reason: the
+   * account does not exist yet, so there is nothing to read and a form can ask
+   * on every keystroke.
+   *
+   * `0n` where this market funds no loan of this shape — a loan that would
+   * land under `minDebt`, a collateral worth nothing at safe prices, a payout
+   * token equal to the collateral, or a manager the SDK does not hold. Not the
+   * same as "any amount works", and a caller must not offer a Max for it.
+   **/
+  maxBorrow(strategy: StrategyInput, params: MaxBorrowParams): bigint;
 
   /**
    * The tail of a delayed route: claim the matured withdrawal, then whatever the

@@ -10,6 +10,11 @@ import {
   IntentPreviewError,
   type IntentValidationError,
 } from "../../validation/raise.js";
+import {
+  type BorrowProps,
+  type BorrowState,
+  buildBorrowState,
+} from "./borrow.js";
 import { assertMarketOperable } from "./guards.js";
 
 import {
@@ -17,6 +22,7 @@ import {
   type LeverageBand,
   type LeverageBandProps,
 } from "./leverage-band.js";
+import { type MaxBorrowProps, maxBorrow } from "./maxBorrow.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
   buildOpenStrategyState,
@@ -58,6 +64,7 @@ import type {
 import { accountView } from "./view.js";
 import { withdrawLimits } from "./withdraw-limits.js";
 
+export type { BorrowProps, BorrowState } from "./borrow.js";
 export type { LeverageBand } from "./leverage-band.js";
 export type {
   OpenStrategyProps,
@@ -106,6 +113,14 @@ export type {
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; state: OpenStrategyState }
+  | SDKError<IntentValidationError>;
+
+/**
+ * Borrow preview outcome, shaped like {@link OpenStrategyPreviewResult}: both
+ * open an account, so neither has an operation chain to report.
+ */
+export type BorrowPreviewResult =
+  | { ok: true; state: BorrowState }
   | SDKError<IntentValidationError>;
 
 /** An intent plus everything previewing it needs. */
@@ -253,6 +268,36 @@ export class CreditAccountOperationsService extends SDKConstruct {
       ...rest,
       // two basis points clear of the threshold: a ceiling equal to it would
       // make a Max button produce an amount the form then refuses
+      targetHF: targetHF + 2n,
+    });
+  }
+
+  /**
+   * Largest loan a given collateral supports at `targetHF`, in the payout
+   * token's units — the ceiling a borrow form should offer, and the amount
+   * {@link borrowIntent} will accept at the top of its range.
+   *
+   * Reads no account, like {@link leverageBand}: the borrow opens one. The
+   * collateral is valued the way the transaction will be judged, at safe
+   * prices and under the quota the borrow buys, and the answer is then held to
+   * what the market will lend.
+   *
+   * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
+   * account to.
+   *
+   * @param props - The manager, the SDK holding its market, the collateral put
+   * up, the token to be paid in, and optionally the health factor to land at
+   * @returns Amount in the payout token's units; `0n` where no loan of this
+   * shape can be funded
+   */
+  maxBorrow(
+    props: Omit<MaxBorrowProps, "targetHF"> & { targetHF?: bigint },
+  ): bigint {
+    const { targetHF = MIN_HF_LIMITED, ...rest } = props;
+    return maxBorrow({
+      // two basis points clear of the threshold, as above: a ceiling equal to
+      // it would make a Max button produce an amount the form then refuses
+      ...rest,
       targetHF: targetHF + 2n,
     });
   }
@@ -468,6 +513,32 @@ export class CreditAccountOperationsService extends SDKConstruct {
   ): Promise<OpenStrategyPreviewResult> {
     try {
       return { ok: true, state: await buildOpenStrategyState(props) };
+    } catch (e) {
+      return asSDKError(e);
+    }
+  }
+
+  /**
+   * Previews taking a loan against collateral, on an account this same
+   * transaction opens.
+   *
+   * Sits beside {@link openStrategyIntent} rather than under
+   * {@link startIntent} for the same reason: there is no account yet, and the
+   * output feeds `sdk.accounts.openCA`. What sets it apart from an opening is
+   * where the loan goes — out to the wallet rather than into a position — so
+   * the debt is named outright instead of following from a leverage, and the
+   * collateral is the only thing the account is left holding.
+   *
+   * @param props - Credit manager, the collateral the wallet puts up and the
+   * payout it asks for
+   * @returns Debt, the payout's two branches and the projection the account
+   * lands in, or `{ ok: false, error }` when the loan is not viable — a debt
+   * outside the facade's limits, collateral that cannot carry it, a payout the
+   * router has no path to
+   */
+  async borrowIntent(props: BorrowProps): Promise<BorrowPreviewResult> {
+    try {
+      return { ok: true, state: await buildBorrowState(props) };
     } catch (e) {
       return asSDKError(e);
     }

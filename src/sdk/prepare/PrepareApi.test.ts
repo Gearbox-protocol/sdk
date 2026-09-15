@@ -485,6 +485,81 @@ describe("PrepareApi.openNewStrategy on a pre-opened account", () => {
   });
 });
 
+describe("PrepareApi.borrow", () => {
+  /** 1000 POS of collateral, worth the same in underlying at fixture prices. */
+  const COLLATERAL = 100000000000n;
+  /** 400 underlying of loan, clear of `MIN_DEBT` and of the threshold. */
+  const LOAN = 40000000000n;
+
+  const params = {
+    collateralToken: POS,
+    collateralAmount: COLLATERAL,
+    borrowToken: UND,
+    borrowAmount: LOAN,
+  };
+
+  it("opens on the collateral and hands the loan over, stamped with the block", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const prepared = plan(await api.borrow(strategy, params));
+
+    expect(prepared.state.collateral.token.address).toBe(POS);
+    expect(prepared.state.collateral.value).toBe(COLLATERAL);
+    expect(prepared.state.borrowed.token.address).toBe(UND);
+    expect(prepared.state.borrowed.value).toBe(LOAN);
+    expect(prepared.state.totalDebt.value).toBe(LOAN);
+    expect(prepared.blockNumber).toBe(1);
+  });
+
+  it("reports the position the loan leaves behind, market and all", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const { state } = plan(await api.borrow(strategy, params));
+
+    expect(state.healthFactor).toBeGreaterThan(10000);
+    expect(state.safeHealthFactor).toBeGreaterThan(10000);
+    expect(state.netValue.value).toBe(COLLATERAL - LOAN);
+    expect(state.borrowRate.totalOnDebt).toBeGreaterThan(0);
+    expect(state.timeToLiquidation).not.toBeNull();
+    expect(state.liquidationPrice).not.toBeNull();
+    expect(state.currentPrice).not.toBeNull();
+    expect(state.curator).toBeDefined();
+    expect(state.liquidationDiscount).toBeGreaterThan(0);
+  });
+
+  it("answers the engine's refusal as a value, not a throw", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.borrow(strategy, {
+      ...params,
+      borrowAmount: COLLATERAL,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("insufficientCollateral");
+  });
+
+  it("maxBorrow answers bare, and borrow takes what it answered", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const max = api.maxBorrow(strategy, {
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: UND,
+    });
+    // the ceiling is the collateral's, not the whole of what it is worth
+    expect(max).toBeGreaterThan(LOAN);
+    expect(max).toBeLessThan(COLLATERAL);
+
+    const { state } = plan(
+      await api.borrow(strategy, { ...params, borrowAmount: max }),
+    );
+    expect(state.borrowed.value).toBe(max);
+    expect(state.safeHealthFactor).toBeGreaterThan(10000);
+  });
+});
+
 describe("PrepareApi — strategy flows reach the engine", () => {
   it("openNewStrategy leverages the wallet's margin into the target", async () => {
     const { api, strategy } = buildStrategyApi();

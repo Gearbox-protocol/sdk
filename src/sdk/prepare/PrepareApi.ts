@@ -25,6 +25,7 @@ import {
 } from "../../model/index.js";
 import type {
   Asset,
+  BorrowPreviewResult,
   ClaimableWithdrawal,
   CreditAccountSlice,
   DelayableIntent,
@@ -55,6 +56,8 @@ import type {
   AccountFlowError,
   AddCollateralParams,
   AdjustLeverageParams,
+  BorrowParams,
+  BorrowResult,
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   DepositStrategyParams,
@@ -65,6 +68,7 @@ import type {
   LpRedeemParams,
   LpResult,
   LpState,
+  MaxBorrowParams,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -469,6 +473,43 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc IOpportunitiesPrepare.borrow}
+   **/
+  public async borrow(
+    strategy: StrategyInput,
+    params: BorrowParams,
+  ): Promise<
+    SDKReturn<
+      BorrowResult,
+      | OpenFlowError
+      | DebtOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+    >
+  > {
+    try {
+      const sdk = await this.#chain(strategy.chainId);
+      const at = stateBlock(sdk);
+      return borrowed(
+        await service(sdk).borrowIntent({
+          sdk,
+          creditManager: strategy.creditManager,
+          collateralToken: params.collateralToken,
+          collateralAmount: params.collateralAmount,
+          borrowToken: params.borrowToken,
+          borrowAmount: params.borrowAmount,
+          slippage: params.slippage,
+          quotaReserve: params.quotaReserve,
+        }),
+        at,
+      );
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
+  }
+
+  /**
    * {@inheritDoc IOpportunitiesPrepare.depositStrategy}
    **/
   public async depositStrategy(
@@ -681,6 +722,25 @@ export class PrepareApi
       sdk,
       token,
       targetHF,
+    });
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesPrepare.maxBorrow}
+   **/
+  public maxBorrow(strategy: StrategyInput, params: MaxBorrowParams): bigint {
+    // Bare and synchronous, as `leverageBand` is: the account the loan would
+    // open does not exist yet, so there is nothing to read and nothing the
+    // envelope would have to report.
+    const sdk = this.sdk.chain(strategy.chainId);
+    return service(sdk).maxBorrow({
+      sdk,
+      creditManager: strategy.creditManager,
+      collateralToken: params.collateralToken,
+      collateralAmount: params.collateralAmount,
+      borrowToken: params.borrowToken,
+      targetHF: params.targetHF,
+      quotaReserve: params.quotaReserve,
     });
   }
 
@@ -926,6 +986,18 @@ function opened<E extends IGearboxError>(
   result: OpenStrategyPreviewResult,
   at: PreparedAt,
 ): SDKReturn<OpenStrategyResult, E> {
+  return result.ok
+    ? sdkOk({ state: result.state, ...at })
+    : methodError<E>(result);
+}
+
+/**
+ * {@inheritDoc planned}
+ **/
+function borrowed<E extends IGearboxError>(
+  result: BorrowPreviewResult,
+  at: PreparedAt,
+): SDKReturn<BorrowResult, E> {
   return result.ok
     ? sdkOk({ state: result.state, ...at })
     : methodError<E>(result);

@@ -32,6 +32,31 @@ export function toCreditAccountSlice(
 }
 
 /**
+ * The slice a flow that has no account yet quotes against.
+ *
+ * Nothing of it exists on chain until the transaction lands, and nothing has
+ * to: the pathfinder is asked about the credit manager, and every balance the
+ * flow reasons about is one the transaction itself puts there. The zero
+ * address stands in for the account so the shape is complete.
+ */
+export function unopenedAccountSlice(args: {
+  creditManager: Address;
+  creditFacade: Address;
+  underlying: Address;
+}): CreditAccountSlice {
+  return {
+    creditAccount: "0x0000000000000000000000000000000000000000",
+    creditManager: args.creditManager.toLowerCase() as Address,
+    creditFacade: args.creditFacade.toLowerCase() as Address,
+    underlying: args.underlying.toLowerCase() as Address,
+    enabledTokensMask: 0n,
+    totalDebtUSD: 0n,
+    totalDebt: 0n,
+    tokens: [],
+  };
+}
+
+/**
  * Reads an account by address and narrows it to {@link CreditAccountSlice}.
  *
  * The shared read model's `StrategyPosition` carries neither `tokens` nor

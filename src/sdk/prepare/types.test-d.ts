@@ -35,6 +35,7 @@ import type {
 } from "../../model/index.js";
 import type { Asset } from "../../onchain/index.js";
 import type {
+  BorrowResult,
   FinalizeResult,
   IOpportunitiesPrepare,
   LeverageBand,
@@ -103,6 +104,25 @@ describe("every prepare method names exactly its own errors", () => {
         | NoStrategyTargetCollateralError
         | CreditAccountNotFoundError
         | CreditAccountNotEmptyError
+      >
+    >();
+  });
+
+  it("borrow: the open-flow guards plus what the loan and its payout can raise", () => {
+    expectTypeOf<Awaited<ReturnType<P["borrow"]>>>().toEqualTypeOf<
+      SDKReturn<
+        BorrowResult,
+        | CreditManagerPausedError
+        | MarketExpiredError
+        | ForbiddenTokenError
+        | QuotaLimitReachedError
+        | InsufficientCollateralError
+        | InsufficientBalanceError
+        | UnexpectedFailureError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
       >
     >();
   });
@@ -260,6 +280,7 @@ describe("the preview-only codes appear in no prepare union", () => {
     | ErrorOf<Awaited<ReturnType<P["withdraw"]>>>
     | ErrorOf<Awaited<ReturnType<P["redeem"]>>>
     | ErrorOf<Awaited<ReturnType<P["openNewStrategy"]>>>
+    | ErrorOf<Awaited<ReturnType<P["borrow"]>>>
     | ErrorOf<Awaited<ReturnType<P["depositStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["repayStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["addCollateral"]>>>
@@ -303,6 +324,11 @@ describe("narrowing the envelope settles which half is there", () => {
     if (open.ok) {
       expectTypeOf(open.data).toEqualTypeOf<OpenStrategyResult>();
     }
+
+    const loan = {} as Awaited<ReturnType<P["borrow"]>>;
+    if (loan.ok) {
+      expectTypeOf(loan.data).toEqualTypeOf<BorrowResult>();
+    }
   });
 
   it("every result names the block it was computed from", () => {
@@ -311,6 +337,7 @@ describe("narrowing the envelope settles which half is there", () => {
     expectTypeOf<StrategyResult["blockNumber"]>().toEqualTypeOf<number>();
     expectTypeOf<StrategyRoutesResult["timestamp"]>().toEqualTypeOf<number>();
     expectTypeOf<OpenStrategyResult["blockNumber"]>().toEqualTypeOf<number>();
+    expectTypeOf<BorrowResult["timestamp"]>().toEqualTypeOf<number>();
   });
 });
 
@@ -337,6 +364,7 @@ describe("the reads outside the envelope stay bare", () => {
     expectTypeOf<ReturnType<P["withdrawableCollaterals"]>>().toEqualTypeOf<
       PositionCollateral[]
     >();
+    expectTypeOf<ReturnType<P["maxBorrow"]>>().toEqualTypeOf<bigint>();
   });
 });
 

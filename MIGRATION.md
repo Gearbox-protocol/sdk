@@ -4,6 +4,20 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — borrowing against collateral
+
+`prepare.borrow` opens an account, puts up collateral, draws a loan and pays it
+out to the wallet in one transaction, and `execute.buildTx` takes the matching
+`kind: "borrow"` request. `prepare.maxBorrow` answers the largest loan a given
+collateral carries, synchronously and outside the `SDKReturn` envelope, the way
+`leverageBand` does. All three are additions: no existing method changed.
+
+Only a consumer that *implements* `IOpportunitiesPrepare` or switches
+exhaustively over `PrepareRequest["kind"]` has anything to do — two methods and
+one case respectively. Everyone else needs no change.
+
+---
+
 ## v16.x — reusing a pre-opened account
 
 `openNewStrategy` takes `params.creditAccount`, and it can be refused:

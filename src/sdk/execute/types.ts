@@ -6,6 +6,7 @@ import type {
 } from "../../model/index.js";
 import type { Asset, RawTx } from "../../onchain/index.js";
 import type {
+  BorrowResult,
   LpResult,
   OpenStrategyResult,
   StrategyResult,
@@ -56,6 +57,27 @@ export interface OpenPrepareRequest {
 }
 
 /**
+ * Taking a loan, from a viable {@link IOpportunitiesPrepare.borrow} result.
+ *
+ * Goes through the same `openCA` as an opening, with the payout named as the
+ * token to withdraw — everything else the transaction needs, the collateral
+ * included, is already on the prepared state.
+ **/
+export interface BorrowPrepareRequest {
+  kind: "borrow";
+  chainId: ChainId;
+  creditManager: Address;
+  wallet: Address;
+  sim: SDKResult<BorrowResult>;
+  /** Native value to attach when the collateral is paid in the coin. */
+  ethAmount: bigint;
+  /**
+   * {@inheritDoc OpenPrepareRequest.signaturesToCache}
+   **/
+  signaturesToCache?: SecuritizeRegisterMessage[];
+}
+
+/**
  * Any of the five operations on an existing account, from a viable
  * {@link StrategyResult}: the facade multicall is the result's `calls`.
  **/
@@ -75,6 +97,7 @@ export interface AccountPrepareRequest {
 export type PrepareRequest =
   | PoolPrepareRequest
   | OpenPrepareRequest
+  | BorrowPrepareRequest
   | AccountPrepareRequest;
 
 /**
@@ -86,9 +109,9 @@ export type PrepareRequest =
 export interface IOpportunitiesExecute {
   /**
    * The transaction to sign, from a `prepare` result. No second round of math:
-   * `account` requests submit the result's own multicall, `open` requests hand
-   * the state's router path and quotas to `openCA`, `pool` requests encode the
-   * deposit / redeem the result priced.
+   * `account` requests submit the result's own multicall, `open` and `borrow`
+   * requests hand the state's router path and quotas to `openCA`, `pool`
+   * requests encode the deposit / redeem the result priced.
    *
    * @throws on a refused `prepare` result; when a `pool` request names a route
    * the pool has no metadata for, or one the pool does not accept a transaction
