@@ -16,6 +16,7 @@ import type {
   RWAMulticallOperation,
   RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
+import { midasGreenlistsAccount } from "./midasGreenlistsAccount.js";
 import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -105,6 +106,7 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
       ? { creditAccount: operation.creditAccount }
       : {}),
     ...("args" in operation ? { rwaArgs: operation.args } : {}),
+    midasGreenlistsAccount: midasGreenlistsAccount(sdk, operation.multicall),
   });
 }
 

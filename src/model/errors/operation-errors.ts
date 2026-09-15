@@ -430,3 +430,26 @@ export function rwaOpenRequirementsNotMet(
     ...args,
   };
 }
+
+/**
+ * The credit account does not hold the Midas greenlisted role this
+ * permissioned mToken requires of its holder.
+ **/
+export interface AccountNotMidasGreenlistedError extends IGearboxError {
+  code: "accountNotMidasGreenlisted";
+  token: Token;
+  creditManager: Address;
+  /** Absent when the opening creates the account. */
+  creditAccount?: Address;
+}
+
+/** {@inheritDoc AccountNotMidasGreenlistedError} */
+export function accountNotMidasGreenlisted(
+  args: Omit<AccountNotMidasGreenlistedError, "code" | "message">,
+): AccountNotMidasGreenlistedError {
+  return {
+    code: "accountNotMidasGreenlisted",
+    message: `The credit account is not Midas-greenlisted for ${args.token.symbol}.`,
+    ...args,
+  };
+}

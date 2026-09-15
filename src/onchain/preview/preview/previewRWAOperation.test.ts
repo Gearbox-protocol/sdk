@@ -267,4 +267,5 @@ it("a facade opening has operation OpenCreditAccount and no rwaArgs", async () =
   expect(answer.data.operation).toBe("OpenCreditAccount");
   expect(answer.data).not.toHaveProperty("rwaArgs");
   expect(answer.data).not.toHaveProperty("creditAccount");
+  expect(answer.data).toMatchObject({ midasGreenlistsAccount: false });
 });
