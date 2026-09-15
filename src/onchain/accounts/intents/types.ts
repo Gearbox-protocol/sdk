@@ -63,7 +63,16 @@ export interface SimulationPrices {
  * {@link AccountProjection} vocabulary, plus the prices only a routed walk can
  * report.
  */
-export interface OperationState extends AccountProjection, SimulationPrices {}
+export interface OperationState extends AccountProjection, SimulationPrices {
+  /**
+   * What the operation gives up, as `(out − in) / in`: the oracle value in the
+   * underlying of everything its routed legs return, against the value of what
+   * they spend.
+   * In `PERCENTAGE_FACTOR_1KK` (1_000_000 = 100%), negative for a loss.
+   * `undefined` where nothing was traded or a leg cannot be priced.
+   */
+  executionCost: bigint | undefined;
+}
 
 /**
  * What planning an intent yields: the operation chain, the state it projects,

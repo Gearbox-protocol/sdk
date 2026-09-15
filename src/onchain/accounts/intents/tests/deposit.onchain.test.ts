@@ -201,3 +201,27 @@ describe("deposit.start — price impact of the routed leg", () => {
     expect(result.state.priceImpact?.pathPriceImpact).toBe(0n);
   });
 });
+
+describe("deposit.start — execution cost of the routed leg", () => {
+  it("reads a flat haircut the price impact cannot see", async () => {
+    const result = await run(
+      case_fixed_leverage,
+      amount => (amount * 99n) / 100n,
+    );
+    if (!result.ok) throw new Error("expected a preview");
+    const { priceImpact, executionCost } = result.state;
+
+    // Linear, so the probe loses the same share and there is no depth to find
+    expect(priceImpact?.pathPriceImpact).toBe(0n);
+    // while against the oracle the leg gave up a percent of what it sold.
+    expect(executionCost).toBeGreaterThanOrEqual(-10_001n);
+    expect(executionCost).toBeLessThanOrEqual(-9_999n);
+  });
+
+  it("costs nothing on a route that pays the oracle price", async () => {
+    const result = await run(case_fixed_leverage);
+    if (!result.ok) throw new Error("expected a preview");
+
+    expect(result.state.executionCost).toBe(0n);
+  });
+});
