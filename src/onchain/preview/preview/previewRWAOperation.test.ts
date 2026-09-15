@@ -126,7 +126,7 @@ it("previews RWA account opening with an unwrap call", async () => {
   const preview = answer.data;
 
   expect(preview).toMatchObject({
-    operation: "RWAOpenCreditAccount",
+    operation: "OpenCreditAccount",
     creditManager: CREDIT_MANAGER,
     rwaArgs: {
       protocol: "securitize",
@@ -266,4 +266,5 @@ it("a facade opening has operation OpenCreditAccount and no rwaArgs", async () =
 
   expect(answer.data.operation).toBe("OpenCreditAccount");
   expect(answer.data).not.toHaveProperty("rwaArgs");
+  expect(answer.data).not.toHaveProperty("creditAccount");
 });

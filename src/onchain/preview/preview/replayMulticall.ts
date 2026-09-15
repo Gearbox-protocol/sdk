@@ -15,12 +15,12 @@ import {
 } from "./replayInnerOperations.js";
 
 /**
- * Parsed operation on an existing credit account whose multicall can be
- * replayed: the facade `closeCreditAccount` entry point and
- * plain/bot/RWA multicalls all fit structurally.
+ * Parsed operation whose multicall can be replayed: a facade or RWA
+ * opening (empty seed) and close/plain/bot/RWA multicalls on an existing
+ * account all fit structurally.
  */
 export interface ReplayableOperation {
-  creditAccount: Address;
+  creditManager: Address;
   multicall: InnerOperation[];
 }
 
@@ -41,15 +41,22 @@ export interface ReplayMulticallResult {
 }
 
 /**
- * Replays the operation's multicall over the account's pre-resolved
- * pre-state via {@link replayInnerOperations}.
+ * Replays the operation's multicall via {@link replayInnerOperations}.
+ * When `creditAccount` is omitted, the seed is
+ * {@link CreditAccountState.beforeOpen} (a fresh opening).
  */
 export function replayMulticall<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   operation: ReplayableOperation,
-  creditAccount: CreditAccountData,
+  creditAccount?: CreditAccountData,
 ): SDKReturn<ReplayMulticallResult, MalformedTransactionError> {
-  const before = CreditAccountState.fromCreditAccountData(creditAccount);
+  const before = creditAccount
+    ? CreditAccountState.fromCreditAccountData(creditAccount)
+    : CreditAccountState.beforeOpen(
+        operation.creditManager,
+        sdk.marketRegister.findByCreditManager(operation.creditManager)
+          .underlying,
+      );
   const after = makeReplayState(before.clone());
 
   const error = replayInnerOperations(sdk, operation.multicall, after);

@@ -5,7 +5,6 @@ import { custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
   KYC_REGISTRATION_LINKS,
-  type OpenRWAStrategyPositionPreview,
   type OpenStrategyPositionPreview,
   RWA_FACTORY_SECURITIZE,
   type RWAOperationArgs,
@@ -70,10 +69,10 @@ function amount(address: Address, value: bigint): TokenAmount {
 }
 
 function preview(
-  over: Partial<OpenRWAStrategyPositionPreview> = {},
-): OpenRWAStrategyPositionPreview {
+  over: Partial<OpenStrategyPositionPreview> = {},
+): OpenStrategyPositionPreview {
   return {
-    operation: "RWAOpenCreditAccount",
+    operation: "OpenCreditAccount",
     creditManager: CREDIT_MANAGER,
     collateralAdded: [amount(DS_TOKEN, 1n)],
     quotas: [amount(DS_TOKEN, 1n)],
@@ -83,7 +82,7 @@ function preview(
       signaturesToCache: [],
     },
     ...over,
-  } as OpenRWAStrategyPositionPreview;
+  } as OpenStrategyPositionPreview;
 }
 
 describe("checkRWAOpening", () => {

@@ -11,8 +11,8 @@ export interface DebtLimitsArgs {
   /**
    * Whether ending with no loan at all is acceptable. The one place the two
    * callers genuinely disagree: an account being adjusted may end owing
-   * nothing, while one being opened may not — so the exemption is stated
-   * rather than assumed.
+   * nothing, while one being opened may not unless it is opened empty — so the
+   * exemption is stated rather than assumed.
    */
   allowZero: boolean;
   /** From the caller's suite; a caller that raises to throw advises nobody. */

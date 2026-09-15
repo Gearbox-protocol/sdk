@@ -378,7 +378,12 @@ export class CreditAccountOperationsService extends SDKConstruct {
         sdk: props.sdk,
         quotaReserve: props.quotaReserve,
       });
-      return { ...result, state: tail.state, delayed };
+      // The tail trades at oracle prices, so what the route costs is the request's.
+      return {
+        ...result,
+        state: { ...tail.state, executionCost: result.state.executionCost },
+        delayed,
+      };
     } catch (e) {
       // A tail that cannot be walked is a request that would strand the
       // account, so it is stopped here rather than started and regretted.

@@ -436,37 +436,23 @@ interface OpenStrategyPositionProjection extends EstimatedProjection {
 }
 
 /**
- * What a facade account-opening transaction that already exists would do —
- * the counterpart of `prepare.openNewStrategy` on a non-RWA market, read off
- * calldata rather than planned into it.
- **/
-export interface OpenNonRWAStrategyPositionPreview
-  extends OpenStrategyPositionProjection {
-  operation: "OpenCreditAccount";
-}
-
-/**
- * What an RWA-factory account-opening transaction that already exists would
- * do — the counterpart of `prepare.openNewStrategy` on an RWA market.
- **/
-export interface OpenRWAStrategyPositionPreview
-  extends OpenStrategyPositionProjection {
-  operation: "RWAOpenCreditAccount";
-  /**
-   * Registration args the factory received (Securitize: `tokensToRegister`,
-   * `signaturesToCache`).
-   */
-  rwaArgs: RWAOperationArgs;
-}
-
-/**
  * What an account-opening transaction that already exists would do — the
  * counterpart of `prepare.openNewStrategy`, read off calldata rather than
  * planned into it.
  **/
-export type OpenStrategyPositionPreview =
-  | OpenNonRWAStrategyPositionPreview
-  | OpenRWAStrategyPositionPreview;
+export interface OpenStrategyPositionPreview
+  extends OpenStrategyPositionProjection {
+  operation: "OpenCreditAccount";
+  /**
+   * Existing zero-debt, zero-quota account this operation reopens.
+   */
+  creditAccount?: Address;
+  /**
+   * Registration args the factory received (Securitize: `tokensToRegister`,
+   * `signaturesToCache`). Present on RWA-factory accounts only.
+   */
+  rwaArgs?: RWAOperationArgs;
+}
 
 /**
  * What a transaction on an existing account would do — the counterpart of the

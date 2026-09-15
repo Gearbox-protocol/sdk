@@ -81,7 +81,8 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
     value: 0n,
   };
 
-  await expect(preview(PLAIN_USDC)).resolves.toMatchObject({
+  const result = await preview(PLAIN_USDC);
+  expect(result).toMatchObject({
     operation: "OpenCreditAccount",
     creditManager: CM_PLAIN,
     name: expect.any(String),
@@ -104,6 +105,7 @@ it("previews plain account: USDC collateral, USDC debt, no swap", async () => {
       },
     ],
   });
+  expect(result).not.toHaveProperty("creditAccount");
 });
 
 it("previews lending: native ETH collateral stays on the account, wstETH debt is withdrawn", async () => {

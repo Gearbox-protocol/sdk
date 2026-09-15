@@ -7,7 +7,12 @@ import {
   type TestOracleToken,
   TestPriceOracle,
 } from "../../../market/oracle/TestPriceOracle.mock.js";
-import { collectPriceImpact, type LegProbe, lossRate } from "./price-impact.js";
+import {
+  collectPriceImpact,
+  type LegProbe,
+  lossRate,
+  startProbe,
+} from "./price-impact.js";
 
 const A = MockTokens.WETH;
 const B = MockTokens.cbETH;
@@ -257,5 +262,35 @@ describe("the probe basket", () => {
     });
 
     expect(started).toBeUndefined();
+  });
+});
+
+describe("price impact on a market with no depth", () => {
+  it("reads zero where a dollar of the basket is a few base units", async () => {
+    // $60k a unit at 8 decimals: a dollar is 1666.67 base units, so the probe
+    // rounds down and is worth a little less than the dollar it stands for.
+    const BTC = "0x00000000000000000000000000000000000000b7" as Address;
+    const oracle = new TestPriceOracle({
+      [BTC]: { decimals: 8, price: 60_000 },
+      [UND]: { price: 1 },
+    });
+    const toUnderlying = (from: Address, amount: bigint): bigint =>
+      oracle.safeConvert(from, UND, amount).value;
+    const balance = 123_456_789n;
+
+    const started = startProbe({
+      basket: [{ token: BTC, balance }],
+      tokenOut: UND,
+      oracle,
+      route: async ([only]) => only && toUnderlying(only.token, only.balance),
+    });
+    if (!started) throw new Error("expected a probe");
+
+    const rate = await collectPriceImpact(
+      [{ ...started, realAmount: toUnderlying(BTC, balance) }],
+      { totalValue: WAD, netValue: WAD, toUnderlying },
+    );
+
+    expect(rate?.pathPriceImpact).toBe(0n);
   });
 });
