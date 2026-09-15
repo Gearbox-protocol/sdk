@@ -123,6 +123,8 @@ describe("every prepare method names exactly its own errors", () => {
         | UnsupportedCollateralTokenError
         | UnsupportedTokenPairError
         | InsufficientPoolLiquidityError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
       >
     >();
   });

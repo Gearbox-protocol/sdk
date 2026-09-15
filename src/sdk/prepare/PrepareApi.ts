@@ -437,22 +437,11 @@ export class PrepareApi
       if (!targetToken) {
         return sdkErr(noStrategyTargetCollateral(strategy.creditManager));
       }
-      let creditAccount: CreditAccountSlice | undefined;
-      if (params.creditAccount) {
-        const reused = await slice(sdk, params.creditAccount);
-        if (
-          !reused ||
-          !isAddressEqual(reused.creditManager, strategy.creditManager)
-        ) {
-          return sdkErr(creditAccountNotFound(params.creditAccount));
-        }
-        // Empty means no debt and no quotas; whatever balances sit on the
-        // account are the opening's to route.
-        if (reused.totalDebt > 0n || reused.tokens.some(t => t.quota > 0n)) {
-          return sdkErr(creditAccountNotEmpty(params.creditAccount));
-        }
-        creditAccount = reused;
+      const reused = await reusable(sdk, strategy, params.creditAccount);
+      if (reused && "error" in reused) {
+        return reused;
       }
+      const creditAccount = reused?.account;
       return opened(
         await service(sdk).openStrategyIntent({
           sdk,
@@ -486,11 +475,29 @@ export class PrepareApi
       | UnsupportedCollateralTokenError
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
     >
   > {
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
+      if (params.empty) {
+        // Nothing is borrowed and nothing is routed, so none of the loan's
+        // limits apply — the market only has to be open for business.
+        return borrowed(
+          await service(sdk).borrowIntent({
+            sdk,
+            creditManager: strategy.creditManager,
+            empty: true,
+          }),
+          at,
+        );
+      }
+      const reused = await reusable(sdk, strategy, params.creditAccount);
+      if (reused && "error" in reused) {
+        return reused;
+      }
       return borrowed(
         await service(sdk).borrowIntent({
           sdk,
@@ -501,6 +508,7 @@ export class PrepareApi
           borrowAmount: params.borrowAmount,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
+          creditAccount: reused?.account,
         }),
         at,
       );
@@ -873,6 +881,43 @@ async function slice(
 ): Promise<CreditAccountSlice | undefined> {
   const data = await sdk.accounts.getCreditAccountData(creditAccount);
   return data && toCreditAccountSlice(data);
+}
+
+/**
+ * The pre-opened account a request asks to be run on, held to what "pre-opened"
+ * means: this manager's, owing nothing and holding no quota.
+ *
+ * Shared by the two flows that open an account — an opening and a borrow — so
+ * that an account handed out by either is accepted by either on the same
+ * terms. Whatever balances sit on it are left to the flow: an opening routes
+ * them, a borrow leaves them where they are.
+ *
+ * @returns Nothing when the request named no account, the refusal to answer
+ * with when it named one that does not qualify, and the slice otherwise
+ **/
+async function reusable(
+  sdk: OnchainSDK,
+  strategy: StrategyInput,
+  creditAccount: Address | undefined,
+): Promise<
+  | undefined
+  | SDKError<CreditAccountNotFoundError | CreditAccountNotEmptyError>
+  | { account: CreditAccountSlice }
+> {
+  if (!creditAccount) {
+    return undefined;
+  }
+  const account = await slice(sdk, creditAccount);
+  if (
+    !account ||
+    !isAddressEqual(account.creditManager, strategy.creditManager)
+  ) {
+    return sdkErr(creditAccountNotFound(creditAccount));
+  }
+  if (account.totalDebt > 0n || account.tokens.some(t => t.quota > 0n)) {
+    return sdkErr(creditAccountNotEmpty(creditAccount));
+  }
+  return { account };
 }
 
 /**

@@ -13,6 +13,16 @@ That is the whole of what separates it from
 part of a position. The loan being the point rather than a means, it is named
 outright instead of following from a leverage.
 
+Otherwise the two are the same flow, and take the same two shapes besides the
+loan itself. `empty: true` hands out an account and draws nothing — the request
+is the market and nothing else. `creditAccount` draws the loan on an account
+the wallet already holds instead of opening another; it must belong to the
+manager and carry no debt and no quota, which is exactly what either empty
+request leaves behind, so an account from one flow is accepted by the other.
+Balances already on a reused account stay where they are and are not counted
+towards the health factor — the loan is the one the named collateral carries —
+except a balance in the payout token, which the sweep takes along with the loan.
+
 ## Shape
 
 ```text
@@ -36,6 +46,8 @@ than letting it revert on arrival.
 flowchart TD
   in["borrow: collateralToken + amount,<br/>borrowToken + amount, slippage, quotaReserve"]
   op{"facade / pool operable?"}
+  mt{"empty request?"}
+  emptyOut["state: market, zero totals,<br/>no collateral, no payout, no calls"]
   same{"payout token differs from the collateral?"}
   pos{"both amounts > 0?"}
   m["margin = price(collateral → U)"]
@@ -52,7 +64,9 @@ flowchart TD
 
   in --> op
   op -->|"no"| e1["creditManagerPaused / marketExpired"]
-  op --> same
+  op --> mt
+  mt -->|"yes"| emptyOut
+  mt --> same
   same -->|"no"| e2["unsupportedCollateralToken"]
   same --> pos
   pos -->|"no"| e3["insufficientBalance"]
@@ -104,7 +118,7 @@ D      = backed / targetHF                               the most the debt may b
 answer = price(U → payout, D)                            back into the token asked for
 ```
 
-`backed` is [`collateralMoney`](../../src/onchain/accounts/intents/collateral-money.ts)'s,
+`backed` is [`collateralValuation`](../../src/onchain/accounts/intents/collateral-valuation.ts)'s,
 so the valuation is the collateral check's own — safe prices, thresholds and
 the quota cap included — and the quota is the very one the borrow will buy,
 taken from the same `borrowCollateralQuota`. Every division truncates, which is
@@ -132,3 +146,9 @@ the collateral token, or a manager the SDK does not hold yet.
   `execute.buildTx` passes it as both `averageQuota` and `minQuota`.
 - `slippage` rides back on the state so a screen can label the floor it is
   showing without keeping the request around.
+- `state.creditAccount` is the account the loan was simulated against, set only
+  where one was reused. `execute.buildTx` reads it rather than asking the caller
+  again, so the transaction cannot be built against an account the numbers were
+  not computed for. It feeds `openCA.reopenCreditAccount`.
+- An empty borrow is recognised downstream by its zero debt: a loan of nothing
+  is refused at `prepare`, so no funded state can be mistaken for one.

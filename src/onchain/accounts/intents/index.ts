@@ -64,7 +64,12 @@ import type {
 import { accountView } from "./view.js";
 import { withdrawLimits } from "./withdraw-limits.js";
 
-export type { BorrowProps, BorrowState } from "./borrow.js";
+export type {
+  BorrowEmpty,
+  BorrowFunded,
+  BorrowProps,
+  BorrowState,
+} from "./borrow.js";
 export type { LeverageBand } from "./leverage-band.js";
 export type {
   OpenStrategyProps,
@@ -533,6 +538,10 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * where the loan goes — out to the wallet rather than into a position — so
    * the debt is named outright instead of following from a leverage, and the
    * collateral is the only thing the account is left holding.
+   *
+   * Takes the same two shapes an opening does: `empty` hands out an account
+   * and draws nothing, and `creditAccount` draws the loan on one the wallet
+   * already holds instead of opening another.
    *
    * @param props - Credit manager, the collateral the wallet puts up and the
    * payout it asks for

@@ -538,6 +538,64 @@ describe("buildTx — borrow", () => {
     ).rejects.toThrow(/failed borrow preparation/);
     expect(sdk.accounts.openCA).not.toHaveBeenCalled();
   });
+
+  it("builds the loan against the account the preparation reused", async () => {
+    const { execute, sdk } = mockChain();
+
+    await execute.buildTx({
+      kind: "borrow",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim: {
+        ok: true,
+        data: { state: { ...state, creditAccount: CREDIT_ACCOUNT }, ...AT },
+      },
+      ethAmount: 0n,
+    });
+
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({ reopenCreditAccount: CREDIT_ACCOUNT }),
+    );
+  });
+
+  it("an empty borrow puts nothing up, draws nothing and sweeps nothing out", async () => {
+    const { execute, sdk } = mockChain();
+    const empty = {
+      ...state,
+      totalValue: amount(UNDERLYING, 0n),
+      totalDebt: amount(UNDERLYING, 0n),
+      netValue: amount(UNDERLYING, 0n),
+      assets: [],
+      collateral: amount(UNDERLYING, 0n),
+      borrowed: amount(UNDERLYING, 0n),
+      minBorrowed: amount(UNDERLYING, 0n),
+      quotaIncrease: [],
+      calls: [],
+    };
+
+    await execute.buildTx({
+      kind: "borrow",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim: { ok: true, data: { state: empty, ...AT } },
+      ethAmount: 0n,
+    });
+
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collateral: [],
+        debt: 0n,
+        calls: [],
+        withdrawToken: undefined,
+        averageQuota: [],
+        minQuota: [],
+      }),
+    );
+    // no token for an RWA market to gate on, so there is nothing to ask it
+    expect(sdk.accounts.getOpenAccountRequirements).not.toHaveBeenCalled();
+  });
 });
 
 describe("buildTx — account", () => {

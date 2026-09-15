@@ -125,6 +125,10 @@ async function borrowTx(
 ): Promise<RawTx> {
   const { creditManager, wallet, ethAmount, sim } = request;
   const { state } = sim.data;
+  // An empty borrow is an empty opening: there is nothing to put up, nothing
+  // to draw and nothing to sweep out. The zero debt is what says so — a loan
+  // of nothing is refused at `prepare`, so no funded state reaches here.
+  const empty = state.totalDebt.value === 0n;
   const collateral = {
     token: state.collateral.token.address,
     balance: state.collateral.value,
@@ -132,16 +136,21 @@ async function borrowTx(
   return sdk.accounts.openCA({
     creditManager,
     to: wallet,
-    collateral: [collateral],
+    collateral: empty ? [] : [collateral],
     ethAmount,
     debt: state.totalDebt.value,
     calls: state.calls,
-    withdrawToken: state.borrowed.token.address,
+    withdrawToken: empty ? undefined : state.borrowed.token.address,
     averageQuota: state.quotaIncrease,
     minQuota: state.quotaIncrease,
+    reopenCreditAccount: state.creditAccount,
     permits: {},
     referralCode: 0n,
-    rwaOptions: await openRwaOptions(sdk, request, collateral.token),
+    rwaOptions: await openRwaOptions(
+      sdk,
+      request,
+      empty ? undefined : collateral.token,
+    ),
   });
 }
 

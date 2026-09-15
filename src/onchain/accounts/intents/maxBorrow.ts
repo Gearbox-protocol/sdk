@@ -3,7 +3,7 @@ import { DUST_THRESHOLD } from "../../constants/math.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/index.js";
 import { borrowCollateralQuota } from "./borrow.js";
-import { collateralMoney, type Holding } from "./collateral-money.js";
+import { collateralValuation, type Holding } from "./collateral-valuation.js";
 import { eq, resolveCreditManager } from "./utils/common.js";
 import { unopenedAccountSlice } from "./utils/index.js";
 
@@ -34,7 +34,7 @@ export interface MaxBorrowProps {
  *
  * Collateral is valued the way the transaction will be judged — at safe
  * prices, under its liquidation threshold, capped by the quota the borrow
- * buys for it, all of which is {@link collateralMoney}'s business. The ceiling
+ * buys for it, all of which is {@link collateralValuation}'s business. The ceiling
  * is then held to what the market will actually lend: the pool's free
  * liquidity, the manager's own allowance and the facade's `maxDebt`, whichever
  * binds first.
@@ -91,7 +91,7 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
     mask: 0n,
     success: true,
   };
-  const money = collateralMoney(
+  const valuation = collateralValuation(
     {
       ...unopenedAccountSlice({
         creditManager,
@@ -103,12 +103,14 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
     sdk,
   );
 
-  // Not `money.weigh`: the collateral check reads a token with no quota entry
-  // as unquoted, where a zero entry caps it at nothing. `quotas` is the very
-  // list the borrow will send, so which of the two this is comes from there.
-  const weighted = money.checkedUsd(holding) * money.lt(collateralToken);
+  // Not `valuation.weigh`: the collateral check reads a token with no quota
+  // entry as unquoted, where a zero entry caps it at nothing. `quotas` is the
+  // very list the borrow will send, so which of the two this is comes from
+  // there.
+  const weighted =
+    valuation.checkedUsd(holding) * valuation.lt(collateralToken);
   const backed = quotas.some(q => eq(q.token, collateralToken))
-    ? BigIntMath.min(money.quotaMoney(holding), weighted)
+    ? BigIntMath.min(valuation.quotaValue(holding), weighted)
     : weighted;
   if (backed <= 0n) {
     return 0n;

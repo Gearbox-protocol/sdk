@@ -560,6 +560,85 @@ describe("PrepareApi.borrow", () => {
   });
 });
 
+describe("PrepareApi.borrow — an empty account, and one already held", () => {
+  const COLLATERAL = 100000000000n;
+  const LOAN = 40000000000n;
+  const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
+  const FUNDED = {
+    collateralToken: POS,
+    collateralAmount: COLLATERAL,
+    borrowToken: UND,
+    borrowAmount: LOAN,
+    creditAccount: CREDIT_ACCOUNT,
+  };
+
+  /** An account carrying whatever the case names, in the fixture market. */
+  function apiWith(account: {
+    totalDebt: bigint;
+    tokens: ReturnType<typeof caToken>[];
+  }) {
+    const sdk = buildMarketSdk({
+      minDebt: MIN_DEBT,
+      creditAccounts: [buildFixtureCreditAccount(account)],
+    });
+    return new PrepareApi({ chain: () => sdk } as unknown as MultichainSDK);
+  }
+
+  it("hands out an account that owes nothing and holds nothing", async () => {
+    const sdk = buildMarketSdk({ minDebt: MIN_DEBT });
+    const api = new PrepareApi({
+      chain: () => sdk,
+    } as unknown as MultichainSDK);
+
+    const { state } = plan(await api.borrow(STRATEGY, { empty: true }));
+
+    expect(state.totalDebt.value).toBe(0n);
+    expect(state.collateral.value).toBe(0n);
+    expect(state.borrowed.value).toBe(0n);
+    expect(state.quotaIncrease).toEqual([]);
+    expect(state.calls).toEqual([]);
+    // an empty request names no account, so there is none to reopen
+    expect(state.creditAccount).toBeUndefined();
+  });
+
+  it("draws the loan on an account with no debt and no quotas", async () => {
+    const api = apiWith({ totalDebt: 0n, tokens: [] });
+
+    const { state } = plan(await api.borrow(STRATEGY, FUNDED));
+
+    expect(state.totalDebt.value).toBe(LOAN);
+    expect(state.creditAccount).toBe(CREDIT_ACCOUNT);
+  });
+
+  it("refuses one that still owes, or still carries a quota", async () => {
+    const owing = await apiWith({ totalDebt: DEBT, tokens: [] }).borrow(
+      STRATEGY,
+      FUNDED,
+    );
+    const quoted = await apiWith({
+      totalDebt: 0n,
+      tokens: [caToken(POS, TVL, QUOTA)],
+    }).borrow(STRATEGY, FUNDED);
+
+    if (owing.ok || quoted.ok) throw new Error("unreachable");
+    expect(owing.error.code).toBe("creditAccountNotEmpty");
+    expect(quoted.error.code).toBe("creditAccountNotEmpty");
+  });
+
+  it("refuses an account this market does not hold", async () => {
+    const sdk = buildMarketSdk({ minDebt: MIN_DEBT, creditAccounts: [] });
+    const api = new PrepareApi({
+      chain: () => sdk,
+    } as unknown as MultichainSDK);
+
+    const result = await api.borrow(STRATEGY, FUNDED);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditAccountNotFound");
+  });
+});
+
 describe("PrepareApi — strategy flows reach the engine", () => {
   it("openNewStrategy leverages the wallet's margin into the target", async () => {
     const { api, strategy } = buildStrategyApi();

@@ -5,7 +5,9 @@ import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
+  buildFixtureCreditAccount,
   buildMarketSdk,
+  CREDIT_ACCOUNT,
   CREDIT_FACADE,
   CREDIT_MANAGER,
   MAX_DEBT,
@@ -181,6 +183,73 @@ describe("borrow — a payout the market does not lend in", () => {
         target: POS,
       }),
     );
+  });
+});
+
+describe("borrow — an account before the loan, and a loan on one already held", () => {
+  it("hands out an empty account, drawing nothing and routing nothing", async () => {
+    const sdk = buildMarketSdk();
+    const outcome = await new CreditAccountOperationsService(sdk).borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      empty: true,
+    });
+    if (!outcome.ok) throw new Error(outcome.error.code);
+    const s = outcome.state;
+
+    expect(s.totalDebt.value).toBe(0n);
+    expect(s.totalValue.value).toBe(0n);
+    expect(s.netValue.value).toBe(0n);
+    expect(s.assets).toEqual([]);
+    expect(s.quotaIncrease).toEqual([]);
+    expect(s.calls).toEqual([]);
+    // the three amounts a loan would fill, zeroed in the underlying beside the
+    // totals the projection already reports that way
+    expect(s.collateral.value).toBe(0n);
+    expect(s.collateral.token.address).toBe(UND);
+    expect(s.borrowed.value).toBe(0n);
+    expect(s.minBorrowed.value).toBe(0n);
+    // no debt is the contract's own "cannot be liquidated" sentinel
+    expect(s.healthFactor).toBe(65535);
+    expect(s.creditAccount).toBeUndefined();
+    // whose market this is, as every other state reports
+    expect(s.curator).toBeDefined();
+  });
+
+  it("refuses to hand one out on a paused market", async () => {
+    const sdk = buildMarketSdk({ facadePaused: true });
+    const outcome = await new CreditAccountOperationsService(sdk).borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      empty: true,
+    });
+
+    expect(outcome.ok).toBe(false);
+    if (outcome.ok) throw new Error("unreachable");
+    expect(outcome.error.code).toBe("creditManagerPaused");
+  });
+
+  it("draws the loan on an account it was handed, and says which one", async () => {
+    const existing = buildFixtureCreditAccount({ totalDebt: 0n, tokens: [] });
+    const sdk = buildMarketSdk({ creditAccounts: [existing] });
+    const outcome = await new CreditAccountOperationsService(sdk).borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: UND,
+      borrowAmount: LOAN,
+      slippage: undefined,
+      quotaReserve: undefined,
+      creditAccount: existing,
+    });
+    if (!outcome.ok) throw new Error(outcome.error.code);
+
+    // the numbers are the opening's, because the account it reuses is empty
+    expect(outcome.state.totalDebt.value).toBe(LOAN);
+    expect(outcome.state.collateral.value).toBe(COLLATERAL);
+    // and the transaction cannot be built against any other account
+    expect(outcome.state.creditAccount).toBe(CREDIT_ACCOUNT);
   });
 });
 

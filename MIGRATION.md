@@ -12,6 +12,12 @@ out to the wallet in one transaction, and `execute.buildTx` takes the matching
 collateral carries, synchronously and outside the `SDKReturn` envelope, the way
 `leverageBand` does. All three are additions: no existing method changed.
 
+`borrow` takes the same two shapes as `openNewStrategy`: `{ empty: true }` hands
+out an account and draws nothing, and `creditAccount` draws the loan on one the
+wallet already holds. An account handed out by either flow is accepted by
+either, so `BorrowParams` is a union and the method can now answer
+`creditAccountNotFound` and `creditAccountNotEmpty`.
+
 Only a consumer that *implements* `IOpportunitiesPrepare` or switches
 exhaustively over `PrepareRequest["kind"]` has anything to do — two methods and
 one case respectively. Everyone else needs no change.

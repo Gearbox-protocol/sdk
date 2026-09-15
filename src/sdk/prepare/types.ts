@@ -515,7 +515,17 @@ export interface OpenStrategyEmptyParams {
   leftoverBalances?: never;
 }
 
-export interface BorrowParams extends PrepareOptions {
+/**
+ * Borrowing, in the same two shapes an opening comes in, and for the same
+ * reason: a wallet may want the account before it wants the loan.
+ *
+ * The union is the check, as it is for {@link OpenStrategyParams}: an empty
+ * borrow names nothing to borrow with, so a collateral it meant to put up or
+ * an account it meant to reuse cannot be silently dropped.
+ **/
+export type BorrowParams = BorrowFundedParams | BorrowEmptyParams;
+
+export interface BorrowFundedParams extends PrepareOptions {
   /**
    * Token the wallet puts up as collateral. Must be a collateral token of the
    * market, and cannot be {@link borrowToken} — the payout is swept off the
@@ -538,6 +548,48 @@ export interface BorrowParams extends PrepareOptions {
    * router's answer.
    **/
   borrowAmount: bigint;
+  /**
+   * Existing credit account to draw the loan on, instead of opening one.
+   *
+   * Must belong to `strategy.creditManager` and carry no debt and no quotas —
+   * an account pre-opened by a {@link BorrowEmptyParams} borrow, or by an
+   * {@link OpenStrategyEmptyParams} opening, which produce the same thing.
+   * Only the transaction differs; `execute.buildTx` reads which one to build
+   * off the result's own `state.creditAccount`.
+   *
+   * Balances already sitting on it are left where they are and are **not**
+   * counted towards the health factor, so the loan this allows is the one the
+   * named collateral alone carries. The exception is a balance in
+   * {@link borrowToken}: the payout sweep takes the whole balance of the token
+   * it names, so that one leaves with the loan.
+   **/
+  creditAccount?: Address;
+  empty?: false;
+}
+
+/**
+ * Opening an account that holds nothing: no collateral, no debt, no payout and
+ * no route quoted. A wallet holds one so a loan can be drawn on it later, by a
+ * borrow that names it as {@link BorrowFundedParams.creditAccount}.
+ *
+ * The market is the whole request, and the account it hands out is the same
+ * one {@link OpenStrategyEmptyParams} hands out — either may be reused by
+ * either flow.
+ **/
+export interface BorrowEmptyParams {
+  empty: true;
+  /**
+   * What an empty borrow would otherwise have to drop, spelled out as `never`
+   * rather than merely left out, for the reason
+   * {@link OpenStrategyEmptyParams} spells out.
+   **/
+  collateralToken?: never;
+  collateralAmount?: never;
+  borrowToken?: never;
+  borrowAmount?: never;
+  creditAccount?: never;
+  slippage?: never;
+  quotaReserve?: never;
 }
 
 /**
@@ -728,6 +780,10 @@ export interface IOpportunitiesPrepare {
    * The payout leaves the account, so the market weighs what is left at safe
    * prices, and a loan the remaining collateral cannot carry there comes back
    * as `insufficientCollateral` rather than reverting on arrival.
+   *
+   * Takes the same two shapes as {@link openNewStrategy}: `empty` hands out an
+   * account and draws nothing, and `creditAccount` draws the loan on one the
+   * wallet already holds.
    **/
   borrow(
     strategy: StrategyInput,
@@ -740,6 +796,8 @@ export interface IOpportunitiesPrepare {
       | UnsupportedCollateralTokenError
       | UnsupportedTokenPairError
       | InsufficientPoolLiquidityError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
     >
   >;
 
