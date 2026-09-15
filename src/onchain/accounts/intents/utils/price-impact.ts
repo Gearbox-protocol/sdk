@@ -66,13 +66,20 @@ function probeBasket(
     return undefined;
   }
 
-  const probeWad = PROBE_UNIT_USD_WAD;
   const scaled = balances.map(asset => ({
     token: asset.token,
-    balance: (asset.balance * probeWad) / basketWad,
+    balance: (asset.balance * PROBE_UNIT_USD_WAD) / basketWad,
   }));
+  // Rounded down, the probe is worth less than the dollar it aims at.
+  const probeWad = scaled.reduce(
+    (sum, a) =>
+      sum +
+      (oracle.safeConvertToUSD(a.token, a.balance).value * WAD) /
+        PRICE_DECIMALS,
+    0n,
+  );
   // Only a basket that rounds away entirely has nothing to ask for.
-  if (!scaled.some(a => a.balance > 0n)) {
+  if (probeWad <= 0n) {
     return undefined;
   }
 

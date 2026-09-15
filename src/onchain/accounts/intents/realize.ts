@@ -5,6 +5,7 @@ import {
   noDelayedRoute,
   withdrawalInProgress,
 } from "../../../model/index.js";
+import { PERCENTAGE_FACTOR_1KK } from "../../constants/math.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -144,6 +145,26 @@ export async function realize(
   let raised = 0n;
   /** The request, before the walk's end state can be attached to it. */
   let delayed: Omit<DelayedStart, "afterRequest"> | undefined;
+  /** Oracle value in the underlying of what routed legs and requests spend and return. */
+  const traded = { spentUnd: 0n, returnedUnd: 0n, priced: true };
+  const trade = (spent: TradedAmount[], returned: TradedAmount[]): void => {
+    const underlyingValue = (legs: TradedAmount[]): bigint => {
+      let sum = 0n;
+      for (const { token, amount } of legs) {
+        if (amount === 0n) {
+          continue;
+        }
+        const value = price(token, underlying, amount);
+        if (value <= 0n) {
+          traded.priced = false;
+        }
+        sum += value;
+      }
+      return sum;
+    };
+    traded.spentUnd += underlyingValue(spent);
+    traded.returnedUnd += underlyingValue(returned);
+  };
   /**
    * Set by a `clearQuotas` step, which settles the quotas mid-walk instead of
    * at the end — and settles them at none, whatever the balances turn out to be.
@@ -280,6 +301,10 @@ export async function realize(
           calls: leg.calls,
         });
         push(swap, { ...swap, amountOut: leg.amount });
+        trade(
+          [{ token: step.from, amount }],
+          [{ token: step.to, amount: leg.amount }],
+        );
         raised = leg.minAmount;
         break;
       }
@@ -331,6 +356,10 @@ export async function realize(
               })),
               amountOut: leg.amount,
             });
+            trade(
+              balances.map(a => ({ token: a.token, amount: a.balance })),
+              [{ token: underlying, amount: leg.amount }],
+            );
           }
         }
         raised = ledger.balanceOf(underlying);
@@ -401,6 +430,15 @@ export async function realize(
               }
             : undefined,
         };
+        trade(
+          [{ token: preview.token, amount: preview.amountIn }],
+          [
+            ...preview.outputs
+              .filter(o => !o.isDelayed)
+              .map(o => ({ token: o.token, amount: o.amount })),
+            ...(delayed.claim ? [delayed.claim] : []),
+          ],
+        );
         raised = instantOutput(preview.outputs)?.amount ?? 0n;
         break;
       }
@@ -559,9 +597,16 @@ export async function realize(
     toUnderlying: (from, amount) => price(from, underlying, amount),
   });
 
+  const executionCost =
+    traded.priced && traded.spentUnd > 0n
+      ? (PERCENTAGE_FACTOR_1KK * (traded.returnedUnd - traded.spentUnd)) /
+        traded.spentUnd
+      : undefined;
+
   const state: OperationState = {
     ...projection,
     priceImpact,
+    executionCost,
     // What the collateral trades at while the form is open, off the same
     // expected-branch snapshot the projection was taken from: the price a
     // liquidation price is read against has to be the price of the position
@@ -575,6 +620,11 @@ export async function realize(
     calls: callsOf(operations),
     delayed: delayed && { ...delayed, afterRequest: state },
   };
+}
+
+interface TradedAmount {
+  token: Address;
+  amount: bigint;
 }
 
 /**

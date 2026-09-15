@@ -149,6 +149,44 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     expect(result.delayed.afterRequest.priceImpact).toBeUndefined();
   });
 
+  it("reports no execution cost where the venue pays the oracle price", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildSdk(),
+    );
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+
+    expect(result.state.executionCost).toBe(0n);
+  });
+
+  it("reports the haircut the venue takes as the execution cost", async () => {
+    const haircut: MockDelayedVenue = {
+      ...halfLiquid,
+      outputs: amount => [
+        { token: UND, amount: amount / 2n, isDelayed: false },
+        {
+          token: PHANTOM,
+          amount: ((amount / 2n) * 98n) / 100n,
+          isDelayed: true,
+        },
+      ],
+    };
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildSdk({ [POS]: [haircut] }),
+    );
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+
+    // 2W redeemed, 1.98W back: a percent of what went in.
+    expect(result.delayed.afterRequest.executionCost).toBe(-10_000n);
+    // The tail's own state carries the request's cost, not a zero of its own.
+    expect(result.state.executionCost).toBe(-10_000n);
+  });
+
   it("holds the withdrawal back when the source is the withdrawal token", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET, sourceToken: UND },
