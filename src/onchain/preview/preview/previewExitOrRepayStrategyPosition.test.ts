@@ -130,7 +130,17 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
         value: 100_893_608_181_830_735_543n,
       },
     ],
-    estNetValue: amt(WSTETH, 81_462_650_139_176_631_035n),
+    // the loan is drawn and swept straight back out to the sender, so the
+    // account is worth the collateral it kept and the wallet's share of it is
+    // that less the debt it now owes
+    collateralWithdrawn: [
+      {
+        token: expect.objectContaining({ address: WSTETH }),
+        value: parseEther("75"),
+      },
+    ],
+    estTotalValue: amt(WSTETH, 81_462_650_139_176_631_035n),
+    estNetValue: amt(WSTETH, 6_462_650_139_176_631_035n),
     totalDebt: amt(WSTETH, parseEther("75")),
     quotas: [
       {

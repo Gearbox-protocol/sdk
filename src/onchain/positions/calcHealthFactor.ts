@@ -113,7 +113,7 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     return (amount * price) / scale;
   };
 
-  const assetMoney = snapshot.assets.reduce((acc, { token, balance }) => {
+  const assetValue = snapshot.assets.reduce((acc, { token, balance }) => {
     if (balance <= DUST_THRESHOLD) {
       return acc;
     }
@@ -128,15 +128,15 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
       (convertToUSD(underlying, quotaBalance) ?? 0n) * PERCENTAGE_FACTOR;
 
     // a token with no quota entry at all is not a quoted token
-    const money = quota
+    const value = quota
       ? BigIntMath.min(quotaWeighted, tokenLtWeighted)
       : tokenLtWeighted;
 
-    return acc + money;
+    return acc + value;
   }, 0n);
 
-  const borrowedMoney = convertToUSD(underlying, snapshot.totalDebt) ?? 0n;
-  const hf = borrowedMoney > 0n ? assetMoney / borrowedMoney : 0n;
+  const borrowedValue = convertToUSD(underlying, snapshot.totalDebt) ?? 0n;
+  const hf = borrowedValue > 0n ? assetValue / borrowedValue : 0n;
 
   return Number(hf);
 }

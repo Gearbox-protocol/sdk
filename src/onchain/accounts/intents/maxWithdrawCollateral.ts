@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { DUST_THRESHOLD } from "../../constants/math.js";
 import type { OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/index.js";
-import { collateralMoney } from "./collateral-money.js";
+import { collateralValuation } from "./collateral-valuation.js";
 import type { CreditAccountSlice } from "./types.js";
 import { eq } from "./utils/common.js";
 
@@ -20,9 +20,9 @@ export interface MaxWithdrawCollateralProps {
  * factor stays at or above `targetHF`.
  *
  * This is the collateral check solved for one balance, and it counts what that
- * check counts — see {@link collateralMoney} for the valuation, safe prices
- * included. The debt is valued at the main feed, as the check does. Zero debt
- * frees the whole balance.
+ * check counts — see {@link collateralValuation} for it, safe prices included.
+ * The debt is valued at the main feed, as the check does. Zero debt frees the
+ * whole balance.
  *
  * Rounding always favours the account, so the answer clears the check rather
  * than landing a wei short of it.
@@ -44,37 +44,40 @@ export function maxWithdrawCollateral(
     return target.balance;
   }
 
-  const money = collateralMoney(creditAccount, sdk);
+  const valuation = collateralValuation(creditAccount, sdk);
 
-  let otherMoney = 0n;
+  let otherValue = 0n;
   for (const t of creditAccount.tokens) {
-    if (eq(t.token, token) || !money.counts(t)) {
+    if (eq(t.token, token) || !valuation.counts(t)) {
       continue;
     }
-    otherMoney += money.weigh(t);
+    otherValue += valuation.weigh(t);
   }
 
   // The debt is what the check divides by: without a price for it there is no
   // ceiling to offer, rather than an unbounded one.
-  const borrowed = money.mainUsd(money.underlying, creditAccount.totalDebt);
+  const borrowed = valuation.mainUsd(
+    valuation.underlying,
+    creditAccount.totalDebt,
+  );
   if (borrowed === undefined || borrowed <= 0n) {
     return 0n;
   }
 
   const required = borrowed * targetHF;
-  if (required <= otherMoney) {
+  if (required <= otherValue) {
     return target.balance;
   }
-  const shortfall = required - otherMoney;
+  const shortfall = required - otherValue;
 
   // A quoted holding backs at most its quota, so a quota short of the
   // shortfall cannot be helped by keeping more of the token.
-  if (target.quota > 0n && money.quotaMoney(target) < shortfall) {
+  if (target.quota > 0n && valuation.quotaValue(target) < shortfall) {
     return 0n;
   }
 
-  const targetLt = money.lt(target.token);
-  const targetUsd = money.checkedUsd(target);
+  const targetLt = valuation.lt(target.token);
+  const targetUsd = valuation.checkedUsd(target);
   if (targetLt === 0n || targetUsd === 0n) {
     return 0n;
   }

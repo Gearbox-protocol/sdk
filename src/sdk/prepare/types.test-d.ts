@@ -1,9 +1,6 @@
 import type { Address } from "viem";
 import { describe, expectTypeOf, it } from "vitest";
 
-/** Any address; the reuse case below only needs the field to be present. */
-const WALLET = "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0" as Address;
-
 import type {
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
@@ -33,14 +30,19 @@ import type {
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
 } from "../../model/index.js";
-import type { Asset } from "../../onchain/index.js";
 import type {
+  BorrowState,
+  CheckSimulationInput,
+  OpenStrategyState,
+  OperationState,
+} from "../../onchain/index.js";
+import type {
+  BorrowResult,
+  EmptyCreditAccountResult,
   FinalizeResult,
   IOpportunitiesPrepare,
   LeverageBand,
   LpResult,
-  OpenStrategyEmptyParams,
-  OpenStrategyParams,
   OpenStrategyResult,
   StrategyResult,
   StrategyRoutesResult,
@@ -101,6 +103,27 @@ describe("every prepare method names exactly its own errors", () => {
         | UnsupportedTokenPairError
         | InsufficientPoolLiquidityError
         | NoStrategyTargetCollateralError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
+      >
+    >();
+  });
+
+  it("borrow: the open-flow guards plus what the loan and its payout can raise", () => {
+    expectTypeOf<Awaited<ReturnType<P["borrow"]>>>().toEqualTypeOf<
+      SDKReturn<
+        BorrowResult,
+        | CreditManagerPausedError
+        | MarketExpiredError
+        | ForbiddenTokenError
+        | QuotaLimitReachedError
+        | InsufficientCollateralError
+        | InsufficientBalanceError
+        | UnexpectedFailureError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
         | CreditAccountNotFoundError
         | CreditAccountNotEmptyError
       >
@@ -259,7 +282,9 @@ describe("the preview-only codes appear in no prepare union", () => {
     | ErrorOf<Awaited<ReturnType<P["deposit"]>>>
     | ErrorOf<Awaited<ReturnType<P["withdraw"]>>>
     | ErrorOf<Awaited<ReturnType<P["redeem"]>>>
+    | ErrorOf<Awaited<ReturnType<P["openEmptyCreditAccount"]>>>
     | ErrorOf<Awaited<ReturnType<P["openNewStrategy"]>>>
+    | ErrorOf<Awaited<ReturnType<P["borrow"]>>>
     | ErrorOf<Awaited<ReturnType<P["depositStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["repayStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["addCollateral"]>>>
@@ -303,6 +328,11 @@ describe("narrowing the envelope settles which half is there", () => {
     if (open.ok) {
       expectTypeOf(open.data).toEqualTypeOf<OpenStrategyResult>();
     }
+
+    const loan = {} as Awaited<ReturnType<P["borrow"]>>;
+    if (loan.ok) {
+      expectTypeOf(loan.data).toEqualTypeOf<BorrowResult>();
+    }
   });
 
   it("every result names the block it was computed from", () => {
@@ -311,6 +341,28 @@ describe("narrowing the envelope settles which half is there", () => {
     expectTypeOf<StrategyResult["blockNumber"]>().toEqualTypeOf<number>();
     expectTypeOf<StrategyRoutesResult["timestamp"]>().toEqualTypeOf<number>();
     expectTypeOf<OpenStrategyResult["blockNumber"]>().toEqualTypeOf<number>();
+    expectTypeOf<BorrowResult["timestamp"]>().toEqualTypeOf<number>();
+  });
+});
+
+/**
+ * `checkSimulation` weighs what the engine projected, and takes the two shapes
+ * a projection comes in. A borrow is the first of them rather than a third:
+ * everything the check reads — the market, the debt, the quotas and both
+ * factors — a borrow reports where an operation on an existing account does,
+ * `executionCost` included, which it answers `undefined` for.
+ */
+describe("a borrow result is weighable where every other state is", () => {
+  it("is the operation state itself, so the checker takes it unchanged", () => {
+    expectTypeOf<BorrowState>().toExtend<OperationState>();
+    expectTypeOf<BorrowState>().toExtend<CheckSimulationInput["state"]>();
+    expectTypeOf<BorrowState["executionCost"]>().toEqualTypeOf<
+      bigint | undefined
+    >();
+  });
+
+  it("so does an opening, by the other branch of the same union", () => {
+    expectTypeOf<OpenStrategyState>().toExtend<CheckSimulationInput["state"]>();
   });
 });
 
@@ -337,6 +389,7 @@ describe("the reads outside the envelope stay bare", () => {
     expectTypeOf<ReturnType<P["withdrawableCollaterals"]>>().toEqualTypeOf<
       PositionCollateral[]
     >();
+    expectTypeOf<ReturnType<P["maxBorrow"]>>().toEqualTypeOf<bigint>();
   });
 });
 
@@ -354,74 +407,44 @@ describe("I7: prepare error shapes are narrowed to what the trace proves", () =>
 });
 
 /**
- * The empty opening used to be policed at runtime: the flag was optional on one
- * flat shape, so `{ empty: true, creditAccount }` typechecked and had to be
- * refused with `emptyOpenTakesNothing`. The union says it instead, which is why
- * that error no longer exists.
+ * An account holding nothing used to be a shape of the two flows that put
+ * something on one, policed by a union with `empty: true` in it. It is its own
+ * method now, and the absence of that flag is what this pins: an opening and a
+ * borrow always name what they are for.
  */
-describe("an empty opening takes nothing, and the type is what says so", () => {
-  it("names the market, and names the rest only to refuse them", () => {
-    expectTypeOf<OpenStrategyEmptyParams["empty"]>().toEqualTypeOf<true>();
-    expectTypeOf<OpenStrategyEmptyParams["collateral"]>().toEqualTypeOf<
-      undefined | never
+describe("opening an empty account is its own method", () => {
+  it("names the market and nothing else, and reports only the block", () => {
+    expectTypeOf<Parameters<P["openEmptyCreditAccount"]>>().toEqualTypeOf<
+      [strategy: Parameters<P["openNewStrategy"]>[0]]
     >();
-    expectTypeOf<OpenStrategyEmptyParams["leverage"]>().toEqualTypeOf<
-      undefined | never
+    expectTypeOf<
+      EmptyCreditAccountResult["blockNumber"]
+    >().toEqualTypeOf<number>();
+    expectTypeOf<
+      EmptyCreditAccountResult["timestamp"]
+    >().toEqualTypeOf<number>();
+  });
+
+  it("can only be refused by the market itself", () => {
+    expectTypeOf<
+      Awaited<ReturnType<P["openEmptyCreditAccount"]>>
+    >().toEqualTypeOf<
+      SDKReturn<
+        EmptyCreditAccountResult,
+        CreditManagerPausedError | MarketExpiredError | UnexpectedFailureError
+      >
     >();
-    expectTypeOf<OpenStrategyEmptyParams["creditAccount"]>().toEqualTypeOf<
-      undefined | never
-    >();
   });
 
-  it("refuses what an empty opening would have had to drop", () => {
-    // @ts-expect-error collateral it meant to spend
-    const _collateral: OpenStrategyParams = { empty: true, collateral: [] };
-    // @ts-expect-error an account it meant to reuse
-    const _account: OpenStrategyParams = { empty: true, creditAccount: WALLET };
-    // @ts-expect-error a leverage it asked to reach
-    const _leverage: OpenStrategyParams = { empty: true, leverage: 300n };
-    void _collateral;
-    void _account;
-    void _leverage;
-  });
-
-  /**
-   * The case the literals above cannot reach. Excess-property checking is a
-   * freshness rule, so a bare `{ empty: true }` would let params built up in a
-   * variable — which is how a form builds them — carry collateral or an account
-   * straight past the type and have them dropped at runtime. Only the `never`
-   * members refuse this.
-   */
-  it("refuses them built up rather than written out", () => {
-    const built = {
-      empty: true as const,
-      collateral: [] as Asset[],
-      creditAccount: WALLET,
-      leverage: 300n,
-    };
-    // @ts-expect-error the extra members survive into the assignment
-    const _built: OpenStrategyParams = built;
-    // @ts-expect-error and through a spread
-    const _spread: OpenStrategyParams = { ...built };
-    void _built;
-    void _spread;
-  });
-
-  /** A checkbox gives `boolean`, which neither branch accepts. */
-  it("refuses a flag that has not been narrowed", () => {
-    const toggled = {
-      empty: true as boolean,
-      collateral: [] as Asset[],
-      leverage: 300n,
-    };
-    // @ts-expect-error `empty: boolean` is neither `true` nor `false | undefined`
-    const _toggled: OpenStrategyParams = toggled;
-    void _toggled;
-  });
-
-  it("still asks a funded opening for its collateral and leverage", () => {
-    // @ts-expect-error a funded opening is not a market on its own
-    const _bare: OpenStrategyParams = {};
-    void _bare;
+  it("leaves the two funded flows with no empty shape to take", () => {
+    const open = {} as Parameters<P["openNewStrategy"]>[1];
+    const borrow = {} as Parameters<P["borrow"]>[1];
+    // @ts-expect-error an opening states what it opens with
+    void open.empty;
+    // @ts-expect-error and a borrow what it borrows against
+    void borrow.empty;
+    // both still take an account to run on instead of creating one
+    expectTypeOf(open.creditAccount).toEqualTypeOf<Address | undefined>();
+    expectTypeOf(borrow.creditAccount).toEqualTypeOf<Address | undefined>();
   });
 });

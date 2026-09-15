@@ -1,0 +1,382 @@
+import type { Address } from "viem";
+import { describe, expect, it, vi } from "vitest";
+import { PERCENTAGE_FACTOR } from "../../../constants/math.js";
+import type { OnchainSDK } from "../../../index.js";
+import { toBN } from "../../../index.js";
+import { checkSimulation } from "../../../validation/index.js";
+import { CreditAccountOperationsService } from "../index.js";
+import {
+  buildFixtureCreditAccount,
+  buildMarketSdk,
+  CREDIT_ACCOUNT,
+  CREDIT_FACADE,
+  CREDIT_MANAGER,
+  MAX_DEBT,
+  type MarketSdkExtras,
+  POS,
+  POS2,
+  RWA_ASSET,
+  UND,
+  UND_DECIMALS,
+  valueInUnd,
+} from "../testing/market.js";
+import { MOCK_ROUTER_CALL, MOCK_RWA_UNWRAP_CALL } from "../testing/sdk-mock.js";
+
+/** Liquidation threshold of every non-underlying token in the fixture market. */
+const LT = 9200n;
+/** 1000 POS, which is 1000 UND at fixture prices. */
+const COLLATERAL = toBN("1000", UND_DECIMALS);
+/** 400 UND of loan against it, well inside what the threshold allows. */
+const LOAN = toBN("400", UND_DECIMALS);
+
+interface BorrowCase {
+  collateralToken?: Address;
+  collateralAmount?: bigint;
+  borrowToken?: Address;
+  borrowAmount?: bigint;
+  slippage?: number;
+}
+
+function run(c: BorrowCase = {}, sdk: OnchainSDK = buildMarketSdk()) {
+  return {
+    sdk,
+    result: new CreditAccountOperationsService(sdk).borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: c.collateralToken ?? POS,
+      collateralAmount: c.collateralAmount ?? COLLATERAL,
+      borrowToken: c.borrowToken ?? UND,
+      borrowAmount: c.borrowAmount ?? LOAN,
+      slippage: c.slippage,
+      quotaReserve: undefined,
+    }),
+  };
+}
+
+/** The state, or the refusal named as the test's failure. */
+async function state(c: BorrowCase = {}, extras?: MarketSdkExtras) {
+  const outcome = await run(c, extras && buildMarketSdk(extras)).result;
+  if (!outcome.ok) {
+    throw new Error(`expected a state, got error: ${outcome.error.code}`);
+  }
+  return outcome.state;
+}
+
+/** The refusal code, or the state named as the test's failure. */
+async function refusal(c: BorrowCase = {}, extras?: MarketSdkExtras) {
+  const outcome = await run(c, extras && buildMarketSdk(extras)).result;
+  if (outcome.ok) {
+    throw new Error("expected a refusal, got a state");
+  }
+  return outcome.error;
+}
+
+describe("borrow — a loan against collateral, on an account it opens itself", () => {
+  it("leaves the collateral on the account and the loan in the wallet", async () => {
+    const s = await state();
+
+    expect(s.collateral.token.address).toBe(POS);
+    expect(s.collateral.value).toBe(COLLATERAL);
+    expect(s.totalDebt.value).toBe(LOAN);
+    // The loan is withdrawn, so the collateral is the whole of the account.
+    expect(s.totalValue.value).toBe(COLLATERAL);
+    expect(s.netValue.value).toBe(COLLATERAL - LOAN);
+    expect(s.assets.map(a => [a.token.address, a.value])).toEqual([
+      [POS, COLLATERAL],
+    ]);
+  });
+
+  it("pays out the underlying as it is borrowed, with no route and no floor to quote", async () => {
+    const { sdk, result } = run();
+    const s = await result.then(r => (r.ok ? r.state : undefined));
+
+    expect(s?.borrowed).toEqual(s?.minBorrowed);
+    expect(s?.borrowed.token.address).toBe(UND);
+    expect(s?.borrowed.value).toBe(LOAN);
+    expect(s?.calls).toEqual([]);
+    expect(s?.priceImpact).toBeUndefined();
+    expect(
+      vi.mocked(
+        sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOneTokenPath,
+      ),
+    ).not.toHaveBeenCalled();
+  });
+
+  it("fills the position metrics a form shows beside the two amounts", async () => {
+    const s = await state();
+
+    // 1000 of collateral at a 0.92 threshold backs a 400 loan 2.3 times over
+    expect(s.healthFactor).toBe(
+      Number((COLLATERAL * LT) / LOAN / (PERCENTAGE_FACTOR / 10000n)),
+    );
+    expect(s.safeHealthFactor).toBe(s.healthFactor);
+    expect(s.leverage).toBeCloseTo(
+      Number(COLLATERAL) / Number(COLLATERAL - LOAN),
+    );
+    expect(s.borrowRate.totalOnDebt).toBeGreaterThan(0);
+    expect(s.timeToLiquidation).not.toBeNull();
+    // one collateral, so both halves of the liquidation-price pair exist
+    expect(s.liquidationPrice).not.toBeNull();
+    expect(s.currentPrice).not.toBeNull();
+    // whose market this is, and what a liquidation would take off it
+    expect(s.curator).toBeDefined();
+    expect(s.liquidationDiscount).toBeGreaterThan(0);
+  });
+
+  it("buys a quota for the collateral, one branch for both of openCA's", async () => {
+    const s = await state();
+
+    expect(s.quotaIncrease).toEqual([
+      { token: POS, balance: (valueInUnd(COLLATERAL, POS) * LT) / 10000n },
+    ]);
+  });
+
+  it("echoes the slippage the route was quoted at, defaulting to none", async () => {
+    expect((await state()).slippage).toBe(0);
+    expect((await state({ slippage: 50 })).slippage).toBe(50);
+  });
+
+  it("does not measure execution cost, which has no before to compare to", async () => {
+    // The payout leaves the account, so there is no second state of it to
+    // weigh the first against. What the route cost is `borrowed` against
+    // `totalDebt`, in the tokens rather than as a rate.
+    expect((await state()).executionCost).toBeUndefined();
+    expect((await state({ borrowToken: POS2 })).executionCost).toBeUndefined();
+  });
+});
+
+describe("borrow — the state a caller can weigh for themselves", () => {
+  it("goes to checkSimulation as it stands, and clears the market's own limits", async () => {
+    const sdk = buildMarketSdk({ minDebt: LOAN / 2n });
+
+    const errors = checkSimulation(sdk, {
+      chainId: sdk.chainId,
+      state: await state(),
+    });
+
+    expect(errors).toEqual([]);
+  });
+
+  it("is refused by the threshold a form asks for above the facade's own", async () => {
+    const sdk = buildMarketSdk();
+    const s = await state();
+
+    const errors = checkSimulation(
+      sdk,
+      { chainId: sdk.chainId, state: s },
+      { minHealthFactor: s.healthFactor + 1 },
+    );
+
+    expect(errors.map(e => e.code)).toEqual(["insufficientCollateral"]);
+  });
+
+  it("carries the debt to the check, which holds it to the market's floor", async () => {
+    const sdk = buildMarketSdk({ minDebt: LOAN * 2n });
+
+    const errors = checkSimulation(sdk, {
+      chainId: sdk.chainId,
+      state: await state(),
+    });
+
+    expect(errors.map(e => e.code)).toEqual(["debtOutOfRange"]);
+  });
+});
+
+describe("borrow — a payout the market does not lend in", () => {
+  it("sizes the debt from the oracle and routes the underlying into the payout", async () => {
+    const { sdk, result } = run({ borrowToken: POS2 });
+    const outcome = await result;
+    if (!outcome.ok) throw new Error(outcome.error.code);
+
+    // POS2 is 1:1 with UND at fixture prices, so the loan converts one for one
+    expect(outcome.state.totalDebt.value).toBe(LOAN);
+    expect(outcome.state.borrowed.token.address).toBe(POS2);
+    expect(outcome.state.borrowed.value).toBe(LOAN);
+    expect(outcome.state.calls).toEqual([MOCK_ROUTER_CALL]);
+    expect(
+      vi.mocked(
+        sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOneTokenPath,
+      ),
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ tokenIn: UND, tokenOut: POS2, amount: LOAN }),
+    );
+  });
+
+  it("reports the floor under the payout when the route quotes one", async () => {
+    const s = await state(
+      { borrowToken: POS2 },
+      { routeFloor: amount => (amount * 99n) / 100n },
+    );
+
+    expect(s.borrowed.value).toBe(LOAN);
+    expect(s.minBorrowed.value).toBe((LOAN * 99n) / 100n);
+  });
+
+  it("keeps underlying collateral out of the route that buys the payout", async () => {
+    const { sdk, result } = run({
+      collateralToken: UND,
+      collateralAmount: COLLATERAL,
+      borrowToken: POS,
+    });
+    await result;
+
+    // The account holds the collateral beside the loan, so the leftover-aware
+    // path is the one asked for — the one-token path would sweep both.
+    const router = sdk.routerFor({ creditFacade: CREDIT_FACADE });
+    expect(vi.mocked(router.findManyToOnePath)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        expectedBalances: [{ token: UND, balance: COLLATERAL + LOAN }],
+        leftoverBalances: [{ token: UND, balance: COLLATERAL }],
+        target: POS,
+      }),
+    );
+  });
+});
+
+describe("borrow — a market whose underlying cannot leave the account", () => {
+  /** The fixture market turned RWA: `UND` is the wrapper over `RWA_ASSET`. */
+  const rwa: MarketSdkExtras = { rwaAssets: { [UND]: RWA_ASSET } };
+
+  it("pays out the asset behind the wrapper, through the vault rather than a route", async () => {
+    const { sdk, result } = run(
+      { borrowToken: RWA_ASSET },
+      buildMarketSdk(rwa),
+    );
+    const outcome = await result;
+    if (!outcome.ok) throw new Error(outcome.error.code);
+    const s = outcome.state;
+
+    // the loan is drawn in the wrapper the pool lends and handed over as the
+    // asset, one for one — so the debt is the amount asked for
+    expect(s.totalDebt.value).toBe(LOAN);
+    // checksummed by the token registry, as every reported token is
+    expect(s.borrowed.token.address.toLowerCase()).toBe(RWA_ASSET);
+    expect(s.borrowed.value).toBe(LOAN);
+    // an unwrap has no floor to quote and nothing to lose on the way
+    expect(s.minBorrowed).toEqual(s.borrowed);
+    expect(s.priceImpact).toBeUndefined();
+    expect(s.calls).toEqual([MOCK_RWA_UNWRAP_CALL]);
+    expect(
+      vi.mocked(
+        sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOneTokenPath,
+      ),
+    ).not.toHaveBeenCalled();
+    // sized to the debt just drawn: an account that put the wrapper up as
+    // collateral keeps it, where a diff redemption would take that too
+    expect(vi.mocked(sdk.accounts.assembleRWAUnwrapCalls)).toHaveBeenCalledWith(
+      LOAN,
+      CREDIT_MANAGER,
+    );
+  });
+
+  it("rescales the debt by decimals, not by price, when the two differ", async () => {
+    const sdk = buildMarketSdk({
+      ...rwa,
+      extraDecimals: { [RWA_ASSET]: UND_DECIMALS + 2 },
+    });
+    const asked = toBN("400", UND_DECIMALS + 2);
+    const outcome = await run(
+      { borrowToken: RWA_ASSET, borrowAmount: asked },
+      sdk,
+    ).result;
+    if (!outcome.ok) throw new Error(outcome.error.code);
+
+    // 400 of the asset is 400 of the wrapper whatever either counts in
+    expect(outcome.state.totalDebt.value).toBe(LOAN);
+    expect(outcome.state.borrowed.value).toBe(asked);
+  });
+
+  it("leaves the collateral on the account, as any other payout does", async () => {
+    const s = await state({ borrowToken: RWA_ASSET }, rwa);
+
+    expect(s.assets.map(a => [a.token.address, a.value])).toEqual([
+      [POS, COLLATERAL],
+    ]);
+    expect(s.totalValue.value).toBe(COLLATERAL);
+    expect(s.netValue.value).toBe(COLLATERAL - LOAN);
+  });
+
+  it("refuses a payout in the wrapper itself, which the facade cannot hand over", async () => {
+    const error = await refusal({ borrowToken: UND }, rwa);
+
+    expect(error.code).toBe("unsupportedCollateralToken");
+  });
+});
+
+describe("borrow — a loan on an account already held", () => {
+  it("draws the loan on an account it was handed, and says which one", async () => {
+    const existing = buildFixtureCreditAccount({ totalDebt: 0n, tokens: [] });
+    const sdk = buildMarketSdk({ creditAccounts: [existing] });
+    const outcome = await new CreditAccountOperationsService(sdk).borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: UND,
+      borrowAmount: LOAN,
+      slippage: undefined,
+      quotaReserve: undefined,
+      creditAccount: existing,
+    });
+    if (!outcome.ok) throw new Error(outcome.error.code);
+
+    // the numbers are the opening's, because the account it reuses is empty
+    expect(outcome.state.totalDebt.value).toBe(LOAN);
+    expect(outcome.state.collateral.value).toBe(COLLATERAL);
+    // and the transaction cannot be built against any other account
+    expect(outcome.state.creditAccount).toBe(CREDIT_ACCOUNT);
+  });
+});
+
+describe("borrow — what it refuses, and with which numbers", () => {
+  it("refuses a payout in the collateral token, which the sweep would take", async () => {
+    const error = await refusal({ collateralToken: POS, borrowToken: POS });
+
+    expect(error.code).toBe("unsupportedCollateralToken");
+  });
+
+  it("refuses collateral worth nothing and a loan of nothing", async () => {
+    expect((await refusal({ collateralAmount: 0n })).code).toBe(
+      "insufficientBalance",
+    );
+    expect((await refusal({ borrowAmount: 0n })).code).toBe(
+      "insufficientBalance",
+    );
+  });
+
+  it("refuses a loan the collateral cannot carry, and says at what factor", async () => {
+    const error = await refusal({ borrowAmount: COLLATERAL });
+
+    if (error.code !== "insufficientCollateral") {
+      throw new Error(`expected insufficientCollateral, got ${error.code}`);
+    }
+    // 1000 of collateral at a 0.92 threshold does not back a 1000 loan
+    expect(error.healthFactor).toBeLessThan(10000);
+    // the payout leaves the account, so the facade weighs the rest at safe prices
+    expect(error.safePrices).toBe(true);
+  });
+
+  it("refuses a loan above the facade maxDebt, and names the ceiling", async () => {
+    const error = await refusal({
+      collateralAmount: MAX_DEBT * 10n,
+      borrowAmount: MAX_DEBT + 1n,
+    });
+
+    if (error.code !== "debtOutOfRange") {
+      throw new Error(`expected debtOutOfRange, got ${error.code}`);
+    }
+    expect(error.maxDebt?.value).toBe(MAX_DEBT);
+  });
+
+  it("refuses a paused market before it quotes anything", async () => {
+    expect((await refusal({}, { facadePaused: true })).code).toBe(
+      "creditManagerPaused",
+    );
+  });
+
+  it("refuses a pool with less liquidity than the loan asks for", async () => {
+    const error = await refusal({}, { availableLiquidity: LOAN - 1n });
+
+    expect(error.code).toBe("insufficientPoolLiquidity");
+  });
+});

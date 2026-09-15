@@ -4,6 +4,7 @@ import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
+import { resolveCreditManager } from "./utils/common.js";
 
 /** The leverages a position of a given size can be opened at, or moved to. */
 export interface LeverageBand {
@@ -64,7 +65,7 @@ export function calcLeverageBand({
   // The register throws for a manager it does not know, and a form asks this
   // on every keystroke — including before the SDK has finished attaching. A
   // question it cannot answer yet is not an error.
-  const found = resolve(sdk, creditManager);
+  const found = resolveCreditManager(sdk, creditManager);
   if (!found) {
     return undefined;
   }
@@ -109,16 +110,4 @@ export function calcLeverageBand({
   // Nothing to offer: the smallest debt this market accepts is more than the
   // deposit can carry, or the manager has no room left for it.
   return min > max ? undefined : { min, max };
-}
-
-/** The manager's suite and market, or nothing while they cannot be resolved. */
-function resolve(sdk: OnchainSDK, creditManager: Address) {
-  try {
-    return {
-      suite: sdk.marketRegister.findCreditManager(creditManager),
-      market: sdk.marketRegister.findByCreditManager(creditManager),
-    };
-  } catch {
-    return undefined;
-  }
 }

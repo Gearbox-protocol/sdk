@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import type { RWAOperationArgs } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
@@ -7,7 +8,9 @@ import type {
 import type { ChainOf } from "../prepare/index.js";
 import type {
   AccountPrepareRequest,
+  BorrowPrepareRequest,
   IOpportunitiesExecute,
+  OpenEmptyPrepareRequest,
   OpenPrepareRequest,
   PoolPrepareRequest,
   PrepareRequest,
@@ -40,6 +43,10 @@ export class ExecuteApi implements IOpportunitiesExecute {
         return poolTx(sdk, request);
       case "open":
         return openTx(sdk, request);
+      case "openEmpty":
+        return openEmptyTx(sdk, request);
+      case "borrow":
+        return borrowTx(sdk, request);
       case "account":
         return accountTx(sdk, request);
     }
@@ -101,26 +108,96 @@ async function openTx(
     reopenCreditAccount: state.creditAccount,
     permits: {},
     referralCode: 0n,
-    rwaOptions: await openRwaOptions(sdk, request),
+    rwaOptions: await openRwaOptions(sdk, request, request.targetToken),
+  });
+}
+
+/**
+ * The opening with nothing in it: no debt to draw, no collateral to take, no
+ * path to run and no quota to buy, so `openCA` is left with the price updates
+ * the market demands and the facade's own `openCreditAccount`.
+ *
+ * Nothing is read off the preparation because there is nothing on it. The
+ * account holds no token, so an RWA market has none to gate on either.
+ **/
+function openEmptyTx(
+  sdk: OnchainSDK,
+  request: OpenEmptyPrepareRequest,
+): Promise<RawTx> {
+  return sdk.accounts.openCA({
+    creditManager: request.creditManager,
+    to: request.wallet,
+    collateral: [],
+    ethAmount: 0n,
+    debt: 0n,
+    calls: [],
+    averageQuota: [],
+    minQuota: [],
+    permits: {},
+    referralCode: 0n,
+  });
+}
+
+/**
+ * A loan is an opening whose debt leaves again, so it is the same `openCA`
+ * with `withdrawToken` set: the facade draws the debt, takes the collateral,
+ * runs whatever path buys the payout, and sweeps that payout to the wallet.
+ *
+ * Both quota branches are the one the state carries. An opening has two
+ * because the balances it lands on are a router quote; here the account is
+ * left holding the collateral the caller named, and a named amount has no
+ * floor to differ from.
+ **/
+async function borrowTx(
+  sdk: OnchainSDK,
+  request: BorrowPrepareRequest,
+): Promise<RawTx> {
+  const { creditManager, wallet, ethAmount, sim } = request;
+  const { state } = sim.data;
+  const collateral = {
+    token: state.collateral.token.address,
+    balance: state.collateral.value,
+  };
+  return sdk.accounts.openCA({
+    creditManager,
+    to: wallet,
+    collateral: [collateral],
+    ethAmount,
+    debt: state.totalDebt.value,
+    calls: state.calls,
+    withdrawToken: state.borrowed.token.address,
+    averageQuota: state.quotaIncrease,
+    minQuota: state.quotaIncrease,
+    reopenCreditAccount: state.creditAccount,
+    permits: {},
+    referralCode: 0n,
+    rwaOptions: await openRwaOptions(sdk, request, collateral.token),
   });
 }
 
 /**
  * The documented `openCA` contract: ask the market for its open requirements
  * and hand them back as operation args, with the caller's cached signatures
- * attached. `undefined` on non-RWA markets and when no target token is named.
+ * attached. `undefined` on non-RWA markets and when no token is named.
+ *
+ * `token` is the one the account ends up holding, which is what an RWA market
+ * gates on: the opening's target, and the borrow's collateral.
  **/
 async function openRwaOptions(
   sdk: OnchainSDK,
-  request: OpenPrepareRequest,
+  request: Pick<
+    OpenPrepareRequest,
+    "wallet" | "creditManager" | "signaturesToCache"
+  >,
+  token: Address | undefined,
 ): Promise<RWAOperationArgs | undefined> {
-  if (!request.targetToken) {
+  if (!token) {
     return undefined;
   }
   const requirements = await sdk.accounts.getOpenAccountRequirements(
     request.wallet,
     request.creditManager,
-    { tokenOutAddress: request.targetToken },
+    { tokenOutAddress: token },
   );
   if (requirements?.protocol !== "securitize") {
     return undefined;

@@ -4,6 +4,95 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — an opening that pays out is valued net of it
+
+`OpenStrategyPositionPreview` gained `collateralWithdrawn`, the tokens the
+opening hands back to the wallet, and the values beside it are now taken after
+them: `estTotalValue` is what the account keeps, `estNetValue` that less the
+debt, with `estBorrowRate` and `estLeverage` following from the corrected
+total.
+
+Before, an opening was valued as though everything it drew stayed behind. That
+holds for a leveraged opening, which withdraws nothing, and its previews are
+unchanged. It does not hold for a borrow, which sweeps the loan out to the
+wallet: one previewed as worth collateral + debt with the collateral as its
+equity, where it is worth the collateral and the wallet's share of it is the
+collateral less the debt.
+
+A consumer that displays the preview needs no change and starts showing the
+corrected figures. One that *constructs* an `OpenStrategyPositionPreview` — a
+fixture or a mock — has one field to fill.
+
+---
+
+## v16.x — an empty account is its own method
+
+`openNewStrategy({ empty: true })` is gone. Opening an account that holds
+nothing is `prepare.openEmptyCreditAccount(strategy)`, which takes the market
+and nothing else, and `execute.buildTx` takes the matching
+`kind: "openEmpty"` request.
+
+**Before:**
+
+```typescript
+const sim = await prepare.openNewStrategy(strategy, { empty: true });
+if (!sim.ok) return;
+const tx = await execute.buildTx({
+  kind: "open",
+  chainId,
+  creditManager,
+  wallet,
+  sim,
+  collateral: [],
+  ethAmount: 0n,
+});
+```
+
+**After:**
+
+```typescript
+const sim = await prepare.openEmptyCreditAccount(strategy);
+if (!sim.ok) return;
+const tx = await execute.buildTx({
+  kind: "openEmpty",
+  chainId,
+  creditManager,
+  wallet,
+  sim,
+});
+```
+
+The result carries no state, only the block it was computed at: an account that
+holds nothing and owes nothing has no collateral to value, no debt to weigh and
+no health factor to read. Its failure half is narrower for the same reason —
+`creditManagerPaused`, `marketExpired` and `unexpectedFailure`, and nothing
+else.
+
+`OpenStrategyParams` is a plain interface again rather than a union, so
+`collateral` and `leverage` are always required. `params.creditAccount` is
+untouched: an opening still runs on an account the wallet already holds, and
+what it requires of one has not changed.
+
+---
+
+## v16.x — borrowing against collateral
+
+`prepare.borrow` opens an account, puts up collateral, draws a loan and pays it
+out to the wallet in one transaction, and `execute.buildTx` takes the matching
+`kind: "borrow"` request. `prepare.maxBorrow` answers the largest loan a given
+collateral carries, synchronously and outside the `SDKReturn` envelope, the way
+`leverageBand` does. All three are additions: no existing method changed.
+
+`borrow` takes `creditAccount` as `openNewStrategy` does, drawing the loan on an
+account the wallet already holds instead of opening another, so it can answer
+`creditAccountNotFound` and `creditAccountNotEmpty` too.
+
+Only a consumer that *implements* `IOpportunitiesPrepare` or switches
+exhaustively over `PrepareRequest["kind"]` has anything to do — two methods and
+one case respectively. Everyone else needs no change.
+
+---
+
 ## v16.x — reusing a pre-opened account
 
 `openNewStrategy` takes `params.creditAccount`, and it can be refused:
