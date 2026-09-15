@@ -430,6 +430,15 @@ export async function realize(
               }
             : undefined,
         };
+        trade(
+          [{ token: preview.token, amount: preview.amountIn }],
+          [
+            ...preview.outputs
+              .filter(o => !o.isDelayed)
+              .map(o => ({ token: o.token, amount: o.amount })),
+            ...(delayed.claim ? [delayed.claim] : []),
+          ],
+        );
         raised = instantOutput(preview.outputs)?.amount ?? 0n;
         break;
       }
