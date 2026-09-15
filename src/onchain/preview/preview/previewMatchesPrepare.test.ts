@@ -254,6 +254,59 @@ async function openRoundTrip(margin: bigint, leverage: bigint) {
 }
 
 /**
+ * A loan against collateral, the same round trip: the state the engine
+ * projects, then the transaction its caller builds out of it, read back.
+ *
+ * The payout is the market underlying, which is the leg `borrow` skips the
+ * router for — so this one needs no stub. The `openCA` call is the one
+ * `execute.buildTx` makes for a borrow, `withdrawToken` and all: what leaves
+ * the account for the wallet is decided there, and the preview has to find it
+ * in the calldata on its own.
+ */
+async function borrowRoundTrip(collateralAmount: bigint, borrowAmount: bigint) {
+  const result = await new CreditAccountOperationsService(sdk).borrowIntent({
+    sdk,
+    creditManager: CREDIT_MANAGER,
+    collateralToken: CBETH,
+    collateralAmount,
+    borrowToken: WETH,
+    borrowAmount,
+    slippage: SLIPPAGE,
+    quotaReserve: undefined,
+  });
+  if (!result.ok)
+    throw new Error(`prepare refused the borrow: ${result.error.code}`);
+  const projected = result.state;
+
+  const tx = await sdk.accounts.openCA({
+    ethAmount: 0n,
+    creditManager: CREDIT_MANAGER,
+    collateral: [{ token: CBETH, balance: collateralAmount }],
+    permits: {},
+    debt: projected.totalDebt.value,
+    referralCode: 0n,
+    to: OWNER,
+    calls: projected.calls,
+    withdrawToken: projected.borrowed.token.address,
+    minQuota: projected.quotaIncrease,
+    averageQuota: projected.quotaIncrease,
+  });
+
+  const answer = await previewOperation(sdk, {
+    chainId: sdk.chainId,
+    to: tx.to,
+    calldata: tx.callData,
+    sender: OWNER,
+    value: BigInt(tx.value),
+  });
+  if (!answer.ok) {
+    throw new Error(`preview refused: ${answer.error.code}`);
+  }
+
+  return { projected, preview: answer.data };
+}
+
+/**
  * Balances keyed by token, dust and zeroes dropped. Both sides now answer in
  * the same shape, so all this still has to reconcile is the order each built
  * its list in and the fact that only one of them filters dust.
@@ -690,5 +743,45 @@ describe("the preview of what prepare built agrees with what prepare projected",
     expect(preview.collateralAdded).toMatchObject([
       { token: expect.objectContaining({ address: WETH }), value: margin },
     ]);
+    // nothing goes back to the wallet on an opening that keeps what it bought
+    expect(preview.collateralWithdrawn).toEqual([]);
+  });
+
+  it("borrowing: what the loan pays out leaves, and only the collateral backs the debt", async () => {
+    const collateral = parseEther("20");
+    const loan = parseEther("12");
+    const { projected, preview } = await borrowRoundTrip(collateral, loan);
+    if (preview.operation !== "OpenCreditAccount") {
+      throw new Error(`expected an opening, got ${preview.operation}`);
+    }
+
+    expect(preview.warning).toBeUndefined();
+    expectSameMarket(preview, projected);
+
+    // paid in the underlying it is borrowed in, so the debt is the amount
+    // asked for and no route stands between the two sides
+    expect(preview.totalDebt.value).toBe(loan);
+    expect(preview.totalDebt).toEqual(projected.totalDebt);
+    expect(preview.collateralAdded).toMatchObject([
+      { token: expect.objectContaining({ address: CBETH }), value: collateral },
+    ]);
+    // the sweep the borrow is built around, read back out of the calldata
+    // rather than being told: `openCA` withdraws with the MAX_UINT256
+    // sentinel, and what it resolves to is the debt just drawn
+    expect(preview.collateralWithdrawn).toMatchObject([
+      { token: expect.objectContaining({ address: WETH }), value: loan },
+    ]);
+
+    // Which is the whole of the disagreement this case exists for: an opening
+    // that hands funds over is worth what it keeps, and the wallet's share of
+    // it is that less the loan — not the collateral, as an opening that keeps
+    // its borrow would be.
+    expect(byToken(preview.estAssets)).toEqual(byToken(projected.assets));
+    expect(preview.estTotalValue).toEqual(projected.totalValue);
+    expect(preview.estNetValue).toEqual(projected.netValue);
+    expect(preview.estNetValue.value).toBe(preview.estTotalValue.value - loan);
+
+    expect(byToken(preview.quotas)).toEqual(byAsset(projected.quotaIncrease));
+    expectMetrics(preview, projected);
   });
 });

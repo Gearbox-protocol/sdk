@@ -150,6 +150,12 @@ the collateral token, or a manager the SDK does not hold yet.
   What the route cost is on the state already — `borrowed` against `totalDebt`,
   in the tokens rather than as a rate, with `priceImpact` beside them for the
   depth the probe found.
+- Read back off its own calldata, a borrow is an opening: `previewOperation`
+  answers an `OpenCreditAccount` preview, with the payout in
+  `collateralWithdrawn` and the account valued at what it kept — so
+  `estNetValue` is the collateral less the debt, as `netValue` is here. The two
+  sides are held to that in
+  [`previewMatchesPrepare`](../../src/onchain/preview/preview/previewMatchesPrepare.test.ts).
 
 ## Reusing a pre-opened account
 

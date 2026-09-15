@@ -4,6 +4,27 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v16.x — an opening that pays out is valued net of it
+
+`OpenStrategyPositionPreview` gained `collateralWithdrawn`, the tokens the
+opening hands back to the wallet, and the values beside it are now taken after
+them: `estTotalValue` is what the account keeps, `estNetValue` that less the
+debt, with `estBorrowRate` and `estLeverage` following from the corrected
+total.
+
+Before, an opening was valued as though everything it drew stayed behind. That
+holds for a leveraged opening, which withdraws nothing, and its previews are
+unchanged. It does not hold for a borrow, which sweeps the loan out to the
+wallet: one previewed as worth collateral + debt with the collateral as its
+equity, where it is worth the collateral and the wallet's share of it is the
+collateral less the debt.
+
+A consumer that displays the preview needs no change and starts showing the
+corrected figures. One that *constructs* an `OpenStrategyPositionPreview` — a
+fixture or a mock — has one field to fill.
+
+---
+
 ## v16.x — an empty account is its own method
 
 `openNewStrategy({ empty: true })` is gone. Opening an account that holds
