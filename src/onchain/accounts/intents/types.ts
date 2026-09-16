@@ -30,6 +30,7 @@ export interface PathLossRate {
   pathPriceImpact: bigint;
   netValuePriceImpact: bigint;
   totalValuePriceImpact: bigint;
+  absolutePriceImpact: TokenAmount;
 }
 
 /**

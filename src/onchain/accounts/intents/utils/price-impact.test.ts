@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import type { TokenAmount } from "../../../../model/index.js";
 import { WAD } from "../../../constants/math.js";
 import type { Asset } from "../../../index.js";
 import {
@@ -32,6 +33,12 @@ function probe(
 
 /** The identity conversion: every leg already reports in the underlying. */
 const same = (_from: Address, amount: bigint): bigint => amount;
+
+const toUnderlyingAmount = (value: bigint): TokenAmount => ({
+  token: { chainId: 1, address: UND, symbol: "DAI", name: "DAI", decimals: 18 },
+  value,
+  valueUsd: null,
+});
 
 describe("lossRate", () => {
   it("states the loss against each base, negative for a loss", () => {
@@ -82,6 +89,7 @@ describe("collectPriceImpact", () => {
         totalValue: 1n,
         netValue: 1n,
         toUnderlying: same,
+        toUnderlyingAmount,
       }),
     ).resolves.toBeUndefined();
   });
@@ -98,12 +106,18 @@ describe("collectPriceImpact", () => {
           probe: Promise.resolve(20n * WAD),
         }),
       ],
-      { totalValue: 2_000n * WAD, netValue: 500n * WAD, toUnderlying: same },
+      {
+        totalValue: 2_000n * WAD,
+        netValue: 500n * WAD,
+        toUnderlying: same,
+        toUnderlyingAmount,
+      },
     );
 
     // 10 lost out of 1000 expected
     expect(rate?.pathPriceImpact).toBe(-10_000n);
     expect(rate?.netValuePriceImpact).toBe(-20_000n);
+    expect(rate?.absolutePriceImpact).toEqual(toUnderlyingAmount(-10n * WAD));
   });
 
   it("adds legs up in the underlying, not in their own tokens", async () => {
@@ -130,6 +144,7 @@ describe("collectPriceImpact", () => {
         totalValue: 1_100n * WAD,
         netValue: 1_100n * WAD,
         toUnderlying: (from, amount) => (from === B ? amount * 10n : amount),
+        toUnderlyingAmount,
       },
     );
 
@@ -144,7 +159,12 @@ describe("collectPriceImpact", () => {
           probe({ realAmount: 990n * WAD }),
           probe({ realAmount: 990n * WAD, probe: Promise.resolve(undefined) }),
         ],
-        { totalValue: 2_000n * WAD, netValue: 500n * WAD, toUnderlying: same },
+        {
+          totalValue: 2_000n * WAD,
+          netValue: 500n * WAD,
+          toUnderlying: same,
+          toUnderlyingAmount,
+        },
       ),
       // A partial sum would understate the loss and draw a better price than
       // the route offers.
@@ -168,10 +188,12 @@ describe("collectPriceImpact", () => {
         totalValue: 100n * WAD,
         netValue: 100n * WAD,
         toUnderlying: (_from, amount) => (amount < 0n ? 0n : amount),
+        toUnderlyingAmount,
       },
     );
 
     expect(rate?.pathPriceImpact).toBe(10_000n);
+    expect(rate?.absolutePriceImpact).toEqual(toUnderlyingAmount(WAD));
   });
 });
 
@@ -288,7 +310,7 @@ describe("price impact on a market with no depth", () => {
 
     const rate = await collectPriceImpact(
       [{ ...started, realAmount: toUnderlying(BTC, balance) }],
-      { totalValue: WAD, netValue: WAD, toUnderlying },
+      { totalValue: WAD, netValue: WAD, toUnderlying, toUnderlyingAmount },
     );
 
     expect(rate?.pathPriceImpact).toBe(0n);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { BigIntMath } from "../../../utils/bigint-math.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   assetBalance,
@@ -23,7 +24,9 @@ import {
   case_rwa_collateral,
   case_rwa_position,
   case_target_leverage,
+  DEBT_START,
   type DepositCase,
+  P1000,
   P2000,
   P3000,
   QUOTA_2000,
@@ -172,7 +175,7 @@ describe("deposit.start — price impact of the routed leg", () => {
     expect(priceImpact.pathPriceImpact).toBeGreaterThan(-100_000n);
   });
 
-  it("states the same loss against equity and against position size", async () => {
+  it("states the same loss against the equity it started with and against position size", async () => {
     const result = await run(case_fixed_leverage, withDepth);
     if (!result.ok) throw new Error("expected a preview");
     const { priceImpact, totalValue, totalDebt } = result.state;
@@ -181,11 +184,13 @@ describe("deposit.start — price impact of the routed leg", () => {
     // The same absolute loss over two different bases, so the ratio of the two
     // rates is the ratio of the bases. Catches a swapped denominator, which no
     // single-rate assertion can.
-    const netValue = totalValue.value - totalDebt.value;
-    expect(
-      priceImpact.netValuePriceImpact * netValue -
-        priceImpact.totalValuePriceImpact * totalValue.value,
-    ).toBeLessThanOrEqual(totalValue.value / 1_000n);
+    const loss = priceImpact.totalValuePriceImpact * totalValue.value;
+    const agrees = (base: bigint): boolean => {
+      const stated = priceImpact.netValuePriceImpact * base;
+      return BigIntMath.abs(stated - loss) * 20n <= BigIntMath.abs(stated);
+    };
+    expect(agrees(P1000 - DEBT_START)).toBe(true);
+    expect(agrees(totalValue.value - totalDebt.value)).toBe(false);
     // Equity is the smaller base, so the same loss reads worse against it.
     expect(priceImpact.netValuePriceImpact).toBeLessThan(
       priceImpact.totalValuePriceImpact,

@@ -215,6 +215,7 @@ export async function buildOpenStrategyState(
     // Opening borrows the rest, so the margin is the equity.
     netValue: margin,
     toUnderlying: (from, amount) => convert(from, underlying, amount),
+    toUnderlyingAmount: market.toUnderlyingAmount,
   });
 
   return {

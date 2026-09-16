@@ -117,6 +117,7 @@ export async function realize(
    * can revert.
    */
   const ledger = new OperationLedger(start);
+  const opening = ledger.snapshot();
   /**
    * The same walk with every routed leg counted at the amount the pathfinder
    * expects to return. Nothing is built from it: it is where the position
@@ -593,8 +594,9 @@ export async function realize(
   // After the guards, so a refusal never waits on a measurement it will not report.
   const priceImpact = await collectPriceImpact(probes, {
     totalValue: projected.totalValue,
-    netValue: projected.totalValue - debt,
+    netValue: opening.totalValue - opening.debt,
     toUnderlying: (from, amount) => price(from, underlying, amount),
+    toUnderlyingAmount: market.toUnderlyingAmount,
   });
 
   const executionCost =
