@@ -30,7 +30,7 @@ export async function checkMidasAccountGreenlist(
   if (nft.protocol !== "midas") {
     return [];
   }
-  // if multicall contains receiveGreenlist() call on midas adapter, 
+  // if multicall contains receiveGreenlist() call on midas adapter,
   // checks passes automatically
   if (preview.midasGreenlistsAccount) {
     return [];

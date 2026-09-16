@@ -8,6 +8,8 @@ import type {
 } from "../../model/index.js";
 import type { OnchainSDK, RawTx } from "../../onchain/index.js";
 import type {
+  BorrowResult,
+  EmptyCreditAccountResult,
   LpResult,
   OpenStrategyResult,
   StrategyResult,
@@ -443,6 +445,167 @@ describe("buildTx — open", () => {
     });
 
     expect(sdk.accounts.getOpenAccountRequirements).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildTx — borrow", () => {
+  const state = {
+    creditManager: CREDIT_MANAGER,
+    name: "Test CM",
+    underlyingToken: UNDERLYING_TOKEN,
+    curator: CURATOR,
+    liquidationDiscount: 0,
+    totalValue: amount(UNDERLYING, 3_000n),
+    totalDebt: amount(UNDERLYING, 2_000n),
+    netValue: amount(UNDERLYING, 1_000n),
+    assets: [amount(DIESEL, 3_000n)],
+    quotas: [],
+    leverage: 3,
+    healthFactor: 0,
+    safeHealthFactor: 0,
+    borrowRate: { total: 0, totalOnDebt: 0, base: 0, quotas: [] },
+    timeToLiquidation: null,
+    liquidationPrice: null,
+    currentPrice: null,
+    priceImpact: undefined,
+    executionCost: undefined,
+    collateral: amount(DIESEL, 3_000n),
+    borrowed: amount(UNDERLYING, 2_000n),
+    minBorrowed: amount(UNDERLYING, 2_000n),
+    slippage: 0,
+    quotaIncrease: [{ token: DIESEL, balance: 3_000n }],
+    calls: [CALL],
+  };
+  const sim: SDKResult<BorrowResult> = { ok: true, data: { state, ...AT } };
+
+  it("opens on the state's collateral and names the payout as the token to withdraw", async () => {
+    const { execute, sdk, txs } = mockChain();
+
+    const tx = await execute.buildTx({
+      kind: "borrow",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      ethAmount: 0n,
+    });
+
+    expect(tx).toBe(txs.open);
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith({
+      creditManager: CREDIT_MANAGER,
+      to: WALLET,
+      collateral: [{ token: DIESEL, balance: 3_000n }],
+      ethAmount: 0n,
+      debt: 2_000n,
+      calls: state.calls,
+      withdrawToken: UNDERLYING,
+      averageQuota: state.quotaIncrease,
+      minQuota: state.quotaIncrease,
+      permits: {},
+      referralCode: 0n,
+    });
+  });
+
+  it("resolves RWA requirements against the collateral, which is what the account keeps", async () => {
+    const { execute, sdk } = mockChain();
+
+    await execute.buildTx({
+      kind: "borrow",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+      ethAmount: 0n,
+    });
+
+    expect(sdk.accounts.getOpenAccountRequirements).toHaveBeenCalledWith(
+      WALLET,
+      CREDIT_MANAGER,
+      { tokenOutAddress: DIESEL },
+    );
+  });
+
+  it("throws on a refused preparation", async () => {
+    const { execute, sdk } = mockChain();
+
+    await expect(
+      execute.buildTx({
+        kind: "borrow",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: WALLET,
+        sim: { ok: false, error: { code: "debtOutOfRange" } } as never,
+        ethAmount: 0n,
+      }),
+    ).rejects.toThrow(/failed borrow preparation/);
+    expect(sdk.accounts.openCA).not.toHaveBeenCalled();
+  });
+
+  it("builds the loan against the account the preparation reused", async () => {
+    const { execute, sdk } = mockChain();
+
+    await execute.buildTx({
+      kind: "borrow",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim: {
+        ok: true,
+        data: { state: { ...state, creditAccount: CREDIT_ACCOUNT }, ...AT },
+      },
+      ethAmount: 0n,
+    });
+
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({ reopenCreditAccount: CREDIT_ACCOUNT }),
+    );
+  });
+});
+
+describe("buildTx — openEmpty", () => {
+  const sim: SDKResult<EmptyCreditAccountResult> = { ok: true, data: AT };
+
+  it("opens on nothing: no collateral, no debt, no path, no quota", async () => {
+    const { execute, sdk, txs } = mockChain();
+
+    const tx = await execute.buildTx({
+      kind: "openEmpty",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+    });
+
+    expect(tx).toBe(txs.open);
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith({
+      creditManager: CREDIT_MANAGER,
+      to: WALLET,
+      collateral: [],
+      ethAmount: 0n,
+      debt: 0n,
+      calls: [],
+      averageQuota: [],
+      minQuota: [],
+      permits: {},
+      referralCode: 0n,
+    });
+    // the account holds no token, so an RWA market has none to gate on
+    expect(sdk.accounts.getOpenAccountRequirements).not.toHaveBeenCalled();
+  });
+
+  it("throws on a refused preparation", async () => {
+    const { execute, sdk } = mockChain();
+
+    await expect(
+      execute.buildTx({
+        kind: "openEmpty",
+        chainId: CHAIN_ID,
+        creditManager: CREDIT_MANAGER,
+        wallet: WALLET,
+        sim: { ok: false, error: { code: "creditManagerPaused" } } as never,
+      }),
+    ).rejects.toThrow(/failed openEmpty preparation/);
+    expect(sdk.accounts.openCA).not.toHaveBeenCalled();
   });
 });
 

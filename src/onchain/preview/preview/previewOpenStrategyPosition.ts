@@ -53,8 +53,15 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     warning ??= priced.error;
     return priced.value;
   };
+  // The account's own funds: what the wallet put up, less what the same
+  // multicall hands back to it. A leveraged opening keeps everything it
+  // bought and withdraws nothing, so the subtrahend is zero there; a borrow
+  // pays the loan out on the way, and what backs the debt afterwards is the
+  // collateral alone.
   const netValue =
-    before.balances.sum(price) + after.collateralAdded.sum(price);
+    before.balances.sum(price) +
+    after.collateralAdded.sum(price) -
+    after.collateralWithdrawn.sum(price);
   const unwrapped = unwrapNativeCollateral(
     after.collateralAdded.toAssets(),
     value,
@@ -94,6 +101,9 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     collateralAdded: collateral.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
+    collateralWithdrawn: after.collateralWithdrawn
+      .toAssets()
+      .map(a => oracle.toTokenAmount(a.token, a.balance)),
     warning,
   };
 

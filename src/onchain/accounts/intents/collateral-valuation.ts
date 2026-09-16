@@ -20,10 +20,10 @@ export type Holding = CreditAccountSlice["tokens"][number];
  * exempt and stays on the main feed, as `CreditManagerV3._safeConvertToUSD`
  * does.
  *
- * Money is carried in USD × `PERCENTAGE_FACTOR`, the units the check compares
- * in, so a threshold never has to be divided back out.
+ * Every figure is carried in USD × `PERCENTAGE_FACTOR`, the units the check
+ * compares in, so a threshold never has to be divided back out.
  */
-export interface CollateralMoney {
+export interface CollateralValuation {
   /** Market underlying, the one token safe pricing does not touch. */
   underlying: Address;
   /** Whether the holding is weighed at all. */
@@ -31,7 +31,7 @@ export interface CollateralMoney {
   /** What the holding backs, in USD × `PERCENTAGE_FACTOR`. */
   weigh(holding: Holding): bigint;
   /** What the holding's quota backs, in the same units; 0 on a closed market. */
-  quotaMoney(holding: Holding): bigint;
+  quotaValue(holding: Holding): bigint;
   /** USD at the main feed; `undefined` when the token has no price at all. */
   mainUsd(token: Address, amount: bigint): bigint | undefined;
   /** USD the check counts the holding at, before its threshold. */
@@ -40,11 +40,11 @@ export interface CollateralMoney {
   lt(token: Address): bigint;
 }
 
-/** {@inheritDoc CollateralMoney} */
-export function collateralMoney(
+/** {@inheritDoc CollateralValuation} */
+export function collateralValuation(
   creditAccount: CreditAccountSlice,
   sdk: OnchainSDK,
-): CollateralMoney {
+): CollateralValuation {
   const { market, creditManager } = sdk.marketRegister.findCreditManager(
     creditAccount.creditManager,
   );
@@ -73,7 +73,7 @@ export function collateralMoney(
       : priceOracle.safeConvertMinUSD(holding.token, holding.balance).value;
 
   /** A quota is underlying-denominated, and a closed market backs nothing. */
-  const quotaMoney = (holding: Holding): bigint =>
+  const quotaValue = (holding: Holding): bigint =>
     pqk.hasActiveQuota(holding.token)
       ? (mainUsd(underlying, holding.quota) ?? 0n) * PERCENTAGE_FACTOR
       : 0n;
@@ -85,7 +85,7 @@ export function collateralMoney(
     if (holding.quota === 0n) {
       return weighted;
     }
-    return BigIntMath.min(quotaMoney(holding), weighted);
+    return BigIntMath.min(quotaValue(holding), weighted);
   };
 
   return {
@@ -94,7 +94,7 @@ export function collateralMoney(
       holding.balance > DUST_THRESHOLD &&
       (!masked || (holding.mask & creditAccount.enabledTokensMask) !== 0n),
     weigh,
-    quotaMoney,
+    quotaValue,
     mainUsd,
     checkedUsd,
     lt,

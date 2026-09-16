@@ -69,7 +69,12 @@ export interface OperationState extends AccountProjection, SimulationPrices {
    * underlying of everything its routed legs and redemption request return,
    * the expected claim included, against the value of what they spend.
    * In `PERCENTAGE_FACTOR_1KK` (1_000_000 = 100%), negative for a loss.
-   * `undefined` where nothing was traded or a leg cannot be priced.
+   *
+   * `undefined` where nothing was traded, where a leg cannot be priced, and on
+   * a {@link BorrowState}, which does not measure it: the rate compares an
+   * account against itself before and after, and a borrow's payout goes to the
+   * wallet rather than staying to be compared. What its route cost is on that
+   * state as `borrowed` against `totalDebt`.
    */
   executionCost: bigint | undefined;
 }

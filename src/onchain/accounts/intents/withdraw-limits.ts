@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import type { OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/index.js";
 import { MIN_HEALTH_FACTOR_FACADE } from "../../validation/index.js";
-import { collateralMoney } from "./collateral-money.js";
+import { collateralValuation } from "./collateral-valuation.js";
 import { maxProportionalWithdrawal } from "./math.js";
 import type { CreditAccountSlice, WithdrawCeilings } from "./types.js";
 import { eq } from "./utils/common.js";
@@ -70,7 +70,7 @@ export interface MaxSafeWithdrawalProps {
  * in underlying units.
  *
  * A withdrawal hands funds over, so the facade weighs the account it leaves
- * behind at safe prices rather than main ones — see {@link collateralMoney}.
+ * behind at safe prices rather than main ones — see {@link collateralValuation}.
  * That is a second limit on top of the facade's `debtLimits`, and the two are
  * independent: a caller wanting the amount a form may actually offer takes the
  * lesser of this and `maxProportionalWithdrawal`.
@@ -112,7 +112,7 @@ export function maxSafeWithdrawal(props: MaxSafeWithdrawalProps): bigint {
     return view.collateral;
   }
 
-  const money = collateralMoney(creditAccount, sdk);
+  const valuation = collateralValuation(creditAccount, sdk);
   const source = props.sourceToken ?? view.fattest();
   const holding =
     source === undefined
@@ -124,12 +124,12 @@ export function maxSafeWithdrawal(props: MaxSafeWithdrawalProps): bigint {
 
   let total = 0n;
   for (const t of creditAccount.tokens) {
-    if (money.counts(t)) {
-      total += money.weigh(t);
+    if (valuation.counts(t)) {
+      total += valuation.weigh(t);
     }
   }
 
-  const debtUsd = money.mainUsd(money.underlying, view.debt);
+  const debtUsd = valuation.mainUsd(valuation.underlying, view.debt);
   // The check divides by the debt: without a price for it there is no limit to
   // state, and inventing one either way would be a guess.
   if (debtUsd === undefined || debtUsd <= 0n) {
@@ -145,15 +145,19 @@ export function maxSafeWithdrawal(props: MaxSafeWithdrawalProps): bigint {
   // rather than a rate, so the division below stays exact. A quota-capped
   // holding gives up less than its threshold when it is sold, so this
   // over-states the cost and the answer errs low.
-  const sourceMainUsd = money.mainUsd(holding.token, holding.balance);
+  const sourceMainUsd = valuation.mainUsd(holding.token, holding.balance);
   if (sourceMainUsd === undefined || sourceMainUsd <= 0n) {
     return view.collateral;
   }
-  const sourceRate = money.lt(holding.token) * money.checkedUsd(holding);
+  const sourceRate =
+    valuation.lt(holding.token) * valuation.checkedUsd(holding);
 
   // The value the sale has to raise, per unit withdrawn, is `TVL/C` — so the
   // whole balance sheet enters here, not just the source.
-  const tvlUsd = money.mainUsd(money.underlying, view.collateral + view.debt);
+  const tvlUsd = valuation.mainUsd(
+    valuation.underlying,
+    view.collateral + view.debt,
+  );
   if (tvlUsd === undefined) {
     return view.collateral;
   }

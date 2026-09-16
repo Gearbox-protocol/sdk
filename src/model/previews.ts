@@ -430,6 +430,15 @@ interface OpenStrategyPositionProjection extends EstimatedProjection {
    */
   collateralAdded: TokenAmount[];
   /**
+   * Tokens the same transaction hands back to the wallet
+   * (`withdrawCollateral` calls, with the MAX_UINT256 sentinel resolved
+   * against replayed balances).
+   *
+   * Empty for an opening that keeps everything it bought; a borrow pays its
+   * loan out here, and the values above are what is left once it has.
+   */
+  collateralWithdrawn: TokenAmount[];
+  /**
    * The oracle could not price a token; it contributes nothing to the values.
    */
   warning?: UnpriceableTokenError;
@@ -437,8 +446,8 @@ interface OpenStrategyPositionProjection extends EstimatedProjection {
 
 /**
  * What an account-opening transaction that already exists would do — the
- * counterpart of `prepare.openNewStrategy`, read off calldata rather than
- * planned into it.
+ * counterpart of `prepare.openNewStrategy` and `prepare.borrow`, read off
+ * calldata rather than planned into it.
  **/
 export interface OpenStrategyPositionPreview
   extends OpenStrategyPositionProjection {
