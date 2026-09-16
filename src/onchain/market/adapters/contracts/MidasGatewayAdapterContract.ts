@@ -179,16 +179,25 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   }
 
   /**
+   * Whether `calldata` is `receiveGreenlist()`, the call that grants the
+   * Midas greenlisted role to the credit account.
+   */
+  public isReceiveGreenlist(calldata: Hex): boolean {
+    return calldata === receiveGreenlistCalldata;
+  }
+
+  /**
    * `receiveGreenlist()` is prepended by `prependMidasReceiveGreenlist`
    * before the balance bracket when the multicall mints a permissioned
-   * mToken: it only greenlists the credit account and is balance-neutral,
-   * so it is legal outside a bracket and leaves balances untouched.
+   * mToken: it only grants the Midas greenlisted role to the credit
+   * account and is balance-neutral, so it is legal outside a bracket and
+   * leaves balances untouched.
    */
   public override replayOutOfBracketCall(
     _balances: AssetsMap,
     calldata: Hex,
   ): boolean {
-    return calldata === receiveGreenlistCalldata;
+    return this.isReceiveGreenlist(calldata);
   }
 
   protected override applyBalanceChanges(

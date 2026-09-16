@@ -430,43 +430,44 @@ interface OpenStrategyPositionProjection extends EstimatedProjection {
    */
   collateralAdded: TokenAmount[];
   /**
+   * Tokens the same transaction hands back to the wallet
+   * (`withdrawCollateral` calls, with the MAX_UINT256 sentinel resolved
+   * against replayed balances).
+   *
+   * Empty for an opening that keeps everything it bought; a borrow pays its
+   * loan out here, and the values above are what is left once it has.
+   */
+  collateralWithdrawn: TokenAmount[];
+  /**
    * The oracle could not price a token; it contributes nothing to the values.
    */
   warning?: UnpriceableTokenError;
 }
 
 /**
- * What a facade account-opening transaction that already exists would do —
- * the counterpart of `prepare.openNewStrategy` on a non-RWA market, read off
+ * What an account-opening transaction that already exists would do — the
+ * counterpart of `prepare.openNewStrategy` and `prepare.borrow`, read off
  * calldata rather than planned into it.
  **/
-export interface OpenNonRWAStrategyPositionPreview
+export interface OpenStrategyPositionPreview
   extends OpenStrategyPositionProjection {
   operation: "OpenCreditAccount";
-}
-
-/**
- * What an RWA-factory account-opening transaction that already exists would
- * do — the counterpart of `prepare.openNewStrategy` on an RWA market.
- **/
-export interface OpenRWAStrategyPositionPreview
-  extends OpenStrategyPositionProjection {
-  operation: "RWAOpenCreditAccount";
+  /**
+   * Existing zero-debt, zero-quota account this operation reopens.
+   */
+  creditAccount?: Address;
   /**
    * Registration args the factory received (Securitize: `tokensToRegister`,
-   * `signaturesToCache`).
+   * `signaturesToCache`). Present on RWA-factory accounts only.
    */
-  rwaArgs: RWAOperationArgs;
+  rwaArgs?: RWAOperationArgs;
+  /**
+   * Whether the multicall grants the Midas greenlisted role to the credit
+   * account via `receiveGreenlist()`. Needed for the Midas empty-account
+   * flow.
+   */
+  midasGreenlistsAccount?: boolean;
 }
-
-/**
- * What an account-opening transaction that already exists would do — the
- * counterpart of `prepare.openNewStrategy`, read off calldata rather than
- * planned into it.
- **/
-export type OpenStrategyPositionPreview =
-  | OpenNonRWAStrategyPositionPreview
-  | OpenRWAStrategyPositionPreview;
 
 /**
  * What a transaction on an existing account would do — the counterpart of the

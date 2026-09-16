@@ -5,7 +5,7 @@ import { custom } from "viem";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
   KYC_REGISTRATION_LINKS,
-  type OpenRWAStrategyPositionPreview,
+  type MidasOpenAccountRequirements,
   type OpenStrategyPositionPreview,
   RWA_FACTORY_SECURITIZE,
   type RWAOperationArgs,
@@ -15,7 +15,7 @@ import {
 } from "../../../model/index.js";
 import { json_parse, OnchainSDK } from "../../index.js";
 import type { IDegenNFT } from "../../market/rwa/types.js";
-import { CM, OWNER, TOK } from "../testing/tokens.js";
+import { CA, CM, OWNER, TOK } from "../testing/tokens.js";
 import { checkRWAOpening } from "./checkRWAOpening.js";
 
 const FIXTURE = resolve(
@@ -70,10 +70,10 @@ function amount(address: Address, value: bigint): TokenAmount {
 }
 
 function preview(
-  over: Partial<OpenRWAStrategyPositionPreview> = {},
-): OpenRWAStrategyPositionPreview {
+  over: Partial<OpenStrategyPositionPreview> = {},
+): OpenStrategyPositionPreview {
   return {
-    operation: "RWAOpenCreditAccount",
+    operation: "OpenCreditAccount",
     creditManager: CREDIT_MANAGER,
     collateralAdded: [amount(DS_TOKEN, 1n)],
     quotas: [amount(DS_TOKEN, 1n)],
@@ -83,7 +83,7 @@ function preview(
       signaturesToCache: [],
     },
     ...over,
-  } as OpenRWAStrategyPositionPreview;
+  } as OpenStrategyPositionPreview;
 }
 
 describe("checkRWAOpening", () => {
@@ -106,7 +106,7 @@ describe("checkRWAOpening", () => {
       ).toEqual([]);
     });
 
-    it("asks only for gated tokens from collateralAdded and quotas", async () => {
+    it("reads requirements only for degen-NFT tokens from collateralAdded and quotas", async () => {
       const getOpenAccountRequirements = vi.fn(async () => ({
         protocol: "securitize",
         factory: FACTORY,
@@ -145,7 +145,9 @@ describe("checkRWAOpening", () => {
       });
     });
 
-    it("checks a facade OpenCreditAccount with providedArgs undefined", async () => {
+    // Temporarily disabled: Midas has not granted the gateway permission
+    // to greenlist addresses, so receiveGreenlist() does not grant the role.
+    it.skip("checks a facade OpenCreditAccount with providedArgs undefined", async () => {
       const getMissingRequirements = vi.fn(() => undefined);
       const nft = {
         getTokens: async () => [TOK.address],
@@ -171,6 +173,7 @@ describe("checkRWAOpening", () => {
         creditManager: CM,
         collateralAdded: [amount(TOK.address, 1n)],
         quotas: [amount(TOK.address, 1n)],
+        midasGreenlistsAccount: true,
       } as OpenStrategyPositionPreview;
 
       expect(
@@ -184,6 +187,199 @@ describe("checkRWAOpening", () => {
         expect.objectContaining({ protocol: "midas" }),
         undefined,
       );
+    });
+  });
+
+  describe("Midas", () => {
+    interface MidasNftOver {
+      greenlisted?: boolean;
+      getOpenAccountRequirements?: IDegenNFT["getOpenAccountRequirements"];
+    }
+
+    function midasNft(over: MidasNftOver = {}): IDegenNFT {
+      const greenlisted = over.greenlisted ?? false;
+      return {
+        getTokens: vi.fn(async () => [TOK.address]),
+        getOpenAccountRequirements:
+          over.getOpenAccountRequirements ??
+          vi.fn(async () => ({
+            protocol: "midas",
+            token: TOK.address,
+            greenlisted,
+          })),
+        getMissingRequirements: vi.fn(() => undefined),
+        isRegistered: vi.fn(
+          (requirements: MidasOpenAccountRequirements) =>
+            requirements.greenlisted === true,
+        ),
+        protocol: "midas",
+        registrationLink: KYC_REGISTRATION_LINKS.midas,
+      } as unknown as IDegenNFT;
+    }
+
+    function midasSdk(nft: IDegenNFT): OnchainSDK {
+      return {
+        marketRegister: {
+          findCreditManager: () => ({ degenNFT: async () => nft }),
+        },
+        tokensMeta: { getToken: () => TOK },
+      } as unknown as OnchainSDK;
+    }
+
+    it("reports the wallet requirement on a Midas empty opening", async () => {
+      const nft = midasNft();
+      const errors = await checkRWAOpening({
+        sdk: midasSdk(nft),
+        preview: preview({
+          creditManager: CM,
+          collateralAdded: [],
+          quotas: [],
+          rwaArgs: undefined,
+        }),
+        sender: OWNER,
+      });
+      expect(errors).toMatchObject([
+        {
+          code: "rwaOpenRequirementsNotMet",
+          protocol: "midas",
+          token: TOK,
+        },
+      ]);
+      expect(nft.getOpenAccountRequirements).toHaveBeenCalledWith(OWNER, {
+        tokenOutAddress: TOK.address,
+      });
+    });
+
+    it("does not read requirements on a Securitize empty opening", async () => {
+      const getOpenAccountRequirements = vi.fn();
+      const nft = {
+        getTokens: async () => [TOK.address],
+        getOpenAccountRequirements,
+        getMissingRequirements: vi.fn(() => undefined),
+        isRegistered: vi.fn(() => true),
+        protocol: "securitize",
+        registrationLink: KYC_REGISTRATION_LINKS.securitize,
+      } as unknown as IDegenNFT;
+      const sdk = {
+        marketRegister: {
+          findCreditManager: () => ({ degenNFT: async () => nft }),
+        },
+        tokensMeta: { getToken: () => TOK },
+      } as unknown as OnchainSDK;
+
+      expect(
+        await checkRWAOpening({
+          sdk,
+          preview: preview({
+            creditManager: CM,
+            collateralAdded: [],
+            quotas: [],
+          }),
+          sender: OWNER,
+        }),
+      ).toEqual([]);
+      expect(getOpenAccountRequirements).not.toHaveBeenCalled();
+    });
+
+    it("does not read requirements on a Midas empty reopen", async () => {
+      const nft = midasNft();
+      expect(
+        await checkRWAOpening({
+          sdk: midasSdk(nft),
+          preview: preview({
+            creditManager: CM,
+            creditAccount: CA,
+            collateralAdded: [],
+            quotas: [],
+            rwaArgs: undefined,
+          }),
+          sender: OWNER,
+        }),
+      ).toEqual([]);
+      expect(nft.getOpenAccountRequirements).not.toHaveBeenCalled();
+    });
+
+    it("reports when a Midas reopen's account lacks the role", async () => {
+      const getOpenAccountRequirements = vi.fn(async (wallet: Address) => ({
+        protocol: "midas" as const,
+        token: TOK.address,
+        greenlisted: wallet === OWNER,
+      }));
+      const nft = midasNft({ getOpenAccountRequirements });
+      const errors = await checkRWAOpening({
+        sdk: midasSdk(nft),
+        preview: preview({
+          creditManager: CM,
+          creditAccount: CA,
+          collateralAdded: [amount(TOK.address, 1n)],
+          quotas: [amount(TOK.address, 1n)],
+          rwaArgs: undefined,
+        }),
+        sender: OWNER,
+      });
+      expect(errors).toMatchObject([
+        {
+          code: "accountNotMidasGreenlisted",
+          token: TOK,
+          creditManager: CM,
+          creditAccount: CA,
+        },
+      ]);
+      expect(getOpenAccountRequirements).toHaveBeenCalledWith(CA, {
+        tokenOutAddress: TOK.address,
+      });
+      expect(nft.getTokens).toHaveBeenCalledTimes(1);
+    });
+
+    // Temporarily disabled: Midas has not granted the gateway permission
+    // to greenlist addresses, so receiveGreenlist() does not grant the role.
+    it.skip("returns nothing when a Midas reopen grants the role in the transaction", async () => {
+      const nft = midasNft({ greenlisted: true });
+      expect(
+        await checkRWAOpening({
+          sdk: midasSdk(nft),
+          preview: preview({
+            creditManager: CM,
+            creditAccount: CA,
+            collateralAdded: [amount(TOK.address, 1n)],
+            quotas: [amount(TOK.address, 1n)],
+            rwaArgs: undefined,
+            midasGreenlistsAccount: true,
+          }),
+          sender: OWNER,
+        }),
+      ).toEqual([]);
+      expect(nft.getOpenAccountRequirements).toHaveBeenCalledTimes(1);
+      expect(nft.getOpenAccountRequirements).toHaveBeenCalledWith(OWNER, {
+        tokenOutAddress: TOK.address,
+      });
+    });
+
+    it("reports a fresh funded Midas opening without the greenlist call, with no extra RPC", async () => {
+      const nft = midasNft({ greenlisted: true });
+      const errors = await checkRWAOpening({
+        sdk: midasSdk(nft),
+        preview: preview({
+          creditManager: CM,
+          collateralAdded: [amount(TOK.address, 1n)],
+          quotas: [amount(TOK.address, 1n)],
+          rwaArgs: undefined,
+        }),
+        sender: OWNER,
+      });
+      expect(errors).toMatchObject([
+        {
+          code: "accountNotMidasGreenlisted",
+          token: TOK,
+          creditManager: CM,
+        },
+      ]);
+      expect(errors[0]).not.toHaveProperty("creditAccount");
+      expect(nft.getOpenAccountRequirements).toHaveBeenCalledTimes(1);
+      expect(nft.getOpenAccountRequirements).toHaveBeenCalledWith(OWNER, {
+        tokenOutAddress: TOK.address,
+      });
+      expect(nft.getTokens).toHaveBeenCalledTimes(1);
     });
   });
 

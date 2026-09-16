@@ -68,7 +68,6 @@ export async function checkOperation(
         options,
       );
     case "OpenCreditAccount":
-    case "RWAOpenCreditAccount":
     case "AdjustCreditAccount":
       return checkCreditOperation({
         sdk,

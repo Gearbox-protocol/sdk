@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AccountNotMidasGreenlistedError,
   AdjustStrategyPositionPreview,
   DebtOutOfRangeError,
   ForbiddenTokenError,
@@ -35,7 +36,8 @@ export type CreditOperationError =
   | QuotaLimitReachedError
   | InsufficientCollateralError
   | WalletFundingError
-  | RWAOpenRequirementsError;
+  | RWAOpenRequirementsError
+  | AccountNotMidasGreenlistedError;
 
 /** The two previews that carry a position for the thresholds to weigh. */
 export type CreditOperationPreview =
@@ -66,20 +68,23 @@ export async function checkCreditOperation(
   const suite = sdk.marketRegister.findCreditManager(preview.creditManager);
   const market = suite.market;
   const underlying = toToken(sdk, market.pool.underlying);
-  const isOpening =
-    preview.operation === "OpenCreditAccount" ||
-    preview.operation === "RWAOpenCreditAccount";
+  const isOpening = preview.operation === "OpenCreditAccount";
+  const isEmptyOpening =
+    preview.operation === "OpenCreditAccount" &&
+    preview.totalDebt.value === 0n &&
+    preview.collateralAdded.length === 0 &&
+    preview.quotas.length === 0;
 
   const protocol: CreditOperationError[] = [
     ...checkMarket(suite),
-    // An account being opened has to carry a real loan; one being adjusted may
-    // end owing nothing at all.
+    // An account being opened has to carry a real loan, unless it is opened
+    // empty to be funded later; one being adjusted may end owing nothing at all.
     ...checkDebtLimits({
       debt: preview.totalDebt.value,
       minDebt: suite.creditFacade.minDebt,
       maxDebt: suite.creditFacade.maxDebt,
       underlying,
-      allowZero: !isOpening,
+      allowZero: !isOpening || isEmptyOpening,
       maxBorrowAmount: suite.maxBorrowAmount(),
     }),
     ...checkIncreaseDebt(suite, preview, underlying),
@@ -99,10 +104,7 @@ export async function checkCreditOperation(
 
   const [funding, rwa] = await Promise.all([
     checkCollateralFunding({ sdk, preview, sender, blockNumber }),
-    preview.operation === "OpenCreditAccount" ||
-    preview.operation === "RWAOpenCreditAccount"
-      ? checkRWAOpening({ sdk, preview, sender })
-      : [],
+    isOpening ? checkRWAOpening({ sdk, preview, sender }) : [],
   ]);
   return [...protocol, ...funding, ...rwa];
 }

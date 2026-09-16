@@ -11,6 +11,7 @@ import type {
   NoDelayedRouteError,
   NoRecordedIntentError,
   QuotaLimitReachedError,
+  ReservePriceLimitedError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
   WithdrawalInProgressError,
@@ -30,6 +31,7 @@ export type IntentValidationError =
   | DebtOutOfRangeError
   | LeverageOutOfRangeError
   | InsufficientCollateralError
+  | ReservePriceLimitedError
   | ForbiddenTokenError
   | QuotaLimitReachedError
   | InsufficientBalanceError

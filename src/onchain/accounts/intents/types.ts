@@ -63,7 +63,21 @@ export interface SimulationPrices {
  * {@link AccountProjection} vocabulary, plus the prices only a routed walk can
  * report.
  */
-export interface OperationState extends AccountProjection, SimulationPrices {}
+export interface OperationState extends AccountProjection, SimulationPrices {
+  /**
+   * What the operation gives up, as `(out − in) / in`: the oracle value in the
+   * underlying of everything its routed legs and redemption request return,
+   * the expected claim included, against the value of what they spend.
+   * In `PERCENTAGE_FACTOR_1KK` (1_000_000 = 100%), negative for a loss.
+   *
+   * `undefined` where nothing was traded, where a leg cannot be priced, and on
+   * a {@link BorrowState}, which does not measure it: the rate compares an
+   * account against itself before and after, and a borrow's payout goes to the
+   * wallet rather than staying to be compared. What its route cost is on that
+   * state as `borrowed` against `totalDebt`.
+   */
+  executionCost: bigint | undefined;
+}
 
 /**
  * What planning an intent yields: the operation chain, the state it projects,
@@ -447,12 +461,34 @@ export interface WithdrawStrategyIntent {
  */
 export interface WithdrawCeilings {
   /**
-   * Largest partial withdrawal {@link WithdrawStrategyIntent} accepts: the one
-   * whose proportional repayment leaves the debt at `minDebt`. `0n` when the
-   * debt already sits below the floor, and always at least one unit under
-   * `exit` — the last unit closes the account rather than shrinking it.
+   * Largest partial withdrawal the facade's `debtLimits` accept: the one whose
+   * proportional repayment leaves the debt at `minDebt`. `0n` when the debt
+   * already sits below the floor, and always at least one unit under `exit` —
+   * the last unit closes the account rather than shrinking it.
+   *
+   * `debtLimits` are not the only rule a withdrawal answers to, so this is a
+   * limit rather than the limit: {@link safePartial} is the one to offer.
    */
   partial: bigint;
+  /**
+   * Largest partial withdrawal {@link WithdrawStrategyIntent} actually accepts
+   * — {@link partial} once the safe-price collateral check has had its say,
+   * and never above it.
+   *
+   * A withdrawal hands funds over, and the facade weighs what it leaves behind
+   * at safe prices: `min` of a token's two feeds, or nothing at all where
+   * governance registered no reserve feed. Collateral the reserve feed marks
+   * down therefore backs less than a projection at main prices suggests, and
+   * the withdrawal stops earlier than `debtLimits` alone would say. This is
+   * the figure a slider and a Max button belong on.
+   *
+   * `0n` on an account already under the threshold at safe prices. That is not
+   * a rounding artefact and a smaller request does not help: a proportional
+   * withdrawal leaves the safe-price factor exactly where it found it, so no
+   * amount clears a threshold the account is already under. Such a position
+   * can still leave — see {@link exit}, which the check never refuses.
+   */
+  safePartial: bigint;
   /**
    * What leaving hands over: the account's net value, which is also the amount
    * at which a withdrawal turns into an exit. `0n` on an account whose debt

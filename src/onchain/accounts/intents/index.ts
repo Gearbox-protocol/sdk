@@ -10,6 +10,11 @@ import {
   IntentPreviewError,
   type IntentValidationError,
 } from "../../validation/raise.js";
+import {
+  type BorrowProps,
+  type BorrowState,
+  buildBorrowState,
+} from "./borrow.js";
 import { assertMarketOperable } from "./guards.js";
 
 import {
@@ -17,7 +22,7 @@ import {
   type LeverageBand,
   type LeverageBandProps,
 } from "./leverage-band.js";
-import { maxProportionalWithdrawal } from "./math.js";
+import { type MaxBorrowProps, maxBorrow } from "./maxBorrow.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
   buildOpenStrategyState,
@@ -57,7 +62,9 @@ import type {
   WithdrawCeilings,
 } from "./types.js";
 import { accountView } from "./view.js";
+import { withdrawLimits } from "./withdraw-limits.js";
 
+export type { BorrowProps, BorrowState } from "./borrow.js";
 export type { LeverageBand } from "./leverage-band.js";
 export type {
   OpenStrategyProps,
@@ -106,6 +113,23 @@ export type {
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; state: OpenStrategyState }
+  | SDKError<IntentValidationError>;
+
+/**
+ * Borrow preview outcome, shaped like {@link OpenStrategyPreviewResult}: both
+ * open an account, so neither has an operation chain to report.
+ */
+export type BorrowPreviewResult =
+  | { ok: true; state: BorrowState }
+  | SDKError<IntentValidationError>;
+
+/**
+ * Empty-account preview outcome: the thinnest of the three, since an account
+ * that holds nothing has no state to project — only the market's own refusal
+ * to open one at all.
+ */
+export type EmptyAccountPreviewResult =
+  | { ok: true }
   | SDKError<IntentValidationError>;
 
 /** An intent plus everything previewing it needs. */
@@ -161,30 +185,33 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Both ends of what a `WITHDRAW` can take out, in underlying: the largest
-   * partial withdrawal that keeps leverage and stays inside the facade's
-   * `debtLimits`, and the net value an exit hands over. They are reported together
-   * because a withdraw form needs both — the range it may offer, and the one
-   * amount past it that is allowed — and because the distance between them is
-   * the account's own, not a constant a caller could assume.
+   * partial withdrawal that keeps leverage, and the net value an exit hands
+   * over. They are reported together because a withdraw form needs both — the
+   * range it may offer, and the one amount past it that is allowed — and
+   * because the distance between them is the account's own, not a constant a
+   * caller could assume.
    *
-   * Takes no target health factor, unlike {@link maxWithdrawCollateral}: a
-   * proportional withdrawal leaves the factor where it found it, and the
-   * facade's `minDebt` is what bounds it.
+   * Two rules bound the partial end and both are reported: the facade's
+   * `debtLimits` as `partial`, and the safe-price collateral check on top of
+   * it as `safePartial`. The second is the one to offer — see
+   * {@link WithdrawCeilings}.
    *
-   * @param props - Account slice and the SDK holding its market
-   * @returns The two ceilings, see {@link WithdrawCeilings} for the gap between
-   * them
+   * Takes no target health factor, unlike {@link maxWithdrawCollateral}. A
+   * proportional withdrawal leaves the factor where it found it, so there is
+   * no room to choose: what these answer to is the facade's own threshold,
+   * which is also what {@link startIntent} refuses against.
+   *
+   * @param props - Account slice, the SDK holding its market, and optionally
+   * the collateral the withdrawal would be funded from
+   * @returns The three limits, see {@link WithdrawCeilings} for the gap
+   * between them
    */
   maxWithdraw(
-    props: Pick<StartIntentProps, "creditAccount" | "sdk">,
+    props: Pick<StartIntentProps, "creditAccount" | "sdk"> & {
+      sourceToken?: Address;
+    },
   ): WithdrawCeilings {
-    const view = accountView(props.creditAccount, props.sdk);
-    return {
-      partial: maxProportionalWithdrawal(view, view.debtLimits),
-      // an account underwater owes more than it holds, and has nothing to hand
-      // over on the way out
-      exit: view.collateral > 0n ? view.collateral : 0n,
-    };
+    return withdrawLimits(props);
   }
 
   /**
@@ -250,6 +277,39 @@ export class CreditAccountOperationsService extends SDKConstruct {
       ...rest,
       // two basis points clear of the threshold: a ceiling equal to it would
       // make a Max button produce an amount the form then refuses
+      targetHF: targetHF + 2n,
+    });
+  }
+
+  /**
+   * Largest loan a given collateral supports at `targetHF`, in the payout
+   * token's units — the ceiling a borrow form should offer.
+   *
+   * Reads no account, like {@link leverageBand}: the borrow opens one. The
+   * collateral is valued the way the transaction will be judged, at safe
+   * prices and under the quota the borrow buys, and the answer is then held to
+   * what the market will lend.
+   *
+   * A ceiling, not a verdict: the facade's `minDebt` is a floor and is not
+   * applied here, so collateral too small for this market still answers with
+   * what it carries and {@link borrowIntent} is the one that refuses the loan.
+   *
+   * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
+   * account to.
+   *
+   * @param props - The manager, the SDK holding its market, the collateral put
+   * up, the token to be paid in, and optionally the health factor to land at
+   * @returns Amount in the payout token's units; `0n` where no loan of this
+   * shape can be funded at any size
+   */
+  maxBorrow(
+    props: Omit<MaxBorrowProps, "targetHF"> & { targetHF?: bigint },
+  ): bigint {
+    const { targetHF = MIN_HF_LIMITED, ...rest } = props;
+    return maxBorrow({
+      // two basis points clear of the threshold, as above: a ceiling equal to
+      // it would make a Max button produce an amount the form then refuses
+      ...rest,
       targetHF: targetHF + 2n,
     });
   }
@@ -330,7 +390,12 @@ export class CreditAccountOperationsService extends SDKConstruct {
         sdk: props.sdk,
         quotaReserve: props.quotaReserve,
       });
-      return { ...result, state: tail.state, delayed };
+      // The tail trades at oracle prices, so what the route costs is the request's.
+      return {
+        ...result,
+        state: { ...tail.state, executionCost: result.state.executionCost },
+        delayed,
+      };
     } catch (e) {
       // A tail that cannot be walked is a request that would strand the
       // account, so it is stopped here rather than started and regretted.
@@ -449,6 +514,31 @@ export class CreditAccountOperationsService extends SDKConstruct {
   }
 
   /**
+   * Previews opening an account that holds nothing.
+   *
+   * Nothing is put up, drawn or routed, so there is no state to build and no
+   * guard to run beyond the market's own: a paused or expired facade takes no
+   * multicall, and an opening is a multicall like any other. Answers the same
+   * envelope its two neighbours do so a caller branches on `ok` throughout.
+   *
+   * @param props - The SDK holding the market, and the manager to open in
+   * @returns `{ ok: true }`, or `{ ok: false, error }` when the market takes
+   * no transaction right now
+   */
+  async openEmptyAccountIntent(
+    props: Pick<StartIntentProps, "sdk"> & { creditManager: Address },
+  ): Promise<EmptyAccountPreviewResult> {
+    try {
+      assertMarketOperable(
+        props.sdk.marketRegister.findCreditManager(props.creditManager),
+      );
+      return { ok: true };
+    } catch (e) {
+      return asSDKError(e);
+    }
+  }
+
+  /**
    * Previews opening a brand-new leveraged position.
    *
    * Sits apart from {@link startIntent} because there is no account yet: nothing
@@ -465,6 +555,35 @@ export class CreditAccountOperationsService extends SDKConstruct {
   ): Promise<OpenStrategyPreviewResult> {
     try {
       return { ok: true, state: await buildOpenStrategyState(props) };
+    } catch (e) {
+      return asSDKError(e);
+    }
+  }
+
+  /**
+   * Previews taking a loan against collateral, on an account this same
+   * transaction opens.
+   *
+   * Sits beside {@link openStrategyIntent} rather than under
+   * {@link startIntent} for the same reason: there is no account yet, and the
+   * output feeds `sdk.accounts.openCA`. What sets it apart from an opening is
+   * where the loan goes — out to the wallet rather than into a position — so
+   * the debt is named outright instead of following from a leverage, and the
+   * collateral is the only thing the account is left holding.
+   *
+   * `creditAccount` draws the loan on one the wallet already holds instead of
+   * opening another, as an opening takes one.
+   *
+   * @param props - Credit manager, the collateral the wallet puts up and the
+   * payout it asks for
+   * @returns Debt, the payout's two branches and the projection the account
+   * lands in, or `{ ok: false, error }` when the loan is not viable — a debt
+   * outside the facade's limits, collateral that cannot carry it, a payout the
+   * router has no path to
+   */
+  async borrowIntent(props: BorrowProps): Promise<BorrowPreviewResult> {
+    try {
+      return { ok: true, state: await buildBorrowState(props) };
     } catch (e) {
       return asSDKError(e);
     }

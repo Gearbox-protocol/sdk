@@ -4,7 +4,6 @@ import {
   type OpenStrategyPositionPreview,
   type PreviewOperationInput,
   type SDKReturn,
-  sdkErr,
   sdkOk,
   type UnpriceableTokenError,
 } from "../../../model/index.js";
@@ -12,20 +11,26 @@ import { AP_WETH_TOKEN, NO_VERSION } from "../../constants/address-provider.js";
 import type { AddressMap, Asset, OnchainSDK, PluginsMap } from "../../index.js";
 import type {
   InnerOperation,
+  MulticallOperation,
   OpenCreditAccountOperation,
+  RWAMulticallOperation,
   RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
-import { CreditAccountState } from "./CreditAccountState.js";
-import {
-  makeReplayState,
-  replayInnerOperations,
-} from "./replayInnerOperations.js";
+import { midasGreenlistsAccount } from "./midasGreenlistsAccount.js";
+import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
+
+type OpenPreviewOperation =
+  | OpenCreditAccountOperation
+  | RWAOpenCreditAccountOperation
+  | MulticallOperation
+  | RWAMulticallOperation;
 
 export function previewOpenStrategyPosition<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   input: PreviewOperationInput,
-  operation: OpenCreditAccountOperation | RWAOpenCreditAccountOperation,
+  operation: OpenPreviewOperation,
+  replay: ReplayMulticallResult,
 ): SDKReturn<OpenStrategyPositionPreview, MalformedTransactionError> {
   const { value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
@@ -33,27 +38,32 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   );
   const oracle = market.priceOracle;
 
-  // Since we open an account, initial balances, debt and quotas are all zero.
-  const state = makeReplayState(
-    CreditAccountState.beforeOpen(operation.creditManager, market.underlying),
-  );
-  const replayError = replayInnerOperations(sdk, operation.multicall, state);
-  if (replayError) {
-    return sdkErr(replayError);
-  }
-  const account = state.account;
+  const { before, after } = replay;
+  const account = after.account;
 
-  // collateral value is computed before unwrapping since the oracle cannot
+  // Collateral value is computed before unwrapping since the oracle cannot
   // price the native token. Best-effort: tokens the oracle cannot price
   // contribute nothing.
+  //
+  // `before.balances` is empty on a fresh opening and
+  // leftover non-dust collateral on a reopening of a zero-debt account.
   let warning: UnpriceableTokenError | undefined;
-  const netValue = state.collateralAdded.sum((token, balance) => {
+  const price = (token: Asset["token"], balance: bigint): bigint => {
     const priced = oracle.safeConvert(token, market.underlying, balance);
     warning ??= priced.error;
     return priced.value;
-  });
+  };
+  // The account's own funds: what the wallet put up, less what the same
+  // multicall hands back to it. A leveraged opening keeps everything it
+  // bought and withdraws nothing, so the subtrahend is zero there; a borrow
+  // pays the loan out on the way, and what backs the debt afterwards is the
+  // collateral alone.
+  const netValue =
+    before.balances.sum(price) +
+    after.collateralAdded.sum(price) -
+    after.collateralWithdrawn.sum(price);
   const unwrapped = unwrapNativeCollateral(
-    state.collateralAdded.toAssets(),
+    after.collateralAdded.toAssets(),
     value,
     sdk.addressProvider.getAddress(AP_WETH_TOKEN, NO_VERSION),
   );
@@ -78,7 +88,8 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     // oracle cannot price (`unpriceableToken`) contribute nothing to the
     // metrics.
     //
-    // Opening borrows the whole debt from the pool.
+    // Opening borrows the whole debt from the pool (`before.totalDebt` is 0
+    // on both a fresh opening and a reopening).
     ...asEstimated(
       sdk.positions.projection(snap, {
         availableLiquidityChange: -account.totalDebt,
@@ -90,19 +101,22 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
     collateralAdded: collateral.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
+    collateralWithdrawn: after.collateralWithdrawn
+      .toAssets()
+      .map(a => oracle.toTokenAmount(a.token, a.balance)),
     warning,
   };
 
-  if (operation.operation === "RWAOpenCreditAccount") {
-    return sdkOk({
-      ...projection,
-      operation: "RWAOpenCreditAccount",
-      rwaArgs: operation.args,
-    });
-  }
   return sdkOk({
     ...projection,
     operation: "OpenCreditAccount",
+    ...(operation.operation === "MultiCall" ||
+    operation.operation === "BotMulticall" ||
+    operation.operation === "RWAMulticall"
+      ? { creditAccount: operation.creditAccount }
+      : {}),
+    ...("args" in operation ? { rwaArgs: operation.args } : {}),
+    midasGreenlistsAccount: midasGreenlistsAccount(sdk, operation.multicall),
   });
 }
 

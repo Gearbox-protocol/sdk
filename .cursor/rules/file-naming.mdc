@@ -1,0 +1,26 @@
+---
+description: How to choose a file name when creating or restructuring a module.
+alwaysApply: true
+---
+
+# File naming
+
+A module is named after what it is for.
+
+## Name follows the main export
+
+- If the main export is a function or class, the file name is that identifier verbatim: `isReopening.ts` exports `isReopening`; `CreditAccountState.ts` exports `CreditAccountState`.
+- If the exports are equally important peers, do not pick one as the file name. Use camelCase for the shared problem or flow (`midasUtils.ts`).
+- Supporting types, interfaces, constants, and helpers exported only so a test can reach them do not count toward the decision.
+
+When renaming the main export, rename the file to match. When adding an export that rivals the main one, either rename the file to the shared flow or split into one file per export. Update every import site per `reroute-imports-on-refactor`.
+
+```typescript
+// ❌ BAD — file named for the activity, function named as a predicate
+// detectReopen.ts
+export function isReopening(replay: ReplayMulticallResult): boolean { ... }
+
+// ✅ GOOD
+// isReopening.ts
+export function isReopening(replay: ReplayMulticallResult): boolean { ... }
+```

@@ -2,10 +2,12 @@ import { type Address, isAddressEqual } from "viem";
 import type {
   Bps,
   ChainId,
+  CreditManagerPausedError,
   DebtOutOfRangeError,
   IGearboxError,
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
+  MarketExpiredError,
   PositionClaimableWithdrawal,
   PositionCollateral,
   SDKError,
@@ -25,6 +27,7 @@ import {
 } from "../../model/index.js";
 import type {
   Asset,
+  BorrowPreviewResult,
   ClaimableWithdrawal,
   CreditAccountSlice,
   DelayableIntent,
@@ -55,9 +58,12 @@ import type {
   AccountFlowError,
   AddCollateralParams,
   AdjustLeverageParams,
+  BorrowParams,
+  BorrowResult,
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
   DepositStrategyParams,
+  EmptyCreditAccountResult,
   FinalizeParams,
   FinalizeResult,
   IOpportunitiesPrepare,
@@ -65,6 +71,7 @@ import type {
   LpRedeemParams,
   LpResult,
   LpState,
+  MaxBorrowParams,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -393,6 +400,32 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc IOpportunitiesPrepare.openEmptyCreditAccount}
+   **/
+  public async openEmptyCreditAccount(
+    strategy: StrategyInput,
+  ): Promise<
+    SDKReturn<
+      EmptyCreditAccountResult,
+      CreditManagerPausedError | MarketExpiredError | UnexpectedFailureError
+    >
+  > {
+    try {
+      const sdk = await this.#chain(strategy.chainId);
+      const at = stateBlock(sdk);
+      const result = await service(sdk).openEmptyAccountIntent({
+        sdk,
+        creditManager: strategy.creditManager,
+      });
+      // The block stamp is the whole result: there is no state to report, so
+      // what the preparation answers is that the market took the request.
+      return result.ok ? sdkOk(at) : methodError(result);
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
+  }
+
+  /**
    * {@inheritDoc IOpportunitiesPrepare.openNewStrategy}
    **/
   public async openNewStrategy(
@@ -414,18 +447,6 @@ export class PrepareApi
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
-      if (params.empty) {
-        // Nothing is routed, so a market with no strategy target can still
-        // hand out an account.
-        return opened(
-          await service(sdk).openStrategyIntent({
-            sdk,
-            creditManager: strategy.creditManager,
-            empty: true,
-          }),
-          at,
-        );
-      }
       const targetToken =
         params.targetToken ??
         sdk.marketRegister.findCreditManager(strategy.creditManager)
@@ -433,22 +454,11 @@ export class PrepareApi
       if (!targetToken) {
         return sdkErr(noStrategyTargetCollateral(strategy.creditManager));
       }
-      let creditAccount: CreditAccountSlice | undefined;
-      if (params.creditAccount) {
-        const reused = await slice(sdk, params.creditAccount);
-        if (
-          !reused ||
-          !isAddressEqual(reused.creditManager, strategy.creditManager)
-        ) {
-          return sdkErr(creditAccountNotFound(params.creditAccount));
-        }
-        // Empty means no debt and no quotas; whatever balances sit on the
-        // account are the opening's to route.
-        if (reused.totalDebt > 0n || reused.tokens.some(t => t.quota > 0n)) {
-          return sdkErr(creditAccountNotEmpty(params.creditAccount));
-        }
-        creditAccount = reused;
+      const reused = await reusable(sdk, strategy, params.creditAccount);
+      if (reused && "error" in reused) {
+        return reused;
       }
+      const creditAccount = reused?.account;
       return opened(
         await service(sdk).openStrategyIntent({
           sdk,
@@ -460,6 +470,50 @@ export class PrepareApi
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
           creditAccount,
+        }),
+        at,
+      );
+    } catch (e) {
+      return sdkErr(unexpectedFailure(e));
+    }
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesPrepare.borrow}
+   **/
+  public async borrow(
+    strategy: StrategyInput,
+    params: BorrowParams,
+  ): Promise<
+    SDKReturn<
+      BorrowResult,
+      | OpenFlowError
+      | DebtOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | UnsupportedTokenPairError
+      | InsufficientPoolLiquidityError
+      | CreditAccountNotFoundError
+      | CreditAccountNotEmptyError
+    >
+  > {
+    try {
+      const sdk = await this.#chain(strategy.chainId);
+      const at = stateBlock(sdk);
+      const reused = await reusable(sdk, strategy, params.creditAccount);
+      if (reused && "error" in reused) {
+        return reused;
+      }
+      return borrowed(
+        await service(sdk).borrowIntent({
+          sdk,
+          creditManager: strategy.creditManager,
+          collateralToken: params.collateralToken,
+          collateralAmount: params.collateralAmount,
+          borrowToken: params.borrowToken,
+          borrowAmount: params.borrowAmount,
+          slippage: params.slippage,
+          quotaReserve: params.quotaReserve,
+          creditAccount: reused?.account,
         }),
         at,
       );
@@ -533,10 +587,13 @@ export class PrepareApi
   /**
    * {@inheritDoc IOpportunitiesPrepare.maxWithdraw}
    **/
-  public async maxWithdraw(position: PositionInput): Promise<WithdrawCeilings> {
+  public async maxWithdraw(
+    position: PositionInput,
+    sourceToken?: Address,
+  ): Promise<WithdrawCeilings> {
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
-    return service(sdk).maxWithdraw({ creditAccount, sdk });
+    return service(sdk).maxWithdraw({ creditAccount, sdk, sourceToken });
   }
 
   /**
@@ -682,6 +739,25 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc IOpportunitiesPrepare.maxBorrow}
+   **/
+  public maxBorrow(strategy: StrategyInput, params: MaxBorrowParams): bigint {
+    // Bare and synchronous, as `leverageBand` is: the account the loan would
+    // open does not exist yet, so there is nothing to read and nothing the
+    // envelope would have to report.
+    const sdk = this.sdk.chain(strategy.chainId);
+    return service(sdk).maxBorrow({
+      sdk,
+      creditManager: strategy.creditManager,
+      collateralToken: params.collateralToken,
+      collateralAmount: params.collateralAmount,
+      borrowToken: params.borrowToken,
+      targetHF: params.targetHF,
+      quotaReserve: params.quotaReserve,
+    });
+  }
+
+  /**
    * The account a bare `max*` read weighs. These reads answer a number, not
    * an envelope, so an account the markets do not hold is thrown rather than
    * described, see {@link IOpportunitiesPrepare.maxWithdraw}.
@@ -813,6 +889,43 @@ async function slice(
 }
 
 /**
+ * The pre-opened account a request asks to be run on, held to what "pre-opened"
+ * means: this manager's, owing nothing and holding no quota.
+ *
+ * Shared by the two flows that put something on a fresh account — an opening
+ * and a borrow — so both hold a reused one to the same terms. Whatever
+ * balances sit on it are left to the flow: an opening routes them, a borrow
+ * leaves them where they are.
+ *
+ * @returns Nothing when the request named no account, the refusal to answer
+ * with when it named one that does not qualify, and the slice otherwise
+ **/
+async function reusable(
+  sdk: OnchainSDK,
+  strategy: StrategyInput,
+  creditAccount: Address | undefined,
+): Promise<
+  | undefined
+  | SDKError<CreditAccountNotFoundError | CreditAccountNotEmptyError>
+  | { account: CreditAccountSlice }
+> {
+  if (!creditAccount) {
+    return undefined;
+  }
+  const account = await slice(sdk, creditAccount);
+  if (
+    !account ||
+    !isAddressEqual(account.creditManager, strategy.creditManager)
+  ) {
+    return sdkErr(creditAccountNotFound(creditAccount));
+  }
+  if (account.totalDebt > 0n || account.tokens.some(t => t.quota > 0n)) {
+    return sdkErr(creditAccountNotEmpty(creditAccount));
+  }
+  return { account };
+}
+
+/**
  * The operation a claim resumes, or `undefined` when there is none to resume:
  * a withdrawal requested without an intent, or one read through a compressor
  * too old to report it. Every intent the engine records can be finished,
@@ -923,6 +1036,18 @@ function opened<E extends IGearboxError>(
   result: OpenStrategyPreviewResult,
   at: PreparedAt,
 ): SDKReturn<OpenStrategyResult, E> {
+  return result.ok
+    ? sdkOk({ state: result.state, ...at })
+    : methodError<E>(result);
+}
+
+/**
+ * {@inheritDoc planned}
+ **/
+function borrowed<E extends IGearboxError>(
+  result: BorrowPreviewResult,
+  at: PreparedAt,
+): SDKReturn<BorrowResult, E> {
   return result.ok
     ? sdkOk({ state: result.state, ...at })
     : methodError<E>(result);

@@ -77,12 +77,6 @@ interface ScenarioSpec {
    * 2000 units of `withdrawToken`
    */
   withdrawAmount: bigint;
-  /**
-   * Securitize accounts are opened through the RWA factory
-   * (RWAOpenCreditAccount); Midas accounts directly through the credit
-   * facade (OpenCreditAccount)
-   */
-  openOperation: "RWAOpenCreditAccount" | "OpenCreditAccount";
 }
 
 const SCENARIOS: ScenarioSpec[] = [
@@ -92,7 +86,6 @@ const SCENARIOS: ScenarioSpec[] = [
     phantomToken: SECURITIZE_PHANTOM,
     withdrawToken: USDC,
     withdrawAmount: 2000n * 10n ** 6n,
-    openOperation: "RWAOpenCreditAccount",
   },
   {
     name: "withdraw-rlusd",
@@ -100,7 +93,6 @@ const SCENARIOS: ScenarioSpec[] = [
     phantomToken: SECURITIZE_PHANTOM,
     withdrawToken: RLUSD,
     withdrawAmount: 2000n * 10n ** 18n,
-    openOperation: "RWAOpenCreditAccount",
   },
   {
     name: "midas",
@@ -108,7 +100,6 @@ const SCENARIOS: ScenarioSpec[] = [
     phantomToken: MIDAS_PHANTOM,
     withdrawToken: USDC,
     withdrawAmount: 2000n * 10n ** 6n,
-    openOperation: "OpenCreditAccount",
   },
 ];
 
@@ -352,7 +343,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
     const preview = answer.data as OpenStrategyPositionPreview;
 
     expect(preview).toMatchObject({
-      operation: spec.openOperation,
+      operation: "OpenCreditAccount",
       warning: undefined,
       name: expect.any(String),
       underlyingToken: expect.objectContaining({
@@ -389,6 +380,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         token: expect.objectContaining({ address: COLLATERAL }),
         value: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
       },
+      midasGreenlistsAccount: false,
     });
   });
 

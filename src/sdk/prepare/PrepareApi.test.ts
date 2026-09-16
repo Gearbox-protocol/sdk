@@ -352,9 +352,8 @@ function buildStrategyApi(extras?: MarketSdkExtras) {
   };
 }
 
-describe("PrepareApi.openNewStrategy — the empty opening", () => {
+describe("PrepareApi.openEmptyCreditAccount", () => {
   const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
-  const EMPTY = { empty: true } as const;
 
   function api(extras?: MarketSdkExtras) {
     const sdk = buildMarketSdk({ minDebt: MIN_DEBT, ...extras });
@@ -364,24 +363,22 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     };
   }
 
-  it("reaches a state that owes nothing, holds nothing and routes nothing", async () => {
-    const result = await api().api.openNewStrategy(STRATEGY, EMPTY);
+  it("answers the block it cleared the request at, and nothing else", async () => {
+    const { api: prepare, sdk } = api();
+
+    const result = await prepare.openEmptyCreditAccount(STRATEGY);
 
     if (!result.ok) throw new Error(result.error.code);
-    const { state } = result.data;
-    expect(state.totalDebt.value).toBe(0n);
-    expect(state.totalValue.value).toBe(0n);
-    expect(state.averageAssets).toEqual([]);
-    expect(state.minAssets).toEqual([]);
-    expect(state.averageQuota).toEqual([]);
-    expect(state.minQuota).toEqual([]);
-    expect(state.calls).toEqual([]);
+    expect(result.data).toEqual({
+      blockNumber: Number(sdk.currentBlock),
+      timestamp: Number(sdk.timestamp),
+    });
   });
 
   it("never asks the router, which has no answer for an empty basket", async () => {
     const { api: prepare, sdk } = api();
 
-    await prepare.openNewStrategy(STRATEGY, EMPTY);
+    await prepare.openEmptyCreditAccount(STRATEGY);
 
     expect(
       vi.mocked(
@@ -390,7 +387,17 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("still refuses an ordinary opening that supplies nothing", async () => {
+  it("refuses a paused market, the one guard it does run", async () => {
+    const result = await api({ facadePaused: true }).api.openEmptyCreditAccount(
+      STRATEGY,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditManagerPaused");
+  });
+
+  it("does not stand in for an opening that supplies nothing", async () => {
     const result = await api().api.openNewStrategy(STRATEGY, {
       collateral: [],
       leverage: 300n,
@@ -399,17 +406,6 @@ describe("PrepareApi.openNewStrategy — the empty opening", () => {
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
     expect(result.error.code).toBe("insufficientBalance");
-  });
-
-  it("refuses a paused market, the one guard it does run", async () => {
-    const result = await api({ facadePaused: true }).api.openNewStrategy(
-      STRATEGY,
-      EMPTY,
-    );
-
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("unreachable");
-    expect(result.error.code).toBe("creditManagerPaused");
   });
 });
 
@@ -478,6 +474,143 @@ describe("PrepareApi.openNewStrategy on a pre-opened account", () => {
     } as unknown as MultichainSDK);
 
     const result = await api.openNewStrategy(STRATEGY, OPEN);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("creditAccountNotFound");
+  });
+});
+
+describe("PrepareApi.borrow", () => {
+  /** 1000 POS of collateral, worth the same in underlying at fixture prices. */
+  const COLLATERAL = 100000000000n;
+  /** 400 underlying of loan, clear of `MIN_DEBT` and of the threshold. */
+  const LOAN = 40000000000n;
+
+  const params = {
+    collateralToken: POS,
+    collateralAmount: COLLATERAL,
+    borrowToken: UND,
+    borrowAmount: LOAN,
+  };
+
+  it("opens on the collateral and hands the loan over, stamped with the block", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const prepared = plan(await api.borrow(strategy, params));
+
+    expect(prepared.state.collateral.token.address).toBe(POS);
+    expect(prepared.state.collateral.value).toBe(COLLATERAL);
+    expect(prepared.state.borrowed.token.address).toBe(UND);
+    expect(prepared.state.borrowed.value).toBe(LOAN);
+    expect(prepared.state.totalDebt.value).toBe(LOAN);
+    expect(prepared.blockNumber).toBe(1);
+  });
+
+  it("reports the position the loan leaves behind, market and all", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const { state } = plan(await api.borrow(strategy, params));
+
+    expect(state.healthFactor).toBeGreaterThan(10000);
+    expect(state.safeHealthFactor).toBeGreaterThan(10000);
+    expect(state.netValue.value).toBe(COLLATERAL - LOAN);
+    expect(state.borrowRate.totalOnDebt).toBeGreaterThan(0);
+    expect(state.timeToLiquidation).not.toBeNull();
+    expect(state.liquidationPrice).not.toBeNull();
+    expect(state.currentPrice).not.toBeNull();
+    expect(state.curator).toBeDefined();
+    expect(state.liquidationDiscount).toBeGreaterThan(0);
+  });
+
+  it("answers the engine's refusal as a value, not a throw", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.borrow(strategy, {
+      ...params,
+      borrowAmount: COLLATERAL,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("insufficientCollateral");
+  });
+
+  it("maxBorrow answers bare, and borrow takes what it answered", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const max = api.maxBorrow(strategy, {
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: UND,
+    });
+    // the ceiling is the collateral's, not the whole of what it is worth
+    expect(max).toBeGreaterThan(LOAN);
+    expect(max).toBeLessThan(COLLATERAL);
+
+    const { state } = plan(
+      await api.borrow(strategy, { ...params, borrowAmount: max }),
+    );
+    expect(state.borrowed.value).toBe(max);
+    expect(state.safeHealthFactor).toBeGreaterThan(10000);
+  });
+});
+
+describe("PrepareApi.borrow — an account already held", () => {
+  const COLLATERAL = 100000000000n;
+  const LOAN = 40000000000n;
+  const STRATEGY = { chainId: CHAIN_ID, creditManager: CREDIT_MANAGER };
+  const FUNDED = {
+    collateralToken: POS,
+    collateralAmount: COLLATERAL,
+    borrowToken: UND,
+    borrowAmount: LOAN,
+    creditAccount: CREDIT_ACCOUNT,
+  };
+
+  /** An account carrying whatever the case names, in the fixture market. */
+  function apiWith(account: {
+    totalDebt: bigint;
+    tokens: ReturnType<typeof caToken>[];
+  }) {
+    const sdk = buildMarketSdk({
+      minDebt: MIN_DEBT,
+      creditAccounts: [buildFixtureCreditAccount(account)],
+    });
+    return new PrepareApi({ chain: () => sdk } as unknown as MultichainSDK);
+  }
+
+  it("draws the loan on an account with no debt and no quotas", async () => {
+    const api = apiWith({ totalDebt: 0n, tokens: [] });
+
+    const { state } = plan(await api.borrow(STRATEGY, FUNDED));
+
+    expect(state.totalDebt.value).toBe(LOAN);
+    expect(state.creditAccount).toBe(CREDIT_ACCOUNT);
+  });
+
+  it("refuses one that still owes, or still carries a quota", async () => {
+    const owing = await apiWith({ totalDebt: DEBT, tokens: [] }).borrow(
+      STRATEGY,
+      FUNDED,
+    );
+    const quoted = await apiWith({
+      totalDebt: 0n,
+      tokens: [caToken(POS, TVL, QUOTA)],
+    }).borrow(STRATEGY, FUNDED);
+
+    if (owing.ok || quoted.ok) throw new Error("unreachable");
+    expect(owing.error.code).toBe("creditAccountNotEmpty");
+    expect(quoted.error.code).toBe("creditAccountNotEmpty");
+  });
+
+  it("refuses an account this market does not hold", async () => {
+    const sdk = buildMarketSdk({ minDebt: MIN_DEBT, creditAccounts: [] });
+    const api = new PrepareApi({
+      chain: () => sdk,
+    } as unknown as MultichainSDK);
+
+    const result = await api.borrow(STRATEGY, FUNDED);
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error("unreachable");
@@ -592,6 +725,50 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     // this market has no redemption venue, so only the instant route answers
     expect(prepared.instant).toBeDefined();
     expect(prepared.errors.delayed?.code).toBe("noDelayedRoute");
+  });
+
+  it("maxWithdraw stops at the safe-price limit, and names the feed when it refuses", async () => {
+    // The whole position is POS, and the reserve feed halves it: the account
+    // covers its debt at the main feed and does not at the safe one, which is
+    // the feed a call that pays out is weighed at.
+    const marked = {
+      reservePrices: { [POS]: 100000000n, [UND]: 200000000n },
+    };
+    const { api, position } = buildStrategyApi(marked);
+
+    const { partial, safePartial, exit } = await api.maxWithdraw(position);
+    // `debtLimits` would still allow a withdrawal; the collateral check does
+    // not, and it is the second figure that says so.
+    expect(partial).toBeGreaterThan(0n);
+    expect(safePartial).toBe(0n);
+
+    const refused = await api.withdrawStrategy(position, {
+      amount: partial,
+      to: WALLET,
+    });
+    expect(!refused.ok && refused.error.code).toBe("reservePriceLimited");
+    if (refused.ok || refused.error.code !== "reservePriceLimited") {
+      throw new Error("expected the reserve-price error");
+    }
+    // What a form should offer instead — nothing here, and the same figure the
+    // read above answered with.
+    expect(refused.error.withdrawable.value).toBe(safePartial);
+    expect(refused.error.atMainPrices).toBeGreaterThanOrEqual(
+      refused.error.healthFactorThreshold,
+    );
+
+    // Leaving entirely settles the debt rather than shrinking it, so the check
+    // has nothing to divide by and never refuses it.
+    plan(await api.withdrawStrategy(position, { amount: exit, to: WALLET }));
+  });
+
+  it("maxWithdraw leaves the debtLimits figure alone where the feeds agree", async () => {
+    const { api, position } = buildStrategyApi({
+      reservePrices: { [POS]: 200000000n, [UND]: 200000000n },
+    });
+
+    const { partial, safePartial } = await api.maxWithdraw(position);
+    expect(safePartial).toBe(partial);
   });
 
   it("maxWithdraw's exit is the net value, and it is the far side of a gap", async () => {

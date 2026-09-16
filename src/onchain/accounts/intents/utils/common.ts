@@ -7,6 +7,25 @@ import type { CreditAccountSlice } from "../types.js";
 export const eq = (a: Address, b: Address) =>
   a.toLowerCase() === b.toLowerCase();
 
+/**
+ * The suite and market behind a credit manager, or nothing where the register
+ * has no entry for it.
+ *
+ * For the reads a form calls on every keystroke, including before the SDK has
+ * finished attaching: a question the register cannot answer yet is not an
+ * error. Everything that prepares a transaction wants the throw instead.
+ */
+export function resolveCreditManager(sdk: OnchainSDK, creditManager: Address) {
+  try {
+    return {
+      suite: sdk.marketRegister.findCreditManager(creditManager),
+      market: sdk.marketRegister.findByCreditManager(creditManager),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 export function toTargetDecimals(
   fromAmount: bigint,
   fromToken: Address,

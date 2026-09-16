@@ -417,7 +417,9 @@ export class CreditAccountsServiceV310
       ...(callsAfter ?? []),
     ];
 
-    calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
+    // Temporarily disabled: Midas has not granted the gateway permission
+    // to greenlist addresses, so receiveGreenlist() would revert.
+    // calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
     calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
       ? cmSuite.multicallTx(reopenCreditAccount, calls, rwaOptions)
@@ -830,6 +832,7 @@ export class CreditAccountsServiceV310
   /**
    * {@inheritDoc ICreditAccountsService.prependMidasReceiveGreenlist}
    */
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: temporarily unused while receiveGreenlist is disabled
   async #prependMidasReceiveGreenlist(
     creditManager: Address,
     calls: MultiCall[],
