@@ -20,23 +20,8 @@ import {
   OnchainSDK,
 } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
+import { collectMidasGateways } from "./midasUtils.js";
 import { midasGatewayAbi } from "./withdrawalAbi.js";
-
-/**
- * Writes to a contract, mines a block and waits for the receipt
- */
-export async function writeAndWait(
-  anvil: AnvilClient,
-  params: Parameters<AnvilClient["writeContract"]>[0],
-): Promise<Hex> {
-  const hash = await anvil.writeContract(params);
-  await anvil.mine({ blocks: 1 });
-  await anvil.waitForTransactionReceipt({
-    hash,
-    pollingInterval: 100,
-  });
-  return hash;
-}
 
 export interface RegisterSecuritizeInvestorProps {
   anvil: AnvilClient;
@@ -157,38 +142,41 @@ export async function registerSecuritizeInvestor(
     const { account, release } = await useSecuritizeAdmin(props);
     try {
       if (!investorExists) {
-        await writeAndWait(anvil, {
+        await anvil.writeContractSync({
           account,
           chain: anvil.chain,
           address: registryService,
           abi: iDSRegistryServiceAbi,
           functionName: "registerInvestor",
           args: [investorId, investorId],
+          throwOnReceiptRevert: true,
         });
         logger?.debug(`Registered investor "${investorId}"`);
       }
-      await writeAndWait(anvil, {
+      await anvil.writeContractSync({
         account,
         chain: anvil.chain,
         address: registryService,
         abi: iDSRegistryServiceAbi,
         functionName: "addWallet",
         args: [investor, investorId],
+        throwOnReceiptRevert: true,
       });
       logger?.debug(`Added wallet ${investor} for investor "${investorId}"`);
 
       try {
-        await writeAndWait(anvil, {
+        await anvil.writeContractSync({
           account,
           chain: anvil.chain,
           address: registryService,
           abi: iDSRegistryServiceAbi,
           functionName: "setCountry",
           args: [investorId, "US"],
+          throwOnReceiptRevert: true,
         });
         logger?.debug(`Set country for investor "${investorId}" to "US"`);
 
-        await writeAndWait(anvil, {
+        await anvil.writeContractSync({
           account,
           chain: anvil.chain,
           address: registryService,
@@ -201,6 +189,7 @@ export async function registerSecuritizeInvestor(
             MAX_UINT256,
             "fake proof",
           ],
+          throwOnReceiptRevert: true,
         });
         logger?.debug(`Set attributes for investor "${investorId}"`);
       } catch (e) {
@@ -368,13 +357,14 @@ export async function greenlistMidasGateway(
         logger?.debug(`midas: ${account} already has role ${role}`);
         continue;
       }
-      await writeAndWait(anvil, {
+      await anvil.writeContractSync({
         account: admin,
         chain: anvil.chain,
         address: accessControl,
         abi: iMidasAccessControlAbi,
         functionName: "grantRole",
         args: [role, account],
+        throwOnReceiptRevert: true,
       });
       logger?.debug(`midas: granted role ${role} to ${account}`);
     }
@@ -434,23 +424,6 @@ async function findMidasGateway(
   }
   logger?.debug(`midas: gateway for ${token} is ${candidates[index]}`);
   return candidates[index];
-}
-
-/**
- * Collects the target contracts of all Midas gateway adapters of the loaded
- * credit managers, same as the foundry tests do with
- * `ICreditConfiguratorV3.allowedAdapters`
- */
-function collectMidasGateways(sdk: OnchainSDK): Address[] {
-  const gateways = new AddressSet();
-  for (const cm of sdk.marketRegister.creditManagers) {
-    for (const adapter of cm.creditManager.adapters.values()) {
-      if (adapter.contractType === "ADAPTER::MIDAS_GATEWAY") {
-        gateways.add(adapter.targetContract);
-      }
-    }
-  }
-  return gateways.asArray();
 }
 
 export interface RegisterRWAInvestorProps {

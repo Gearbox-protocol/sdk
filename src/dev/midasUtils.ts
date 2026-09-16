@@ -1,8 +1,12 @@
 import type { Address } from "viem";
 import { parseAbi, parseEther, toFunctionSelector } from "viem";
-import type { ILogger } from "../onchain/index.js";
+import {
+  AddressSet,
+  type ILogger,
+  MidasGatewayAdapterContract,
+  type OnchainSDK,
+} from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
-import { writeAndWait } from "./kycUtils.js";
 
 /**
  * Midas vaults inherit their own `Pausable`, whose global pause is guarded by
@@ -120,33 +124,36 @@ export async function unpauseMidasIssuanceVault(
   try {
     await anvil.setBalance({ address: admin, value: parseEther("100") });
     if (!isPauseAdmin) {
-      await writeAndWait(anvil, {
+      await anvil.writeContractSync({
         account: admin,
         chain: anvil.chain,
         address: accessControl,
         abi: iMidasAccessControlAbi,
         functionName: "grantRole",
         args: [pauseAdminRole, admin],
+        throwOnReceiptRevert: true,
       });
       logger?.debug(`midas: granted pause admin role to ${admin}`);
     }
     if (paused) {
-      await writeAndWait(anvil, {
+      await anvil.writeContractSync({
         account: admin,
         chain: anvil.chain,
         address: vault,
         abi: iMidasPausableVaultAbi,
         functionName: "unpause",
+        throwOnReceiptRevert: true,
       });
     }
     if (depositInstantPaused) {
-      await writeAndWait(anvil, {
+      await anvil.writeContractSync({
         account: admin,
         chain: anvil.chain,
         address: vault,
         abi: iMidasPausableVaultAbi,
         functionName: "unpauseFn",
         args: [DEPOSIT_INSTANT_SELECTOR],
+        throwOnReceiptRevert: true,
       });
     }
   } finally {
@@ -164,22 +171,24 @@ export async function unpauseMidasIssuanceVault(
     try {
       await anvil.setBalance({ address: admin, value: parseEther("100") });
       if (paused) {
-        await writeAndWait(anvil, {
+        await anvil.writeContractSync({
           account: admin,
           chain: anvil.chain,
           address: vault,
           abi: iMidasPausableVaultAbi,
           functionName: "pause",
+          throwOnReceiptRevert: true,
         });
       }
       if (depositInstantPaused) {
-        await writeAndWait(anvil, {
+        await anvil.writeContractSync({
           account: admin,
           chain: anvil.chain,
           address: vault,
           abi: iMidasPausableVaultAbi,
           functionName: "pauseFn",
           args: [DEPOSIT_INSTANT_SELECTOR],
+          throwOnReceiptRevert: true,
         });
       }
     } catch (e) {
@@ -189,4 +198,39 @@ export async function unpauseMidasIssuanceVault(
       await anvil.stopImpersonatingAccount({ address: admin });
     }
   };
+}
+
+function* midasGatewayAdapters(
+  sdk: OnchainSDK,
+): Generator<MidasGatewayAdapterContract> {
+  for (const cm of sdk.marketRegister.creditManagers) {
+    for (const adapter of cm.creditManager.adapters.values()) {
+      if (adapter instanceof MidasGatewayAdapterContract) {
+        yield adapter;
+      }
+    }
+  }
+}
+
+/**
+ * Target contracts of all Midas gateway adapters of the loaded credit managers,
+ * same as the foundry tests do with `ICreditConfiguratorV3.allowedAdapters`
+ */
+export function collectMidasGateways(sdk: OnchainSDK): Address[] {
+  const gateways = new AddressSet();
+  for (const adapter of midasGatewayAdapters(sdk)) {
+    gateways.add(adapter.targetContract);
+  }
+  return gateways.asArray();
+}
+
+/**
+ * mTokens of all Midas gateway adapters of the loaded credit managers
+ */
+export function collectMidasMTokens(sdk: OnchainSDK): Address[] {
+  const mTokens = new AddressSet();
+  for (const adapter of midasGatewayAdapters(sdk)) {
+    mTokens.add(adapter.mToken);
+  }
+  return mTokens.asArray();
 }
