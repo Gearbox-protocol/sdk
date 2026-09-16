@@ -283,13 +283,16 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Largest loan a given collateral supports at `targetHF`, in the payout
-   * token's units — the ceiling a borrow form should offer, and the amount
-   * {@link borrowIntent} will accept at the top of its range.
+   * token's units — the ceiling a borrow form should offer.
    *
    * Reads no account, like {@link leverageBand}: the borrow opens one. The
    * collateral is valued the way the transaction will be judged, at safe
    * prices and under the quota the borrow buys, and the answer is then held to
    * what the market will lend.
+   *
+   * A ceiling, not a verdict: the facade's `minDebt` is a floor and is not
+   * applied here, so collateral too small for this market still answers with
+   * what it carries and {@link borrowIntent} is the one that refuses the loan.
    *
    * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
    * account to.
@@ -297,7 +300,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * @param props - The manager, the SDK holding its market, the collateral put
    * up, the token to be paid in, and optionally the health factor to land at
    * @returns Amount in the payout token's units; `0n` where no loan of this
-   * shape can be funded
+   * shape can be funded at any size
    */
   maxBorrow(
     props: Omit<MaxBorrowProps, "targetHF"> & { targetHF?: bigint },

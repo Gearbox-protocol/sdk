@@ -119,8 +119,8 @@ received.
 
 `prepare.maxBorrow` → `maxBorrow`
 ([`maxBorrow.ts`](../../src/onchain/accounts/intents/maxBorrow.ts)) answers the
-largest `borrowAmount` this flow will accept for a given collateral, in the
-payout token's units — the Max button of a borrow form.
+largest `borrowAmount` a given collateral carries, in the payout token's
+units — the Max button of a borrow form.
 
 It is the graph above solved backwards rather than searched. The loan leaves
 the account, so the collateral is the whole of what backs the debt and the
@@ -131,7 +131,10 @@ backed = min(quota · price(U), price(collateral) · LT)   what the check counts
 D      = backed / targetHF                               the most the debt may be worth
        ∧ maxBorrowAmount()                               pool liquidity, manager allowance, maxDebt
 answer = price(U → payout, D)                            back into the token asked for
+                                                         (rescaled, for an RWA asset)
 ```
+
+`minDebt` is not a term: see [below](#mindebt-is-a-floor-and-the-ceiling-is-not-held-to-it).
 
 `backed` is [`collateralValuation`](../../src/onchain/accounts/intents/collateral-valuation.ts)'s,
 so the valuation is the collateral check's own — safe prices, thresholds and
@@ -140,9 +143,27 @@ taken from the same `borrowCollateralQuota`. Every division truncates, which is
 what keeps the answer under the check rather than at it.
 
 Synchronous: the account does not exist yet, so nothing is read and a form can
-ask on every keystroke. `0n` means this market funds no loan of this shape — a
-debt under `minDebt`, a collateral worth nothing at safe prices, a payout in
-the collateral token, or a manager the SDK does not hold yet.
+ask on every keystroke. `0n` means this market funds no loan of this shape at
+any size — a collateral worth nothing at safe prices, a payout in the
+collateral token, a market with nothing left to lend, or a manager the SDK does
+not hold yet.
+
+### `minDebt` is a floor, and the ceiling is not held to it
+
+`maxBorrow` is a ceiling, not a verdict, so the facade's `minDebt` is left out
+of it. Applied, a market whose floor is 200k would answer `0` for 10k of
+collateral — hiding the ~8.4k that collateral does carry, which is the number a
+user needs in order to see how far short they are.
+
+What comes back is therefore an amount `borrow` may still refuse, and the
+refusal is the better place for it: `debtOutOfRange` carries `requested`,
+`minDebt` and `maxDebt` together, so a form can say "this collateral borrows
+8362, the market lends no less than 200000" from one error rather than from a
+zero it has to explain by itself.
+
+The other bounds stay in, because they are ceilings like this one: pool
+liquidity, the manager's allowance and `maxDebt` all cap what may be drawn, and
+a `0n` from any of them means there is genuinely nothing to offer.
 
 ## Notes
 

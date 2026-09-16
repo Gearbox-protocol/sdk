@@ -218,9 +218,52 @@ describe("maxBorrow — where no loan of this shape can be funded", () => {
     expect(maxBorrow({ collateralAmount: 1n })).toBe(0n);
   });
 
-  it("answers nothing where the ceiling lands under minDebt", () => {
+  it("answers the ceiling even where it lands under minDebt", () => {
+    // The floor is the market's, not the collateral's: a form that showed
+    // nothing here would hide the very number the user is short of. `borrow`
+    // is what refuses the loan, and it names both ends.
     expect(maxBorrow({}, { minDebt: CEILING })).toBe(CEILING);
-    expect(maxBorrow({}, { minDebt: CEILING + 1n })).toBe(0n);
+    expect(maxBorrow({}, { minDebt: CEILING * 100n })).toBe(CEILING);
+  });
+
+  it("offers what small collateral carries, and leaves the floor to borrow", async () => {
+    // The case a form runs into: 10k of collateral in a market that lends no
+    // less than 200k. The ceiling is the collateral's own, so there is a
+    // number to show; what it falls short of is the market's floor, and
+    // `borrow` is where a caller reads both ends at once.
+    const small = toBN("10000", UND_DECIMALS);
+    const floor = toBN("200000", UND_DECIMALS);
+    const sdk = buildMarketSdk({ minDebt: floor });
+    const service = new CreditAccountOperationsService(sdk);
+    const ask = {
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: small,
+      borrowToken: UND,
+      quotaReserve: undefined,
+    };
+
+    // 10000 of collateral at a 0.92 threshold, held to a factor of 1.1: a
+    // loan of ~8362, a fortieth of what this market lends and still the most
+    // this collateral carries
+    const amount = service.maxBorrow({ ...ask, targetHF: 11_000n });
+    expect(amount).toBe(toBN("8362.11597891", UND_DECIMALS));
+    expect(amount).toBeLessThan(floor);
+
+    const outcome = await service.borrowIntent({
+      ...ask,
+      borrowAmount: amount,
+      slippage: undefined,
+    });
+    if (outcome.ok) {
+      throw new Error("expected the market's floor to refuse the ceiling");
+    }
+    if (outcome.error.code !== "debtOutOfRange") {
+      throw new Error(`expected debtOutOfRange, got ${outcome.error.code}`);
+    }
+    expect(outcome.error.requested?.value).toBe(amount);
+    expect(outcome.error.minDebt?.value).toBe(floor);
   });
 
   it("answers nothing for a collateral the market takes no threshold on", () => {

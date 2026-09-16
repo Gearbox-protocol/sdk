@@ -1029,10 +1029,17 @@ export interface IOpportunitiesPrepare {
    * account does not exist yet, so there is nothing to read and a form can ask
    * on every keystroke.
    *
-   * `0n` where this market funds no loan of this shape — a loan that would
-   * land under `minDebt`, a collateral worth nothing at safe prices, a payout
-   * token equal to the collateral, or a manager the SDK does not hold. Not the
-   * same as "any amount works", and a caller must not offer a Max for it.
+   * It is a ceiling and not a verdict: the facade's `minDebt` is a floor, and
+   * holding the answer to it would tell a form `0` for collateral that does
+   * carry a loan, only a smaller one than this market lends. So a Max offered
+   * from here can still be refused by {@link borrow} with `debtOutOfRange`,
+   * which names the floor the amount fell short of.
+   *
+   * `0n` where this market funds no loan of this shape at any size — a
+   * collateral worth nothing at safe prices, a payout token equal to the
+   * collateral, a market with nothing left to lend, or a manager the SDK does
+   * not hold. Not the same as "any amount works", and a caller must not offer
+   * a Max for it.
    **/
   maxBorrow(strategy: StrategyInput, params: MaxBorrowParams): bigint;
 

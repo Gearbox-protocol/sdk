@@ -39,14 +39,21 @@ export interface MaxBorrowProps {
  * liquidity, the manager's own allowance and the facade's `maxDebt`, whichever
  * binds first.
  *
+ * The facade's `minDebt` is deliberately not applied. It is a floor, and a
+ * ceiling answered as `0n` because the collateral is too small for this market
+ * would tell a form nothing about what it is holding — the number a user needs
+ * to see is the one they are short of. Collateral that carries something
+ * therefore answers with it, whether or not the market would lend that little;
+ * a loan under the floor is refused by `borrow` itself, with `debtOutOfRange`
+ * naming both ends.
+ *
  * Nothing is fetched or simulated — the account does not exist yet and every
  * input is loaded market state, so a form can call this on each keystroke.
  *
  * @param props - {@link MaxBorrowProps}
- * @returns Amount in the payout token's units; `0n` when this market will fund
- * no loan of this shape — including a debt that would land under `minDebt`, a
- * collateral that backs nothing at safe prices, and a manager the SDK does not
- * hold yet
+ * @returns Amount in the payout token's units; `0n` where no loan of this
+ * shape exists at any size — a collateral that backs nothing at safe prices, a
+ * market with nothing left to lend, and a manager the SDK does not hold yet
  **/
 export function maxBorrow(props: MaxBorrowProps): bigint {
   const { sdk, creditManager, collateralAmount, targetHF, quotaReserve } =
@@ -131,25 +138,13 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
     suite.maxBorrowAmount().amount.value,
   );
 
-  // An RWA payout is the asset behind the underlying, and the unwrap that
-  // hands it over converts by decimals alone — the same arithmetic the borrow
-  // itself does, so the ceiling this offers is one it will accept.
+  // Into the units the caller asked in, by the same three branches the borrow
+  // itself pays out through: the underlying as it stands, an RWA asset by
+  // decimals alone, anything else at the oracle's price.
   const unwrapsPayout = !!rwaAsset && eq(borrowToken, rwaAsset);
-  const intoPayout = (value: bigint): bigint =>
-    unwrapsPayout
-      ? toTargetDecimals(value, underlying, borrowToken, sdk)
-      : priceOracle.safeConvert(underlying, borrowToken, value).value;
-  const intoUnderlying = (value: bigint): bigint =>
-    unwrapsPayout
-      ? toTargetDecimals(value, borrowToken, underlying, sdk)
-      : priceOracle.safeConvert(borrowToken, underlying, value).value;
-
-  const amount = eq(borrowToken, underlying) ? ceiling : intoPayout(ceiling);
-
-  // What a borrow for that amount would put on the account, priced back the
-  // way it prices it. Rounding only ever loses wei here, so this is the debt
-  // `minDebt` has to admit — not the ceiling it was cut from.
-  const debt = eq(borrowToken, underlying) ? amount : intoUnderlying(amount);
-
-  return debt < suite.creditFacade.minDebt ? 0n : amount;
+  return eq(borrowToken, underlying)
+    ? ceiling
+    : unwrapsPayout
+      ? toTargetDecimals(ceiling, underlying, borrowToken, sdk)
+      : priceOracle.safeConvert(underlying, borrowToken, ceiling).value;
 }
