@@ -20,8 +20,7 @@ export interface CheckMidasAccountGreenlistInput {
 
 /**
  * Whether the credit account already holds the Midas greenlisted role
- * this permissioned mToken requires of its holder, or the transaction
- * grants it via `receiveGreenlist()`.
+ * this permissioned mToken requires of its holder.
  */
 export async function checkMidasAccountGreenlist(
   input: CheckMidasAccountGreenlistInput,
@@ -30,11 +29,12 @@ export async function checkMidasAccountGreenlist(
   if (nft.protocol !== "midas") {
     return [];
   }
-  // if multicall contains receiveGreenlist() call on midas adapter,
-  // checks passes automatically
-  if (preview.midasGreenlistsAccount) {
-    return [];
-  }
+  // Temporarily disabled: Midas has not granted the gateway permission
+  // to greenlist addresses, so receiveGreenlist() in the multicall
+  // does not actually grant the role.
+  // if (preview.midasGreenlistsAccount) {
+  //   return [];
+  // }
   if (tokens.length === 0) {
     return [];
   }
