@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { TokenAmount } from "../../../../model/index.js";
 // Not the package barrel: this file is pulled in through it, so a value read
 // from there would still be uninitialised here.
 import {
@@ -134,7 +135,7 @@ export function lossRate(args: {
   expectedUnd: bigint;
   totalValue: bigint;
   netValue: bigint;
-}): PathLossRate {
+}): Omit<PathLossRate, "absolutePriceImpact"> {
   const { lossUnd, expectedUnd, totalValue, netValue } = args;
   const against = (base: bigint): bigint =>
     -((PERCENTAGE_FACTOR_1KK * lossUnd) / (base > 0n ? base : expectedUnd));
@@ -158,6 +159,7 @@ export async function collectPriceImpact(
     totalValue: bigint;
     netValue: bigint;
     toUnderlying: (from: Address, amount: bigint) => bigint;
+    toUnderlyingAmount: (value: bigint) => TokenAmount;
   },
 ): Promise<PathLossRate | undefined> {
   if (probes.length === 0) {
@@ -201,10 +203,13 @@ export async function collectPriceImpact(
     return undefined;
   }
 
-  return lossRate({
-    lossUnd,
-    expectedUnd,
-    totalValue: ctx.totalValue,
-    netValue: ctx.netValue,
-  });
+  return {
+    ...lossRate({
+      lossUnd,
+      expectedUnd,
+      totalValue: ctx.totalValue,
+      netValue: ctx.netValue,
+    }),
+    absolutePriceImpact: ctx.toUnderlyingAmount(-lossUnd),
+  };
 }

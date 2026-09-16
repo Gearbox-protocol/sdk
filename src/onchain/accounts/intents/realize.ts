@@ -596,6 +596,7 @@ export async function realize(
     totalValue: projected.totalValue,
     netValue: opening.totalValue - opening.debt,
     toUnderlying: (from, amount) => price(from, underlying, amount),
+    toUnderlyingAmount: market.toUnderlyingAmount,
   });
 
   const executionCost =
