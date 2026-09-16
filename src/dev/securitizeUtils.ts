@@ -18,7 +18,7 @@ import {
   OnchainSDK,
 } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
-import { registerSecuritizeInvestor, writeAndWait } from "./kycUtils.js";
+import { registerSecuritizeInvestor } from "./kycUtils.js";
 
 /**
  * `COMPLIANCE_CONFIGURATION_SERVICE` id in the DS protocol service registry
@@ -149,32 +149,35 @@ async function issueDSTokens(props: IssueDSTokensProps): Promise<Hex> {
     const { timestamp } = await anvil.getBlock();
     const issuanceTime = timestamp - lockPeriod - 1n;
     try {
-      const hash = await writeAndWait(anvil, {
+      const receipt = await anvil.writeContractSync({
         account,
         chain: anvil.chain,
         address: token,
         abi: iDSTokenAbi,
         functionName: "issueTokensCustom",
         args: [investor, amount, issuanceTime, 0n, "", 0n],
+        throwOnReceiptRevert: true,
       });
       logger?.debug(
         { issuanceTime, investor, amount },
         "issueTokensCustom successful",
       );
-      return hash;
+      return receipt.transactionHash;
     } catch (e) {
       logger?.debug(`issueTokensCustom failed: ${e}`);
     }
   }
   logger?.debug({ investor, amount }, "Falling back to issueTokens");
-  return writeAndWait(anvil, {
+  const receipt = await anvil.writeContractSync({
     account,
     chain: anvil.chain,
     address: token,
     abi: iDSTokenAbi,
     functionName: "issueTokens",
     args: [investor, amount],
+    throwOnReceiptRevert: true,
   });
+  return receipt.transactionHash;
 }
 
 /**
@@ -247,13 +250,14 @@ export async function enableDSTokenBackDating(
       continue;
     }
     logger?.info(`Allowing back-dating on ${service}`);
-    await writeAndWait(anvil, {
+    await anvil.writeContractSync({
       account,
       chain: anvil.chain,
       address: service,
       abi: iDSComplianceConfigurationServiceAbi,
       functionName: "setDisallowBackDating",
       args: [false],
+      throwOnReceiptRevert: true,
     });
     toRestore.push(service);
   }
@@ -264,13 +268,14 @@ export async function enableDSTokenBackDating(
     for (const service of services) {
       logger?.info(`Disallowing back-dating on ${service}`);
       try {
-        await writeAndWait(anvil, {
+        await anvil.writeContractSync({
           account,
           chain: anvil.chain,
           address: service,
           abi: iDSComplianceConfigurationServiceAbi,
           functionName: "setDisallowBackDating",
           args: [true],
+          throwOnReceiptRevert: true,
         });
       } catch (e) {
         // never mask the error that interrupted the bracketed work
