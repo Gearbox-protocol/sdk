@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AccountNotMidasGreenlistedError,
   AdjustStrategyPositionPreview,
   DebtOutOfRangeError,
   ForbiddenTokenError,
@@ -35,7 +36,8 @@ export type CreditOperationError =
   | QuotaLimitReachedError
   | InsufficientCollateralError
   | WalletFundingError
-  | RWAOpenRequirementsError;
+  | RWAOpenRequirementsError
+  | AccountNotMidasGreenlistedError;
 
 /** The two previews that carry a position for the thresholds to weigh. */
 export type CreditOperationPreview =

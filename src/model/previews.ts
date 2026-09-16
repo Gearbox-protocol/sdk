@@ -461,6 +461,12 @@ export interface OpenStrategyPositionPreview
    * `signaturesToCache`). Present on RWA-factory accounts only.
    */
   rwaArgs?: RWAOperationArgs;
+  /**
+   * Whether the multicall grants the Midas greenlisted role to the credit
+   * account via `receiveGreenlist()`. Needed for the Midas empty-account
+   * flow.
+   */
+  midasGreenlistsAccount?: boolean;
 }
 
 /**

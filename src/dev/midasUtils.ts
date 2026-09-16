@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import { parseAbi, parseEther } from "viem";
+import { parseAbi, parseEther, toFunctionSelector } from "viem";
 import type { ILogger } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import { writeAndWait } from "./kycUtils.js";
@@ -12,6 +12,9 @@ const iMidasPausableVaultAbi = parseAbi([
   "function paused() external view returns (bool)",
   "function pause() external",
   "function unpause() external",
+  "function fnPaused(bytes4 fn) external view returns (bool)",
+  "function pauseFn(bytes4 fn) external",
+  "function unpauseFn(bytes4 fn) external",
   "function pauseAdminRole() external view returns (bytes32)",
   "function accessControl() external view returns (address)",
 ]);
@@ -20,6 +23,15 @@ const iMidasAccessControlAbi = parseAbi([
   "function hasRole(bytes32 role, address account) external view returns (bool)",
   "function grantRole(bytes32 role, address account) external",
 ]);
+
+/**
+ * Selector for `DepositVault.depositInstant(address,uint256,uint256,bytes32)`,
+ * the 4-arg mint Gearbox adapters encode. Distinct from the custom-recipient
+ * overload.
+ */
+const DEPOSIT_INSTANT_SELECTOR = toFunctionSelector(
+  "depositInstant(address,uint256,uint256,bytes32)",
+);
 
 export interface UnpauseMidasIssuanceVaultProps {
   anvil: AnvilClient;
@@ -42,9 +54,10 @@ export interface UnpauseMidasIssuanceVaultProps {
 export type RestoreMidasIssuanceVaultPause = () => Promise<void>;
 
 /**
- * Unpauses a globally paused Midas issuance vault on an anvil fork, so that
- * `depositInstant` stops reverting with `Pausable: paused`, and returns a
- * callback that restores the original pause state.
+ * Unpauses a Midas issuance vault on an anvil fork so that `depositInstant`
+ * stops reverting with `Pausable: paused` (global) or `Pausable: fn paused`
+ * (per-selector), and returns a callback that restores the original pause
+ * state of each layer that was cleared.
  *
  * Impersonates `admin` and grants it `pauseAdminRole()` when missing, same as
  * `greenlistMidasGateway` does with the greenlist roles. The grant is not
@@ -55,12 +68,23 @@ export async function unpauseMidasIssuanceVault(
 ): Promise<RestoreMidasIssuanceVaultPause> {
   const { anvil, vault, admin, logger } = props;
 
-  const paused = await anvil.readContract({
-    address: vault,
-    abi: iMidasPausableVaultAbi,
-    functionName: "paused",
+  const [paused, depositInstantPaused] = await anvil.multicall({
+    allowFailure: false,
+    contracts: [
+      {
+        address: vault,
+        abi: iMidasPausableVaultAbi,
+        functionName: "paused" as const,
+      },
+      {
+        address: vault,
+        abi: iMidasPausableVaultAbi,
+        functionName: "fnPaused" as const,
+        args: [DEPOSIT_INSTANT_SELECTOR] as const,
+      },
+    ],
   });
-  if (!paused) {
+  if (!paused && !depositInstantPaused) {
     logger?.debug(`midas: issuance vault ${vault} is not paused`);
     return async () => {};
   }
@@ -87,7 +111,9 @@ export async function unpauseMidasIssuanceVault(
     args: [pauseAdminRole, admin],
   });
   logger?.debug(
-    `midas: unpausing issuance vault ${vault} as ${admin}, access control ${accessControl}, pause admin role ${pauseAdminRole}`,
+    `midas: unpausing issuance vault ${vault} as ${admin}, access control ${accessControl}, pause admin role ${pauseAdminRole}` +
+      (paused ? ", global" : "") +
+      (depositInstantPaused ? ", depositInstant" : ""),
   );
 
   await anvil.impersonateAccount({ address: admin });
@@ -104,13 +130,25 @@ export async function unpauseMidasIssuanceVault(
       });
       logger?.debug(`midas: granted pause admin role to ${admin}`);
     }
-    await writeAndWait(anvil, {
-      account: admin,
-      chain: anvil.chain,
-      address: vault,
-      abi: iMidasPausableVaultAbi,
-      functionName: "unpause",
-    });
+    if (paused) {
+      await writeAndWait(anvil, {
+        account: admin,
+        chain: anvil.chain,
+        address: vault,
+        abi: iMidasPausableVaultAbi,
+        functionName: "unpause",
+      });
+    }
+    if (depositInstantPaused) {
+      await writeAndWait(anvil, {
+        account: admin,
+        chain: anvil.chain,
+        address: vault,
+        abi: iMidasPausableVaultAbi,
+        functionName: "unpauseFn",
+        args: [DEPOSIT_INSTANT_SELECTOR],
+      });
+    }
   } finally {
     await anvil.stopImpersonatingAccount({ address: admin });
   }
@@ -125,13 +163,25 @@ export async function unpauseMidasIssuanceVault(
     await anvil.impersonateAccount({ address: admin });
     try {
       await anvil.setBalance({ address: admin, value: parseEther("100") });
-      await writeAndWait(anvil, {
-        account: admin,
-        chain: anvil.chain,
-        address: vault,
-        abi: iMidasPausableVaultAbi,
-        functionName: "pause",
-      });
+      if (paused) {
+        await writeAndWait(anvil, {
+          account: admin,
+          chain: anvil.chain,
+          address: vault,
+          abi: iMidasPausableVaultAbi,
+          functionName: "pause",
+        });
+      }
+      if (depositInstantPaused) {
+        await writeAndWait(anvil, {
+          account: admin,
+          chain: anvil.chain,
+          address: vault,
+          abi: iMidasPausableVaultAbi,
+          functionName: "pauseFn",
+          args: [DEPOSIT_INSTANT_SELECTOR],
+        });
+      }
     } catch (e) {
       // never mask the error that interrupted the bracketed work
       logger?.warn(`midas: failed to pause issuance vault ${vault} back: ${e}`);

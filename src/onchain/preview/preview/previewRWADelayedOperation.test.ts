@@ -380,6 +380,7 @@ describe.each(SCENARIOS)("RWA delayed scenario $name", spec => {
         token: expect.objectContaining({ address: COLLATERAL }),
         value: expect.toBeWithinBpsBelow(findBalance(afterOpen, COLLATERAL)),
       },
+      midasGreenlistsAccount: false,
     });
   });
 
