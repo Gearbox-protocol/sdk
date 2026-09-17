@@ -145,8 +145,7 @@ describe("checkRWAOpening", () => {
       });
     });
 
-    // Temporarily disabled: Midas has not granted the gateway permission
-    // to greenlist addresses, so receiveGreenlist() does not grant the role.
+    // receiveGreenlist() in the multicall is not treated as granting the role.
     it.skip("checks a facade OpenCreditAccount with providedArgs undefined", async () => {
       const getMissingRequirements = vi.fn(() => undefined);
       const nft = {
@@ -331,8 +330,7 @@ describe("checkRWAOpening", () => {
       expect(nft.getTokens).toHaveBeenCalledTimes(1);
     });
 
-    // Temporarily disabled: Midas has not granted the gateway permission
-    // to greenlist addresses, so receiveGreenlist() does not grant the role.
+    // receiveGreenlist() in the multicall is not treated as granting the role.
     it.skip("returns nothing when a Midas reopen grants the role in the transaction", async () => {
       const nft = midasNft({ greenlisted: true });
       expect(

@@ -29,9 +29,8 @@ export async function checkMidasAccountGreenlist(
   if (nft.protocol !== "midas") {
     return [];
   }
-  // Temporarily disabled: Midas has not granted the gateway permission
-  // to greenlist addresses, so receiveGreenlist() in the multicall
-  // does not actually grant the role.
+  // `midasGreenlistsAccount` means the multicall includes receiveGreenlist(),
+  // not that the role is actually granted. mGLOBAL's gateway cannot grant it.
   // if (preview.midasGreenlistsAccount) {
   //   return [];
   // }

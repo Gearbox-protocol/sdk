@@ -2,12 +2,7 @@ import type { Address } from "viem";
 
 import { iVersionAbi } from "../../abi/iVersion.js";
 import type { NetworkType } from "../chain/chains.js";
-import {
-  ADDRESS_PROVIDER_V310,
-  AP_MARKET_COMPRESSOR,
-  AP_PRICE_FEED_COMPRESSOR,
-  isV310,
-} from "../constants/index.js";
+import { ADDRESS_PROVIDER_V310, isV310 } from "../constants/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { hexEq } from "../utils/hex.js";
 import { AddressProviderV310Contract } from "./AddressProviderV310Contract.js";
@@ -19,19 +14,7 @@ import type {
 
 const OVERRIDE_ADDRESSES: Partial<
   Record<NetworkType, AddressProviderAddresses["overrides"]>
-> = {
-  // TODO: remove this
-  // Override price feed compressor and market feed compressor
-  // we urgently deployed fix and it has not been added to the address provider yet
-  Mainnet: {
-    [AP_PRICE_FEED_COMPRESSOR]: {
-      311: "0x1fA2637B9fab0CD14290A7EE908DDc9688a15120",
-    },
-    [AP_MARKET_COMPRESSOR]: {
-      311: "0x0C27F242f6e9F2A9AD3261bE6e439De3B948bcA2",
-    },
-  },
-};
+> = {};
 
 export async function createAddressProvider(
   sdk: OnchainSDK,
