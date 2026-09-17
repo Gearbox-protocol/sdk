@@ -1,9 +1,12 @@
 import type {
+  Abi,
   Account,
   Address,
   Block,
   Chain,
   Client,
+  ContractFunctionArgs,
+  ContractFunctionName,
   Hex,
   Prettify,
   PublicClient,
@@ -12,14 +15,19 @@ import type {
   TestRpcSchema,
   Transport,
   WalletClient,
+  WriteContractSyncParameters,
+  WriteContractSyncReturnType,
 } from "viem";
 import {
+  BaseError,
   createTestClient,
   publicActions,
   testActions,
   toHex,
   walletActions,
 } from "viem";
+import { waitForTransactionReceipt, writeContract } from "viem/actions";
+import { getAction } from "viem/utils";
 
 export interface AnvilNodeInfo {
   currentBlockNumber: string; // hexutil.Big is a big number in hex format
@@ -122,10 +130,27 @@ async function loadDeal(): Promise<typeof import("viem-deal").deal> {
   return mod.deal;
 }
 
+function anvilActions(client: Client) {
+  return {
+    anvilNodeInfo: () => anvilNodeInfo(client),
+    isAnvil: () => isAnvil(client),
+    evmMineDetailed: (timestamp: bigint | number) =>
+      evmMineDetailed(client, timestamp),
+    deal: async (params: AnvilDealParameters) => {
+      const deal = await loadDeal();
+      await deal(client as unknown as TestClient, params);
+    },
+    writeContractSync: (
+      parameters: WriteContractSyncParameters,
+    ): Promise<WriteContractSyncReturnType> =>
+      writeContractSync(client, parameters),
+  };
+}
+
 /**
  * Extends an arbitrary viem `PublicClient` with anvil + wallet actions plus
  * the SDK's bonus actions (`anvilNodeInfo`, `isAnvil`, `evmMineDetailed`,
- * `deal`).
+ * `deal`, `writeContractSync`).
  *
  * Used to lift `sdk.client` into an `AnvilClient` shape on the fly when test
  * RPCs (impersonateAccount, setBalance, setStorageAt, ...) are needed.
@@ -140,16 +165,7 @@ export function extendAnvilClient(client: PublicClient): AnvilClient {
       .extend(() => ({ mode: "anvil" as const }))
       .extend(testActions({ mode: "anvil" }))
       .extend(walletActions)
-      .extend(c => ({
-        anvilNodeInfo: () => anvilNodeInfo(c),
-        isAnvil: () => isAnvil(c),
-        evmMineDetailed: (timestamp: bigint | number) =>
-          evmMineDetailed(c, timestamp),
-        deal: async (params: AnvilDealParameters) => {
-          const deal = await loadDeal();
-          await deal(c as unknown as TestClient, params);
-        },
-      })) as any
+      .extend(c => anvilActions(c)) as any
   );
 }
 
@@ -168,16 +184,7 @@ export function createAnvilClient({
   })
     .extend(publicActions)
     .extend(walletActions)
-    .extend(c => ({
-      anvilNodeInfo: () => anvilNodeInfo(c),
-      isAnvil: () => isAnvil(c),
-      evmMineDetailed: (timestamp: bigint | number) =>
-        evmMineDetailed(c, timestamp),
-      deal: async (params: AnvilDealParameters) => {
-        const deal = await loadDeal();
-        await deal(c as unknown as TestClient, params);
-      },
-    })) as unknown as AnvilClient;
+    .extend(c => anvilActions(c)) as unknown as AnvilClient;
 }
 
 /**
@@ -232,4 +239,58 @@ export async function evmMineDetailed(
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Anvil-compatible `writeContractSync`: send via `writeContract` (Anvil
+ * supports `eth_sendTransaction` / `eth_sendRawTransaction`) then wait for
+ * the receipt. Viem's own action uses `eth_sendRawTransactionSync`, which
+ * Anvil does not implement.
+ */
+export async function writeContractSync<
+  chain extends Chain | undefined,
+  account extends Account | undefined,
+  const abi extends Abi | readonly unknown[],
+  functionName extends ContractFunctionName<abi, "nonpayable" | "payable">,
+  args extends ContractFunctionArgs<
+    abi,
+    "nonpayable" | "payable",
+    functionName
+  >,
+  chainOverride extends Chain | undefined,
+>(
+  client: Client<Transport, chain, account>,
+  parameters: WriteContractSyncParameters<
+    abi,
+    functionName,
+    args,
+    chain,
+    account,
+    chainOverride
+  >,
+): Promise<WriteContractSyncReturnType<chain>> {
+  const { throwOnReceiptRevert, pollingInterval, timeout, ...writeParams } =
+    parameters;
+  const hash = await getAction(
+    client,
+    writeContract,
+    "writeContract",
+  )(writeParams as never);
+  const receipt = await getAction(
+    client,
+    waitForTransactionReceipt,
+    "waitForTransactionReceipt",
+  )({
+    checkReplacement: false,
+    hash,
+    pollingInterval,
+    timeout,
+  });
+  if (throwOnReceiptRevert && receipt.status === "reverted") {
+    throw new BaseError(
+      `Transaction with hash "${receipt.transactionHash}" reverted.`,
+      { name: "TransactionReceiptRevertedError" },
+    );
+  }
+  return receipt as WriteContractSyncReturnType<chain>;
 }

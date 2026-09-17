@@ -2,13 +2,7 @@ import type {
   AbiParametersToPrimitiveTypes,
   ExtractAbiFunction,
 } from "abitype";
-import type {
-  Account,
-  Address,
-  PublicClient,
-  TransactionReceipt,
-  WalletClient,
-} from "viem";
+import type { Account, Address, PublicClient, WalletClient } from "viem";
 import { readContract } from "viem/actions";
 import { formatBN, type ILogger, type OnchainSDK } from "../onchain/index.js";
 import { iFaucetAbi } from "./abi.js";
@@ -35,7 +29,6 @@ interface ClaimFromFaucetOptions {
   amount?: TokenClaim[] | bigint | ((minAmountUSD: bigint) => bigint);
   gasMultiplier?: bigint;
   logger?: ILogger;
-  sync?: boolean;
 }
 
 export async function claimFromFaucet(
@@ -51,7 +44,6 @@ export async function claimFromFaucet(
     amount,
     logger,
     gasMultiplier = 10n,
-    sync = false,
   } = opts;
 
   let amnt = "default amount";
@@ -115,14 +107,9 @@ export async function claimFromFaucet(
     gas: gas * gasMultiplier,
   });
   logger?.debug({ request }, "simulated claim tx request");
-  let receipt: TransactionReceipt;
-  if (sync) {
-    receipt = await wallet.writeContractSync(request);
-  } else {
-    const hash = await wallet.writeContract(request);
-    logger?.debug({ hash }, "claim tx hash");
-    receipt = await publicClient.waitForTransactionReceipt({ hash });
-  }
+  const hash = await wallet.writeContract(request);
+  logger?.debug({ hash }, "claim tx hash");
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status === "reverted") {
     throw new Error(
       `${usr} failed to claimed ${amnt} from faucet, tx: ${receipt.transactionHash}`,

@@ -312,6 +312,7 @@ export async function buildBorrowState(
       // Nothing of the loan stays behind, so the collateral is the equity.
       netValue: margin - debt,
       toUnderlying: (from, amount) => convert(from, underlying, amount),
+      toUnderlyingAmount: market.toUnderlyingAmount,
     }),
     collateral: priced(collateralToken, collateralAmount),
     borrowed: priced(borrowToken, payout),
