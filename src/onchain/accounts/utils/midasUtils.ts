@@ -1,5 +1,5 @@
 import type { Address, PublicClient } from "viem";
-import { encodeFunctionData, isAddressEqual, parseAbi } from "viem";
+import { encodeFunctionData, getAddress, isAddressEqual, parseAbi } from "viem";
 import type { IAdapterContract } from "../../market/adapters/index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { ILogger, MultiCall } from "../../types/index.js";
@@ -11,6 +11,12 @@ interface IMidasAdapter extends IAdapterContract {
 
 const ADAPTER_MIDAS_GATEWAY = "ADAPTER::MIDAS_GATEWAY";
 const ADAPTER_MIDAS_ISSUANCE_VAULT = "ADAPTER::MIDAS_ISSUANCE_VAULT";
+
+// Temporary: Midas has not granted mGLOBAL's gateway permission to
+// greenlist addresses, so receiveGreenlist() would revert.
+const MGLOBAL_MTOKEN = getAddress(
+  "0x7433806912Eae67919e66aea853d46Fa0aef98A8",
+);
 
 /**
  * Permissionless gateways have no greenlist and reject `receiveGreenlist`,
@@ -59,7 +65,8 @@ export interface PrependMidasReceiveGreenlistProps {
  *
  * Returns `calls` unchanged when nothing has to be greenlisted: no issuance
  * vault is called, its mToken has no gateway adapter on this credit manager,
- * the gateway is permissionless, or the call is already there.
+ * the gateway is permissionless, the call is already there, or the mToken is
+ * mGLOBAL (temporary: its gateway cannot grant the greenlist).
  */
 export async function prependMidasReceiveGreenlist(
   props: PrependMidasReceiveGreenlistProps,
@@ -87,6 +94,12 @@ export async function prependMidasReceiveGreenlist(
   // one gateway can back several issuance calls, and it only needs one greenlist
   const gateways = new AddressMap<IMidasAdapter>();
   for (const vault of calledVaults) {
+    if (isAddressEqual(vault.mToken, MGLOBAL_MTOKEN)) {
+      logger?.debug(
+        `midas: skipping receiveGreenlist for mGLOBAL ${vault.mToken}`,
+      );
+      continue;
+    }
     const gateway = gatewayByMToken.get(vault.mToken);
     if (!gateway) {
       logger?.debug(
