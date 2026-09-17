@@ -150,7 +150,7 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   },
   [AdapterType.SECURITIZE_REDEMPTION]: {
     310: PHANTOM_TOKEN_ADAPTER_ABI,
-    311: PHANTOM_TOKEN_ADAPTER_ABI,
+    311: BASIC_ADAPTER_ABI,
   },
 
   // other patterns
