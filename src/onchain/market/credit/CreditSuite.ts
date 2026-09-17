@@ -274,6 +274,17 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
+   * Calls to run first in the multicall of a freshly opened account on this
+   * suite; use before {@link openCreditAccountTx}.
+   */
+  public async openingCalls(): Promise<MultiCall[]> {
+    const lists = await Promise.all(
+      this.creditManager.adapters.values().map(a => a.openingCalls()),
+    );
+    return lists.flat();
+  }
+
+  /**
    * Router configured for this credit suite.
    */
   public get router(): IRouterContract {

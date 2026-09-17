@@ -53,7 +53,6 @@ import type {
   PreviewDelayedWithdrawalProps,
   Rewards,
 } from "./types.js";
-import { prependMidasReceiveGreenlist as prependMidasReceiveGreenlistCalls } from "./utils/midasUtils.js";
 import type {
   IWithdrawalCompressorContract,
   RequestableWithdrawal,
@@ -417,7 +416,7 @@ export class CreditAccountsServiceV310
       ...(callsAfter ?? []),
     ];
 
-    calls = await this.#prependMidasReceiveGreenlist(cm.address, calls);
+    calls = [...(await cmSuite.openingCalls()), ...calls];
     calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
       ? cmSuite.multicallTx(reopenCreditAccount, calls, rwaOptions)
@@ -825,22 +824,6 @@ export class CreditAccountsServiceV310
       AP_REWARDS_COMPRESSOR,
       VERSION_RANGE_310,
     )[0];
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.prependMidasReceiveGreenlist}
-   */
-  async #prependMidasReceiveGreenlist(
-    creditManager: Address,
-    calls: MultiCall[],
-  ): Promise<MultiCall[]> {
-    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
-    return prependMidasReceiveGreenlistCalls({
-      cm,
-      client: this.client,
-      calls,
-      logger: this.logger,
-    });
   }
 
   /**

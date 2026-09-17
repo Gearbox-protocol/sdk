@@ -1,10 +1,17 @@
 import type { AbiParameter, Address, Hex } from "viem";
 
 import type { IBaseContract } from "../../base/index.js";
+import type { MultiCall } from "../../types/index.js";
 import type { BaseContractStateHuman } from "../../types/state-human.js";
 
 export interface IAdapterContract extends IBaseContract {
   targetContract: Address;
+  /**
+   * Multicall entries a freshly opened credit account on this adapter's
+   * credit manager must run first. Decided from adapter state alone, not
+   * from the rest of the multicall.
+   */
+  openingCalls(): Promise<MultiCall[]>;
 }
 
 export type VersionedAbi = Record<number, readonly AbiParameter[]>;
