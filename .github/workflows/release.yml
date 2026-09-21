@@ -7,6 +7,9 @@ on:
       - "next"
       - "*.x"
 
+permissions:
+  contents: read
+
 env:
   HUSKY: 0
   CI: true
@@ -14,9 +17,16 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Use Latest Corepack
         run: |
@@ -25,13 +35,10 @@ jobs:
           echo "After : corepack version => $(corepack --version)"
           corepack enable
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           cache: "yarn"
           node-version-file: ".nvmrc"
-
-      - name: Configure access to private npm packages
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
       # No lint or prettier here since they were supposed to run on PR action
       - name: Build
@@ -41,7 +48,6 @@ jobs:
           yarn build
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
