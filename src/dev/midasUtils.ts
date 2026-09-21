@@ -3,6 +3,7 @@ import { parseAbi, parseEther, toFunctionSelector } from "viem";
 import {
   AddressSet,
   type ILogger,
+  MidasDegenNFT,
   MidasGatewayAdapterContract,
   type OnchainSDK,
 } from "../onchain/index.js";
@@ -214,12 +215,22 @@ function* midasGatewayAdapters(
 
 /**
  * Target contracts of all Midas gateway adapters of the loaded credit managers,
- * same as the foundry tests do with `ICreditConfiguratorV3.allowedAdapters`
+ * plus gateways of Midas degen NFTs (permissioned-mode suites with no gateway adapter).
  */
-export function collectMidasGateways(sdk: OnchainSDK): Address[] {
+export async function collectMidasGateways(
+  sdk: OnchainSDK,
+): Promise<Address[]> {
   const gateways = new AddressSet();
   for (const adapter of midasGatewayAdapters(sdk)) {
     gateways.add(adapter.targetContract);
+  }
+  const nfts = await Promise.all(
+    sdk.marketRegister.creditManagers.map(cm => cm.degenNFT()),
+  );
+  for (const nft of nfts) {
+    if (nft instanceof MidasDegenNFT) {
+      gateways.add(nft.gateway);
+    }
   }
   return gateways.asArray();
 }

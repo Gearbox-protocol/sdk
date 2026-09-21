@@ -388,8 +388,7 @@ export async function greenlistMidasGateway(
 
 /**
  * Finds the Midas gateway that issues `token` by scanning the Midas gateway
- * adapters of all loaded credit managers, same as the foundry tests do with
- * `ICreditConfiguratorV3.allowedAdapters`
+ * adapters of all loaded credit managers and the gateways of Midas degen NFTs
  */
 async function findMidasGateway(
   props: RegisterMidasInvestorProps,
@@ -405,9 +404,11 @@ async function findMidasGateway(
     await sdk.attach({ marketConfigurators });
   }
 
-  const candidates = collectMidasGateways(sdk);
+  const candidates = await collectMidasGateways(sdk);
   if (candidates.length === 0) {
-    throw new Error("no midas gateway adapters found in loaded markets");
+    throw new Error(
+      "no midas gateway adapters or midas degen NFTs found in loaded markets",
+    );
   }
 
   const mTokens = await anvil.multicall({
@@ -524,7 +525,7 @@ export async function registerRWAInvestor(
     );
   }
 
-  const gateways = collectMidasGateways(sdk);
+  const gateways = await collectMidasGateways(sdk);
   for (const gateway of gateways) {
     try {
       await greenlistMidasGateway({
