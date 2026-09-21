@@ -8,7 +8,11 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { ierc20Abi } from "../abi/iERC20.js";
-import type { ChainId, SecuritizeRegisterMessage } from "../model/index.js";
+import type {
+  ChainId,
+  RWAOperationArgs,
+  SecuritizeRegisterMessage,
+} from "../model/index.js";
 import type {
   Asset,
   CreditSuite,
@@ -205,7 +209,6 @@ export class AnvilAccountEnvironment extends SDKConstruct {
   }
 
   public async topUpPools(
-    gearbox: GearboxSDK<"onchain" | "both">,
     deposits: [IPoolContract | Address, bigint][],
   ): Promise<PoolDepositResult[]> {
     if (deposits.length === 0) return [];
@@ -254,13 +257,7 @@ export class AnvilAccountEnvironment extends SDKConstruct {
     const results: PoolDepositResult[] = [];
     for (const [index, [pool, amount]] of resolvedDeposits.entries()) {
       results.push(
-        await this.#depositToPool(
-          gearbox,
-          pool,
-          depositor,
-          amount,
-          collateral[index],
-        ),
+        await this.#depositToPool(pool, depositor, amount, collateral[index]),
       );
     }
     return results;
@@ -368,10 +365,14 @@ export class AnvilAccountEnvironment extends SDKConstruct {
     await this.#kyc.grantKycAccess(borrower.address, targets, options);
   }
 
-  public async signRwaRequirements(
+  /**
+   * Securitize registration arguments for `accounts.openCA`, signed by the
+   * borrower; `undefined` for markets that need none.
+   */
+  public async openRwaOptions(
     creditManager: CreditSuite | Address,
     target: Address,
-  ): Promise<SecuritizeRegisterMessage[] | undefined> {
+  ): Promise<RWAOperationArgs | undefined> {
     const cm = this.#creditSuite(creditManager);
     const borrower = await this.getBorrower();
     const requirements = await this.sdk.accounts.getOpenAccountRequirements(
@@ -380,15 +381,27 @@ export class AnvilAccountEnvironment extends SDKConstruct {
       { tokenOutAddress: target },
     );
     if (requirements?.protocol !== "securitize") return undefined;
-    return Promise.all(
-      requirements.requiredSignatures.map(async message => ({
-        token: message.message.token,
-        signature: {
-          deadline: message.message.deadline,
-          signature: await borrower.signTypedData(message),
-        },
-      })),
-    );
+    return {
+      protocol: "securitize",
+      tokensToRegister: requirements.tokensToRegister,
+      signaturesToCache: await Promise.all(
+        requirements.requiredSignatures.map(async message => ({
+          token: message.message.token,
+          signature: {
+            deadline: message.message.deadline,
+            signature: await borrower.signTypedData(message),
+          },
+        })),
+      ),
+    };
+  }
+
+  public async signRwaRequirements(
+    creditManager: CreditSuite | Address,
+    target: Address,
+  ): Promise<SecuritizeRegisterMessage[] | undefined> {
+    return (await this.openRwaOptions(creditManager, target))
+      ?.signaturesToCache;
   }
 
   public async decorateOpenCalls(
@@ -499,7 +512,6 @@ export class AnvilAccountEnvironment extends SDKConstruct {
   }
 
   async #depositToPool(
-    gearbox: GearboxSDK<"onchain" | "both">,
     pool: IPoolContract,
     depositor: PrivateKeyAccount,
     amount: bigint,
@@ -518,24 +530,22 @@ export class AnvilAccountEnvironment extends SDKConstruct {
       if (tokensOut.length === 0) {
         throw new Error(`no tokens out found for pool ${poolName}`);
       }
-      const tokenOut = tokensOut[0];
       const metadata = this.sdk.pools.getDepositMetadata(
         address,
         tokenIn,
-        tokenOut,
+        tokensOut[0],
       );
-      const key = { chainId: this.sdk.chainId, pool: address };
-      const sim = await gearbox.opportunities.prepare.deposit(key, {
-        amount: depositAmount,
+      // Built on the pool service rather than `opportunities.prepare.deposit`:
+      // a fork top-up must also reach pools the app no longer offers deposits
+      // for (sunset pools), which that preparation refuses.
+      const deposit = this.sdk.pools.addLiquidity({
+        collateral: { token: tokenIn, balance: depositAmount },
+        pool: address,
         wallet: depositor.address,
-        tokenIn,
-        tokenOut,
+        meta: metadata,
       });
-      if (!sim.ok) {
-        throw new Error(
-          `failed to prepare deposit into pool ${poolName}: ${sim.error.code}: ${sim.error.message}`,
-          { cause: sim.error },
-        );
+      if (!deposit) {
+        throw new Error(`no deposit call could be created for ${poolName}`);
       }
 
       ({ hash: txHash } = await writeAndConfirm(
@@ -551,15 +561,8 @@ export class AnvilAccountEnvironment extends SDKConstruct {
         },
       ));
 
-      const tx = await gearbox.opportunities.execute.buildTx({
-        kind: "pool",
-        ...key,
-        wallet: depositor.address,
-        op: "deposit",
-        sim,
-      });
       ({ hash: txHash } = await sendAndConfirm(this.anvil, {
-        tx,
+        tx: deposit.tx,
         account: depositor,
         operation: `deposit of ${formatted} into pool ${poolName}`,
       }));

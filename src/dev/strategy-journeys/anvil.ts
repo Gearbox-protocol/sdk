@@ -64,7 +64,7 @@ export async function runAnvilStrategyJourneys(options: AnvilJourneyOptions) {
       );
       await assertStrategyActive(anvil, suite);
       if (options.poolDeposit)
-        await topUpPool(environment, sdk, suite, options.poolDeposit);
+        await topUpPool(environment, suite, options.poolDeposit);
       const strategy = (await sdk.opportunities.getStrategy(key)).data;
       const opening = planOpening(strategy, {
         collateral:
@@ -128,11 +128,10 @@ async function assertStrategyActive(
 /** RWA pools are funded through the SDK's zapper route from the backing asset. */
 async function topUpPool(
   environment: AnvilAccountEnvironment,
-  sdk: GearboxSDK<"onchain">,
   suite: CreditSuite,
   amount: string,
 ): Promise<void> {
-  const [deposit] = await environment.topUpPools(sdk, [
+  const [deposit] = await environment.topUpPools([
     [
       suite.pool,
       parseUnits(amount, environment.sdk.tokensMeta.decimals(suite.underlying)),

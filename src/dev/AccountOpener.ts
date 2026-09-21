@@ -1,10 +1,10 @@
 import type { Address, Hash, Hex, PrivateKeyAccount } from "viem";
 import { BaseError, isAddressEqual, parseEventLogs } from "viem";
 import { iCreditFacadeV310Abi } from "../abi/310/generated.js";
-import type { ChainId } from "../model/index.js";
 import type {
   Asset,
   CreditAccountData,
+  ICreditAccountsService,
   ILogger,
   IPoolContract,
   RawTx,
@@ -13,13 +13,13 @@ import {
   AddressMap,
   AddressSet,
   AssetsMap,
+  CreditAccountOperationsService,
   childLogger,
   LEVERAGE_DECIMALS,
   PERCENTAGE_FACTOR,
   SDKConstruct,
   sendRawTx,
 } from "../onchain/index.js";
-import type { GearboxSDK } from "../sdk/index.js";
 import {
   AnvilAccountEnvironment,
   type AnvilAccountEnvironmentOptions,
@@ -40,10 +40,6 @@ export class OpenTxRevertedError extends BaseError {
 }
 
 export interface AccountOpenerOptions extends AnvilAccountEnvironmentOptions {
-  /**
-   * Chain to use. May be omitted when the GearboxSDK covers exactly one chain.
-   */
-  chainId?: ChainId;
   poolDepositMultiplier?: bigint | string | number;
   minDebtMultiplier?: bigint | string | number;
   leverageDelta?: bigint | string | number;
@@ -120,25 +116,26 @@ export class AccountOpener extends SDKConstruct {
   #poolDepositMultiplier: bigint;
   #minDebtMultiplier: bigint;
   #leverageDelta: bigint;
-  #gearbox: GearboxSDK<"onchain" | "both">;
+  #service: ICreditAccountsService;
+  #intents: CreditAccountOperationsService;
 
   constructor(
-    gearbox: GearboxSDK<"onchain" | "both">,
+    service: ICreditAccountsService,
     options_: AccountOpenerOptions = {},
   ) {
-    const environment = AnvilAccountEnvironment.fromGearbox(gearbox, options_);
-    super(environment.sdk);
+    super(service.sdk);
     const {
       poolDepositMultiplier = 3_00_00n,
       minDebtMultiplier = 101_00n,
       leverageDelta = 500n,
     } = options_;
-    this.#logger = childLogger("AccountOpener", environment.sdk.logger);
-    this.#environment = environment;
+    this.#logger = childLogger("AccountOpener", service.sdk.logger);
+    this.#service = service;
+    this.#intents = new CreditAccountOperationsService(service.sdk);
+    this.#environment = new AnvilAccountEnvironment(service.sdk, options_);
     this.#poolDepositMultiplier = BigInt(poolDepositMultiplier);
     this.#minDebtMultiplier = BigInt(minDebtMultiplier);
     this.#leverageDelta = BigInt(leverageDelta);
-    this.#gearbox = gearbox;
     this.#logger?.info(
       {
         poolDepositMultiplier: this.#poolDepositMultiplier.toString(),
@@ -173,7 +170,6 @@ export class AccountOpener extends SDKConstruct {
     depositIntoPools = true,
     claimFromFaucet = true,
   ): Promise<OpenAccountsResult> {
-    await this.#ensureAttached();
     this.#logger?.info(
       {
         targets,
@@ -354,7 +350,7 @@ export class AccountOpener extends SDKConstruct {
         logger?.debug(
           `getting credit account data for ${logs[0].args.creditAccount}`,
         );
-        account = await this.sdk.accounts.getCreditAccountData(
+        account = await this.#service.getCreditAccountData(
           logs[0].args.creditAccount,
         );
       } catch (e) {
@@ -375,7 +371,6 @@ export class AccountOpener extends SDKConstruct {
   }
 
   public async prepareOpen(input: TargetAccount): Promise<OpenAccountPreview> {
-    await this.#ensureAttached();
     const { creditManager, target, slippage = 50, directTransfer = [] } = input;
 
     const borrower = await this.#environment.getBorrower();
@@ -406,27 +401,24 @@ export class AccountOpener extends SDKConstruct {
       `borrower balance: ${this.sdk.tokensMeta.formatBN(collateral.token, borrowerBalance, { symbol: true })}`,
     );
 
-    const { prepare, execute } = this.#gearbox.opportunities;
-    const chainId = this.sdk.chainId;
-    const sim = await prepare.openNewStrategy(
-      { chainId, creditManager: cm.creditManager.address },
-      {
-        collateral: [collateral],
-        leverage: (leverage * LEVERAGE_DECIMALS) / PERCENTAGE_FACTOR,
-        targetToken: target,
-        slippage,
-      },
-    );
-    if (!sim.ok) {
+    const preview = await this.#intents.openStrategyIntent({
+      sdk: this.sdk,
+      creditManager: cm.creditManager.address,
+      collateral: [collateral],
+      targetToken: target,
+      leverage: (leverage * LEVERAGE_DECIMALS) / PERCENTAGE_FACTOR,
+      slippage,
+      quotaReserve: undefined,
+    });
+    if (!preview.ok) {
       throw new Error(
-        `failed to prepare open strategy: ${sim.error.code}: ${sim.error.message}`,
-        { cause: sim.error },
+        `failed to prepare open strategy: ${preview.error.code}: ${preview.error.message}`,
+        { cause: preview.error },
       );
     }
-    const { state } = sim.data;
-    const calls = await this.#environment.decorateOpenCalls(cm, state.calls);
+    const { state } = preview;
     logger?.debug(
-      { calls: calls.length, totalDebt: state.totalDebt.value },
+      { calls: state.calls.length, totalDebt: state.totalDebt.value },
       "found open strategy",
     );
 
@@ -438,25 +430,19 @@ export class AccountOpener extends SDKConstruct {
     const minQuota = [...state.minQuota, ...directQuotas];
     logger?.debug({ averageQuota, minQuota }, "calculated quotas");
 
-    const tx = await execute.buildTx({
-      kind: "open",
-      chainId,
+    // `openCA` prepends the suite's opening calls itself, e.g. Midas' greenlist.
+    const tx = await this.#service.openCA({
       creditManager: cm.creditManager.address,
-      wallet: borrower.address,
-      sim: {
-        ...sim,
-        data: {
-          ...sim.data,
-          state: { ...state, calls, averageQuota, minQuota },
-        },
-      },
+      to: borrower.address,
       collateral: [collateral],
       ethAmount: 0n,
-      targetToken: target,
-      signaturesToCache: await this.#environment.signRwaRequirements(
-        cm,
-        target,
-      ),
+      debt: state.totalDebt.value,
+      calls: state.calls,
+      averageQuota,
+      minQuota,
+      permits: {},
+      referralCode: 0n,
+      rwaOptions: await this.#environment.openRwaOptions(cm, target),
     });
     logger?.debug(
       `open account tx: ${this.sdk.stringifyFunctionData(tx.to, tx.callData)}`,
@@ -473,8 +459,7 @@ export class AccountOpener extends SDKConstruct {
   }
 
   public async getOpenedAccounts(): Promise<CreditAccountData[]> {
-    await this.#ensureAttached();
-    return await this.sdk.accounts.getCreditAccounts({
+    return await this.#service.getCreditAccounts({
       owner: this.borrower.address,
     });
   }
@@ -524,11 +509,7 @@ export class AccountOpener extends SDKConstruct {
         deposits.push([pool, diff]);
       }
     }
-    return this.#environment.topUpPools(this.#gearbox, deposits);
-  }
-
-  async #ensureAttached(): Promise<void> {
-    await this.#gearbox.attach();
+    return this.#environment.topUpPools(deposits);
   }
 
   #getCollateralToken({ creditManager, collateral }: TargetAccount): Address {
