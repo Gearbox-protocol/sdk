@@ -47,10 +47,6 @@ async function example(): Promise<void> {
       ignoreMissingFeeds: true,
       historicTimestamp: true,
     },
-    pyth: {
-      ignoreMissingFeeds: true,
-      historicTimestamp: true,
-    },
   });
   // kind = "hydrated";
   // const state = await readFile(

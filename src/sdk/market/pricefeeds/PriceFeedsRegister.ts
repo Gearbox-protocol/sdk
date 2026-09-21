@@ -41,10 +41,9 @@ import type {
 import type {
   IPriceUpdater,
   IPriceUpdateTask,
-  PythOptions,
   RedstoneOptions,
 } from "./updates/index.js";
-import { PythUpdater, RedstoneUpdater } from "./updates/index.js";
+import { RedstoneUpdater } from "./updates/index.js";
 import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
 import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
@@ -58,7 +57,6 @@ export type PriceFeedRegisterHooks = {
 
 export interface PriceFeedRegisterOptions {
   redstone?: RedstoneOptions;
-  pyth?: PythOptions;
 }
 
 export interface LatestUpdate {
@@ -82,10 +80,7 @@ export class PriceFeedRegister
 
   constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
-    this.updaters = [
-      new RedstoneUpdater(sdk, opts?.redstone),
-      new PythUpdater(sdk, opts?.pyth),
-    ];
+    this.updaters = [new RedstoneUpdater(sdk, opts?.redstone)];
   }
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);

@@ -171,7 +171,6 @@ type AttachOptionsInternal = PickSomeRequired<
   | "blockNumber"
   | "ignoreUpdateablePrices"
   | "redstone"
-  | "pyth"
   | "ignoreMarkets"
   | "gasLimit"
 >;
@@ -224,7 +223,6 @@ export class GearboxSDK<
       plugins,
       blockNumber,
       redstone,
-      pyth,
       ignoreUpdateablePrices,
       ignoreMarkets,
       marketConfigurators: mcs,
@@ -253,7 +251,6 @@ export class GearboxSDK<
       ignoreMarkets,
       marketConfigurators,
       redstone,
-      pyth,
     });
   }
 
@@ -301,7 +298,6 @@ export class GearboxSDK<
       ignoreMarkets,
       marketConfigurators,
       redstone,
-      pyth,
     } = opts;
     const re = this.#attachConfig ? "re" : "";
     this.logger?.info(
@@ -320,11 +316,6 @@ export class GearboxSDK<
         `${re}attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail`,
       );
     }
-    if (!!blockNumber && !opts.pyth?.historicTimestamp) {
-      this.logger?.warn(
-        `${re}attaching to fixed block number, but pyth historicTimestamp is not set. price updates might fail`,
-      );
-    }
     this.#attachConfig = opts;
     const time = Date.now();
     const block = await this.client.getBlock(
@@ -337,7 +328,7 @@ export class GearboxSDK<
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
+    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
 
     this.logger?.debug(
       `${re}attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -400,7 +391,6 @@ export class GearboxSDK<
     this.#timestamp = state.timestamp;
     this.#priceFeeds = new PriceFeedRegister(this, {
       redstone: opts.redstone,
-      pyth: opts.pyth,
     });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
@@ -461,7 +451,6 @@ export class GearboxSDK<
     const opts: Omit<HydrateOptions<Plugins>, "plugins"> = {
       ignoreUpdateablePrices: this.#attachConfig.ignoreUpdateablePrices,
       redstone: this.#attachConfig.redstone,
-      pyth: this.#attachConfig.pyth,
     };
     this.#hydrate(opts, state);
 
@@ -526,12 +515,9 @@ export class GearboxSDK<
       timestamp,
       ignoreUpdateablePrices = this.#attachConfig?.ignoreUpdateablePrices,
     } = opts ?? {};
-    if (
-      this.#attachConfig?.redstone?.historicTimestamp ||
-      this.#attachConfig?.pyth?.historicTimestamp
-    ) {
+    if (this.#attachConfig?.redstone?.historicTimestamp) {
       throw new Error(
-        "syncState is not supported with redstone or pyth historicTimestamp",
+        "syncState is not supported with redstone historicTimestamp",
       );
     }
     if (!blockNumber || !timestamp) {

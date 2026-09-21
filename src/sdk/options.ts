@@ -1,8 +1,5 @@
 import { z } from "zod/v4";
-import {
-  PythOptions,
-  RedstoneOptions,
-} from "./market/pricefeeds/updates/index.js";
+import { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import type { PluginsMap } from "./plugins/index.js";
 import type { ILogger } from "./types/index.js";
 import { ZodAddress } from "./utils/index.js";
@@ -47,10 +44,6 @@ export const SDKOptions = z.object({
    * Options related to redstone price feeds
    */
   redstone: RedstoneOptions.optional(),
-  /**
-   * Options related to pyth price feeds
-   */
-  pyth: PythOptions.optional(),
   /**
    * Explicit gas limit for read eth_calls
    * Null to disable explicitly setting gas limit, undefined to use default sdk value

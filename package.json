@@ -64,7 +64,6 @@
     "@types/bn.js": "^5.2.0",
     "abitype": "^1.2.3",
     "bn.js": "^5.2.3",
-    "buffer": "^6.0.3",
     "date-fns": "^4.1.0",
     "decimal.js-light": "^2.5.1",
     "viem": ">=2.23.15 <3.0.0",

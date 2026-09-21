@@ -1,25 +1,15 @@
-import type { Address, ContractFunctionParameters, Hex } from "viem";
-import { decodeAbiParameters, parseAbi } from "viem";
+import type { Address, Hex } from "viem";
+import { decodeAbiParameters } from "viem";
 
 import { pythPriceFeedAbi } from "../../abi/oracles.js";
 import type { ConstructOptions } from "../../base/Construct.js";
-import type { RawTx } from "../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
-import type { IUpdatablePriceFeedContract } from "./types.js";
 
 const abi = pythPriceFeedAbi;
 type abi = typeof abi;
 
-const iPythAbi = parseAbi([
-  "function getUpdateFee(bytes[] calldata updateData) external view returns (uint256 feeAmount)",
-]);
-type iPythAbi = typeof iPythAbi;
-
-export class PythPriceFeed
-  extends AbstractPriceFeedContract<abi>
-  implements IUpdatablePriceFeedContract
-{
+export class PythPriceFeed extends AbstractPriceFeedContract<abi> {
   public readonly token: Address;
   public readonly priceFeedId: Hex;
   public readonly pyth: Address;
@@ -28,6 +18,9 @@ export class PythPriceFeed
   constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
     super(options, {
       ...args,
+      // the sdk does not push pyth price updates, so these feeds are never
+      // treated as updatable even though the contract implements the interface
+      updatable: false,
       name: "PythPriceFeed",
       abi,
     });
@@ -62,33 +55,5 @@ export class PythPriceFeed
       this.priceFeedId = decoded[1];
       this.pyth = decoded[2];
     }
-  }
-
-  public createPriceUpdateTx(data: `0x${string}`): RawTx {
-    return this.createRawTx({
-      functionName: "updatePrice",
-      args: [data],
-      description: `updating pyth price for ${this.priceFeedId} [${this.labelAddress(this.address)}]`,
-    });
-  }
-
-  /**
-   * Returns contract function parameters for the getUpdateFee function on original Pyth contract
-   * @param calldata
-   * @returns
-   */
-  public getUpdateFeeParams(
-    calldata: Hex,
-  ): ContractFunctionParameters<iPythAbi, "view", "getUpdateFee"> {
-    const [, updateData] = decodeAbiParameters(
-      [{ type: "uint256" }, { type: "bytes[]" }],
-      calldata,
-    );
-    return {
-      address: this.pyth,
-      abi: iPythAbi,
-      functionName: "getUpdateFee",
-      args: [updateData],
-    };
   }
 }
