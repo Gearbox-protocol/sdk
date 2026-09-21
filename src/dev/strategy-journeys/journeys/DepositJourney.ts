@@ -14,8 +14,8 @@ import type { JourneySession } from "../types.js";
  * Starting state: the shared setup position, with the wallet funded with a
  * quarter of the opening collateral.
  * Action: `prepare.depositStrategy` for that amount; with `raiseLeverage` a
- * higher target leverage is picked inside the band the new equity allows.
- * Verifies: value and debt both grow; the wallet is debited by exactly the
+ * higher target leverage is picked inside the range the new equity allows.
+ * Verifies: value and debt both grow; the wallet balance drops by exactly the
  * deposit; leverage is preserved, or raised when requested.
  */
 export class DepositJourney extends BaseStrategyJourney {

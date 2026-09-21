@@ -395,8 +395,8 @@ export class AccountOpener extends SDKConstruct {
       "looking for open strategy",
     );
 
-    // The environment owns funding: it mints the shortfall when minting is enabled
-    // and throws a contextual error when the borrower still cannot cover it.
+    // The environment owns funding: it mints the missing amount when minting is
+    // enabled and throws a contextual error when the borrower still cannot cover it.
     const borrowerBalance = await this.#environment.ensureTokenBalance(
       borrower.address,
       collateral.token,

@@ -23,7 +23,7 @@ import {
 
 /** The contract's own sentinel for a position without debt. */
 const NO_DEBT_HEALTH_FACTOR = Number(MAX_UINT16);
-/** A bounded loop supports venues that settle several claims without an endless run. */
+/** A bounded loop supports protocols that settle several claims without an endless run. */
 const MAX_CLAIMS = 8;
 
 /** Shared Anvil infrastructure: setup, state reads, transaction transport and settlement. */
@@ -58,7 +58,7 @@ export class AnvilJourneySession implements JourneySession {
     };
   }
 
-  /** Bare max* reads use the actual pool underlying; public position amounts may use an RWA's unwrapped asset. */
+  /** Plain max* reads use the actual pool underlying; public position amounts may use an RWA's unwrapped asset. */
   fundingAmount(amount: bigint): bigint {
     const { sdk } = this.environment;
     const suite = sdk.marketRegister.findCreditManager(

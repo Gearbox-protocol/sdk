@@ -15,8 +15,8 @@ import type { JourneySession } from "../types.js";
  * quarter of the account's strategy-token balance.
  * Action: `prepare.addCollateral` with the strategy token.
  * Verifies: debt is unchanged beyond interest accrual; the account holds more
- * strategy tokens; leverage falls and health does not worsen; the wallet is
- * debited by exactly the added amount.
+ * strategy tokens; leverage falls and health does not worsen; the wallet
+ * balance drops by exactly the added amount.
  */
 export class AddCollateralJourney extends BaseStrategyJourney {
   public async test(

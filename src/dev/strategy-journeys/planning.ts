@@ -11,7 +11,7 @@ export function ceilDiv(value: bigint, divisor: bigint): bigint {
   return (value + divisor - 1n) / divisor;
 }
 
-/** Leaves borrowing headroom for growth and debt headroom for partial exits. */
+/** Leaves room to borrow more for growth and debt to repay on partial exits. */
 export function planOpening(
   strategy: Pick<
     StrategyOpportunity,
@@ -19,16 +19,16 @@ export function planOpening(
   >,
   requested: { collateral?: bigint; leverage?: bigint } = {},
 ): { collateral: bigint; leverage: bigint } {
-  const ceiling = BigInt(Math.floor(strategy.maxLeverage * 100));
-  if (ceiling <= LEVERAGE_SCALE) {
+  const maxLeverage = BigInt(Math.floor(strategy.maxLeverage * 100));
+  if (maxLeverage <= LEVERAGE_SCALE) {
     throw new JourneyUnavailable(
       "blocked",
       "The strategy has no leveraged opening range",
     );
   }
-  const middle = LEVERAGE_SCALE + (ceiling - LEVERAGE_SCALE) / 2n;
+  const middle = LEVERAGE_SCALE + (maxLeverage - LEVERAGE_SCALE) / 2n;
   const leverage = requested.leverage ?? (middle < 200n ? middle : 200n);
-  if (leverage <= LEVERAGE_SCALE || leverage > ceiling) {
+  if (leverage <= LEVERAGE_SCALE || leverage > maxLeverage) {
     throw new Error(
       "Opening leverage must be above 1x and within the strategy limit",
     );
@@ -56,17 +56,19 @@ export function planOpening(
 
 export function chooseLeverage(
   current: number,
-  band: LeverageBand | undefined,
+  range: LeverageBand | undefined,
   direction: "up" | "down",
 ): bigint {
-  if (!band)
+  if (!range)
     throw new JourneyUnavailable(
       "blocked",
-      "No leverage band for the current position",
+      "No leverage range for the current position",
     );
   const now = BigInt(Math.round(current * 100));
   const bound = BigInt(
-    direction === "up" ? Math.floor(band.max * 100) : Math.ceil(band.min * 100),
+    direction === "up"
+      ? Math.floor(range.max * 100)
+      : Math.ceil(range.min * 100),
   );
   const room = direction === "up" ? bound - now : now - bound;
   if (room < 2n)
@@ -94,11 +96,11 @@ export function pickLeverage(
   direction: "up" | "down",
   extraEquity = 0n,
 ): bigint {
-  const band = session.prepare.leverageBand(session.options.key, [
+  const range = session.prepare.leverageBand(session.options.key, [
     {
       token: session.underlying,
       balance: before.value - before.debt + extraEquity,
     },
   ]);
-  return chooseLeverage(before.leverage, band, direction);
+  return chooseLeverage(before.leverage, range, direction);
 }

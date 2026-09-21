@@ -81,7 +81,7 @@ export class WithdrawJourney extends BaseStrategyJourney {
             after.walletUnderlying - before.walletUnderlying,
             amount,
             tolerance,
-            "Withdrawal wallet payout",
+            "Withdrawal received by wallet",
           );
           leverageNear(
             after.leverage,

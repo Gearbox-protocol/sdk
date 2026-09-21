@@ -19,8 +19,8 @@ import type { JourneySession } from "../types.js";
  * fork's opening hooks and any RWA signatures.
  * Verifies: exactly one `OpenCreditAccount` event, or none for another
  * account when reusing; the account is adopted for later steps; the new
- * position holds debt and strategy tokens; the wallet was debited by exactly
- * the collateral amount.
+ * position holds debt and strategy tokens; the wallet balance dropped by
+ * exactly the collateral amount.
  */
 export class OpenJourney extends BaseStrategyJourney {
   readonly #reuse: boolean;

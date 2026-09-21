@@ -29,11 +29,11 @@ import {
 import type { GearboxSDK } from "../sdk/index.js";
 import {
   AnvilAccountFunding,
-  COLLATERAL_HEADROOM_DENOMINATOR,
-  COLLATERAL_HEADROOM_NUMERATOR,
+  COLLATERAL_BUFFER_DENOMINATOR,
+  COLLATERAL_BUFFER_NUMERATOR,
   type FundingRequirement,
   POOL_TARGET_UTILIZATION_BP,
-  withHeadroom,
+  scaleUp,
 } from "./AnvilAccountFunding.js";
 import {
   AnvilAccountKyc,
@@ -194,7 +194,7 @@ export class AnvilAccountEnvironment extends SDKConstruct {
 
   /**
    * Guarantees that `account` holds at least `minimum` of `token`, minting the
-   * shortfall when enabled and throwing a contextual error otherwise.
+   * missing amount when enabled and throwing a contextual error otherwise.
    */
   public async ensureTokenBalance(
     account: Address,
@@ -233,11 +233,7 @@ export class AnvilAccountEnvironment extends SDKConstruct {
       const requirements = collateral.map(({ token, balance }) => ({
         token,
         minimum: balance,
-        target: withHeadroom(
-          balance,
-          PERCENTAGE_FACTOR,
-          POOL_TARGET_UTILIZATION_BP,
-        ),
+        target: scaleUp(balance, PERCENTAGE_FACTOR, POOL_TARGET_UTILIZATION_BP),
       }));
       await this.#funding.fund(depositor, "depositor", requirements);
     } catch (error) {
@@ -288,10 +284,10 @@ export class AnvilAccountEnvironment extends SDKConstruct {
       requirements.push({
         token: target.collateral.token,
         minimum: target.collateral.balance,
-        target: withHeadroom(
+        target: scaleUp(
           target.collateral.balance,
-          COLLATERAL_HEADROOM_NUMERATOR,
-          COLLATERAL_HEADROOM_DENOMINATOR,
+          COLLATERAL_BUFFER_NUMERATOR,
+          COLLATERAL_BUFFER_DENOMINATOR,
         ),
       });
       if (

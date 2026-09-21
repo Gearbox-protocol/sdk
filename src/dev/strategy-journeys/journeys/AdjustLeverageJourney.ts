@@ -20,7 +20,7 @@ const LABELS: Record<LeverageDirection, string> = {
  *
  * Starting state: the shared setup position; nothing is funded.
  * Action: `prepare.adjustLeverage` towards a target inside the current
- * leverage band (`up`, `down`) or exactly 1x (`debtFree`). Increasing borrows
+ * leverage range (`up`, `down`) or exactly 1x (`debtFree`). Increasing borrows
  * more and always uses the instant route; decreasing sells part of the
  * position through the configured route, settling delayed redemptions.
  * Verifies: the wallet balance is unchanged; debt and leverage move in the

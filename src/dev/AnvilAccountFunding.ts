@@ -11,8 +11,8 @@ import { createMinter } from "./mint/index.js";
  * needs, so that rounding in the router or a second operation on the same
  * token does not immediately run the wallet dry.
  */
-export const COLLATERAL_HEADROOM_NUMERATOR = 11n;
-export const COLLATERAL_HEADROOM_DENOMINATOR = 10n;
+export const COLLATERAL_BUFFER_NUMERATOR = 11n;
+export const COLLATERAL_BUFFER_DENOMINATOR = 10n;
 
 /**
  * Target utilization of a pool after an environment deposit, in basis points.
@@ -22,7 +22,7 @@ export const COLLATERAL_HEADROOM_DENOMINATOR = 10n;
 export const POOL_TARGET_UTILIZATION_BP = 8950n;
 
 /** `amount` scaled up by `numerator / denominator`. */
-export function withHeadroom(
+export function scaleUp(
   amount: bigint,
   numerator: bigint,
   denominator: bigint,
@@ -37,7 +37,7 @@ export interface FundingRequirement {
   minimum: bigint;
   /**
    * Balance to aim for when claiming or minting. Defaults to `minimum`;
-   * the surplus is headroom and is never required to be present.
+   * the surplus is a buffer and is never required to be present.
    */
   target?: bigint;
 }
@@ -128,8 +128,8 @@ export class AnvilAccountFunding extends SDKConstruct {
 
   /**
    * Guarantees that `account` holds at least `minimum` of `token`: reads the
-   * balance, mints the shortfall up to `target` when minting is enabled, and
-   * throws a contextual error when the balance is still insufficient.
+   * balance, mints the missing amount up to `target` when minting is enabled,
+   * and throws a contextual error when the balance is still insufficient.
    *
    * @returns the balance after the attempt
    */

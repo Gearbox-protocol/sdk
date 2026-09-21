@@ -83,7 +83,7 @@ export class WithdrawCollateralJourney extends BaseStrategyJourney {
           after.walletTarget - before.walletTarget,
           amount,
           1,
-          "Collateral wallet payout",
+          "Collateral received by wallet",
         );
       },
     });

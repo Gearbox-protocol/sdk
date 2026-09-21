@@ -6,7 +6,7 @@ interface PrepareError {
   message: string;
 }
 
-/** Only a genuinely missing route is unsupported; a market refusal remains a failure. */
+/** Only a genuinely missing route is unsupported; a market rejection remains a failure. */
 const MISSING_ROUTE_CODES = new Set(["unsupportedTokenPair", "noDelayedRoute"]);
 
 export function unavailable(error: PrepareError, label?: string): Error {
