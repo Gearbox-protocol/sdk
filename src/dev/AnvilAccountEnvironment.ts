@@ -361,22 +361,15 @@ export class AnvilAccountEnvironment extends SDKConstruct {
   }
 
   /**
-   * Opens KYC access for the borrower on every target, runs `callback` and
-   * restores the temporary pause changes afterwards. See
-   * {@link AnvilAccountKyc.withKycAccess} for the error and cleanup contract.
+   * Opens KYC access for the borrower on every target. See
+   * {@link AnvilAccountKyc.grantKycAccess} for what stays on the fork.
    */
-  public async withKycAccess<T>(
+  public async grantKycAccess(
     targets: KycTarget[],
-    callback: () => Promise<T>,
     options?: KycAccessOptions,
-  ): Promise<T> {
+  ): Promise<void> {
     const borrower = await this.getBorrower();
-    return this.#kyc.withKycAccess(
-      borrower.address,
-      targets,
-      callback,
-      options,
-    );
+    await this.#kyc.grantKycAccess(borrower.address, targets, options);
   }
 
   public async signRwaRequirements(

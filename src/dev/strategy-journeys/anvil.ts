@@ -84,21 +84,20 @@ export async function runAnvilStrategyJourneys(options: AnvilJourneyOptions) {
           balance: opening.collateral,
         },
       });
-      return environment.withKycAccess([target], async () => {
-        await environment.sync();
-        return run(
-          new AnvilJourneySession({
-            sdk,
-            environment,
-            key,
-            strategy,
-            ...opening,
-            slippage: options.slippage ?? 50,
-            route: options.route ?? "auto",
-            settle: options.settle,
-          }),
-        );
-      });
+      await environment.grantKycAccess([target]);
+      await environment.sync();
+      return run(
+        new AnvilJourneySession({
+          sdk,
+          environment,
+          key,
+          strategy,
+          ...opening,
+          slippage: options.slippage ?? 50,
+          route: options.route ?? "auto",
+          settle: options.settle,
+        }),
+      );
     },
   });
 }

@@ -234,47 +234,42 @@ export class AccountOpener extends SDKConstruct {
 
     const accounts: OpenAccountResult[] = [];
     let success = 0;
-    await this.#environment.withKycAccess(
-      targets,
-      async () => {
-        // pool deposits and environment setup above changed the state prepare reads
-        await this.#environment.sync();
-        for (const [i, target] of targets.entries()) {
-          const label = `account #${i + 1}/${targets.length}`;
-          const errors = setupErrors.get(target);
-          if (errors) {
-            const error =
-              errors.length === 1
-                ? errors[0]
-                : new AggregateError(
-                    errors,
-                    "multiple account setup operations failed",
-                  );
-            this.#logger?.error(
-              new Error(`skipping ${label}, its setup failed`, {
-                cause: error,
-              }),
-            );
-            accounts.push({ input: target, error });
-            continue;
-          }
-          const result = await this.#openAccount(target, i + 1, targets.length);
-          accounts.push(result);
-          if (result.account) success += 1;
-          if (result.error) {
-            this.#logger?.error(
-              new Error(`failed to open ${label}`, { cause: result.error }),
-            );
-          }
-        }
+    await this.#environment.grantKycAccess(targets, {
+      onTargetError: (target, error) => {
+        recordSetupError(target as TargetAccount, error);
+        this.#logger?.error(error);
       },
-      {
-        onTargetError: (target, error) => {
-          recordSetupError(target as TargetAccount, error);
-          this.#logger?.error(error);
-        },
-      },
-    );
+    });
+    // pool deposits and environment setup above changed the state prepare reads
+    await this.#environment.sync();
+    for (const [i, target] of targets.entries()) {
+      const label = `account #${i + 1}/${targets.length}`;
+      const errors = setupErrors.get(target);
+      if (errors) {
+        const error =
+          errors.length === 1
+            ? errors[0]
+            : new AggregateError(
+                errors,
+                "multiple account setup operations failed",
+              );
+        this.#logger?.error(
+          new Error(`skipping ${label}, its setup failed`, {
+            cause: error,
+          }),
+        );
+        accounts.push({ input: target, error });
+        continue;
+      }
+      const result = await this.#openAccount(target, i + 1, targets.length);
+      accounts.push(result);
+      if (result.account) success += 1;
+      if (result.error) {
+        this.#logger?.error(
+          new Error(`failed to open ${label}`, { cause: result.error }),
+        );
+      }
+    }
     this.#logger?.info(`opened ${success}/${targets.length} accounts`);
     try {
       await this.#environment.distributeTokens(
