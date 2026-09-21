@@ -26,7 +26,8 @@ import type {
   RWAUnderlyingData,
 } from "./types.js";
 
-export const RWA_COMPRESSOR_ADDRESS = "0x9Bff226505632930BA1897E7943e90A2f7D0D9f7";
+export const RWA_COMPRESSOR_ADDRESS =
+  "0x9Bff226505632930BA1897E7943e90A2f7D0D9f7";
 
 /**
  * Registry of RWA underlying tokens and RWA factory contracts.
