@@ -21,7 +21,10 @@ import {
   OnchainSDK,
 } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
-import { collectMidasGateways } from "./midasUtils.js";
+import {
+  discoverMidasCreditSuites,
+  discoverMidasGateways,
+} from "./midasUtils.js";
 import { midasGatewayAbi } from "./withdrawalAbi.js";
 
 const iMockDSTokenAdminAbi = parseAbi([
@@ -421,8 +424,7 @@ export async function greenlistMidasGateway(
 }
 
 /**
- * Finds the Midas gateway that issues `token` by scanning the Midas gateway
- * adapters of all loaded credit managers and the gateways of Midas degen NFTs
+ * Finds the Midas gateway that issues `token` among the loaded credit managers.
  */
 async function findMidasGateway(
   props: RegisterMidasInvestorProps,
@@ -438,28 +440,26 @@ async function findMidasGateway(
     await sdk.attach({ marketConfigurators });
   }
 
-  const candidates = await collectMidasGateways(sdk);
-  if (candidates.length === 0) {
+  const suites = await discoverMidasCreditSuites(sdk);
+  if (suites.length === 0) {
     throw new Error(
       "no midas gateway adapters or midas degen NFTs found in loaded markets",
     );
   }
-
-  const mTokens = await anvil.multicall({
-    allowFailure: false,
-    contracts: candidates.map(address => ({
-      address,
-      abi: midasGatewayAbi,
-      functionName: "mToken" as const,
-    })),
-  });
-  const index = mTokens.findIndex(mToken => isAddressEqual(mToken, token));
-  if (index === -1) {
+  const suite = suites.find(({ mToken }) => isAddressEqual(mToken, token));
+  if (!suite) {
     throw new Error(`no midas gateway found for token ${token}`);
   }
-  logger?.debug(`midas: gateway for ${token} is ${candidates[index]}`);
-  return candidates[index];
+  logger?.debug(`midas: gateway for ${token} is ${suite.gateway}`);
+  return suite.gateway;
 }
+
+/**
+ * Midas access control admin on mainnet. Holds the admin role of the greenlist
+ * operator role.
+ */
+export const DEFAULT_MIDAS_ADMIN: Address =
+  "0xd4195CF4df289a4748C1A7B6dDBE770e27bA1227";
 
 export interface RegisterRWAInvestorProps {
   anvil: AnvilClient;
@@ -472,7 +472,8 @@ export interface RegisterRWAInvestorProps {
    */
   investor: Address;
   /**
-   * Override midas access control admin address
+   * Midas access control admin, impersonated on the fork.
+   * Defaults to {@link DEFAULT_MIDAS_ADMIN}.
    */
   midasAdmin?: Address;
   logger?: ILogger;
@@ -512,7 +513,7 @@ export async function registerRWAInvestor(
     anvil,
     sdk,
     investor,
-    midasAdmin = "0xd4195CF4df289a4748C1A7B6dDBE770e27bA1227",
+    midasAdmin = DEFAULT_MIDAS_ADMIN,
     logger,
   } = props;
 
@@ -540,7 +541,7 @@ export async function registerRWAInvestor(
     }
   }
 
-  const gateways = await collectMidasGateways(sdk);
+  const gateways = await discoverMidasGateways(sdk);
   for (const gateway of gateways) {
     try {
       await greenlistMidasGateway({
