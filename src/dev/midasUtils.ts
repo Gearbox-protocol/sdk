@@ -3,6 +3,7 @@ import { parseAbi, parseEther, toFunctionSelector } from "viem";
 import {
   AddressSet,
   type ILogger,
+  MidasDegenNFT,
   MidasGatewayAdapterContract,
   type OnchainSDK,
 } from "../onchain/index.js";
@@ -200,37 +201,74 @@ export async function unpauseMidasIssuanceVault(
   };
 }
 
-function* midasGatewayAdapters(
-  sdk: OnchainSDK,
-): Generator<MidasGatewayAdapterContract> {
-  for (const cm of sdk.marketRegister.creditManagers) {
-    for (const adapter of cm.creditManager.adapters.values()) {
-      if (adapter instanceof MidasGatewayAdapterContract) {
-        yield adapter;
-      }
-    }
-  }
+/**
+ * One Midas credit suite: a credit manager with a Midas gateway adapter,
+ * or with a Midas degen NFT when it has no such adapter.
+ */
+export interface MidasCreditSuite {
+  creditManager: Address;
+  gateway: Address;
+  mToken: Address;
 }
 
 /**
- * Target contracts of all Midas gateway adapters of the loaded credit managers,
- * same as the foundry tests do with `ICreditConfiguratorV3.allowedAdapters`
+ * Midas credit suites of the loaded credit managers.
+ *
+ * A manager with a gateway adapter is a suite on its own, so its degen NFT
+ * is not consulted. Suites that only have a Midas degen NFT read `mToken`
+ * from the gateway.
  */
-export function collectMidasGateways(sdk: OnchainSDK): Address[] {
-  const gateways = new AddressSet();
-  for (const adapter of midasGatewayAdapters(sdk)) {
-    gateways.add(adapter.targetContract);
+export async function discoverMidasCreditSuites(
+  sdk: OnchainSDK,
+): Promise<MidasCreditSuite[]> {
+  const suites: MidasCreditSuite[] = [];
+  for (const cm of sdk.marketRegister.creditManagers) {
+    const creditManager = cm.creditManager.address;
+    let hasAdapter = false;
+    for (const adapter of cm.creditManager.adapters.values()) {
+      if (adapter instanceof MidasGatewayAdapterContract) {
+        hasAdapter = true;
+        suites.push({
+          creditManager,
+          gateway: adapter.gateway,
+          mToken: adapter.mToken,
+        });
+      }
+    }
+    if (hasAdapter) {
+      continue;
+    }
+    // permissioned-mode suite with no gateway adapter (e.g. mGlobal)
+    const nft = await cm.degenNFT();
+    if (nft instanceof MidasDegenNFT) {
+      const [mToken] = await nft.getTokens();
+      suites.push({ creditManager, gateway: nft.gateway, mToken });
+    }
   }
-  return gateways.asArray();
+  return suites;
+}
+
+/**
+ * Gateways of the Midas credit suites of the loaded credit managers.
+ */
+export async function discoverMidasGateways(
+  sdk: OnchainSDK,
+): Promise<Address[]> {
+  const suites = await discoverMidasCreditSuites(sdk);
+  return new AddressSet(suites.map(suite => suite.gateway)).asArray();
 }
 
 /**
  * mTokens of all Midas gateway adapters of the loaded credit managers
  */
-export function collectMidasMTokens(sdk: OnchainSDK): Address[] {
+export function discoverMidasMTokens(sdk: OnchainSDK): Address[] {
   const mTokens = new AddressSet();
-  for (const adapter of midasGatewayAdapters(sdk)) {
-    mTokens.add(adapter.mToken);
+  for (const cm of sdk.marketRegister.creditManagers) {
+    for (const adapter of cm.creditManager.adapters.values()) {
+      if (adapter instanceof MidasGatewayAdapterContract) {
+        mTokens.add(adapter.mToken);
+      }
+    }
   }
   return mTokens.asArray();
 }

@@ -14,7 +14,6 @@ import {
   type TokenMetaData,
 } from "../../base/index.js";
 import type { GearboxChain } from "../../chain/index.js";
-import { AP_RWA_COMPRESSOR, VERSION_RANGE_310 } from "../../constants/index.js";
 import { AddressMap, bytes32ToString } from "../../utils/index.js";
 import type { DelegatedMulticall } from "../../utils/viem/index.js";
 import { SecuritizeRWAFactory } from "./securitize/index.js";
@@ -26,6 +25,9 @@ import type {
   RWAStateHuman,
   RWAUnderlyingData,
 } from "./types.js";
+
+export const RWA_COMPRESSOR_ADDRESS =
+  "0x9Bff226505632930BA1897E7943e90A2f7D0D9f7";
 
 /**
  * Registry of RWA underlying tokens and RWA factory contracts.
@@ -61,15 +63,11 @@ export class RWARegistry extends SDKConstruct {
     if (!rwaFactories.length) {
       return [];
     }
-    const [rwaCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
-      AP_RWA_COMPRESSOR,
-      VERSION_RANGE_310,
-    );
     return [
       {
         call: {
           abi: iRWACompressorAbi,
-          address: rwaCompressorAddress,
+          address: RWA_COMPRESSOR_ADDRESS,
           functionName: "getRWAMarketsData",
           args: [configurators, rwaFactories],
         },
@@ -123,13 +121,9 @@ export class RWARegistry extends SDKConstruct {
     if (!factories.length) {
       return [];
     }
-    const [rwaCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
-      AP_RWA_COMPRESSOR,
-      VERSION_RANGE_310,
-    );
     const resp = await this.client.readContract({
       abi: iRWACompressorAbi,
-      address: rwaCompressorAddress,
+      address: RWA_COMPRESSOR_ADDRESS,
       functionName: "getRWAInvestorData",
       args: [investor, factories.map(f => f.address)],
       blockNumber,

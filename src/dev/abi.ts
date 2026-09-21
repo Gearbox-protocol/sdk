@@ -67,7 +67,7 @@ export const iFaucetAbi = [
         ],
       },
     ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
@@ -77,14 +77,14 @@ export const iFaucetAbi = [
       { name: "receiver", type: "address", internalType: "address" },
       { name: "amountUSD", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "claimOnBehalfOf",
     inputs: [{ name: "receiver", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [],
     stateMutability: "nonpayable",
   },
   {
@@ -125,6 +125,13 @@ export const iFaucetAbi = [
     name: "minAmountUSD",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "owner",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },
   {
