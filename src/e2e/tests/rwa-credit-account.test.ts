@@ -1,11 +1,4 @@
-import {
-  type Address,
-  erc20Abi,
-  type Hex,
-  http,
-  parseEventLogs,
-  parseUnits,
-} from "viem";
+import { type Address, erc20Abi, http, parseEventLogs, parseUnits } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import {
@@ -72,7 +65,6 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
     transport: http(RWA_RPC_URL, { timeout: 120_000 }),
     pollingInterval: 100,
   });
-  const adminPrivateKey = process.env.E2E_SECURITIZE_ADMIN_PRIVATE_KEY as Hex;
 
   beforeAll(async () => {
     sdk = new OnchainSDK("Mainnet", {
@@ -103,7 +95,6 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
       await claimDSToken({
         anvil: anvil as unknown as AnvilClient,
         investor: investor,
-        adminPrivateKey,
         token: dsToken,
         usdAmount: "60000",
         marketConfigurators: [RWA_MARKET_CONFIGURATOR],
@@ -198,7 +189,6 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
       await registerSecuritizeInvestor({
         anvil: anvil as unknown as AnvilClient,
         investor: investor,
-        adminPrivateKey,
         token: dsToken,
       });
 

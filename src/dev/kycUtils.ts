@@ -1,15 +1,16 @@
 import {
   type Address,
+  getAddress,
   type Hex,
   isAddressEqual,
-  type PrivateKeyAccount,
   type PublicClient,
   parseAbi,
   parseEther,
+  slice,
   type Transport,
+  toHex,
   zeroAddress,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { iDSRegistryServiceAbi } from "../abi/rwa/iDSRegistryService.js";
 import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
 import {
@@ -23,20 +24,16 @@ import type { AnvilClient } from "./createAnvilClient.js";
 import { collectMidasGateways } from "./midasUtils.js";
 import { midasGatewayAbi } from "./withdrawalAbi.js";
 
+const iMockDSTokenAdminAbi = parseAbi([
+  "function admin() view returns (address)",
+]);
+
 export interface RegisterSecuritizeInvestorProps {
   anvil: AnvilClient;
   /**
    * Wallet to register in the Securitize DS registry
    */
   investor: Address;
-  /**
-   * Private key of the DS registry admin, signs the registry writes
-   */
-  adminPrivateKey?: Hex;
-  /**
-   * DS registry admin, impersonated on the fork when no private key is given
-   */
-  admin?: Address;
   /**
    * DSToken address
    */
@@ -48,29 +45,66 @@ interface SecuritizeAdminSigner {
   /**
    * Account to pass to the registry writes
    */
-  account: Address | PrivateKeyAccount;
+  account: Address;
   release: () => Promise<void>;
 }
 
 /**
- * Resolves the account that performs the DS registry writes: either the admin
- * private key, or the admin address impersonated on the fork
+ * DS trust-service master of `token`: Ownable owner at storage slot 0 of the
+ * trust service, same as periphery-v3 SecuritizeAttachHelper. MockDSToken
+ * returns itself as the trust service, so `admin()` is used instead.
+ */
+export async function getSecuritizeAdmin(
+  anvil: AnvilClient,
+  token: Address,
+  logger?: ILogger,
+): Promise<Address> {
+  const trustServiceId = await anvil.readContract({
+    address: token,
+    abi: iDSTokenAbi,
+    functionName: "TRUST_SERVICE",
+  });
+  const trustService = await anvil.readContract({
+    address: token,
+    abi: iDSTokenAbi,
+    functionName: "getDSService",
+    args: [trustServiceId],
+  });
+  if (isAddressEqual(trustService, token)) {
+    const admin = await anvil.readContract({
+      address: token,
+      abi: iMockDSTokenAdminAbi,
+      functionName: "admin",
+    });
+    logger?.debug(
+      `securitize: found admin ${admin} for ${token} (token.admin)`,
+    );
+    return admin;
+  }
+  const word = await anvil.getStorageAt({
+    address: trustService,
+    slot: toHex(0, { size: 32 }),
+  });
+  if (!word) {
+    throw new Error(
+      `securitize: empty trust-service owner slot on ${trustService}`,
+    );
+  }
+  const admin = getAddress(slice(word, 12));
+  logger?.debug(
+    `securitize: found admin ${admin} for ${token} (trust service ${trustService})`,
+  );
+  return admin;
+}
+
+/**
+ * Impersonates the DS trust-service admin of `token` on the fork
  */
 async function useSecuritizeAdmin(
   props: RegisterSecuritizeInvestorProps,
 ): Promise<SecuritizeAdminSigner> {
-  const { anvil, adminPrivateKey, admin, logger } = props;
-  if (adminPrivateKey) {
-    return {
-      account: privateKeyToAccount(adminPrivateKey),
-      release: async () => {},
-    };
-  }
-  if (!admin) {
-    throw new Error(
-      "securitize: either adminPrivateKey or admin address is required",
-    );
-  }
+  const { anvil, token, logger } = props;
+  const admin = await getSecuritizeAdmin(anvil, token, logger);
   await anvil.impersonateAccount({ address: admin });
   await anvil.setBalance({ address: admin, value: parseEther("100") });
   logger?.debug(`securitize: impersonating registry admin ${admin}`);
@@ -438,15 +472,6 @@ export interface RegisterRWAInvestorProps {
    */
   investor: Address;
   /**
-   * Private key of the Securitize registry admin, DSTokens are skipped when
-   * neither this nor `securitizeAdmin` is set
-   */
-  adminPrivateKey?: Hex;
-  /**
-   * Securitize registry admin, impersonated on the fork
-   */
-  securitizeAdmin?: Address;
-  /**
    * Override midas access control admin address
    */
   midasAdmin?: Address;
@@ -487,8 +512,6 @@ export async function registerRWAInvestor(
     anvil,
     sdk,
     investor,
-    adminPrivateKey,
-    securitizeAdmin,
     midasAdmin = "0xd4195CF4df289a4748C1A7B6dDBE770e27bA1227",
     logger,
   } = props;
@@ -500,29 +523,21 @@ export async function registerRWAInvestor(
   const dsTokens = new AddressSet(
     sdk.rwa.factories.flatMap(factory => factory.getTokens()),
   );
-  if (adminPrivateKey || securitizeAdmin) {
-    // sequential: every write mines a block on the same anvil
-    for (const token of dsTokens) {
-      try {
-        await registerSecuritizeInvestor({
-          anvil,
-          investor: investor,
-          adminPrivateKey,
-          admin: securitizeAdmin,
-          token,
-          logger,
-        });
-        securitizeTokens.push(token);
-      } catch (e) {
-        logger?.error(`securitize: failed to register ${investor} in ${token}`);
-        logger?.error(e);
-        failed.push({ target: token, error: e });
-      }
+  // sequential: every write mines a block on the same anvil
+  for (const token of dsTokens) {
+    try {
+      await registerSecuritizeInvestor({
+        anvil,
+        investor: investor,
+        token,
+        logger,
+      });
+      securitizeTokens.push(token);
+    } catch (e) {
+      logger?.error(`securitize: failed to register ${investor} in ${token}`);
+      logger?.error(e);
+      failed.push({ target: token, error: e });
     }
-  } else if (dsTokens.size > 0) {
-    logger?.warn(
-      `securitize: no registry admin, skipping ${dsTokens.size} DSToken(s)`,
-    );
   }
 
   const gateways = await collectMidasGateways(sdk);
