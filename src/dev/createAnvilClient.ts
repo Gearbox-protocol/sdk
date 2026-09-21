@@ -21,6 +21,7 @@ import type {
 import {
   BaseError,
   createTestClient,
+  parseEther,
   publicActions,
   testActions,
   toHex,
@@ -293,4 +294,39 @@ export async function writeContractSync<
     );
   }
   return receipt as WriteContractSyncReturnType<chain>;
+}
+
+/**
+ * Runs `fn` while `address` is impersonated and funded with ETH, and always
+ * stops impersonating afterwards. A failure to release the account is
+ * reported together with the operation error when both fail.
+ */
+export async function withImpersonation<T>(
+  anvil: AnvilClient,
+  address: Address,
+  fn: () => Promise<T>,
+): Promise<T> {
+  await anvil.impersonateAccount({ address });
+  await anvil.setBalance({ address, value: parseEther("100") });
+  let outcome: { ok: true; value: T } | { ok: false; error: unknown };
+  try {
+    outcome = { ok: true, value: await fn() };
+  } catch (error) {
+    outcome = { ok: false, error };
+  }
+  try {
+    await anvil.stopImpersonatingAccount({ address });
+  } catch (error) {
+    const release = new Error(`failed to stop impersonating ${address}`, {
+      cause: error,
+    });
+    if (outcome.ok) throw release;
+    throw new AggregateError(
+      [outcome.error, release],
+      `operation as ${address} failed and the account could not be released`,
+      { cause: outcome.error },
+    );
+  }
+  if (!outcome.ok) throw outcome.error;
+  return outcome.value;
 }

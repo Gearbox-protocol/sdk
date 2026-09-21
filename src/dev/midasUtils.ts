@@ -1,12 +1,12 @@
 import type { Address } from "viem";
-import { parseAbi, parseEther, toFunctionSelector } from "viem";
+import { parseAbi, toFunctionSelector } from "viem";
 import {
   AddressSet,
   type ILogger,
   MidasGatewayAdapterContract,
   type OnchainSDK,
 } from "../onchain/index.js";
-import type { AnvilClient } from "./createAnvilClient.js";
+import { type AnvilClient, withImpersonation } from "./createAnvilClient.js";
 
 /**
  * Midas vaults inherit their own `Pausable`, whose global pause is guarded by
@@ -56,6 +56,77 @@ export interface UnpauseMidasIssuanceVaultProps {
  * and does nothing otherwise. Safe to call more than once.
  */
 export type RestoreMidasIssuanceVaultPause = () => Promise<void>;
+
+interface MidasPauseChanges {
+  global: boolean;
+  depositInstant: boolean;
+}
+
+async function restoreMidasIssuanceVaultPause(
+  { anvil, vault, admin, logger }: UnpauseMidasIssuanceVaultProps,
+  changes: MidasPauseChanges,
+): Promise<void> {
+  if (!changes.global && !changes.depositInstant) return;
+
+  const failures: unknown[] = [];
+  try {
+    await withImpersonation(anvil, admin, async () => {
+      // Restore in reverse order of setup and attempt both layers even if the
+      // first write fails.
+      if (changes.depositInstant) {
+        try {
+          await anvil.writeContractSync({
+            account: admin,
+            chain: anvil.chain,
+            address: vault,
+            abi: iMidasPausableVaultAbi,
+            functionName: "pauseFn",
+            args: [DEPOSIT_INSTANT_SELECTOR],
+            throwOnReceiptRevert: true,
+          });
+        } catch (error) {
+          failures.push(
+            new Error(`failed to restore depositInstant pause on ${vault}`, {
+              cause: error,
+            }),
+          );
+        }
+      }
+      if (changes.global) {
+        try {
+          await anvil.writeContractSync({
+            account: admin,
+            chain: anvil.chain,
+            address: vault,
+            abi: iMidasPausableVaultAbi,
+            functionName: "pause",
+            throwOnReceiptRevert: true,
+          });
+        } catch (error) {
+          failures.push(
+            new Error(`failed to restore global pause on ${vault}`, {
+              cause: error,
+            }),
+          );
+        }
+      }
+    });
+  } catch (error) {
+    failures.push(
+      new Error(`failed to act as pause admin ${admin} during restoration`, {
+        cause: error,
+      }),
+    );
+  }
+
+  if (failures.length > 0) {
+    throw new AggregateError(
+      failures,
+      `failed to restore issuance-vault pause state for ${vault}`,
+    );
+  }
+  logger?.debug(`midas: restored issuance vault ${vault} pause state`);
+}
 
 /**
  * Unpauses a Midas issuance vault on an anvil fork so that `depositInstant`
@@ -120,44 +191,62 @@ export async function unpauseMidasIssuanceVault(
       (depositInstantPaused ? ", depositInstant" : ""),
   );
 
-  await anvil.impersonateAccount({ address: admin });
+  const changes: MidasPauseChanges = {
+    global: false,
+    depositInstant: false,
+  };
   try {
-    await anvil.setBalance({ address: admin, value: parseEther("100") });
-    if (!isPauseAdmin) {
-      await anvil.writeContractSync({
-        account: admin,
-        chain: anvil.chain,
-        address: accessControl,
-        abi: iMidasAccessControlAbi,
-        functionName: "grantRole",
-        args: [pauseAdminRole, admin],
-        throwOnReceiptRevert: true,
-      });
-      logger?.debug(`midas: granted pause admin role to ${admin}`);
+    await withImpersonation(anvil, admin, async () => {
+      if (!isPauseAdmin) {
+        await anvil.writeContractSync({
+          account: admin,
+          chain: anvil.chain,
+          address: accessControl,
+          abi: iMidasAccessControlAbi,
+          functionName: "grantRole",
+          args: [pauseAdminRole, admin],
+          throwOnReceiptRevert: true,
+        });
+        logger?.debug(`midas: granted pause admin role to ${admin}`);
+      }
+      if (paused) {
+        await anvil.writeContractSync({
+          account: admin,
+          chain: anvil.chain,
+          address: vault,
+          abi: iMidasPausableVaultAbi,
+          functionName: "unpause",
+          throwOnReceiptRevert: true,
+        });
+        changes.global = true;
+      }
+      if (depositInstantPaused) {
+        await anvil.writeContractSync({
+          account: admin,
+          chain: anvil.chain,
+          address: vault,
+          abi: iMidasPausableVaultAbi,
+          functionName: "unpauseFn",
+          args: [DEPOSIT_INSTANT_SELECTOR],
+          throwOnReceiptRevert: true,
+        });
+        changes.depositInstant = true;
+      }
+    });
+  } catch (error) {
+    const setupError = new Error(`failed to unpause issuance vault ${vault}`, {
+      cause: error,
+    });
+    try {
+      await restoreMidasIssuanceVaultPause(props, changes);
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [setupError, cleanupError],
+        `failed to set up and restore issuance vault ${vault}`,
+        { cause: setupError },
+      );
     }
-    if (paused) {
-      await anvil.writeContractSync({
-        account: admin,
-        chain: anvil.chain,
-        address: vault,
-        abi: iMidasPausableVaultAbi,
-        functionName: "unpause",
-        throwOnReceiptRevert: true,
-      });
-    }
-    if (depositInstantPaused) {
-      await anvil.writeContractSync({
-        account: admin,
-        chain: anvil.chain,
-        address: vault,
-        abi: iMidasPausableVaultAbi,
-        functionName: "unpauseFn",
-        args: [DEPOSIT_INSTANT_SELECTOR],
-        throwOnReceiptRevert: true,
-      });
-    }
-  } finally {
-    await anvil.stopImpersonatingAccount({ address: admin });
+    throw setupError;
   }
 
   let toRestore = true;
@@ -167,36 +256,7 @@ export async function unpauseMidasIssuanceVault(
     }
     toRestore = false;
     logger?.debug(`midas: pausing issuance vault ${vault} back`);
-    await anvil.impersonateAccount({ address: admin });
-    try {
-      await anvil.setBalance({ address: admin, value: parseEther("100") });
-      if (paused) {
-        await anvil.writeContractSync({
-          account: admin,
-          chain: anvil.chain,
-          address: vault,
-          abi: iMidasPausableVaultAbi,
-          functionName: "pause",
-          throwOnReceiptRevert: true,
-        });
-      }
-      if (depositInstantPaused) {
-        await anvil.writeContractSync({
-          account: admin,
-          chain: anvil.chain,
-          address: vault,
-          abi: iMidasPausableVaultAbi,
-          functionName: "pauseFn",
-          args: [DEPOSIT_INSTANT_SELECTOR],
-          throwOnReceiptRevert: true,
-        });
-      }
-    } catch (e) {
-      // never mask the error that interrupted the bracketed work
-      logger?.warn(`midas: failed to pause issuance vault ${vault} back: ${e}`);
-    } finally {
-      await anvil.stopImpersonatingAccount({ address: admin });
-    }
+    await restoreMidasIssuanceVaultPause(props, changes);
   };
 }
 
