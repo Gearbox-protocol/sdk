@@ -2,11 +2,7 @@ import type { Address } from "viem";
 
 import { iVersionAbi } from "../../abi/iVersion.js";
 import type { NetworkType } from "../chain/chains.js";
-import {
-  ADDRESS_PROVIDER_V310,
-  AP_RWA_COMPRESSOR,
-  isV310,
-} from "../constants/index.js";
+import { ADDRESS_PROVIDER_V310, isV310 } from "../constants/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import { hexEq } from "../utils/hex.js";
 import { AddressProviderV310Contract } from "./AddressProviderV310Contract.js";
@@ -18,14 +14,7 @@ import type {
 
 const OVERRIDE_ADDRESSES: Partial<
   Record<NetworkType, AddressProviderAddresses["overrides"]>
-> = {
-  // Deployed but not yet registered in the Mainnet address provider.
-  Mainnet: {
-    [AP_RWA_COMPRESSOR]: {
-      310: "0x9Bff226505632930BA1897E7943e90A2f7D0D9f7",
-    },
-  },
-};
+> = {};
 
 export async function createAddressProvider(
   sdk: OnchainSDK,
