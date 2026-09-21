@@ -65,8 +65,6 @@ export interface AnvilAccountEnvironmentOptions {
   borrowerKey?: Hex;
   depositorKey?: Hex;
   allowMint?: boolean;
-  securitizeAdminKey?: Hex;
-  securitizeAdmin?: Address;
   midasAdmin?: Address;
 }
 
@@ -147,8 +145,6 @@ export class AnvilAccountEnvironment extends SDKConstruct {
     });
     this.#kyc = new AnvilAccountKyc(sdk, this.anvil, {
       midasAdmin: options.midasAdmin ?? MIDAS_ACL_ADMIN,
-      securitizeAdminKey: options.securitizeAdminKey,
-      securitizeAdmin: options.securitizeAdmin,
       logger: this.#logger,
     });
     this.#logger?.info(

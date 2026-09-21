@@ -35,8 +35,6 @@ export interface KycAccessOptions {
 export interface AnvilAccountKycOptions {
   /** Midas access control admin, impersonated on the fork. */
   midasAdmin: Address;
-  securitizeAdminKey?: Hex;
-  securitizeAdmin?: Address;
   logger?: ILogger;
 }
 
@@ -48,8 +46,6 @@ export class AnvilAccountKyc extends SDKConstruct {
   readonly #anvil: AnvilClient;
   readonly #logger?: ILogger;
   readonly #midasAdmin: Address;
-  readonly #securitizeAdminKey?: Hex;
-  readonly #securitizeAdmin?: Address;
 
   constructor(
     sdk: OnchainSDK,
@@ -59,8 +55,6 @@ export class AnvilAccountKyc extends SDKConstruct {
     super(sdk);
     this.#anvil = anvil;
     this.#midasAdmin = options.midasAdmin;
-    this.#securitizeAdminKey = options.securitizeAdminKey;
-    this.#securitizeAdmin = options.securitizeAdmin;
     this.#logger = options.logger ?? this.logger;
   }
 
@@ -151,17 +145,11 @@ export class AnvilAccountKyc extends SDKConstruct {
       if (tokens.length === 0) {
         return;
       }
-      if (!this.#securitizeAdminKey && !this.#securitizeAdmin) {
-        throw new Error(
-          `securitize: ${investor} is not registered in ${tokens.join(", ")} and no registry admin is configured`,
-        );
-      }
+      // The helper finds each token's registry admin and impersonates it.
       for (const token of tokens) {
         await registerSecuritizeInvestor({
           anvil: this.#anvil,
           investor,
-          adminPrivateKey: this.#securitizeAdminKey,
-          admin: this.#securitizeAdmin,
           token,
           logger: this.#logger,
         });
