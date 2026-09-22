@@ -33,6 +33,7 @@ import type {
 import type {
   BorrowState,
   CheckSimulationInput,
+  ExecutionCost,
   OpenStrategyState,
   OperationState,
 } from "../../onchain/index.js";
@@ -357,7 +358,7 @@ describe("a borrow result is weighable where every other state is", () => {
     expectTypeOf<BorrowState>().toExtend<OperationState>();
     expectTypeOf<BorrowState>().toExtend<CheckSimulationInput["state"]>();
     expectTypeOf<BorrowState["executionCost"]>().toEqualTypeOf<
-      bigint | undefined
+      ExecutionCost | undefined
     >();
   });
 

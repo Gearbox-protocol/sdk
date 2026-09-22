@@ -219,14 +219,15 @@ describe("deposit.start — execution cost of the routed leg", () => {
     // Linear, so the probe loses the same share and there is no depth to find
     expect(priceImpact?.pathPriceImpact).toBe(0n);
     // while against the oracle the leg gave up a percent of what it sold.
-    expect(executionCost).toBeGreaterThanOrEqual(-10_001n);
-    expect(executionCost).toBeLessThanOrEqual(-9_999n);
+    expect(executionCost?.amount.value).toBe(-P1000 / 100n);
+    expect(executionCost?.rate).toBe(-10_000n);
   });
 
   it("costs nothing on a route that pays the oracle price", async () => {
     const result = await run(case_fixed_leverage);
     if (!result.ok) throw new Error("expected a preview");
 
-    expect(result.state.executionCost).toBe(0n);
+    expect(result.state.executionCost?.amount.value).toBe(0n);
+    expect(result.state.executionCost?.rate).toBe(0n);
   });
 });

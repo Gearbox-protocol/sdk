@@ -63,6 +63,7 @@ export type {
 } from "../../model/index.js";
 export type {
   BorrowState,
+  ExecutionCost,
   LeverageBand,
   OperationState,
   PathLossRate,
