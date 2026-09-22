@@ -259,16 +259,15 @@ export async function discoverMidasGateways(
 }
 
 /**
- * mTokens of all Midas gateway adapters of the loaded credit managers
+ * mTokens of the Midas credit suites of the loaded credit managers.
+ *
+ * A manager with a gateway adapter contributes that adapter's mToken, so its
+ * degen NFT is not consulted. Suites that only have a Midas degen NFT
+ * contribute the mToken read from the gateway.
  */
-export function discoverMidasMTokens(sdk: OnchainSDK): Address[] {
-  const mTokens = new AddressSet();
-  for (const cm of sdk.marketRegister.creditManagers) {
-    for (const adapter of cm.creditManager.adapters.values()) {
-      if (adapter instanceof MidasGatewayAdapterContract) {
-        mTokens.add(adapter.mToken);
-      }
-    }
-  }
-  return mTokens.asArray();
+export async function discoverMidasMTokens(
+  sdk: OnchainSDK,
+): Promise<Address[]> {
+  const suites = await discoverMidasCreditSuites(sdk);
+  return new AddressSet(suites.map(suite => suite.mToken)).asArray();
 }
