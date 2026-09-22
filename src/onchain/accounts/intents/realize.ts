@@ -601,8 +601,14 @@ export async function realize(
 
   const executionCost =
     traded.priced && traded.spentUnd > 0n
-      ? (PERCENTAGE_FACTOR_1KK * (traded.returnedUnd - traded.spentUnd)) /
-        traded.spentUnd
+      ? {
+          amount: market.toUnderlyingAmount(
+            traded.returnedUnd - traded.spentUnd,
+          ),
+          rate:
+            (PERCENTAGE_FACTOR_1KK * (traded.returnedUnd - traded.spentUnd)) /
+            traded.spentUnd,
+        }
       : undefined;
 
   const state: OperationState = {

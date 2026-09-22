@@ -304,8 +304,8 @@ export async function buildBorrowState(
     // Not measured here. The field answers what an operation gave up on its
     // way between two states of the same account, which a borrow has no
     // second of: the payout leaves, and what it cost on the way out is
-    // `borrowed` against `totalDebt` — reported in the tokens themselves
-    // rather than as a rate, with `priceImpact` beside them for the depth.
+    // `borrowed` against `totalDebt`, with `priceImpact` beside them for the
+    // depth.
     executionCost: undefined,
     priceImpact: await collectPriceImpact(leg?.probe ? [leg.probe] : [], {
       totalValue: margin,

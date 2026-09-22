@@ -79,6 +79,7 @@ export type {
   DelayedStart,
   DelayedStartResult,
   DepositStrategyIntent,
+  ExecutionCost,
   FinishIntentProps,
   FinishIntentResult,
   InstantRoute,

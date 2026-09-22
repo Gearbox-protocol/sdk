@@ -193,11 +193,10 @@ a `0n` from any of them means there is genuinely nothing to offer.
   the facade's `1.0` without unwrapping anything. An opening is taken by the
   other branch of the same union, which names its quotas `averageQuota`.
 - `executionCost` is `undefined` here, the third case that field allows. The
-  rate compares an account against itself before and after an operation, and a
+  cost compares an account against itself before and after an operation, and a
   borrow has no second state of it to compare: the payout goes to the wallet.
   What the route cost is on the state already — `borrowed` against `totalDebt`,
-  in the tokens rather than as a rate, with `priceImpact` beside them for the
-  depth the probe found.
+  with `priceImpact` beside them for the depth the probe found.
 - Read back off its own calldata, a borrow is an opening: `previewOperation`
   answers an `OpenCreditAccount` preview, with the payout in
   `collateralWithdrawn` and the account valued at what it kept — so

@@ -34,6 +34,18 @@ export interface PathLossRate {
 }
 
 /**
+ * What an operation gives up against the oracle: the value of everything its
+ * routed legs and redemption request return, the expected claim included, less
+ * the value of what they spend. Negative for a loss.
+ */
+export interface ExecutionCost {
+  /** `out − in` in the market underlying. */
+  amount: TokenAmount;
+  /** `(out − in) / in`, in `PERCENTAGE_FACTOR_1KK` (1_000_000 = 100%). */
+  rate: bigint;
+}
+
+/**
  * The two prices only a planned walk can quote, carried by every simulation
  * result beside its projection.
  *
@@ -66,18 +78,15 @@ export interface SimulationPrices {
  */
 export interface OperationState extends AccountProjection, SimulationPrices {
   /**
-   * What the operation gives up, as `(out − in) / in`: the oracle value in the
-   * underlying of everything its routed legs and redemption request return,
-   * the expected claim included, against the value of what they spend.
-   * In `PERCENTAGE_FACTOR_1KK` (1_000_000 = 100%), negative for a loss.
+   * What the operation gives up against the oracle.
    *
    * `undefined` where nothing was traded, where a leg cannot be priced, and on
-   * a {@link BorrowState}, which does not measure it: the rate compares an
+   * a {@link BorrowState}, which does not measure it: the cost compares an
    * account against itself before and after, and a borrow's payout goes to the
    * wallet rather than staying to be compared. What its route cost is on that
    * state as `borrowed` against `totalDebt`.
    */
-  executionCost: bigint | undefined;
+  executionCost: ExecutionCost | undefined;
 }
 
 /**

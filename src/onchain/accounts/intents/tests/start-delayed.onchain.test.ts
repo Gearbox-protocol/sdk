@@ -164,7 +164,8 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
       throw new Error("expected ok delayed preview");
     }
 
-    expect(result.state.executionCost).toBe(0n);
+    expect(result.state.executionCost?.amount.value).toBe(0n);
+    expect(result.state.executionCost?.rate).toBe(0n);
   });
 
   it("reports the haircut the venue takes as the execution cost", async () => {
@@ -188,9 +189,14 @@ describe("withdraw.startDelayed — request now, settle after the delay", () => 
     }
 
     // 2W redeemed, 1.98W back: a percent of what went in.
-    expect(result.delayed.afterRequest.executionCost).toBe(-10_000n);
+    expect(result.delayed.afterRequest.executionCost).toMatchObject({
+      amount: { value: -W / 50n },
+      rate: -10_000n,
+    });
     // The tail's own state carries the request's cost, not a zero of its own.
-    expect(result.state.executionCost).toBe(-10_000n);
+    expect(result.state.executionCost).toEqual(
+      result.delayed.afterRequest.executionCost,
+    );
   });
 
   it("holds the withdrawal back when the source is the withdrawal token", async () => {
