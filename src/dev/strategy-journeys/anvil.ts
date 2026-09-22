@@ -10,6 +10,7 @@ import {
 import type { AnvilClient } from "../createAnvilClient.js";
 import { AnvilJourneySession } from "./AnvilJourneySession.js";
 import { planOpening } from "./planning.js";
+import { prepareOpeningAccount } from "./prepareOpeningAccount.js";
 import { type CoreJourney, runStrategyJourneys } from "./run.js";
 import {
   type JourneyResult,
@@ -86,6 +87,12 @@ export async function runAnvilStrategyJourneys(options: AnvilJourneyOptions) {
       });
       await environment.grantKycAccess([target]);
       await environment.sync();
+      const openingAccount = await prepareOpeningAccount({
+        sdk,
+        environment,
+        key,
+        target: target.target,
+      });
       return run(
         new AnvilJourneySession({
           sdk,
@@ -93,6 +100,7 @@ export async function runAnvilStrategyJourneys(options: AnvilJourneyOptions) {
           key,
           strategy,
           ...opening,
+          openingAccount,
           slippage: options.slippage ?? 50,
           route: options.route ?? "auto",
           settle: options.settle,

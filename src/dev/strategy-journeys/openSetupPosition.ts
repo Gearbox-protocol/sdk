@@ -15,11 +15,13 @@ interface SetupPositionOptions {
   target: Address;
   leverage: bigint;
   slippage: number;
+  creditAccount?: Address;
 }
 
 /**
  * Opens the starting position through the public SDK API as a setup operation.
  * Funding and KYC must already be prepared within the journey's snapshot.
+ * `creditAccount` reuses an empty account created for account-level KYC.
  */
 export async function openSetupPosition(options: SetupPositionOptions) {
   const { sdk, environment, key, collateral, target, leverage, slippage } =
@@ -31,6 +33,9 @@ export async function openSetupPosition(options: SetupPositionOptions) {
       leverage,
       slippage,
       targetToken: target,
+      ...(options.creditAccount
+        ? { creditAccount: options.creditAccount }
+        : {}),
     }),
   );
   const calls = await environment.decorateOpenCalls(
@@ -60,6 +65,17 @@ export async function openSetupPosition(options: SetupPositionOptions) {
     logs: receipt.logs,
     eventName: "OpenCreditAccount",
   });
-  assert.equal(logs.length, 1, "Setup must emit exactly one account event");
-  return { creditAccount: logs[0].args.creditAccount, transactions: [hash] };
+  if (options.creditAccount) {
+    assert.equal(
+      logs.length,
+      0,
+      "Setup must use the prepared account without opening another",
+    );
+  } else {
+    assert.equal(logs.length, 1, "Setup must emit exactly one account event");
+  }
+  return {
+    creditAccount: options.creditAccount ?? logs[0].args.creditAccount,
+    transactions: [hash],
+  };
 }

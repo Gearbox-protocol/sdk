@@ -12,13 +12,13 @@ import type { JourneySession } from "../types.js";
 /**
  * Tests opening a leveraged strategy position through the public SDK.
  *
- * Starting state: no position, since this journey skips the shared setup
- * opening; with `reuse`, the journey's existing account after a full exit.
+ * Starting state: no funded position. Permissioned Midas may already have
+ * an empty, greenlisted account from setup; `reuse` uses the account after exit.
  * Action: fund the wallet with the planned collateral, then
  * `prepare.openNewStrategy` and `execute.buildTx({ kind: "open" })` with the
  * fork's opening hooks and any RWA signatures.
- * Verifies: exactly one `OpenCreditAccount` event, or none for another
- * account when reusing; the account is adopted for later steps; the new
+ * Verifies: exactly one `OpenCreditAccount` event for one-step opening, or
+ * use of the prepared/reused account; the account is adopted for later steps; the new
  * position holds debt and strategy tokens; the wallet balance dropped by
  * exactly the collateral amount.
  */
@@ -39,6 +39,9 @@ export class OpenJourney extends BaseStrategyJourney {
   ): Promise<void> {
     const reuse = this.#reuse;
     const { collateral: amount, leverage, key, slippage } = session.options;
+    const existingAccount = reuse
+      ? session.position.creditAccount
+      : session.options.openingAccount?.creditAccount;
     await this.perform(session, context, {
       action: { kind: "open", reuse },
       setup: () => session.fund(session.underlying, amount),
@@ -55,7 +58,7 @@ export class OpenJourney extends BaseStrategyJourney {
             leverage,
             slippage,
             targetToken: session.target,
-            creditAccount: reuse ? session.position.creditAccount : undefined,
+            creditAccount: existingAccount,
           }),
         );
         const calls = await session.environment.decorateOpenCalls(
@@ -84,16 +87,21 @@ export class OpenJourney extends BaseStrategyJourney {
           logs: receipt.logs,
           eventName: "OpenCreditAccount",
         });
-        if (reuse) {
+        if (existingAccount) {
           assert(
             logs.every(log =>
-              isAddressEqual(
-                log.args.creditAccount,
-                session.position.creditAccount,
-              ),
+              isAddressEqual(log.args.creditAccount, existingAccount),
             ),
             "Reuse opened another account",
           );
+          if (!reuse) {
+            assert.equal(
+              logs.length,
+              0,
+              "Opening must use the account prepared for KYC",
+            );
+            session.adoptCreditAccount(existingAccount);
+          }
         } else {
           assert.equal(
             logs.length,

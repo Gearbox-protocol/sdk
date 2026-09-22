@@ -62,6 +62,8 @@ export abstract class BaseStrategyJourney {
   ): Promise<void> {
     const { result, onPhase } = context;
     onPhase("setup");
+    if (session.options.openingAccount)
+      result.setup.account = session.options.openingAccount;
     await this.setup(session, result);
     result.setup.status = "passed";
     await this.test(session, context);

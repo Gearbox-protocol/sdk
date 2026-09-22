@@ -1,11 +1,16 @@
-import type { Address, Hex } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import type {
   CreditSuite,
   ILogger,
   MidasDegenNFT,
   OnchainSDK,
 } from "../onchain/index.js";
-import { AddressSet, SDKConstruct } from "../onchain/index.js";
+import {
+  AddressSet,
+  MidasGatewayAdapterContract,
+  MidasIssuanceVaultAdapterContract,
+  SDKConstruct,
+} from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 import {
   greenlistMidasGateway,
@@ -73,6 +78,24 @@ export class AnvilAccountKyc extends SDKConstruct {
     }
   }
 
+  /** Whether the account needs KYC before it can acquire the strategy token. */
+  public async requiresAccountKyc({
+    creditManager,
+    target,
+  }: KycTarget): Promise<boolean> {
+    const cm = this.sdk.marketRegister.findCreditManager(creditManager);
+    if ((await this.loadKycGate(cm))?.protocol !== "midas") return false;
+    for (const adapter of cm.creditManager.adapters.values()) {
+      if (
+        adapter instanceof MidasGatewayAdapterContract &&
+        isAddressEqual(adapter.mToken, target) &&
+        (await adapter.openingCalls()).length > 0
+      )
+        return false;
+    }
+    return true;
+  }
+
   /**
    * Opens KYC access for `investor` on every target. Greenlist roles, registry
    * entries, access-control grants and cleared issuance-vault pauses all stay
@@ -119,11 +142,20 @@ export class AnvilAccountKyc extends SDKConstruct {
         gateway,
         logger: this.#logger,
       });
-      const vault = await this.#anvil.readContract({
-        address: gateway,
-        abi: midasGatewayAbi,
-        functionName: "midasIssuanceVault",
-      });
+      // Some suites (e.g. mGLOBAL) issue through a separate adapter and
+      // have a redemption-only gateway with no issuance-vault getter.
+      const issuanceAdapter = [...cm.creditManager.adapters.values()].find(
+        adapter =>
+          adapter instanceof MidasIssuanceVaultAdapterContract &&
+          isAddressEqual(adapter.mToken, target),
+      );
+      const vault =
+        issuanceAdapter?.targetContract ??
+        (await this.#anvil.readContract({
+          address: gateway,
+          abi: midasGatewayAbi,
+          functionName: "midasIssuanceVault",
+        }));
       await unpauseMidasIssuanceVault({
         anvil: this.#anvil,
         vault,

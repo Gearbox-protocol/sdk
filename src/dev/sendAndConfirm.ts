@@ -1,6 +1,6 @@
 import type { Hex, PrivateKeyAccount, TransactionReceipt } from "viem";
 import type { RawTx } from "../onchain/index.js";
-import { sendRawTx } from "../onchain/index.js";
+import { estimateRawTxGas, sendRawTx } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
 
 /** A mined transaction whose receipt was already checked for a revert. */
@@ -55,7 +55,10 @@ export async function sendAndConfirm(
   anvil: AnvilClient,
   { tx, account, operation }: SendAndConfirmParams,
 ): Promise<ConfirmedTransaction> {
-  const hash = await sendRawTx(anvil, { tx, account });
+  const estimatedGas = await estimateRawTxGas(anvil, { tx, account });
+  // Leave 30% headroom for nested calls when execution differs from estimation.
+  const gas = (estimatedGas * 130n + 99n) / 100n;
+  const hash = await sendRawTx(anvil, { tx, account, gas });
   const receipt = await anvil.waitForTransactionReceipt({ hash });
   return assertConfirmed(operation, hash, receipt);
 }

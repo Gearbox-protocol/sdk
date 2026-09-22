@@ -102,6 +102,7 @@ export class AnvilJourneySession implements JourneySession {
       target: this.target,
       leverage,
       slippage,
+      creditAccount: this.options.openingAccount?.creditAccount,
     });
     this.#creditAccount = opened.creditAccount;
     await this.environment.sync();

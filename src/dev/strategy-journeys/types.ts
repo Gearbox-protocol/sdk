@@ -60,6 +60,8 @@ export interface JourneySessionOptions {
   leverage: bigint;
   slippage: number;
   route: "auto" | "instant" | "delayed";
+  /** Empty account created and greenlisted during shared Anvil setup, if required. */
+  openingAccount?: JourneyAccountSetup;
   settle?: (
     environment: AnvilAccountEnvironment,
     creditAccount: Address,
@@ -99,6 +101,11 @@ export interface JourneySession {
   ): Promise<JourneyExecution>;
 }
 
+export interface JourneyAccountSetup {
+  creditAccount: Address;
+  transactions: Hex[];
+}
+
 export interface JourneyPositionSetup {
   transactions: Hex[];
   state: JourneyState;
@@ -124,6 +131,8 @@ export interface JourneyResult {
   status: JourneyStatus;
   setup: {
     status: "pending" | "passed" | "failed";
+    /** Empty-account creation/KYC is preparation, not the leveraged opening action. */
+    account?: JourneyAccountSetup;
     position?: JourneyPositionSetup;
     /** Actions whose wallet prerequisites were successfully prepared. */
     actions: JourneyAction[];

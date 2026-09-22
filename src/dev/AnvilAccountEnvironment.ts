@@ -361,6 +361,18 @@ export class AnvilAccountEnvironment extends SDKConstruct {
     await this.#kyc.grantKycAccess(borrower.address, targets, options);
   }
 
+  public requiresAccountKyc(target: KycTarget): Promise<boolean> {
+    return this.#kyc.requiresAccountKyc(target);
+  }
+
+  /** Greenlists an already opened credit account, separately from its owner. */
+  public async grantCreditAccountKyc(
+    creditAccount: Address,
+    target: KycTarget,
+  ): Promise<void> {
+    await this.#kyc.grantKycAccess(creditAccount, [target]);
+  }
+
   /**
    * Securitize registration arguments for `accounts.openCA`, signed by the
    * borrower; `undefined` for markets that need none.
