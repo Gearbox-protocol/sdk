@@ -41,7 +41,7 @@ import {
 } from "./core/index.js";
 import { RWARegistry } from "./market/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
-import { PriceFeedRegister } from "./market/pricefeeds/index.js";
+import { UpdatablePriceFeedRegistry } from "./market/pricefeeds/index.js";
 import type { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import { OpportunitiesService } from "./opportunities/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
@@ -257,7 +257,7 @@ export class OnchainSDK<
 
   #rwa: RWARegistry;
   #marketRegister?: MarketRegister;
-  #priceFeeds?: PriceFeedRegister;
+  #priceFeeds?: UpdatablePriceFeedRegistry;
   readonly #withdrawalCompressor?: IWithdrawalCompressorContract;
   #redemptionLogger?: IRedemptionLoggerContract;
 
@@ -390,7 +390,7 @@ export class OnchainSDK<
       );
     }
 
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
+    this.#priceFeeds = new UpdatablePriceFeedRegistry(this, { redstone });
 
     this.logger?.debug(
       `attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -558,7 +558,7 @@ export class OnchainSDK<
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#priceFeeds = new PriceFeedRegister(this, { redstone });
+    this.#priceFeeds = new UpdatablePriceFeedRegistry(this, { redstone });
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -804,7 +804,7 @@ export class OnchainSDK<
    * Global registry of all price feeds known to the SDK.
    * @throws {@link SdkNotAttachedError} if not attached.
    */
-  public get priceFeeds(): PriceFeedRegister {
+  public get priceFeeds(): UpdatablePriceFeedRegistry {
     if (this.#priceFeeds === undefined) {
       throw new SdkNotAttachedError();
     }
