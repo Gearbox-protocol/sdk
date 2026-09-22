@@ -64,11 +64,8 @@ export interface RouterPaths {
 }
 
 /**
- * The engine's only door to the pathfinder.
- *
- * Deliberately not a quoter abstraction with an oracle-priced twin: paths are
- * always resolved on-chain, because a preview whose swap amounts came from
- * oracle prices could not produce the calldata that realises them.
+ * The engine's only door to the pathfinder, and the only quoter whose legs can
+ * be sent. {@link createOraclePaths} is the twin for a walk that only projects.
  */
 export function createRouterPaths(args: {
   sdk: OnchainSDK;
@@ -185,6 +182,9 @@ export function createRouterPaths(args: {
       });
 
       const leg = await quoteSwap({ tokenIn, tokenOut, amount, keep });
+      if (leg.calls.length === 0) {
+        throw new Error("swap: missing router calls");
+      }
 
       return { ...leg, probe: probe && { ...probe, realAmount: leg.amount } };
     },
@@ -198,6 +198,11 @@ export function createRouterPaths(args: {
       });
 
       const { amount, minAmount, calls } = await quoteClose(balances);
+      // Nothing to sell answers empty on both counts; a floor without calls is
+      // the router failing to realise what it quoted.
+      if (calls.length === 0 && minAmount > 0n) {
+        throw new Error("closeAll: missing router calls");
+      }
       const leg = { amount, minAmount, calls: [...calls] };
       return { ...leg, probe: probe && { ...probe, realAmount: leg.amount } };
     },
