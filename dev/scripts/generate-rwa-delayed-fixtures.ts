@@ -146,9 +146,6 @@ const ACRED: Address = "0x17418038ecF73BA4026c4f428547BF099706F27B";
 const MFONE: Address = "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba";
 const USDC: Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
-// Well-known anvil key used as the Securitize registry admin on the fork
-const SECURITIZE_ADMIN_PRIVATE_KEY: Hex =
-  "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a";
 
 const DEST_DIR = resolve(
   import.meta.dirname,
@@ -390,7 +387,6 @@ async function setupInvestor(
   await registerSecuritizeInvestor({
     anvil,
     investor: investor,
-    adminPrivateKey: SECURITIZE_ADMIN_PRIVATE_KEY,
     token: ACRED,
   });
   // 100k USDC covers 20k collateral in all three scenarios

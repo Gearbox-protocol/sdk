@@ -1,15 +1,15 @@
 import {
   type Address,
   erc20Abi,
+  getAddress,
   type Hex,
   isAddressEqual,
-  type PrivateKeyAccount,
   type PublicClient,
   parseAbi,
+  parseEther,
   type Transport,
   zeroAddress,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { iDSTokenAbi } from "../abi/rwa/iDSToken.js";
 import {
   AddressSet,
@@ -18,7 +18,7 @@ import {
   OnchainSDK,
 } from "../onchain/index.js";
 import type { AnvilClient } from "./createAnvilClient.js";
-import { registerSecuritizeInvestor } from "./kycUtils.js";
+import { getSecuritizeAdmin, registerSecuritizeInvestor } from "./kycUtils.js";
 
 /**
  * `COMPLIANCE_CONFIGURATION_SERVICE` id in the DS protocol service registry
@@ -37,7 +37,6 @@ const iDSComplianceConfigurationServiceAbi = parseAbi([
 interface ClaimDSTokenProps {
   anvil: AnvilClient;
   investor: Address;
-  adminPrivateKey: Hex;
   /**
    * DSToken addresses
    */
@@ -57,7 +56,7 @@ type ClaimDSTokensProps = Omit<ClaimDSTokenProps, "token"> & {
 
 interface IssueDSTokensProps {
   anvil: AnvilClient;
-  account: PrivateKeyAccount;
+  account: Address;
   token: Address;
   investor: Address;
   amount: bigint;
@@ -67,15 +66,15 @@ interface IssueDSTokensProps {
 export interface EnableDSTokenBackDatingProps {
   anvil: AnvilClient;
   /**
-   * Securitize DS admin with sufficient trust to call compliance setters
-   * (same key used for issueTokens / registerInvestor)
-   */
-  adminPrivateKey: Hex;
-  /**
    * DSToken addresses whose compliance configuration should allow back-dating
    */
   tokens: Address[];
   logger?: ILogger;
+}
+
+interface ComplianceServiceAdmin {
+  service: Address;
+  admin: Address;
 }
 
 /**
@@ -189,8 +188,8 @@ async function getComplianceConfigurationServices({
   anvil,
   tokens,
   logger,
-}: GetComplianceConfigurationServicesProps): Promise<Address[]> {
-  const services = new AddressSet();
+}: GetComplianceConfigurationServicesProps): Promise<ComplianceServiceAdmin[]> {
+  const services = new Map<Address, Address>();
   for (const token of new AddressSet(tokens)) {
     try {
       const service = await anvil.readContract({
@@ -203,14 +202,18 @@ async function getComplianceConfigurationServices({
         logger?.debug(`${token} has no compliance configuration service`);
         continue;
       }
-      services.add(service);
+      const checksummed = getAddress(service);
+      if (services.has(checksummed)) {
+        continue;
+      }
+      services.set(checksummed, await getSecuritizeAdmin(anvil, token, logger));
     } catch (e) {
       logger?.debug(
         `Failed to get compliance configuration service of ${token}: ${e}`,
       );
     }
   }
-  return [...services];
+  return [...services].map(([service, admin]) => ({ service, admin }));
 }
 
 /**
@@ -219,8 +222,8 @@ async function getComplianceConfigurationServices({
  * honoured: DS protocol silently replaces it with `block.timestamp` otherwise,
  * and freshly minted tokens stay under lock-up.
  *
- * Must be signed by a DS admin with sufficient trust (same key as
- * `issueTokens` / registerInvestor); Ownable `owner()` alone is not enough.
+ * Impersonates the DS trust-service admin of each token. Ownable `owner()` of
+ * the compliance configuration service alone is not enough.
  *
  * The flag is only read while tokens are issued, so restoring it does not
  * re-lock tokens minted in the meantime.
@@ -228,12 +231,11 @@ async function getComplianceConfigurationServices({
 export async function enableDSTokenBackDating(
   props: EnableDSTokenBackDatingProps,
 ): Promise<RestoreDSTokenBackDating> {
-  const { anvil, adminPrivateKey, logger } = props;
-  const account = privateKeyToAccount(adminPrivateKey);
+  const { anvil, logger } = props;
   const services = await getComplianceConfigurationServices(props);
 
-  let toRestore: Address[] = [];
-  for (const service of services) {
+  let toRestore: ComplianceServiceAdmin[] = [];
+  for (const { service, admin } of services) {
     let disallowBackDating: boolean;
     try {
       disallowBackDating = await anvil.readContract({
@@ -250,33 +252,45 @@ export async function enableDSTokenBackDating(
       continue;
     }
     logger?.info(`Allowing back-dating on ${service}`);
-    await anvil.writeContractSync({
-      account,
-      chain: anvil.chain,
-      address: service,
-      abi: iDSComplianceConfigurationServiceAbi,
-      functionName: "setDisallowBackDating",
-      args: [false],
-      throwOnReceiptRevert: true,
-    });
-    toRestore.push(service);
+    await anvil.impersonateAccount({ address: admin });
+    try {
+      await anvil.setBalance({ address: admin, value: parseEther("100") });
+      await anvil.writeContractSync({
+        account: admin,
+        chain: anvil.chain,
+        address: service,
+        abi: iDSComplianceConfigurationServiceAbi,
+        functionName: "setDisallowBackDating",
+        args: [false],
+        throwOnReceiptRevert: true,
+      });
+    } finally {
+      await anvil.stopImpersonatingAccount({ address: admin });
+    }
+    toRestore.push({ service, admin });
   }
 
   return async () => {
     const services = toRestore;
     toRestore = [];
-    for (const service of services) {
+    for (const { service, admin } of services) {
       logger?.info(`Disallowing back-dating on ${service}`);
       try {
-        await anvil.writeContractSync({
-          account,
-          chain: anvil.chain,
-          address: service,
-          abi: iDSComplianceConfigurationServiceAbi,
-          functionName: "setDisallowBackDating",
-          args: [true],
-          throwOnReceiptRevert: true,
-        });
+        await anvil.impersonateAccount({ address: admin });
+        try {
+          await anvil.setBalance({ address: admin, value: parseEther("100") });
+          await anvil.writeContractSync({
+            account: admin,
+            chain: anvil.chain,
+            address: service,
+            abi: iDSComplianceConfigurationServiceAbi,
+            functionName: "setDisallowBackDating",
+            args: [true],
+            throwOnReceiptRevert: true,
+          });
+        } finally {
+          await anvil.stopImpersonatingAccount({ address: admin });
+        }
       } catch (e) {
         // never mask the error that interrupted the bracketed work
         logger?.warn(
@@ -291,14 +305,12 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
   const {
     anvil,
     investor,
-    adminPrivateKey,
     token,
     marketConfigurators,
     rwaFactories,
     usdAmount: usdAmountProp = "100000",
   } = props;
 
-  const account = privateKeyToAccount(adminPrivateKey);
   const symbol = await anvil.readContract({
     address: token,
     abi: erc20Abi,
@@ -324,17 +336,25 @@ export async function claimDSToken(props: ClaimDSTokenProps): Promise<void> {
   }
   logger?.debug(`${usdAmountProp} USD === ${amount} ${symbol}`);
 
-  await registerSecuritizeInvestor({ ...props, logger });
+  await registerSecuritizeInvestor({ anvil, investor, token, logger });
 
+  const admin = await getSecuritizeAdmin(anvil, token, logger);
   logger?.debug(`Issuing ${amount} tokens to ${investor}...`);
-  const mintHash = await issueDSTokens({
-    anvil,
-    account,
-    token,
-    investor,
-    amount,
-    logger,
-  });
+  await anvil.impersonateAccount({ address: admin });
+  let mintHash: Hex;
+  try {
+    await anvil.setBalance({ address: admin, value: parseEther("100") });
+    mintHash = await issueDSTokens({
+      anvil,
+      account: admin,
+      token,
+      investor,
+      amount,
+      logger,
+    });
+  } finally {
+    await anvil.stopImpersonatingAccount({ address: admin });
+  }
   logger?.debug(`Done! tx: ${mintHash}`);
   const balance = await anvil.readContract({
     address: token,

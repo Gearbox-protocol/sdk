@@ -207,9 +207,6 @@ export function buildCloseSwapOperation(input: {
   amountOut: bigint;
   calls: MultiCall[];
 }): SwapOperation {
-  if (input.calls.length === 0) {
-    throw new Error("swap: missing router calls");
-  }
   return {
     type: "swap",
     from: input.from,

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import type { OnchainSDK } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   assetBalance,
@@ -10,6 +11,7 @@ import {
 import {
   buildFixtureCreditAccount,
   buildMarketSdk,
+  CREDIT_FACADE,
   caToken,
   POS,
   UND,
@@ -52,8 +54,12 @@ const INTENT: DepositStrategyIntent = {
 };
 
 /** Deposit at preserved 2x into a market whose route floors at `routeFloor`. */
-function deposit(routeFloor: (amount: bigint) => bigint) {
+function deposit(
+  routeFloor: (amount: bigint) => bigint,
+  prepare?: (sdk: OnchainSDK) => void,
+) {
   const sdk = buildMarketSdk({ routeFloor });
+  prepare?.(sdk);
   return new CreditAccountOperationsService(sdk).startIntent({
     intent: INTENT,
     creditAccount: buildFixtureCreditAccount({
@@ -127,5 +133,20 @@ describe("a routed leg's two amounts — the floor signs, the expectation is rep
     // reads the floor, because that is the outcome the transaction is signed
     // against.
     expectPreviewError(await deposit(() => 1n), "insufficientCollateral");
+  });
+});
+
+describe("a routed leg that answers without calls is an engine contradiction", () => {
+  it("refuses to build a swap the pathfinder quoted but did not realise", async () => {
+    await expect(
+      deposit(ONE_PERCENT, sdk => {
+        const router = sdk.routerFor({ creditFacade: CREDIT_FACADE });
+        vi.mocked(router.findOneTokenPath).mockResolvedValue({
+          amount: P1000,
+          minAmount: FLOOR,
+          calls: [],
+        });
+      }),
+    ).rejects.toThrow(/missing router calls/);
   });
 });

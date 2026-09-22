@@ -13,6 +13,7 @@ import {
   MissingSerializedParamsError,
 } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { MultiCall } from "../../../types/index.js";
 import type { AssetsMap } from "../../../utils/index.js";
 import {
   functionArgsToRecord,
@@ -211,6 +212,13 @@ export class AbstractAdapterContract<
    */
   public replayOutOfBracketCall(_balances: AssetsMap, _calldata: Hex): boolean {
     return false;
+  }
+
+  /**
+   * {@inheritDoc IAdapterContract.openingCalls}
+   */
+  public async openingCalls(): Promise<MultiCall[]> {
+    return [];
   }
 
   /**

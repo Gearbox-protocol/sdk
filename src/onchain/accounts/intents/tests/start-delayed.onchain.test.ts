@@ -1,6 +1,8 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
+import { MAX_UINT256 } from "../../../constants/math.js";
 import type { OnchainSDK } from "../../../index.js";
+import { toBN } from "../../../index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import {
   assetBalance,
@@ -10,12 +12,15 @@ import {
 } from "../testing/expect.js";
 import {
   ANY,
+  ANY2,
   buildFixtureCreditAccount,
   buildMarketSdk,
   caToken,
   POS,
   POS2,
+  TOK_DECIMALS,
   UND,
+  UND_DECIMALS,
   WALLET,
 } from "../testing/market.js";
 import {
@@ -27,6 +32,7 @@ import type { DelayableIntent } from "../types.js";
 import {
   DEBT_BEFORE,
   QUOTA_BEFORE,
+  SPEND,
   TVL_BEFORE,
   W,
 } from "./withdraw.fixtures.js";
@@ -469,5 +475,81 @@ describe("withdraw.startDelayed — what each error names", () => {
         valueUsd: null,
       },
     });
+  });
+});
+
+/** Securitize: redeems into a third token, so the tail has to trade home. */
+const PAYOUT = ANY2;
+
+/** `PAYOUT` at `UND`'s price, so only its decimals differ. */
+function buildPayoutSdk(): OnchainSDK {
+  return buildMarketSdk({
+    delayed: {
+      [POS]: [
+        {
+          withdrawalPhantomToken: PHANTOM,
+          underlying: PAYOUT,
+          claimableAt: CLAIMABLE_AT,
+        },
+      ],
+    },
+    extraPrices: { [ANY2]: toBN("2", 8) },
+  });
+}
+
+describe("withdraw.startDelayed — a claim that has to be traded home", () => {
+  it("projects a tail whose claim is neither the underlying nor an RWA asset", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: W, to: WALLET },
+      buildPayoutSdk(),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+
+    expect(result.delayed).toMatchObject({
+      record: {
+        type: "WITHDRAW_COLLATERAL",
+        to: WALLET,
+        withdrawToken: UND,
+        withdrawAmount: W,
+        sourceToken: POS,
+        debtRepaid: W,
+      },
+      claim: {
+        token: PAYOUT,
+        amount: SPEND * 10n ** BigInt(TOK_DECIMALS - UND_DECIMALS),
+      },
+    });
+
+    // Priced, not routed, so the intent lands where the same-token venue lands.
+    expect(result.state.totalDebt.value).toBe(DEBT_BEFORE - W);
+    expect(result.state.totalValue.value).toBe(TVL_BEFORE - SPEND);
+    expect(result.delayed.afterRequest.totalDebt.value).toBe(DEBT_BEFORE);
+
+    // The tail is projected, so its trade must not reach the transaction.
+    expect(result.operations.map(op => op.type)).not.toContain("swap");
+    expect(result.calls).toEqual([MOCK_REQUEST_CALL, CA_OP_CALLS.changeQuota]);
+  });
+
+  it("projects the exit, where the tail sells the claim through closeAll", async () => {
+    const result = await run(
+      { type: "WITHDRAW", amount: MAX_UINT256, to: WALLET },
+      buildPayoutSdk(),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected ok delayed preview");
+    }
+
+    expect(result.delayed.record).toEqual({
+      type: "CLOSE_ACCOUNT",
+      to: WALLET,
+    });
+    expect(result.state.totalDebt.value).toBe(0n);
+    expect(result.state.assets).toEqual([]);
   });
 });

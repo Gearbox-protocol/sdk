@@ -9,6 +9,8 @@ import {
 import type { CreditSuiteState } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
+import type { MultiCall } from "../../types/index.js";
+import { AddressMap } from "../../utils/index.js";
 import { createDegenNFT } from "../rwa/createDegenNFT.js";
 import type { IDegenNFT } from "../rwa/types.js";
 import { CreditSuite } from "./CreditSuite.js";
@@ -481,5 +483,31 @@ describe("CreditSuite.isEligibleForStrategy", () => {
     if (degenNFT === ADDRESS_0X0) {
       expect(create).not.toHaveBeenCalled();
     }
+  });
+});
+
+describe("CreditSuite.openingCalls", () => {
+  const A = getAddress("0x1111111111111111111111111111111111111111");
+  const B = getAddress("0x2222222222222222222222222222222222222222");
+  const CALL_A: MultiCall = { target: A, callData: "0xaaaa" };
+  const CALL_B: MultiCall = { target: B, callData: "0xbbbb" };
+
+  it("flattens adapter opening calls", async () => {
+    const suite = {
+      creditManager: {
+        adapters: AddressMap.fromMappedArray(
+          [
+            { address: A, openingCalls: async () => [CALL_A] },
+            { address: B, openingCalls: async () => [CALL_B] },
+          ],
+          a => a.address,
+        ),
+      },
+    } as unknown as CreditSuite;
+
+    expect(await CreditSuite.prototype.openingCalls.call(suite)).toEqual([
+      CALL_A,
+      CALL_B,
+    ]);
   });
 });

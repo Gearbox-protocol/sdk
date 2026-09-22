@@ -4,12 +4,14 @@ import {
   decodeAbiParameters,
   decodeFunctionData,
   encodeFunctionData,
+  getAddress,
   type Hex,
   isAddressEqual,
   zeroAddress,
 } from "viem";
 import { MissingSerializedParamsError } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { MultiCall } from "../../../types/index.js";
 import type { AssetsMap } from "../../../utils/index.js";
 import { iMidasGatewayAdapterV311Abi } from "../abi/adapters/index.js";
 import { iMidasGatewayV311Abi } from "../abi/index.js";
@@ -31,6 +33,16 @@ const receiveGreenlistCalldata = encodeFunctionData({
   functionName: "receiveGreenlist",
 });
 
+// TODO: Midas has not granted mGLOBAL's gateway permission to
+// greenlist addresses, so receiveGreenlist() would revert.
+const MGLOBAL_MTOKEN = getAddress("0x7433806912Eae67919e66aea853d46Fa0aef98A8");
+
+/**
+ * Permissionless gateways have no greenlist and reject `receiveGreenlist`,
+ * see MidasMode in integrations-v3
+ */
+const MIDAS_MODE_PERMISSIONLESS = 0;
+
 export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   abi,
   protocolAbi
@@ -42,6 +54,7 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   #quoteToken?: Address;
   #phantomToken?: Address;
   #referrerId?: string;
+  #mode?: Promise<number>;
 
   constructor(sdk: OnchainSDK, args: ConcreteAdapterContractOptions) {
     super(sdk, { ...args, abi, protocolAbi });
@@ -124,6 +137,43 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
     return this.#referrerId;
   }
 
+  /**
+   * Gateway `mode` is immutable on-chain, so the first read is reused.
+   */
+  public async mode(): Promise<number> {
+    if (!this.#mode) {
+      this.#mode = this.client.readContract({
+        address: this.targetContract,
+        abi: this.protocolAbi,
+        functionName: "mode",
+      });
+    }
+    return this.#mode;
+  }
+
+  /**
+   * {@inheritDoc IAdapterContract.openingCalls}
+   */
+  public override async openingCalls(): Promise<MultiCall[]> {
+    // TODO: Temporarily disabled: Midas has not granted mGLOBAL's gateway permission
+    if (isAddressEqual(this.mToken, MGLOBAL_MTOKEN)) {
+      this.logger?.debug(
+        `midas: skipping receiveGreenlist for mGLOBAL ${this.mToken}`,
+      );
+      return [];
+    }
+    if ((await this.mode()) === MIDAS_MODE_PERMISSIONLESS) {
+      this.logger?.debug(
+        `midas: gateway ${this.targetContract} is permissionless, nothing to greenlist`,
+      );
+      return [];
+    }
+    this.logger?.debug(
+      `midas: greenlisting the credit account via gateway adapter ${this.address}`,
+    );
+    return [{ target: this.address, callData: receiveGreenlistCalldata }];
+  }
+
   public override stateHuman(raw?: boolean) {
     return {
       ...super.stateHuman(raw),
@@ -187,11 +237,11 @@ export class MidasGatewayAdapterContract extends AbstractAdapterContract<
   }
 
   /**
-   * `receiveGreenlist()` is prepended by `prependMidasReceiveGreenlist`
-   * before the balance bracket when the multicall mints a permissioned
-   * mToken: it only grants the Midas greenlisted role to the credit
-   * account and is balance-neutral, so it is legal outside a bracket and
-   * leaves balances untouched.
+   * `receiveGreenlist()` is prepended by {@link openingCalls} before the
+   * balance bracket when a permissioned mToken is minted: it only grants
+   * the Midas greenlisted role to the credit account and is
+   * balance-neutral, so it is legal outside a bracket and leaves balances
+   * untouched.
    */
   public override replayOutOfBracketCall(
     _balances: AssetsMap,
