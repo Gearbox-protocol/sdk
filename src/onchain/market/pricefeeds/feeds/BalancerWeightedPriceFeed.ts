@@ -1,11 +1,11 @@
 import type { Address, Hex, UnionOmit } from "viem";
 import { decodeAbiParameters, hexToBytes } from "viem";
 
-import { bptWeightedPriceFeedAbi } from "../../abi/index.js";
-import type { ConstructOptions } from "../../base/Construct.js";
-import type { BalancerWeightedPriceFeedStateHuman } from "../../types/state-human.js";
-import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
+import { bptWeightedPriceFeedAbi } from "../../../abi/index.js";
+import type { ConstructOptions } from "../../../base/Construct.js";
+import type { BalancerWeightedPriceFeedStateHuman } from "../../../types/state-human.js";
+import { AbstractLPPriceFeedContract } from "../AbstractLPPriceFeed.js";
+import type { PartialPriceFeedTreeNode } from "../AbstractPriceFeed.js";
 
 type abi = typeof bptWeightedPriceFeedAbi;
 

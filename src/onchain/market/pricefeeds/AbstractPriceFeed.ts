@@ -8,13 +8,8 @@ import type {
 } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { PriceFeedStateHuman } from "../../types/index.js";
-import { isUpdatablePriceFeed } from "./isUpdatablePriceFeed.js";
 import { PriceFeedRef } from "./PriceFeedRef.js";
-import type {
-  IPriceFeedContract,
-  IUpdatablePriceFeedContract,
-  PriceFeedContractType,
-} from "./types.js";
+import type { IPriceFeedContract, PriceFeedContractType } from "./types.js";
 
 export type PartialPriceFeedTreeNode = RequiredBy<
   Partial<PriceFeedTreeNode>,
@@ -145,13 +140,6 @@ export abstract class AbstractPriceFeedContract<
       skipCheck: this.skipCheck,
       pricefeeds: this.underlyingPriceFeeds.map(f => f.stateHuman(raw)),
     };
-  }
-
-  public updatableDependencies(): IUpdatablePriceFeedContract[] {
-    const underlying = this.underlyingPriceFeeds.flatMap(f =>
-      f.priceFeed.updatableDependencies(),
-    );
-    return isUpdatablePriceFeed(this) ? [this, ...underlying] : underlying;
   }
 
   /**

@@ -1,6 +1,7 @@
 import { decodeFunctionData, type Hex } from "viem";
-import { iUpdatablePriceFeedAbi } from "../../../abi/iUpdatablePriceFeed.js";
-import type { PriceUpdate, UpdatePriceFeedsResult } from "./types.js";
+import { iUpdatablePriceFeedAbi } from "../../../../abi/iUpdatablePriceFeed.js";
+import type { PriceUpdate } from "../types.js";
+import type { UpdatePriceFeedsResult } from "./types.js";
 
 export function getRawPriceUpdates(
   updates: UpdatePriceFeedsResult,

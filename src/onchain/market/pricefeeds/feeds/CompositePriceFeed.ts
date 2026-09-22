@@ -1,8 +1,8 @@
-import { compositePriceFeedAbi } from "../../abi/index.js";
-import type { ConstructOptions } from "../../base/Construct.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
-import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
-import type { PriceFeedRef } from "./PriceFeedRef.js";
+import { compositePriceFeedAbi } from "../../../abi/index.js";
+import type { ConstructOptions } from "../../../base/Construct.js";
+import type { PartialPriceFeedTreeNode } from "../AbstractPriceFeed.js";
+import { AbstractPriceFeedContract } from "../AbstractPriceFeed.js";
+import type { PriceFeedRef } from "../PriceFeedRef.js";
 
 type abi = typeof compositePriceFeedAbi;
 
