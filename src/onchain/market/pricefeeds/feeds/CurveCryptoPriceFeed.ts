@@ -1,7 +1,7 @@
-import { curveCryptoLpPriceFeedAbi } from "../../abi/index.js";
-import type { ConstructOptions } from "../../base/Construct.js";
-import { AbstractLPPriceFeedContract } from "./AbstractLPPriceFeed.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
+import { curveCryptoLpPriceFeedAbi } from "../../../abi/index.js";
+import type { ConstructOptions } from "../../../base/Construct.js";
+import { AbstractLPPriceFeedContract } from "../AbstractLPPriceFeed.js";
+import type { PartialPriceFeedTreeNode } from "../AbstractPriceFeed.js";
 
 type abi = typeof curveCryptoLpPriceFeedAbi;
 

@@ -3,16 +3,14 @@ import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import { AddressMap } from "../../../utils/index.js";
-import type {
-  IPriceFeedContract,
-  IUpdatablePriceFeedContract,
-} from "../types.js";
+import type { IPriceFeedContract } from "../types.js";
 import { fetchRedstonePayloads } from "./fetchRedstonePayloads.js";
 import { PriceUpdatesCache } from "./PriceUpdatesCache.js";
 import { PriceUpdateTx } from "./PriceUpdateTx.js";
 import type {
   IPriceUpdater,
   IPriceUpdateTask,
+  IUpdatablePriceFeedContract,
   TimestampedCalldata,
 } from "./types.js";
 

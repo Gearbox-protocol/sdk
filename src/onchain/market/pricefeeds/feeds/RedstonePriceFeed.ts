@@ -1,13 +1,16 @@
 import type { Address, Hex } from "viem";
 import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 
-import { redstonePriceFeedAbi } from "../../abi/index.js";
-import type { ConstructOptions } from "../../base/Construct.js";
-import { ADDRESS_0X0 } from "../../constants/index.js";
-import type { RawTx, RedstonePriceFeedStateHuman } from "../../types/index.js";
-import type { PartialPriceFeedTreeNode } from "./AbstractPriceFeed.js";
-import { AbstractPriceFeedContract } from "./AbstractPriceFeed.js";
-import type { IUpdatablePriceFeedContract } from "./types.js";
+import { redstonePriceFeedAbi } from "../../../abi/index.js";
+import type { ConstructOptions } from "../../../base/Construct.js";
+import { ADDRESS_0X0 } from "../../../constants/index.js";
+import type {
+  RawTx,
+  RedstonePriceFeedStateHuman,
+} from "../../../types/index.js";
+import type { PartialPriceFeedTreeNode } from "../AbstractPriceFeed.js";
+import { AbstractPriceFeedContract } from "../AbstractPriceFeed.js";
+import type { IUpdatablePriceFeedContract } from "../updates/types.js";
 
 type abi = typeof redstonePriceFeedAbi;
 

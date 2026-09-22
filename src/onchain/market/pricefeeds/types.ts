@@ -1,11 +1,7 @@
 import type { Address, Hex, UnionOmit } from "viem";
 import type { PriceFeedData } from "../../../model/index.js";
 import type { IBaseContract, PriceFeedAnswer } from "../../base/index.js";
-import type {
-  IPriceUpdateTx,
-  PriceFeedStateHuman,
-  RawTx,
-} from "../../types/index.js";
+import type { PriceFeedStateHuman } from "../../types/index.js";
 import type { PriceFeedRef } from "./PriceFeedRef.js";
 
 /**
@@ -99,12 +95,6 @@ export interface IPriceFeedContract extends IBaseContract {
   ) => UnionOmit<PriceFeedStateHuman, "stalenessPeriod">;
 
   /**
-   * Collects all updatable feeds in this feed's dependency tree,
-   * including this feed itself when it is updatable.
-   **/
-  updatableDependencies: () => IUpdatablePriceFeedContract[];
-
-  /**
    * Describes this feed and the feeds it reads from the way the shared read
    * model does.
    *
@@ -112,32 +102,6 @@ export interface IPriceFeedContract extends IBaseContract {
    * than throwing: the tree decorates a detail screen, nobody computes with it.
    **/
   describe: () => PriceFeedData;
-}
-
-/**
- * Extended price feed interface for feeds whose price can be refreshed
- * via an off-chain data push (e.g. Pyth or Redstone feeds).
- **/
-export interface IUpdatablePriceFeedContract extends IPriceFeedContract {
-  /**
-   * Builds a raw transaction that pushes new price data to the on-chain feed.
-   * @param data - ABI-encoded update payload.
-   **/
-  createPriceUpdateTx: (data: `0x${string}`) => RawTx;
-}
-
-/**
- * Result of generating price-feed update transactions.
- **/
-export interface UpdatePriceFeedsResult {
-  /**
-   * Transactions that push fresh prices to updatable feeds.
-   **/
-  txs: IPriceUpdateTx[];
-  /**
-   * Latest timestamp among all fetched price updates (unix seconds).
-   **/
-  timestamp: number;
 }
 
 /**
