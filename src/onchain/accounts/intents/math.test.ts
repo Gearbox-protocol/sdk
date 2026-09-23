@@ -141,6 +141,14 @@ describe("math — the three formulas behind every intent", () => {
     );
     expect(w).toBe(900n);
 
+    // 1 bp of the debt stays above the floor: 1e9 debt keeps 1e5 over it
+    const large = { debt: 1_000_000_000n, collateral: 1_000_000_000n };
+    const wl = maxProportionalWithdrawal(large, {
+      minDebt: 500_000_000n,
+      maxDebt: 10n ** 12n,
+    });
+    expect(large.debt - proportionalDebt(large, wl)).toBe(500_100_000n);
+
     // rounding: 100 debt on 1000 collateral, minDebt 50 → floor(100·W/1000) ≤ 50
     // holds up to W = 509
     const low = { debt: 100n, collateral: 1_000n };
