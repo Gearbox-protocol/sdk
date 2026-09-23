@@ -47,6 +47,7 @@ import type {
   ResumableIntent,
   RouteErrors,
   WithdrawCeilings,
+  WithPartialState,
 } from "../../onchain/index.js";
 
 export type {
@@ -70,6 +71,7 @@ export type {
   PoolOperationError,
   RouteErrors,
   WithdrawCeilings,
+  WithPartialState,
 } from "../../onchain/index.js";
 
 /**
@@ -634,6 +636,13 @@ export interface FinalizeParams extends PrepareOptions {
  * throws: a chain that cannot be reached or a crash on the way arrives as
  * `unexpectedFailure` with the cause attached.
  *
+ * Every method that reports a state reports one when it refuses too: the error
+ * carries `state`, the same shape the answer beside it would have had, with
+ * the fields the request never got far enough to say left out — see
+ * {@link WithPartialState}. A form that asked "what would this do to my
+ * position" is told as much of it as there was, and can explain the no in
+ * numbers rather than in a code alone.
+ *
  * The bare readers stay outside the envelope. The ones that read an account
  * answer their number and throw on an account or chain the SDK does not hold;
  * the synchronous ones ({@link leverageBand}, {@link withdrawableCollaterals},
@@ -654,7 +663,12 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       LpResult,
-      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+      (
+        | UnsupportedTokenPairError
+        | UnexpectedFailureError
+        | PoolOperationError
+      ) &
+        WithPartialState<LpState>
     >
   >;
 
@@ -671,7 +685,12 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       LpResult,
-      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+      (
+        | UnsupportedTokenPairError
+        | UnexpectedFailureError
+        | PoolOperationError
+      ) &
+        WithPartialState<LpState>
     >
   >;
 
@@ -685,7 +704,12 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       LpResult,
-      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+      (
+        | UnsupportedTokenPairError
+        | UnexpectedFailureError
+        | PoolOperationError
+      ) &
+        WithPartialState<LpState>
     >
   >;
 
@@ -704,14 +728,17 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       OpenStrategyResult,
-      | OpenFlowError
-      | DebtOutOfRangeError
-      | LeverageOutOfRangeError
-      | UnsupportedTokenPairError
-      | InsufficientPoolLiquidityError
-      | NoStrategyTargetCollateralError
-      | CreditAccountNotFoundError
-      | CreditAccountNotEmptyError
+      (
+        | OpenFlowError
+        | DebtOutOfRangeError
+        | LeverageOutOfRangeError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
+        | NoStrategyTargetCollateralError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
+      ) &
+        WithPartialState<OpenStrategyState>
     >
   >;
 
@@ -756,13 +783,16 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       BorrowResult,
-      | OpenFlowError
-      | DebtOutOfRangeError
-      | UnsupportedCollateralTokenError
-      | UnsupportedTokenPairError
-      | InsufficientPoolLiquidityError
-      | CreditAccountNotFoundError
-      | CreditAccountNotEmptyError
+      (
+        | OpenFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
+      ) &
+        WithPartialState<BorrowState>
     >
   >;
 
@@ -778,12 +808,15 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       StrategyResult,
-      | AccountFlowError
-      | DebtOutOfRangeError
-      | LeverageOutOfRangeError
-      | UnsupportedCollateralTokenError
-      | UnsupportedTokenPairError
-      | InsufficientPoolLiquidityError
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | LeverageOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
+      ) &
+        WithPartialState<OperationState>
     >
   >;
 
@@ -826,7 +859,8 @@ export interface IOpportunitiesPrepare {
         | MultipleDelayedWithdrawalsError
         | WithdrawalInProgressError
       ) &
-        WithRouteErrors
+        WithRouteErrors &
+        WithPartialState<OperationState>
     >
   >;
 
@@ -884,7 +918,12 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       StrategyResult,
-      AccountFlowError | DebtOutOfRangeError | UnsupportedCollateralTokenError
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+      ) &
+        WithPartialState<OperationState>
     >
   >;
 
@@ -922,7 +961,8 @@ export interface IOpportunitiesPrepare {
         | InsufficientPoolLiquidityError
         | LeverageOutOfRangeError
       ) &
-        WithRouteErrors
+        WithRouteErrors &
+        WithPartialState<OperationState>
     >
   >;
 
@@ -933,7 +973,12 @@ export interface IOpportunitiesPrepare {
   addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<SDKReturn<StrategyResult, AccountFlowError>>;
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      AccountFlowError & WithPartialState<OperationState>
+    >
+  >;
 
   /**
    * Moving one asset that already sits on the account out to the wallet, at
@@ -945,7 +990,12 @@ export interface IOpportunitiesPrepare {
   withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<SDKReturn<StrategyResult, AccountFlowError>>;
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      AccountFlowError & WithPartialState<OperationState>
+    >
+  >;
 
   /**
    * The leverages a deposit of a given size can reach in this market: the
@@ -1072,11 +1122,14 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       FinalizeResult,
-      | AccountFlowError
-      | NoRecordedIntentError
-      | NoDelayedRouteError
-      | WithdrawalInProgressError
-      | UnsupportedTokenPairError
+      (
+        | AccountFlowError
+        | NoRecordedIntentError
+        | NoDelayedRouteError
+        | WithdrawalInProgressError
+        | UnsupportedTokenPairError
+      ) &
+        WithPartialState<OperationState>
     >
   >;
 }

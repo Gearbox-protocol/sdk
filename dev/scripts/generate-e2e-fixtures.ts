@@ -1,5 +1,5 @@
 /**
- * Generates e2e test fixtures: fork RPC cache + HTTP recordings for oracle APIs.
+ * Generates e2e test fixtures: fork RPC cache.
  *
  * Usage:
  *   tsx --env-file .env dev/scripts/generate-e2e-fixtures.ts
@@ -19,12 +19,6 @@ import {
   startAnvilFork,
   stopAnvil,
 } from "../../src/e2e/anvil.js";
-import {
-  ORACLE_PROXY_PORT,
-  type OracleProxy,
-  REDSTONE_GATEWAYS,
-  startOracleProxy,
-} from "../../src/e2e/oracleProxy.js";
 import {
   chains,
   type NetworkType,
@@ -69,15 +63,6 @@ async function main() {
 
   const baseName = `${NETWORK}-${BLOCK}`;
   const rpcCachePath = resolve(FIXTURES_DIR, `${baseName}-rpc-cache.json`);
-  const httpDir = resolve(FIXTURES_DIR, `${baseName}-http`);
-
-  let proxy: OracleProxy | undefined;
-
-  proxy = await startOracleProxy({
-    port: ORACLE_PROXY_PORT,
-    mode: "record",
-    recordingsDir: httpDir,
-  });
 
   console.log("[anvil] Starting Anvil in fork mode...");
   const anvil = await startAnvilFork({
@@ -89,12 +74,6 @@ async function main() {
 
   try {
     console.log("[sdk] Attaching SDK...");
-    const oracleOpts = {
-      redstone: {
-        historicTimestamp: true as const,
-        gateways: REDSTONE_GATEWAYS,
-      },
-    };
 
     const mcOpts = SINGLE_MC ? { marketConfigurators: [SINGLE_MC] } : {};
     const rwaOpts = RWA_FACTORIES ? { rwaFactories: RWA_FACTORIES } : {};
@@ -119,36 +98,10 @@ async function main() {
         },
       }),
       ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
-      ...oracleOpts,
       ...mcOpts,
       ...rwaOpts,
     });
-
-    // Re-attach per individual market configurator so that oracle proxy
-    // records oracle URLs with per-MC feed subsets (tests attach one MC at a time)
-    const allMCs = SINGLE_MC
-      ? [SINGLE_MC]
-      : chains[NETWORK].defaultMarketConfigurators.keys();
-    for (const mc of allMCs) {
-      const curator = chains[NETWORK].defaultMarketConfigurators.get(mc) ?? mc;
-      console.log(
-        `[sdk] Recording per-MC oracle fixtures for ${curator} (${mc})...`,
-      );
-      const mcSdk = new OnchainSDK(
-        NETWORK,
-        { rpcURLs: [anvil.url], timeout: 480_000 },
-        { logger: console },
-      );
-      await mcSdk.attach({
-        blockNumber: BLOCK,
-        marketConfigurators: [mc],
-        ...(IGNORE_UPDATABLE_PRICES && { ignoreUpdateablePrices: true }),
-        ...oracleOpts,
-        ...rwaOpts,
-      });
-    }
   } finally {
-    await proxy.close();
     await new Promise(resolve => setTimeout(resolve, 5000));
     console.log("[anvil] Stopping anvil (flushing RPC cache to disk)...");
     await stopAnvil(anvil);

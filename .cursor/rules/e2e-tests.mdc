@@ -1,20 +1,17 @@
 ---
 description: Guidelines for writing and maintaining e2e tests for Gearbox SDK
-globs: src/e2e/**/*.ts,scripts/generate-e2e-fixtures.ts
+globs: src/e2e/**/*.ts,dev/scripts/generate-e2e-fixtures.ts
 alwaysApply: false
 ---
 
 # E2E Tests
 
-Tests run OnchainSDK against a local Anvil fork with pre-recorded oracle data. Fixtures are generated once, committed to git, and replayed in tests.
+Tests run OnchainSDK against a local Anvil fork. Fixtures are generated once, committed to git, and replayed in tests.
 
 ## Architecture
 
 - **Anvil** starts from a fork RPC cache (`fixtures/{Net}-{block}-rpc-cache.json`), not a state dump. `RPC_URL` is still needed for Anvil's initial block header fetch.
-- **Oracle proxy** (`oracleProxy.ts`, port 8547) replaces MSW. Routes `/pyth` to Hermes, `/rs0` and `/rs1` to Redstone gateways. Record mode saves per-request JSON files; playback mode serves them.
-- **`useFixture()`** in `helpers.ts` manages the full lifecycle: starts proxy + Anvil in `beforeAll`, `evm_snapshot`/`evm_revert` per test, stops both in `afterAll`.
-
-MSW was replaced because it intercepts ALL HTTP traffic (including RPC to Anvil), caused OOM during fixture generation, and added overhead. The proxy only handles oracle traffic via SDK's built-in `apiProxy`/`gateways` options.
+- **`useFixture()`** in `helpers.ts` manages the lifecycle: starts Anvil in `beforeAll`, `evm_snapshot`/`evm_revert` per test, stops Anvil in `afterAll`.
 
 ## Writing Tests
 
@@ -22,7 +19,7 @@ MSW was replaced because it intercepts ALL HTTP traffic (including RPC to Anvil)
 import { beforeAll, describe, expect, it } from "vitest";
 import { OnchainSDK } from "../../onchain/index.js";
 import { ANVIL_URL } from "../constants.js";
-import { PYTH_API_PROXY, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 
@@ -38,14 +35,6 @@ describe("my scenario", () => {
     });
     await sdk.attach({
       blockNumber: BLOCK,
-      redstone: {
-        historicTimestamp: true,
-        gateways: REDSTONE_GATEWAYS,
-      },
-      pyth: {
-        historicTimestamp: true,
-        apiProxy: PYTH_API_PROXY,
-      },
     });
   });
 
@@ -57,8 +46,6 @@ describe("my scenario", () => {
 
 ## Rules
 
-- Always pass `gateways: REDSTONE_GATEWAYS` and `apiProxy: PYTH_API_PROXY`
-- Always use `historicTimestamp: true` -- makes oracle URLs deterministic per pinned block
 - Always pass `pollingInterval: 100` to `waitForTransactionReceipt` -- viem default is 4s
 - Always pass `gas: GAS_LIMIT` (from `constants.ts`) when sending transactions -- skips anvil's slow `eth_estimateGas` binary search, and estimates carry no buffer so a tx mined a second later than its estimate can run out of gas (exception: tests that expect the send itself to throw rely on estimation)
 - `useFixture` sets `setBlockTimestampInterval(1)` -- block timestamps are deterministic, not wall-clock
@@ -66,6 +53,10 @@ describe("my scenario", () => {
 - Combine assertions into fewer `it()` blocks -- e2e setup is slow
 - Put SDK attach in `beforeAll`, not `beforeEach`
 - Keep comments concise
+
+## Known workaround
+
+`workaroundRefreshRedstone` in `src/e2e/workaroundRefreshRedstone.ts` rewrites `lastPayloadTimestamp` on every Redstone price feed before the fixture snapshot. It runs only for blocks 24_728_000 and 24_736_900, whose caches cover a full attach. Those fixtures still price some collaterals through Redstone pull feeds that are stale there, and the SDK no longer pushes those updates. Delete the file and its call in `useFixture` once the fixtures are regenerated at a block where the tested markets have no Redstone feeds.
 
 ## Generating Fixtures
 

@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { beforeAll, describe, expect, it } from "vitest";
 import { OnchainSDK } from "../../onchain/index.js";
 import { ANVIL_URL } from "../constants.js";
-import { REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 const MC_CP0X: Address = "0xc168343c791d56dd1da4b4b8b0cc1c1ec1a16e6b";
@@ -22,10 +22,6 @@ describe("Multiple SDK instances can be attached", () => {
     const commonAttachOpts = {
       blockNumber: BLOCK,
       ignoreUpdateablePrices: false,
-      redstone: {
-        historicTimestamp: true as const,
-        gateways: REDSTONE_GATEWAYS,
-      },
     };
 
     sdk1 = new OnchainSDK("Mainnet", commonClientOpts);

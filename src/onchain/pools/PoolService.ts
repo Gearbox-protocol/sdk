@@ -249,7 +249,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       ),
       tokenOut: toTokenAmount(tokenOut, amount),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity: this.#withdrawableLiquidity(market),
+      availableLiquidity: this.withdrawableLiquidity(poolAddr),
     };
   }
 
@@ -279,7 +279,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
           PERCENTAGE_FACTOR,
       ),
       zapper: zapper?.baseParams.addr,
-      availableLiquidity: this.#withdrawableLiquidity(market),
+      availableLiquidity: this.withdrawableLiquidity(poolAddr),
     };
   }
 
@@ -717,14 +717,13 @@ export class PoolService extends SDKConstruct implements IPoolsService {
   }
 
   /**
-   * The most the pool can actually hand over right now, trimmed slightly so a
-   * withdrawal sized against it does not fail on rounding.
-   **/
-  #withdrawableLiquidity(market: MarketSuite): Amount {
-    const { pool } = market;
+   * {@inheritDoc IPoolsService.withdrawableLiquidity}
+   */
+  public withdrawableLiquidity(pool: Address): Amount {
+    const market = this.sdk.marketRegister.findByPool(pool);
     return market.priceOracle.toAmount(
-      pool.underlying,
-      (pool.pool.availableLiquidity * 99_999n) / 100_000n,
+      market.pool.underlying,
+      (market.pool.pool.availableLiquidity * 99_999n) / 100_000n,
     );
   }
 }

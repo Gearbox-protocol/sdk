@@ -4,20 +4,13 @@ import { bytesToString, decodeAbiParameters, toBytes } from "viem";
 import { redstonePriceFeedAbi } from "../../../abi/index.js";
 import type { ConstructOptions } from "../../../base/Construct.js";
 import { ADDRESS_0X0 } from "../../../constants/index.js";
-import type {
-  RawTx,
-  RedstonePriceFeedStateHuman,
-} from "../../../types/index.js";
+import type { RedstonePriceFeedStateHuman } from "../../../types/index.js";
 import type { PartialPriceFeedTreeNode } from "../AbstractPriceFeed.js";
 import { AbstractPriceFeedContract } from "../AbstractPriceFeed.js";
-import type { IUpdatablePriceFeedContract } from "../updates/types.js";
 
 type abi = typeof redstonePriceFeedAbi;
 
-export class RedstonePriceFeedContract
-  extends AbstractPriceFeedContract<abi>
-  implements IUpdatablePriceFeedContract
-{
+export class RedstonePriceFeedContract extends AbstractPriceFeedContract<abi> {
   public readonly token: Address;
   public readonly dataServiceId: string;
   public readonly dataId: string;
@@ -29,6 +22,9 @@ export class RedstonePriceFeedContract
   constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
     super(options, {
       ...args,
+      // the sdk does not push redstone price updates, so these feeds are never
+      // treated as updatable even though the contract implements the interface
+      updatable: false,
       name: "RedstonePriceFeed",
       abi: redstonePriceFeedAbi,
     });
@@ -70,13 +66,5 @@ export class RedstonePriceFeedContract
       lastPrice: this.lastPrice.toString(),
       lastPayloadTimestamp: this.lastPayloadTimestamp.toString(),
     };
-  }
-
-  public createPriceUpdateTx(data: `0x${string}`): RawTx {
-    return this.createRawTx({
-      functionName: "updatePrice",
-      args: [data],
-      description: `updating redstone price for ${this.dataId} [${this.labelAddress(this.address)}]`,
-    });
   }
 }

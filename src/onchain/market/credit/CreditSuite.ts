@@ -558,7 +558,7 @@ export class CreditSuite extends SDKConstruct {
       curator: market.curator,
       underlyingToken: this.underlyingToken,
       totalBorrowed: oracle.toAmount(pool.underlying, borrowed),
-      allowedDepositTokens: this.#allowedDepositTokens(collateral),
+      allowedDepositTokens: this.allowedDepositTokens(collateral),
       paused: this.isPaused,
       rwa: market.rwa,
       // a pool being wound down takes every strategy borrowing from it with it
@@ -657,17 +657,21 @@ export class CreditSuite extends SDKConstruct {
    *
    * 1. unwrapped underlying (USDC, never dcUSDC)
    * 2. target collateral
-   * 3. remaining CM collaterals in manager order, no phantoms
+   * 3. remaining CM collaterals in manager order, excluding phantom tokens
+   *    and tokens without price
    */
-  #allowedDepositTokens(targetCollateral: Address): Token[] {
+  public allowedDepositTokens(targetCollateral: Address): Token[] {
     const unwrappedUnderlying = this.market.unwrappedUnderlying;
-    const skip = (token: Address) =>
-      this.market.isUnderlyingLike(token) ||
-      isAddressEqual(token, targetCollateral);
+    const { mainPrices, reservePrices } = this.market.priceOracle;
 
     const rest = this.creditManager.collateralTokens.filter(token => {
       const contractType = this.tokensMeta.mustGet(token).contractType;
-      return !skip(token) && !contractType?.startsWith("PHANTOM_TOKEN::");
+      return (
+        !this.market.isUnderlyingLike(token) &&
+        !isAddressEqual(token, targetCollateral) &&
+        !contractType?.startsWith("PHANTOM_TOKEN::") &&
+        (!!mainPrices.get(token)?.price || !!reservePrices.get(token)?.price)
+      );
     });
 
     return [unwrappedUnderlying, targetCollateral, ...rest].map(token =>

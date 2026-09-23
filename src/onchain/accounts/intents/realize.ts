@@ -65,6 +65,11 @@ export interface RealizeProps {
    * `createOraclePaths` instead.
    */
   paths?: RouterPaths;
+  /**
+   * Where the walk writes the state as it reaches it, see
+   * {@link StartIntentProps.draft}. Omitted by a walk nobody reports.
+   */
+  draft?: Partial<OperationState>;
 }
 
 export interface Realized {
@@ -102,6 +107,10 @@ export async function realize(
   const suite = sdk.marketRegister.findCreditManager(
     creditAccount.creditManager,
   );
+  const draft = props.draft ?? {};
+  // The market is settled before a single step is walked, so whatever stops
+  // the walk, the error can at least name the market it was stopped in.
+  Object.assign(draft, suite.creditOperationMarket());
 
   const start = {
     initialAssets: creditAccount.tokens,
@@ -509,13 +518,6 @@ export async function realize(
   // rather than the floor: a token the route is expected to deliver is one the
   // facade will see, whether or not the floor admits it could arrive empty.
   const projected = expected.snapshot();
-  assertGrowthAllowed({
-    sdk,
-    suite,
-    market,
-    before: creditAccount.tokens,
-    after: projected.assets,
-  });
   // Sized off the floor, like every other amount a call names: a quota bought
   // for a balance the route only expects to raise is a fee paid on collateral
   // that may not arrive. Quotas the plan already settled are not sized again —
@@ -534,13 +536,6 @@ export async function realize(
       maxDebt: suite.creditFacade.maxDebt,
       convert: price,
     });
-  if (
-    !cleared &&
-    quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
-  ) {
-    assertQuotaAvailable(sdk, market, quotas.quotaIncrease);
-    push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
-  }
 
   // The update names only the tokens the plan touched, so what the account is
   // quoted at afterwards is it laid over the quotas the account came with —
@@ -561,13 +556,71 @@ export async function realize(
     totalDebt: debt,
     totalValue: projected.totalValue,
   };
-  // The same builder the preview module fills its answers from, so a state this
-  // walk plans and the state read back out of the calls it produced are
-  // described by one piece of code. Debt taken on leaves the pool, debt repaid
-  // returns to it.
-  const projection = sdk.positions.projection(snapshot, {
-    availableLiquidityChange: creditAccount.totalDebt - debt,
+
+  const executionCost =
+    traded.priced && traded.spentUnd > 0n
+      ? {
+          amount: market.toUnderlyingAmount(
+            traded.returnedUnd - traded.spentUnd,
+          ),
+          rate:
+            (PERCENTAGE_FACTOR_1KK * (traded.returnedUnd - traded.spentUnd)) /
+            traded.spentUnd,
+        }
+      : undefined;
+  /**
+   * Everything about where the account lands except how much depth the routes
+   * cost, which is a quote of its own and waits until the guards have spoken.
+   *
+   * The same builder the preview module fills its answers from, so a state
+   * this walk plans and the state read back out of the calls it produced are
+   * described by one piece of code. Debt taken on leaves the pool, debt repaid
+   * returns to it.
+   */
+  const settle = (): Omit<OperationState, "priceImpact"> => ({
+    ...sdk.positions.projection(snapshot, {
+      availableLiquidityChange: creditAccount.totalDebt - debt,
+    }),
+    executionCost,
+    // What the collateral trades at while the form is open, off the same
+    // expected-branch snapshot the projection was taken from: the price a
+    // liquidation price is read against has to be the price of the position
+    // being reported.
+    currentPrice: sdk.positions.currentPrice(snapshot),
   });
+  /**
+   * Read before the guards below rather than after them, so a plan they turn
+   * down is still described by the state they turned it down on — which is the
+   * question a form asks next, and the reason a guard's verdict is worth more
+   * than its code alone.
+   *
+   * A snapshot the oracle cannot value goes unanswered here and is raised by
+   * the success path instead: a guard's verdict is the better answer when
+   * there is one.
+   */
+  let reached: Omit<OperationState, "priceImpact"> | undefined;
+  try {
+    reached = settle();
+    Object.assign(draft, reached);
+  } catch {
+    reached = undefined;
+  }
+
+  assertGrowthAllowed({
+    sdk,
+    suite,
+    market,
+    before: creditAccount.tokens,
+    after: projected.assets,
+  });
+  if (
+    !cleared &&
+    quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
+  ) {
+    assertQuotaAvailable(sdk, market, quotas.quotaIncrease);
+    push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
+  }
+
   // The guard answers "would this revert", and a revert is decided by what the
   // route actually delivers — so it is weighed on the floor, the only outcome
   // the transaction can be signed against. A call that hands funds over is
@@ -599,28 +652,10 @@ export async function realize(
     toUnderlyingAmount: market.toUnderlyingAmount,
   });
 
-  const executionCost =
-    traded.priced && traded.spentUnd > 0n
-      ? {
-          amount: market.toUnderlyingAmount(
-            traded.returnedUnd - traded.spentUnd,
-          ),
-          rate:
-            (PERCENTAGE_FACTOR_1KK * (traded.returnedUnd - traded.spentUnd)) /
-            traded.spentUnd,
-        }
-      : undefined;
-
-  const state: OperationState = {
-    ...projection,
-    priceImpact,
-    executionCost,
-    // What the collateral trades at while the form is open, off the same
-    // expected-branch snapshot the projection was taken from: the price a
-    // liquidation price is read against has to be the price of the position
-    // being reported.
-    currentPrice: sdk.positions.currentPrice(snapshot),
-  };
+  // `settle` runs again only where the draft could not be taken, which is the
+  // one outcome it is allowed to fail on — and nothing swallows it this time.
+  const state: OperationState = { ...(reached ?? settle()), priceImpact };
+  Object.assign(draft, state);
 
   return {
     operations,

@@ -44,10 +44,12 @@ import type {
   IOpportunitiesPrepare,
   LeverageBand,
   LpResult,
+  LpState,
   OpenStrategyResult,
   StrategyResult,
   StrategyRoutesResult,
   WithdrawCeilings,
+  WithPartialState,
   WithRouteErrors,
 } from "./types.js";
 
@@ -70,12 +72,14 @@ describe("every prepare method names exactly its own errors", () => {
     // The pool's three refusals ride along because `prepare` reads the pool
     // before it hands back a signable transaction, the way the credit walk
     // reads the facade.
-    type LpErrors =
+    type LpErrors = (
       | UnsupportedTokenPairError
       | UnexpectedFailureError
       | PoolPausedError
       | PoolSunsetError
-      | InsufficientPoolLiquidityError;
+      | InsufficientPoolLiquidityError
+    ) &
+      WithPartialState<LpState>;
 
     expectTypeOf<Awaited<ReturnType<P["deposit"]>>>().toEqualTypeOf<
       SDKReturn<LpResult, LpErrors>
@@ -92,20 +96,23 @@ describe("every prepare method names exactly its own errors", () => {
     expectTypeOf<Awaited<ReturnType<P["openNewStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         OpenStrategyResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | InsufficientBalanceError
-        | UnexpectedFailureError
-        | DebtOutOfRangeError
-        | LeverageOutOfRangeError
-        | UnsupportedTokenPairError
-        | InsufficientPoolLiquidityError
-        | NoStrategyTargetCollateralError
-        | CreditAccountNotFoundError
-        | CreditAccountNotEmptyError
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | InsufficientBalanceError
+          | UnexpectedFailureError
+          | DebtOutOfRangeError
+          | LeverageOutOfRangeError
+          | UnsupportedTokenPairError
+          | InsufficientPoolLiquidityError
+          | NoStrategyTargetCollateralError
+          | CreditAccountNotFoundError
+          | CreditAccountNotEmptyError
+        ) &
+          WithPartialState<OpenStrategyState>
       >
     >();
   });
@@ -114,19 +121,22 @@ describe("every prepare method names exactly its own errors", () => {
     expectTypeOf<Awaited<ReturnType<P["borrow"]>>>().toEqualTypeOf<
       SDKReturn<
         BorrowResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | InsufficientBalanceError
-        | UnexpectedFailureError
-        | DebtOutOfRangeError
-        | UnsupportedCollateralTokenError
-        | UnsupportedTokenPairError
-        | InsufficientPoolLiquidityError
-        | CreditAccountNotFoundError
-        | CreditAccountNotEmptyError
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | InsufficientBalanceError
+          | UnexpectedFailureError
+          | DebtOutOfRangeError
+          | UnsupportedCollateralTokenError
+          | UnsupportedTokenPairError
+          | InsufficientPoolLiquidityError
+          | CreditAccountNotFoundError
+          | CreditAccountNotEmptyError
+        ) &
+          WithPartialState<BorrowState>
       >
     >();
   });
@@ -135,20 +145,23 @@ describe("every prepare method names exactly its own errors", () => {
     expectTypeOf<Awaited<ReturnType<P["depositStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | ReservePriceLimitedError
-        | InsufficientBalanceError
-        | CreditAccountNotFoundError
-        | UnexpectedFailureError
-        | DebtOutOfRangeError
-        | LeverageOutOfRangeError
-        | UnsupportedCollateralTokenError
-        | UnsupportedTokenPairError
-        | InsufficientPoolLiquidityError
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | ReservePriceLimitedError
+          | InsufficientBalanceError
+          | CreditAccountNotFoundError
+          | UnexpectedFailureError
+          | DebtOutOfRangeError
+          | LeverageOutOfRangeError
+          | UnsupportedCollateralTokenError
+          | UnsupportedTokenPairError
+          | InsufficientPoolLiquidityError
+        ) &
+          WithPartialState<OperationState>
       >
     >();
   });
@@ -157,49 +170,43 @@ describe("every prepare method names exactly its own errors", () => {
     expectTypeOf<Awaited<ReturnType<P["repayStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
         StrategyResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | ReservePriceLimitedError
-        | InsufficientBalanceError
-        | CreditAccountNotFoundError
-        | UnexpectedFailureError
-        | DebtOutOfRangeError
-        | UnsupportedCollateralTokenError
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | ReservePriceLimitedError
+          | InsufficientBalanceError
+          | CreditAccountNotFoundError
+          | UnexpectedFailureError
+          | DebtOutOfRangeError
+          | UnsupportedCollateralTokenError
+        ) &
+          WithPartialState<OperationState>
       >
     >();
   });
 
   it("addCollateral and withdrawCollateral: the account-flow guards alone", () => {
+    type AccountFlowErrors = (
+      | CreditManagerPausedError
+      | MarketExpiredError
+      | ForbiddenTokenError
+      | QuotaLimitReachedError
+      | InsufficientCollateralError
+      | ReservePriceLimitedError
+      | InsufficientBalanceError
+      | CreditAccountNotFoundError
+      | UnexpectedFailureError
+    ) &
+      WithPartialState<OperationState>;
+
     expectTypeOf<Awaited<ReturnType<P["addCollateral"]>>>().toEqualTypeOf<
-      SDKReturn<
-        StrategyResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | ReservePriceLimitedError
-        | InsufficientBalanceError
-        | CreditAccountNotFoundError
-        | UnexpectedFailureError
-      >
+      SDKReturn<StrategyResult, AccountFlowErrors>
     >();
     expectTypeOf<Awaited<ReturnType<P["withdrawCollateral"]>>>().toEqualTypeOf<
-      SDKReturn<
-        StrategyResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | ReservePriceLimitedError
-        | InsufficientBalanceError
-        | CreditAccountNotFoundError
-        | UnexpectedFailureError
-      >
+      SDKReturn<StrategyResult, AccountFlowErrors>
     >();
   });
 
@@ -223,7 +230,8 @@ describe("every prepare method names exactly its own errors", () => {
           | MultipleDelayedWithdrawalsError
           | WithdrawalInProgressError
         ) &
-          WithRouteErrors
+          WithRouteErrors &
+          WithPartialState<OperationState>
       >
     >();
   });
@@ -250,7 +258,8 @@ describe("every prepare method names exactly its own errors", () => {
           | InsufficientPoolLiquidityError
           | LeverageOutOfRangeError
         ) &
-          WithRouteErrors
+          WithRouteErrors &
+          WithPartialState<OperationState>
       >
     >();
   });
@@ -259,19 +268,22 @@ describe("every prepare method names exactly its own errors", () => {
     expectTypeOf<Awaited<ReturnType<P["finalize"]>>>().toEqualTypeOf<
       SDKReturn<
         FinalizeResult,
-        | CreditManagerPausedError
-        | MarketExpiredError
-        | ForbiddenTokenError
-        | QuotaLimitReachedError
-        | InsufficientCollateralError
-        | ReservePriceLimitedError
-        | InsufficientBalanceError
-        | CreditAccountNotFoundError
-        | UnexpectedFailureError
-        | NoRecordedIntentError
-        | NoDelayedRouteError
-        | WithdrawalInProgressError
-        | UnsupportedTokenPairError
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | ReservePriceLimitedError
+          | InsufficientBalanceError
+          | CreditAccountNotFoundError
+          | UnexpectedFailureError
+          | NoRecordedIntentError
+          | NoDelayedRouteError
+          | WithdrawalInProgressError
+          | UnsupportedTokenPairError
+        ) &
+          WithPartialState<OperationState>
       >
     >();
   });

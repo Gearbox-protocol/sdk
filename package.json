@@ -88,10 +88,6 @@
     "typecheck:ci": "tsc --noEmit"
   },
   "dependencies": {
-    "@redstone-finance/evm-connector": "^0.9.0",
-    "@redstone-finance/protocol": "^0.9.0",
-    "@redstone-finance/sdk": "^0.9.0",
-    "@redstone-finance/utils": "^0.9.0",
     "abitype": "^1.3.0",
     "date-fns": "^4.4.0",
     "viem": ">=2.23.15 <3.0.0",

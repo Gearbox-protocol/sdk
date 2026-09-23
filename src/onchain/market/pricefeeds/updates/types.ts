@@ -2,7 +2,6 @@ import type { Address } from "viem";
 
 import type { IPriceUpdateTx, RawTx } from "../../../types/index.js";
 import type { IPriceFeedContract } from "../types.js";
-import type { RedstoneOptions } from "./RedstoneUpdater.js";
 
 export interface IPriceUpdateTask {
   dataFeedId: string;
@@ -29,14 +28,9 @@ export interface TimestampedCalldata {
   cached: boolean;
 }
 
-export interface TimestampedCalldataWithPrice extends TimestampedCalldata {
-  price: bigint;
-  decimals: number;
-}
-
 /**
  * Extended price feed interface for feeds whose price can be refreshed
- * via an off-chain data push (e.g. Pyth or Redstone feeds).
+ * via an off-chain data push.
  **/
 export interface IUpdatablePriceFeedContract extends IPriceFeedContract {
   /**
@@ -66,16 +60,6 @@ export type UpdatablePriceFeedRegistryHooks = {
    */
   updatesGenerated: [UpdatePriceFeedsResult];
 };
-
-/**
- * Configuration for external price-update providers supported by the registry.
- **/
-export interface UpdatablePriceFeedRegistryOptions {
-  /**
-   * Redstone price-update provider options.
-   **/
-  redstone?: RedstoneOptions;
-}
 
 /**
  * @internal
