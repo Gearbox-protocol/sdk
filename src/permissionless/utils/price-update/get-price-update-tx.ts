@@ -14,6 +14,11 @@ import {
 import { PriceFeedStoreContract } from "../../bindings/index.js";
 import { Addresses } from "../../deployment/addresses.js";
 
+/**
+ * @deprecated Support for updatable price feeds is deprecated.
+ * @param param0
+ * @returns
+ */
 export async function getPriceUpdateTx({
   client,
   priceFeeds,

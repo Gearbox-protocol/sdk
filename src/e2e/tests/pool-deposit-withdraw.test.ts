@@ -17,7 +17,7 @@ import {
   type PoolServiceCallResult,
 } from "../../onchain/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
-import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { getAnvilWallet, useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
 
@@ -71,10 +71,6 @@ describe("pool deposit and withdraw", () => {
     });
     await sdk.attach({
       blockNumber: BLOCK,
-      redstone: {
-        historicTimestamp: true,
-        gateways: REDSTONE_GATEWAYS,
-      },
     });
   });
 

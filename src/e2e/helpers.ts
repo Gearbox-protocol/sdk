@@ -17,13 +17,6 @@ import {
 import { chains, type NetworkType, type OnchainSDK } from "../onchain/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
-import {
-  ORACLE_PROXY_PORT,
-  type OracleProxy,
-  startOracleProxy,
-} from "./oracleProxy.js";
-
-export { REDSTONE_GATEWAYS } from "./oracleProxy.js";
 
 const FIXTURES_DIR = resolve(import.meta.dirname, "fixtures");
 
@@ -44,20 +37,17 @@ export interface UseFixtureOptions {
 }
 
 /**
- * Manages Anvil + oracle proxy as an atomic pair for a describe block.
+ * Manages Anvil for a describe block.
  *
- * - beforeAll: starts oracle proxy in playback mode, starts Anvil from fork
- *   RPC cache fixture, takes evm_snapshot
+ * - beforeAll: starts Anvil from fork RPC cache fixture, takes evm_snapshot
  * - beforeEach: evm_revert + re-snapshot
- * - afterAll: evm_revert, stops Anvil, stops oracle proxy
+ * - afterAll: evm_revert, stops Anvil
  */
 export function useFixture(options: UseFixtureOptions): void {
   const baseName = `${options.network}-${options.block}`;
   const cacheFile = resolve(FIXTURES_DIR, `${baseName}-rpc-cache.json`);
-  const httpDir = resolve(FIXTURES_DIR, `${baseName}-http`);
 
   let anvil: AnvilInstance;
-  let proxy: OracleProxy;
   let client: AnvilClient;
   let snapshotId: Hex;
 
@@ -65,15 +55,9 @@ export function useFixture(options: UseFixtureOptions): void {
     if (!existsSync(cacheFile)) {
       throw new Error(
         `Anvil RPC cache fixture not found: ${cacheFile}\n` +
-          "Run: tsx --env-file .env scripts/generate-e2e-fixtures.ts",
+          "Run: tsx --env-file .env dev/scripts/generate-e2e-fixtures.ts",
       );
     }
-
-    proxy = await startOracleProxy({
-      port: ORACLE_PROXY_PORT,
-      mode: "playback",
-      recordingsDir: httpDir,
-    });
 
     anvil = await startAnvil({
       cacheFilePath: cacheFile,
@@ -102,7 +86,6 @@ export function useFixture(options: UseFixtureOptions): void {
       // Anvil may already be stopping
     }
     await stopAnvil(anvil);
-    await proxy.close();
   });
 }
 

@@ -15,19 +15,17 @@ import { PriceFeedRegistry } from "../PriceFeedRegistry.js";
 import type { IPriceFeedContract, PriceUpdate } from "../types.js";
 import { getRawPriceUpdates } from "./getRawPriceUpdates.js";
 import { isUpdatablePriceFeed } from "./isUpdatablePriceFeed.js";
-import { RedstoneUpdater } from "./RedstoneUpdater.js";
 import type {
   IPriceUpdater,
   LatestUpdate,
   UpdatablePriceFeedRegistryHooks,
-  UpdatablePriceFeedRegistryOptions,
   UpdatePriceFeedsResult,
 } from "./types.js";
 import { updatableDependencies } from "./updatableDependencies.js";
 
 /**
- * {@link PriceFeedRegistry} that also orchestrates off-chain price updates
- * (Redstone, etc.).
+ * @deprecated Support for updatable price feeds is deprecated.
+ * {@link PriceFeedRegistry} that also orchestrates off-chain price updates.
  **/
 export class UpdatablePriceFeedRegistry
   extends PriceFeedRegistry
@@ -37,9 +35,9 @@ export class UpdatablePriceFeedRegistry
   readonly #updaters: IPriceUpdater[];
   #latestUpdate: LatestUpdate | undefined;
 
-  constructor(sdk: OnchainSDK, opts: UpdatablePriceFeedRegistryOptions = {}) {
+  constructor(sdk: OnchainSDK) {
     super(sdk);
-    this.#updaters = [new RedstoneUpdater(sdk, opts.redstone)];
+    this.#updaters = [];
   }
 
   /**
@@ -173,6 +171,9 @@ export class UpdatablePriceFeedRegistry
   public async getPartialUpdatablePriceFeeds(
     configurators: Address[],
   ): Promise<IPriceFeedContract[]> {
+    if (this.#updaters.length === 0) {
+      return [];
+    }
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,

@@ -28,7 +28,7 @@ import {
 import type { PrepareRequest } from "../../sdk/index.js";
 import { GearboxSDK } from "../../sdk/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
-import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { getAnvilWallet, useFixture } from "../helpers.js";
 
 /**
  * The invariant the sdk-first plan rests on: what `prepare` projected is what
@@ -84,7 +84,6 @@ describe("prepare → execute on a mainnet fork", () => {
     });
     await multichain.attach({
       perChain: { Mainnet: { blockNumber: BLOCK } },
-      redstone: { historicTimestamp: true, gateways: REDSTONE_GATEWAYS },
     });
     chain = multichain.chain(CHAIN_ID);
     gearbox = new GearboxSDK({

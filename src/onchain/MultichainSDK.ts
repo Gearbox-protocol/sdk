@@ -8,10 +8,6 @@ import {
   SdkSyncFailedError,
 } from "./core/index.js";
 import {
-  PriceUpdatesCache,
-  type RedstoneOptions,
-} from "./market/pricefeeds/updates/index.js";
-import {
   type AttachOptions,
   type ClientOptions,
   type HydrateOptions,
@@ -74,10 +70,6 @@ export interface MultichainAttachOptions {
    * Per-chain attach options.
    **/
   perChain?: Partial<Record<NetworkType, AttachOptions>>;
-  /**
-   * Options for Redstone price-feed updates (shared cache across chains).
-   **/
-  redstone?: RedstoneOptions;
 }
 
 /**
@@ -88,10 +80,6 @@ export interface MultichainHydrateOptions {
    * Per-chain hydrate options.
    **/
   perChain?: Partial<Record<NetworkType, HydrateOptions>>;
-  /**
-   * Options for Redstone price-feed updates (shared cache across chains).
-   **/
-  redstone?: RedstoneOptions;
   /**
    * When `true`, chains missing from the serialised state are silently skipped
    * instead of throwing {@link SdkMissingChainStateError}.
@@ -119,7 +107,6 @@ export interface MultichainSyncStateOptions {
  **/
 export class MultichainSDK<const Plugins extends PluginsMap = {}> {
   readonly #chains: Map<NetworkType, OnchainSDK<Plugins>>;
-  #redstoneCache?: PriceUpdatesCache;
   #logger?: ILogger;
 
   /**
@@ -181,24 +168,10 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
    * @param options - Shared and per-chain attach options.
    */
   public async attach(options?: MultichainAttachOptions): Promise<void> {
-    if (options?.redstone) {
-      this.#redstoneCache = new PriceUpdatesCache({
-        ttl: options.redstone.cacheTTL ?? 225_000,
-        historical: !!options.redstone.historicTimestamp,
-      });
-    }
-
     await Promise.all(
       [...this.#chains.entries()].map(([network, sdk]) => {
         const perChainOpts = options?.perChain?.[network] ?? {};
-        return sdk.attach({
-          ...perChainOpts,
-          redstone: {
-            ...options?.redstone,
-            cache: this.#redstoneCache,
-            ...perChainOpts.redstone,
-          },
-        });
+        return sdk.attach(perChainOpts);
       }),
     );
     this.#logger?.info("Attached all chains");
@@ -221,13 +194,6 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
       throw new SdkStateVersionMismatchError(STATE_VERSION, state.version);
     }
 
-    if (options?.redstone) {
-      this.#redstoneCache = new PriceUpdatesCache({
-        ttl: options.redstone.cacheTTL ?? 225_000,
-        historical: !!options.redstone.historicTimestamp,
-      });
-    }
-
     const stateByNetwork = new Map(state.chains.map(cs => [cs.network, cs]));
 
     for (const [network, sdk] of this.#chains) {
@@ -239,14 +205,7 @@ export class MultichainSDK<const Plugins extends PluginsMap = {}> {
         throw new SdkMissingChainStateError(network);
       }
       const perChainOpts = options?.perChain?.[network] ?? {};
-      sdk.hydrate(chainState, {
-        ...perChainOpts,
-        redstone: {
-          ...options?.redstone,
-          cache: this.#redstoneCache,
-          ...perChainOpts.redstone,
-        },
-      });
+      sdk.hydrate(chainState, perChainOpts);
     }
     this.#logger?.info("Hydrated all chains");
   }

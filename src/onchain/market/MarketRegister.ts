@@ -173,6 +173,8 @@ export class MarketRegister extends ZapperRegister {
         ...extra,
       ];
       if (!ignoreUpdateablePrices) {
+        // currently there are no updatable price feeds (pyth and redstone are removed)
+        // so this becomes synchronous no-op, but it's easy to bring it back
         const updatables =
           await this.sdk.priceFeeds.getPartialUpdatablePriceFeeds([
             ...this.marketFilter.configurators,

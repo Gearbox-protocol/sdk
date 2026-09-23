@@ -11,7 +11,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { iCreditFacadeV310Abi } from "../../abi/310/generated.js";
 import { MAX_UINT256, OnchainSDK, sendRawTx } from "../../onchain/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
-import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { getAnvilWallet, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 const CREDIT_MANAGER: Address = "0x748a02cc6dd9090bd6bbcd1fd45790b50524ae87";
@@ -32,10 +32,6 @@ describe("open credit account", () => {
     await sdk.attach({
       blockNumber: BLOCK,
       ignoreUpdateablePrices: false,
-      redstone: {
-        historicTimestamp: true,
-        gateways: REDSTONE_GATEWAYS,
-      },
     });
   });
 

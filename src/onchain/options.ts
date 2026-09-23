@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import type { PluginsMap } from "./plugins/index.js";
 import type { ILogger } from "./types/index.js";
 import { ZodAddress } from "./utils/index.js";
@@ -60,10 +59,6 @@ export const attachOptionsSchema = z.object({
    * Pool addresses whose markets should be skipped.
    **/
   ignoreMarkets: z.array(ZodAddress()).optional(),
-  /**
-   * Options for Redstone price-feed updates.
-   **/
-  redstone: RedstoneOptions.optional(),
 });
 
 /**

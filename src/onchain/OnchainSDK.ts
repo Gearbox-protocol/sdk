@@ -42,7 +42,6 @@ import {
 import { RWARegistry } from "./market/index.js";
 import { MarketRegister } from "./market/MarketRegister.js";
 import { UpdatablePriceFeedRegistry } from "./market/pricefeeds/index.js";
-import type { RedstoneOptions } from "./market/pricefeeds/updates/index.js";
 import { OpportunitiesService } from "./opportunities/index.js";
 import type { PluginStatesMap, PluginsMap } from "./plugins/index.js";
 import { PluginStateVersionError } from "./plugins/index.js";
@@ -162,10 +161,6 @@ export interface AttachOptions {
    * Pool addresses whose markets should be skipped.
    **/
   ignoreMarkets?: Address[];
-  /**
-   * Options for Redstone price-feed updates.
-   **/
-  redstone?: RedstoneOptions;
 }
 
 /**
@@ -176,10 +171,6 @@ export interface HydrateOptions {
    * Pool addresses whose markets should be skipped.
    **/
   ignoreMarkets?: Address[];
-  /**
-   * Options for Redstone price-feed updates.
-   **/
-  redstone?: RedstoneOptions;
 }
 
 /**
@@ -348,7 +339,6 @@ export class OnchainSDK<
       ignoreUpdateablePrices,
       ignoreMarkets,
       marketConfigurators: mcs,
-      redstone,
     } = options ?? {};
 
     const marketConfigurators =
@@ -378,19 +368,7 @@ export class OnchainSDK<
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    // attaching to historical block but providing latest price update will fail
-    // with PriceTimestampTooFarAheadException if we exceed MAX_DATA_TIMESTAMP_AHEAD_SECONDS (1 minute)
-    if (
-      blockNumber &&
-      !redstone?.historicTimestamp &&
-      time - Number(block.timestamp) * 1000 > 60 * 1000
-    ) {
-      this.logger?.warn(
-        "attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail",
-      );
-    }
-
-    this.#priceFeeds = new UpdatablePriceFeedRegistry(this, { redstone });
+    this.#priceFeeds = new UpdatablePriceFeedRegistry(this);
 
     this.logger?.debug(
       `attach block number ${this.currentBlock} timestamp ${this.timestamp}`,
@@ -552,13 +530,13 @@ export class OnchainSDK<
       throw new SdkChainMismatchError(this.networkType, state.network);
     }
 
-    const { ignoreMarkets, redstone } = options ?? {};
+    const { ignoreMarkets } = options ?? {};
 
     this.logger?.info({ networkType: this.networkType }, "hydrating sdk state");
 
     this.#currentBlock = state.currentBlock;
     this.#timestamp = state.timestamp;
-    this.#priceFeeds = new UpdatablePriceFeedRegistry(this, { redstone });
+    this.#priceFeeds = new UpdatablePriceFeedRegistry(this);
 
     this.#addressProvider = hydrateAddressProvider(this, state.addressProvider);
     this.logger?.debug(
@@ -672,7 +650,7 @@ export class OnchainSDK<
     let { blockNumber, timestamp, ignoreUpdateablePrices } = opts ?? {};
     if (this.priceFeeds.historical && !ignoreUpdateablePrices) {
       this.logger?.warn(
-        "syncState is not supported with redstone historicTimestamp",
+        "syncState is not supported with historical price updates",
       );
     }
     if (!blockNumber || !timestamp) {

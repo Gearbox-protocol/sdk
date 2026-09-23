@@ -21,7 +21,7 @@ import {
   WAD,
 } from "../../onchain/index.js";
 import { ANVIL_URL, GAS_LIMIT } from "../constants.js";
-import { getAnvilWallet, REDSTONE_GATEWAYS, useFixture } from "../helpers.js";
+import { getAnvilWallet, useFixture } from "../helpers.js";
 
 const BLOCK = 24_728_000n;
 const CREDIT_ACCOUNT: Address = "0xafaf7CfB3E97621bf7eb5b0154E6F623C3034D94";
@@ -39,10 +39,6 @@ describe("partially liquidate credit account", () => {
     await sdk.attach({
       blockNumber: BLOCK,
       ignoreUpdateablePrices: false,
-      redstone: {
-        historicTimestamp: true,
-        gateways: REDSTONE_GATEWAYS,
-      },
     });
   });
 
