@@ -90,8 +90,35 @@ export interface OperationState extends AccountProjection, SimulationPrices {
 }
 
 /**
+ * What a refused request carries beside its own code: as much of the state
+ * the walk was building as it had reached when it was stopped.
+ *
+ * The same field under the same name as on the answer beside it, so a screen
+ * reads one shape whichever half it got — only here a field it could not
+ * arrive at is absent rather than present. What is there depends on how far
+ * the walk got: the market from the moment it is resolved, the whole
+ * projection from the moment the balances are settled, and `priceImpact` only
+ * from a walk that finished, since measuring depth is a quote of its own and
+ * is not paid for by a plan that was turned down.
+ *
+ * Absent is not zero and not "unchanged": a walk stopped mid-way says nothing
+ * about where the account would have landed, and a caller shows a blank rather
+ * than the account as it stands.
+ */
+export interface WithPartialState<S> {
+  state: Partial<S>;
+}
+
+/**
+ * A flow that projects `S`, turned down by the engine: the code and its own
+ * numbers, with {@link WithPartialState.state} beside them.
+ */
+export type RefusedIntent<S> = IntentValidationError & WithPartialState<S>;
+
+/**
  * What planning an intent yields: the operation chain, the state it projects,
- * and the calldata that realises it — or the error that stopped the plan.
+ * and the calldata that realises it — or the error that stopped the plan,
+ * carrying the part of that state the plan did reach.
  */
 export type IntentPreviewResult =
   | {
@@ -100,7 +127,7 @@ export type IntentPreviewResult =
       state: OperationState;
       calls: MultiCall[];
     }
-  | SDKError<IntentValidationError>;
+  | SDKError<RefusedIntent<OperationState>>;
 
 /**
  * What a claim did not bring, when the venue served part of a matured
@@ -140,7 +167,7 @@ export type FinishIntentResult =
        */
       remainder: ClaimRemainder | undefined;
     })
-  | SDKError<IntentValidationError>;
+  | SDKError<RefusedIntent<OperationState>>;
 
 /** What the request recorded, and when the tail can be run. */
 export interface DelayedStart {
@@ -204,7 +231,7 @@ export type DelayedStartResult =
       calls: MultiCall[];
       delayed: DelayedStart;
     }
-  | SDKError<IntentValidationError>;
+  | SDKError<RefusedIntent<OperationState>>;
 
 /** An intent previewed through the router: one transaction, settled now. */
 export type InstantRoute = Extract<IntentPreviewResult, { ok: true }>;
@@ -244,7 +271,7 @@ export type IntentRoutesResult =
       delayed: DelayedRoute | undefined;
       errors: RouteErrors;
     }
-  | (SDKError<IntentValidationError> & {
+  | (SDKError<RefusedIntent<OperationState>> & {
       /** {@inheritDoc IntentRoutesResult.errors} */
       errors: RouteErrors;
     });
@@ -276,6 +303,18 @@ export type StartIntentProps = {
   quotaReserve: number | undefined;
   /** Router slippage in PERCENTAGE_FORMAT (100% = 10_000). */
   slippage: number | undefined;
+  /**
+   * Where the walk writes the state as it reaches it, so a caller stopped
+   * part-way is still told what was true up to that point, see
+   * {@link WithPartialState}.
+   *
+   * Filled in place rather than returned, because the two ways a walk ends
+   * badly leave by different doors: being refused is the error the engine
+   * answers with, a crash is the exception it lets through, and the caller holding
+   * this object reads the same draft either way. Omit it and the walk keeps
+   * no draft at all.
+   */
+  draft?: Partial<OperationState>;
 };
 
 /**

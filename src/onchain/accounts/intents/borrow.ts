@@ -65,6 +65,11 @@ export interface BorrowProps {
    * an account that already owes is what the `ADJUST_LEVERAGE` intent is for.
    **/
   creditAccount?: CreditAccountSlice;
+  /**
+   * Where the walk writes the state as it reaches it, see
+   * {@link StartIntentProps.draft}. Omitted by a walk nobody reports.
+   **/
+  draft?: Partial<BorrowState>;
 }
 
 /**
@@ -154,8 +159,14 @@ export async function buildBorrowState(
 
   const suite = sdk.marketRegister.findCreditManager(creditManager);
   const market = sdk.marketRegister.findByCreditManager(creditManager);
+  const draft = props.draft ?? {};
+  // Settled before anything is quoted, so even a market that refuses outright
+  // hands back the market it refused in.
+  Object.assign(draft, suite.creditOperationMarket(), { slippage });
   assertMarketOperable(suite);
 
+  const priced = (token: Address, balance: bigint): TokenAmount =>
+    market.priceOracle.toTokenAmount(token, balance);
   const underlying = market.pool.underlying.toLowerCase() as Address;
   const collateralToken = props.collateralToken.toLowerCase() as Address;
   const borrowToken = props.borrowToken.toLowerCase() as Address;
@@ -268,8 +279,24 @@ export async function buildBorrowState(
     quotaReserve,
   });
 
-  assertGrowthAllowed({ sdk, suite, market, before: [], after: assets });
-  assertQuotaAvailable(sdk, market, quotaIncrease);
+  // What the wallet ends up holding: the route's quote, the rescale the unwrap
+  // performs, or the debt itself where the payout is the underlying.
+  const payout = unwrapsPayout
+    ? toTargetDecimals(debt, underlying, borrowToken, sdk)
+    : leg
+      ? leg.amount
+      : debt;
+  /** The two sides of the loan, which the guards below weigh but do not move. */
+  const loan = {
+    collateral: priced(collateralToken, collateralAmount),
+    borrowed: priced(borrowToken, payout),
+    minBorrowed: priced(borrowToken, leg ? leg.minAmount : payout),
+    slippage,
+    quotaIncrease,
+    calls: leg ? [...leg.calls] : (unwrap ?? []),
+    creditAccount: existing?.creditAccount,
+  };
+  Object.assign(draft, loan);
 
   // The loan is gone by the end of the multicall, so the collateral is the
   // whole of what the account is worth.
@@ -280,26 +307,10 @@ export async function buildBorrowState(
     totalDebt: debt,
     totalValue: margin,
   };
-  const projection = sdk.positions.projection(snapshot, {
-    availableLiquidityChange: -debt,
-  });
-  // The transaction hands funds to the wallet, so the facade weighs what is
-  // left at safe prices — the factor that decides it, not the one beside it.
-  assertCollateralised(projection.safeHealthFactor, true);
-
-  const priced = (token: Address, balance: bigint): TokenAmount =>
-    market.priceOracle.toTokenAmount(token, balance);
-
-  // What the wallet ends up holding: the route's quote, the rescale the unwrap
-  // performs, or the debt itself where the payout is the underlying.
-  const payout = unwrapsPayout
-    ? toTargetDecimals(debt, underlying, borrowToken, sdk)
-    : leg
-      ? leg.amount
-      : debt;
-
-  return {
-    ...projection,
+  const settle = (): Omit<BorrowState, keyof typeof loan | "priceImpact"> => ({
+    ...sdk.positions.projection(snapshot, {
+      availableLiquidityChange: -debt,
+    }),
     currentPrice: sdk.positions.currentPrice(snapshot),
     // Not measured here. The field answers what an operation gave up on its
     // way between two states of the same account, which a borrow has no
@@ -307,6 +318,28 @@ export async function buildBorrowState(
     // `borrowed` against `totalDebt`, with `priceImpact` beside them for the
     // depth.
     executionCost: undefined,
+  });
+  // Read before the guards below rather than after them, so a loan they turn
+  // down is still described by the account it would have left, see
+  // {@link WithPartialState}.
+  let reached: ReturnType<typeof settle> | undefined;
+  try {
+    reached = settle();
+    Object.assign(draft, reached);
+  } catch {
+    reached = undefined;
+  }
+
+  assertGrowthAllowed({ sdk, suite, market, before: [], after: assets });
+  assertQuotaAvailable(sdk, market, quotaIncrease);
+
+  const projection = reached ?? settle();
+  // The transaction hands funds to the wallet, so the facade weighs what is
+  // left at safe prices — the factor that decides it, not the one beside it.
+  assertCollateralised(projection.safeHealthFactor, true);
+
+  const state: BorrowState = {
+    ...projection,
     priceImpact: await collectPriceImpact(leg?.probe ? [leg.probe] : [], {
       totalValue: margin,
       // Nothing of the loan stays behind, so the collateral is the equity.
@@ -314,14 +347,10 @@ export async function buildBorrowState(
       toUnderlying: (from, amount) => convert(from, underlying, amount),
       toUnderlyingAmount: market.toUnderlyingAmount,
     }),
-    collateral: priced(collateralToken, collateralAmount),
-    borrowed: priced(borrowToken, payout),
-    minBorrowed: priced(borrowToken, leg ? leg.minAmount : payout),
-    slippage,
-    quotaIncrease,
-    calls: leg ? [...leg.calls] : (unwrap ?? []),
-    creditAccount: existing?.creditAccount,
+    ...loan,
   };
+  Object.assign(draft, state);
+  return state;
 }
 
 /** Inputs of {@link borrowCollateralQuota}. */

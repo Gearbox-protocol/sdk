@@ -52,6 +52,11 @@ export interface OpenStrategyProps {
    * is what the `DEPOSIT` intent is for.
    **/
   creditAccount?: CreditAccountSlice;
+  /**
+   * Where the walk writes the state as it reaches it, see
+   * {@link StartIntentProps.draft}. Omitted by a walk nobody reports.
+   **/
+  draft?: Partial<OpenStrategyState>;
 }
 
 /**
@@ -122,6 +127,10 @@ export async function buildOpenStrategyState(
 
   const suite = sdk.marketRegister.findCreditManager(creditManager);
   const market = sdk.marketRegister.findByCreditManager(creditManager);
+  const draft = props.draft ?? {};
+  // Settled before anything is quoted, so even a market that refuses outright
+  // hands back the market it refused in.
+  Object.assign(draft, suite.creditOperationMarket());
   assertMarketOperable(suite);
   const underlying = market.pool.underlying.toLowerCase() as Address;
   const convert: ConvertFn = (from, to, amount) =>
@@ -184,10 +193,16 @@ export async function buildOpenStrategyState(
 
   const averageQuota = quotasFor(averageAssets);
   const minQuota = quotasFor(minAssets);
-  // The expected branch is the one the account is opened on, so it is the one
-  // the market has to have room for.
-  assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
-  assertQuotaAvailable(sdk, market, averageQuota);
+  /** What the route came back with, which the guards below weigh but do not move. */
+  const routed = {
+    averageAssets: averageAssets.map(priced),
+    minAssets: minAssets.map(priced),
+    averageQuota,
+    minQuota,
+    calls: [...leg.calls],
+    creditAccount: existing?.creditAccount,
+  };
+  Object.assign(draft, routed);
 
   // The expected branch is what the account is weighed as: the floor is what
   // the transaction is signed against, but it is not where the position lands.
@@ -198,16 +213,47 @@ export async function buildOpenStrategyState(
     totalDebt: debt,
     totalValue: margin + debt,
   };
-  // The shared builder, as everywhere else — the two branches are what this
-  // flow reports instead of `assets` and `quotas`, so those are dropped.
-  // Opening borrows the whole debt from the pool.
-  const {
-    assets: _assets,
-    quotas: _quotas,
-    ...projection
-  } = sdk.positions.projection(snapshot, {
-    availableLiquidityChange: -debt,
-  });
+  /**
+   * The shared builder, as everywhere else — the two branches are what this
+   * flow reports instead of `assets` and `quotas`, so those are dropped.
+   * Opening borrows the whole debt from the pool.
+   */
+  const settle = (): Omit<
+    OpenStrategyState,
+    keyof typeof routed | "priceImpact"
+  > => {
+    const {
+      assets: _assets,
+      quotas: _quotas,
+      ...projection
+    } = sdk.positions.projection(snapshot, {
+      availableLiquidityChange: -debt,
+    });
+    return {
+      // metrics follow the expected branch, not the slippage floor; the target
+      // for the liquidation price comes out of `averageAssets`
+      ...projection,
+      // and so does the price they are read against
+      currentPrice: sdk.positions.currentPrice(snapshot),
+    };
+  };
+  // Read before the guards below rather than after them, so an opening they
+  // turn down is still described by the position it would have been, see
+  // {@link WithPartialState}.
+  let reached: ReturnType<typeof settle> | undefined;
+  try {
+    reached = settle();
+    Object.assign(draft, reached);
+  } catch {
+    reached = undefined;
+  }
+
+  // The expected branch is the one the account is opened on, so it is the one
+  // the market has to have room for.
+  assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
+  assertQuotaAvailable(sdk, market, averageQuota);
+
+  const projection = reached ?? settle();
   assertCollateralised(projection.healthFactor, false);
 
   const priceImpact = await collectPriceImpact(leg.probe ? [leg.probe] : [], {
@@ -218,20 +264,9 @@ export async function buildOpenStrategyState(
     toUnderlyingAmount: market.toUnderlyingAmount,
   });
 
-  return {
-    // metrics follow the expected branch, not the slippage floor; the target
-    // for the liquidation price comes out of `averageAssets`
-    ...projection,
-    // and so does the price they are read against
-    currentPrice: sdk.positions.currentPrice(snapshot),
-    priceImpact,
-    averageAssets: averageAssets.map(priced),
-    minAssets: minAssets.map(priced),
-    averageQuota,
-    minQuota,
-    calls: [...leg.calls],
-    creditAccount: existing?.creditAccount,
-  };
+  const state: OpenStrategyState = { ...projection, priceImpact, ...routed };
+  Object.assign(draft, state);
+  return state;
 }
 
 /** Collateral plus the borrowed underlying, folded into one balance per token. */

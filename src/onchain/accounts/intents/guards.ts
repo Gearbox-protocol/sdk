@@ -18,7 +18,8 @@ import { eq } from "./utils/common.js";
 import { isPhantomToken } from "./utils/pick-token.js";
 
 /**
- * What the market itself refuses, checked before anything is quoted.
+ * What the market itself refuses, read from its loaded state rather than
+ * learned from a revert.
  *
  * The planners answer for the arithmetic of an intent and the ledger for the
  * balances it moves, but neither can see that the facade is paused or that the
@@ -27,9 +28,10 @@ import { isPhantomToken } from "./utils/pick-token.js";
  * loaded market and reported as refusals instead.
  *
  * Every guard here refuses something the market decides rather than something
- * the arithmetic cannot do, which is why all six of their reasons are
- * `blocking`: the walk that hit one still reached an end state, and a caller
- * gets that state alongside the refusal.
+ * the arithmetic cannot do, so where the account would have landed stays a
+ * question the walk can answer. The three that judge that end state — growth,
+ * quota limits, collateral — therefore run only once the projection exists,
+ * which is what lets them hand it back as `state` when they refuse.
  */
 
 /**

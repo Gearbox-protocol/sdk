@@ -32,12 +32,13 @@ flowchart TD
   op{"facade paused or expired?"}
   plan["plan*(): intent to steps<br/>pure, no chain reads"]
   loop["realize(): step by step<br/>router quotes, RWA legs, running ledger"]
-  growth{"any balance grown that must not?"}
   quota["quota update: cleared by the plan,<br/>or sized to the projected balances"]
+  proj["projection: where the account lands,<br/>kept as the state so far"]
+  growth{"any balance grown that must not?"}
   head{"quota headroom left in the market?"}
   hf{"projected health factor >= 1.0?<br/>safe prices when funds leave"}
   ok["ok: operations + state + calls"]
-  no["ok: false, reason"]
+  no["ok: false, reason + the state so far"]
 
   req --> op
   op -->|"yes"| no
@@ -45,15 +46,23 @@ flowchart TD
   plan -->|"IntentPreviewError"| no
   plan --> loop
   loop -->|"IntentPreviewError"| no
-  loop --> growth
+  loop --> quota
+  quota --> proj
+  proj --> growth
   growth -->|"forbidden / unquotable"| no
-  growth --> quota
-  quota --> head
+  growth --> head
   head -->|"no"| no
   head --> hf
   hf -->|"no"| no
   hf --> ok
 ```
+
+Every exit into `no` carries `error.state`: as much of the same shape the `ok`
+answer would have had as the walk got to before it stopped. The market is named
+from the moment the suite is loaded, the whole projection from the moment the
+balances settle, and `priceImpact` only on a walk that finished. A field is
+absent because nothing was computed for it, which is not the same as zero and
+not the same as unchanged.
 
 `execute.buildTx` hands the returned `calls` to `executeCaUpdate`, which prepends
 on-demand price updates and wraps everything in the facade multicall; nothing in
@@ -160,7 +169,9 @@ floor sits a percent under its expectation.
 ## Guards
 
 Read from the loaded market before anything is signed, so a revert with an
-opaque selector becomes an error a form can explain.
+opaque selector becomes an error a form can explain. The last three judge the
+state the plan ends in, so they run after the projection is built and hand it
+back with whatever they turn down.
 
 ```mermaid
 flowchart LR
@@ -180,7 +191,9 @@ the plan stopped before those numbers existed.
 
 The engine's `{ ok: false, error }` half is the same `SDKError` envelope
 `prepare` answers with. `error.code` is the discriminant below; the numbers sit
-on the error beside it — `error.maxDebt`, `error.token`.
+on the error beside it — `error.maxDebt`, `error.token`. Beside those sits
+`error.state`, the partial projection above, so a form can keep showing the
+account while it explains why the operation was turned down.
 
 | Code                        | Raised when                                                                 | Fields |
 | --------------------------- | --------------------------------------------------------------------------- | ------ |
@@ -220,7 +233,11 @@ flowchart TD
   r --> d["startDelayedIntent<br/>request now, tail later"]
   i --> res["instant / delayed / errors"]
   d --> res
-  res -->|"neither answered"| no["ok: false, error"]
+  res -->|"neither answered"| no["ok: false, error + errors + state"]
 ```
+
+The two routes are walked apart and each keeps its own state, so what comes
+back carries the state of the route it reports — the instant one — while
+`error.errors` still names what each route said.
 
 Details and the tails in [delayed.md](./delayed.md).

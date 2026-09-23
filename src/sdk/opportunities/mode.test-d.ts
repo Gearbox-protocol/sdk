@@ -15,10 +15,12 @@ import type { GearboxSDK } from "../GearboxSDK.js";
 import type {
   DelayedStrategyResult,
   LpResult,
+  LpState,
   PoolOperationError,
   StrategyRoutesResult,
   UnexpectedFailureError,
   UnsupportedTokenPairError,
+  WithPartialState,
 } from "../prepare/index.js";
 import type { Mode } from "../types.js";
 import type { IOpportunities } from "./types.js";
@@ -67,9 +69,12 @@ describe("prepare quotes the delayed route with the instant one", () => {
       Promise<
         SDKReturn<
           LpResult,
-          | UnsupportedTokenPairError
-          | UnexpectedFailureError
-          | PoolOperationError
+          (
+            | UnsupportedTokenPairError
+            | UnexpectedFailureError
+            | PoolOperationError
+          ) &
+            WithPartialState<LpState>
         >
       >
     >();

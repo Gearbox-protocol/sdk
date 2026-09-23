@@ -56,6 +56,8 @@ import type {
   FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
+  OperationState,
+  RefusedIntent,
   RouteErrors,
   StartIntent,
   StartIntentProps,
@@ -86,6 +88,7 @@ export type {
   IntentRoutesResult,
   OperationState,
   PathLossRate,
+  RefusedIntent,
   RepayStrategyIntent,
   ResumableIntent,
   RouteErrors,
@@ -93,6 +96,7 @@ export type {
   WithdrawAssetIntent,
   WithdrawCeilings,
   WithdrawStrategyIntent,
+  WithPartialState,
 } from "./types.js";
 export {
   fetchCreditAccountSlice,
@@ -114,7 +118,7 @@ export type {
  */
 export type OpenStrategyPreviewResult =
   | { ok: true; state: OpenStrategyState }
-  | SDKError<IntentValidationError>;
+  | SDKError<RefusedIntent<OpenStrategyState>>;
 
 /**
  * Borrow preview outcome, shaped like {@link OpenStrategyPreviewResult}: both
@@ -122,7 +126,7 @@ export type OpenStrategyPreviewResult =
  */
 export type BorrowPreviewResult =
   | { ok: true; state: BorrowState }
-  | SDKError<IntentValidationError>;
+  | SDKError<RefusedIntent<BorrowState>>;
 
 /**
  * Empty-account preview outcome: the thinnest of the three, since an account
@@ -399,8 +403,10 @@ export class CreditAccountOperationsService extends SDKConstruct {
       };
     } catch (e) {
       // A tail that cannot be walked is a request that would strand the
-      // account, so it is stopped here rather than started and regretted.
-      return asSDKError(e);
+      // account, so it is stopped here rather than started and regretted. The
+      // request's own end state is what comes back with the error: the tail is
+      // the half that could not be said, not the half already walked.
+      return asRefused(e, result.state);
     }
   }
 
@@ -426,9 +432,12 @@ export class CreditAccountOperationsService extends SDKConstruct {
   async intentRoutes(
     props: StartIntentProps & { intent: DelayableIntent },
   ): Promise<IntentRoutesResult> {
+    // One draft each, so neither route overwrites the other's. The caller's is
+    // the instant route's, which is the route every account is expected to
+    // have and the one whose error is chosen when neither answers.
     const [instant, delayed] = await Promise.allSettled([
-      this.startIntent(props),
-      this.startDelayedIntent(props),
+      this.startIntent({ ...props, draft: props.draft ?? {} }),
+      this.startDelayedIntent({ ...props, draft: {} }),
     ]);
 
     const instantRoute =
@@ -554,10 +563,14 @@ export class CreditAccountOperationsService extends SDKConstruct {
   async openStrategyIntent(
     props: OpenStrategyProps,
   ): Promise<OpenStrategyPreviewResult> {
+    const draft = props.draft ?? {};
     try {
-      return { ok: true, state: await buildOpenStrategyState(props) };
+      return {
+        ok: true,
+        state: await buildOpenStrategyState({ ...props, draft }),
+      };
     } catch (e) {
-      return asSDKError(e);
+      return asRefused(e, draft);
     }
   }
 
@@ -583,10 +596,11 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * router has no path to
    */
   async borrowIntent(props: BorrowProps): Promise<BorrowPreviewResult> {
+    const draft = props.draft ?? {};
     try {
-      return { ok: true, state: await buildBorrowState(props) };
+      return { ok: true, state: await buildBorrowState({ ...props, draft }) };
     } catch (e) {
-      return asSDKError(e);
+      return asRefused(e, draft);
     }
   }
 
@@ -595,21 +609,25 @@ export class CreditAccountOperationsService extends SDKConstruct {
     props: StartIntentProps,
     plan: () => Step[],
   ): Promise<Previewed> {
+    const draft = props.draft ?? {};
     try {
-      assertMarketOperable(
-        props.sdk.marketRegister.findCreditManager(
-          props.creditAccount.creditManager,
-        ),
+      const suite = props.sdk.marketRegister.findCreditManager(
+        props.creditAccount.creditManager,
       );
+      // `realize` says the same of its own walk, but it is not reached when
+      // the market itself is what refuses, and that error names a market too.
+      Object.assign(draft, suite.creditOperationMarket());
+      assertMarketOperable(suite);
       const { operations, state, calls, delayed } = await realize(plan(), {
         creditAccount: props.creditAccount,
         sdk: props.sdk,
         slippage: props.slippage ?? 0,
         quotaReserve: props.quotaReserve,
+        draft,
       });
       return { ok: true, operations, state, calls, delayed };
     } catch (e) {
-      return asSDKError(e);
+      return asRefused(e, draft);
     }
   }
 }
@@ -622,7 +640,7 @@ type Previewed =
   | (Extract<IntentPreviewResult, { ok: true }> & {
       delayed: DelayedStart | undefined;
     })
-  | SDKError<IntentValidationError>;
+  | SDKError<RefusedIntent<OperationState>>;
 
 /** Drops the delayed half for the flows that cannot produce one. */
 function plain(result: Previewed): IntentPreviewResult {
@@ -638,6 +656,20 @@ function asSDKError(e: unknown): SDKError<IntentValidationError> {
   if (e instanceof IntentPreviewError) return sdkErr(e.error);
   if (isUnroutable(e)) return sdkErr(unsupportedTokenPair());
   throw e;
+}
+
+/**
+ * {@inheritDoc asSDKError}
+ *
+ * The same verdict with the walk's draft attached, which is what every flow
+ * that projects a state answers with — see {@link WithPartialState} for what
+ * a caller can expect to find on it.
+ */
+function asRefused<S>(
+  e: unknown,
+  state: Partial<S>,
+): SDKError<RefusedIntent<S>> {
+  return sdkErr({ ...asSDKError(e).error, state });
 }
 
 /**
