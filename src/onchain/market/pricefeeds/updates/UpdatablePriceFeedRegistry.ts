@@ -56,6 +56,15 @@ export class UpdatablePriceFeedRegistry
   public removeHook = this.#hooks.removeHook.bind(this.#hooks);
 
   /**
+   * Returns true if updatable price feeds are supported
+   * @deprecated While support for updatable price feeds is deprecated,
+   * this getter should help to gradually remove the support.
+   */
+  public get updatesSupported(): boolean {
+    return this.#updaters.length > 0;
+  }
+
+  /**
    * Generates transactions to push fresh off-chain prices to updatable feeds.
    *
    * @param priceFeeds - Top-level price feeds whose updatable dependencies
