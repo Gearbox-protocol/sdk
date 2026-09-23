@@ -5,6 +5,7 @@ import {
   type TokenAmount,
 } from "../../../model/index.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { IntentPreviewError } from "../../validation/raise.js";
 import {
@@ -25,7 +26,6 @@ import {
   createRouterPaths,
   getQuotasForUpdate,
   unopenedAccountSlice,
-  withRwaConversion,
 } from "./utils/index.js";
 
 /** Opening an account and putting a position on it in one transaction. */
@@ -78,7 +78,7 @@ export interface OpenStrategyState
   averageQuota: Asset[];
   /** Quotas to buy against `minAssets`; feeds `openCA.minQuota`. */
   minQuota: Asset[];
-  /** Router path, including any RWA conversions; feeds `openCA.calls`. */
+  /** Router path; feeds `openCA.calls`. */
   calls: MultiCall[];
   /**
    * The account this opening was simulated against and must be executed on,
@@ -124,15 +124,9 @@ export async function buildOpenStrategyState(
   const market = sdk.marketRegister.findByCreditManager(creditManager);
   assertMarketOperable(suite);
   const underlying = market.pool.underlying.toLowerCase() as Address;
-  const convert = withRwaConversion(
-    (from, to, amount) =>
-      market.priceOracle.safeConvert(from, to, amount).value,
-    underlying,
-    sdk,
-  );
+  const convert: ConvertFn = (from, to, amount) =>
+    market.priceOracle.safeConvert(from, to, amount).value;
 
-  // RWA backing assets are valued through their registered compliance wrapper.
-  // Keep wallet collateral in its original token for approvals and execution.
   const margin = collateral.reduce(
     (acc, a) => acc + convert(a.token, underlying, a.balance),
     0n,
@@ -158,8 +152,6 @@ export async function buildOpenStrategyState(
   assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
   assertCanBorrow(sdk, suite, debt);
 
-  // Give the router the actual balances. It includes any wrapper redemption
-  // needed to invest the loan; do not unwrap it manually before the route.
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
   const expectedBalances = mergeExpectedBalances(collateral, underlying, debt);
   const leg = await paths.openStrategy({

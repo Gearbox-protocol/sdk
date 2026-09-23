@@ -107,7 +107,7 @@ export interface AccountView {
   collateral: bigint;
   debtLimits: DebtLimits;
   balanceOf(token: Address): bigint;
-  /** RWA-aware oracle conversion; other unpriceable tokens contribute 0n. */
+  /** Oracle conversion; unpriceable tokens contribute 0n. */
   price(from: Address, to: Address, amount: bigint): bigint;
   /** Most valuable non-phantom balance, or undefined when there is none. */
   fattest(exclude?: Address[]): Address | undefined;

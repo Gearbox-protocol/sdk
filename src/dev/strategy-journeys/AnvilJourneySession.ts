@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { type Address, erc20Abi, type Hex, isAddressEqual } from "viem";
-import { withRwaConversion } from "../../onchain/accounts/intents/utils/rwa-conversion.js";
 import { MAX_UINT16 } from "../../onchain/constants/math.js";
 import { ADDRESS_0X0, type RawTx } from "../../onchain/index.js";
 import type {
@@ -65,15 +64,9 @@ export class AnvilJourneySession implements JourneySession {
       this.options.key.creditManager,
     );
     if (isAddressEqual(suite.underlying, this.underlying)) return amount;
-    const { priceOracle } = sdk.marketRegister.findByCreditManager(
-      suite.creditManager.address,
-    );
-    const convert = withRwaConversion(
-      (from, to, value) => priceOracle.convert(from, to, value),
-      suite.underlying,
-      sdk,
-    );
-    return convert(suite.underlying, this.underlying, amount);
+    return sdk.marketRegister
+      .findByCreditManager(suite.creditManager.address)
+      .priceOracle.convert(suite.underlying, this.underlying, amount);
   }
 
   async fund(token: Address, amount: bigint): Promise<void> {

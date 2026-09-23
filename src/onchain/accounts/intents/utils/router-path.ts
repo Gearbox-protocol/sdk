@@ -1,9 +1,9 @@
 import type { Address } from "viem";
 import type { Asset, MultiCall, OnchainSDK } from "../../../index.js";
+import type { ConvertFn } from "../../../market/oracle/types.js";
 import type { CreditAccountSlice } from "../types.js";
 import { toRouterCaSlice } from "./common.js";
 import { type LegProbe, startProbe } from "./price-impact.js";
-import { withRwaConversion } from "./rwa-conversion.js";
 
 /** One routed conversion leg. */
 export interface SwapLeg {
@@ -241,11 +241,8 @@ export function createOraclePaths(args: {
   const oracle = sdk.marketRegister.findByCreditManager(
     creditAccount.creditManager,
   ).priceOracle;
-  const price = withRwaConversion(
-    (from, to, amount) => oracle.safeConvert(from, to, amount).value,
-    creditAccount.underlying,
-    sdk,
-  );
+  const price: ConvertFn = (from, to, amount) =>
+    oracle.safeConvert(from, to, amount).value;
   // Linear by construction, so probing it would compare a number against
   // itself. No probe says "not measured", which is the honest answer.
   const estimate = (amount: bigint): SwapLeg => ({

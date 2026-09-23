@@ -2,9 +2,9 @@ import type { Address } from "viem";
 import type { Bps, Leverage } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, OnchainSDK } from "../../index.js";
+import type { ConvertFn } from "../../market/oracle/types.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import { resolveCreditManager } from "./utils/common.js";
-import { withRwaConversion } from "./utils/rwa-conversion.js";
 
 /** The leverages a position of a given size can be opened at, or moved to. */
 export interface LeverageBand {
@@ -77,12 +77,8 @@ export function calcLeverageBand({
   }
   const ceiling = suite.creditManager.maxLeverage(target, targetHF);
   const underlying = market.pool.underlying;
-  const convert = withRwaConversion(
-    (from, to, amount) =>
-      market.priceOracle.safeConvert(from, to, amount).value,
-    underlying,
-    sdk,
-  );
+  const convert: ConvertFn = (from, to, amount) =>
+    market.priceOracle.safeConvert(from, to, amount).value;
   const netValue = collateral.reduce(
     (acc, a) => acc + convert(a.token, underlying, a.balance),
     0n,

@@ -7,6 +7,7 @@ import {
 } from "../../../model/index.js";
 import { PERCENTAGE_FACTOR_1KK } from "../../constants/math.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
+import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
@@ -49,7 +50,6 @@ import {
   quotasAfterUpdate,
 } from "./utils/quotas-for-update.js";
 import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
-import { withRwaConversion } from "./utils/rwa-conversion.js";
 import { withdrawLimits } from "./withdraw-limits.js";
 
 export interface RealizeProps {
@@ -97,12 +97,8 @@ export async function realize(
   const market = sdk.marketRegister.findByCreditManager(
     creditAccount.creditManager,
   );
-  const price = withRwaConversion(
-    (from, to, amount) =>
-      market.priceOracle.safeConvert(from, to, amount).value,
-    underlying,
-    sdk,
-  );
+  const price: ConvertFn = (from, to, amount) =>
+    market.priceOracle.safeConvert(from, to, amount).value;
   const suite = sdk.marketRegister.findCreditManager(
     creditAccount.creditManager,
   );
