@@ -14,6 +14,10 @@ import type { IGearboxError } from "./base.js";
  * - `poolAvailableLiquidity` — the pool's available liquidity
  * - `managerDebtAvailable` — this credit manager's remaining debt allowance
  * - `maxDebt` — the facade's per-account `debtLimits.maxDebt`
+ * - `quotaAvailable` — remaining quota the market takes for the suite's
+ *   strategy target collateral (`limit - totalQuoted`, floored at 0)
+ * - `minDebt` — every other limit left less than the facade's `minDebt`, so
+ *   no position can be opened; the amount is 0
  * - `debtPerBlockLimit` — facade takes no new debt this block; in practice
  *   `maxDebtPerBlockMultiplier == 0` after a with-loss liquidation
  * - `poolDebtLimit` — pool-wide debt cap; used on account-opening only
@@ -22,6 +26,8 @@ export type BorrowLimitCause =
   | "poolAvailableLiquidity"
   | "managerDebtAvailable"
   | "maxDebt"
+  | "quotaAvailable"
+  | "minDebt"
   | "debtPerBlockLimit"
   | "poolDebtLimit";
 

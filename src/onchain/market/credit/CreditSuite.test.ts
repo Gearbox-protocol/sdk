@@ -212,25 +212,36 @@ describe("CreditSuite.creditOperationMarket", () => {
 
 const CM = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;
 
+const QUOTA_TOKEN = getAddress("0x5555555555555555555555555555555555555555");
+
 /**
  * `maxBorrowAmount` decides which limit a caller is told about, so each of its
- * three terms has to be able to win, and the tie has to keep the earlier one.
+ * four terms has to be able to win, the tie has to keep the earlier one, and a
+ * capacity under `minDebt` has to come back as nothing.
  *
  * The method is borrowed onto a plain object rather than run on a constructed
- * suite: it reads four fields, and a real suite needs a loaded market to exist.
+ * suite: it reads a handful of fields, and a real suite needs a loaded market
+ * to exist.
  */
-function maxBorrowOf(args: {
+interface MaxBorrowOfArgs {
   availableLiquidity: bigint;
   maxDebt: bigint;
   multiplier: number;
   managerAvailable?: bigint;
-}) {
+  strategyTargetCollateral?: Address;
+  quotaAvailable?: bigint;
+  minDebt?: bigint;
+}
+
+function maxBorrowOf(args: MaxBorrowOfArgs) {
   const suite = {
     creditManager: { address: CM },
     creditFacade: {
       maxDebt: args.maxDebt,
+      minDebt: args.minDebt ?? 0n,
       maxDebtPerBlockMultiplier: args.multiplier,
     },
+    strategyTargetCollateral: args.strategyTargetCollateral,
     market: {
       toUnderlyingAmount: (value: bigint) => ({ value }),
       pool: {
@@ -242,6 +253,9 @@ function maxBorrowOf(args: {
                 ? undefined
                 : { available: args.managerAvailable },
           },
+        },
+        pqk: {
+          quotaAvailable: () => args.quotaAvailable ?? 0n,
         },
       },
     },
@@ -309,6 +323,91 @@ describe("CreditSuite.maxBorrowAmount", () => {
         managerAvailable: 1000n,
       }),
     ).toEqual({ amount: { value: 0n }, limit: "debtPerBlockLimit" });
+  });
+
+  it("reports the target collateral's remaining quota when it is the tightest", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 500n,
+        strategyTargetCollateral: QUOTA_TOKEN,
+        quotaAvailable: 12n,
+      }),
+    ).toEqual({ amount: { value: 12n }, limit: "quotaAvailable" });
+  });
+
+  it("keeps maxDebt when it ties with the remaining quota", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 40n,
+        multiplier: 1,
+        managerAvailable: 500n,
+        strategyTargetCollateral: QUOTA_TOKEN,
+        quotaAvailable: 40n,
+      }),
+    ).toEqual({ amount: { value: 40n }, limit: "maxDebt" });
+  });
+
+  it("leaves the quota term out when the suite has no strategy target", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 40n,
+        multiplier: 1,
+        quotaAvailable: 1n,
+      }),
+    ).toEqual({ amount: { value: 40n }, limit: "maxDebt" });
+  });
+
+  it("is zero with the quota cause when the target's quota is exhausted and there is no floor", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 1000n,
+        strategyTargetCollateral: QUOTA_TOKEN,
+        quotaAvailable: 0n,
+      }),
+    ).toEqual({ amount: { value: 0n }, limit: "quotaAvailable" });
+  });
+
+  it("is zero with the minDebt cause when exhausted quota sits under the floor", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 1000n,
+        strategyTargetCollateral: QUOTA_TOKEN,
+        quotaAvailable: 0n,
+        minDebt: 1n,
+      }),
+    ).toEqual({ amount: { value: 0n }, limit: "minDebt" });
+  });
+
+  it("is zero when the tightest term is under minDebt, and keeps it when equal", () => {
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 100n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 500n,
+        minDebt: 101n,
+      }),
+    ).toEqual({ amount: { value: 0n }, limit: "minDebt" });
+    expect(
+      maxBorrowOf({
+        availableLiquidity: 100n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 500n,
+        minDebt: 100n,
+      }),
+    ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
   });
 });
 

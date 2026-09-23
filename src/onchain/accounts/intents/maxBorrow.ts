@@ -36,16 +36,18 @@ export interface MaxBorrowProps {
  * prices, under its liquidation threshold, capped by the quota the borrow
  * buys for it, all of which is {@link collateralValuation}'s business. The ceiling
  * is then held to what the market will actually lend: the pool's free
- * liquidity, the manager's own allowance and the facade's `maxDebt`, whichever
- * binds first.
+ * liquidity, the manager's own allowance, the facade's `maxDebt` and the
+ * remaining quota of the strategy target collateral, whichever binds first.
  *
- * The facade's `minDebt` is deliberately not applied. It is a floor, and a
- * ceiling answered as `0n` because the collateral is too small for this market
- * would tell a form nothing about what it is holding — the number a user needs
- * to see is the one they are short of. Collateral that carries something
- * therefore answers with it, whether or not the market would lend that little;
- * a loan under the floor is refused by `borrow` itself, with `debtOutOfRange`
- * naming both ends.
+ * The facade's `minDebt` is not applied to the collateral's own ceiling. It
+ * is a floor, and a ceiling answered as `0n` because the collateral is too
+ * small for this market would tell a form nothing about what it is holding —
+ * the number a user needs to see is the one they are short of. Collateral
+ * that carries something therefore answers with it, whether or not the market
+ * would lend that little; a loan under the floor is refused by `borrow`
+ * itself, with `debtOutOfRange` naming both ends. A market whose own capacity
+ * is under `minDebt` is different: `maxBorrowAmount` answers `0n`, because no
+ * loan of any size exists there.
  *
  * Nothing is fetched or simulated — the account does not exist yet and every
  * input is loaded market state, so a form can call this on each keystroke.

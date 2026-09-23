@@ -218,12 +218,22 @@ describe("maxBorrow — where no loan of this shape can be funded", () => {
     expect(maxBorrow({ collateralAmount: 1n })).toBe(0n);
   });
 
-  it("answers the ceiling even where it lands under minDebt", () => {
+  it("answers what the collateral carries when the market can still lend it", () => {
     // The floor is the market's, not the collateral's: a form that showed
     // nothing here would hide the very number the user is short of. `borrow`
-    // is what refuses the loan, and it names both ends.
+    // is what refuses the loan, and it names both ends. A hundred times that
+    // amount still sits under the fixture's maxDebt, so the market can lend it.
     expect(maxBorrow({}, { minDebt: CEILING })).toBe(CEILING);
     expect(maxBorrow({}, { minDebt: CEILING * 100n })).toBe(CEILING);
+  });
+
+  it("answers nothing when the market itself cannot lend minDebt", () => {
+    // The pool has less free liquidity than the facade's floor, so no loan
+    // of any size exists.
+    const room = CEILING;
+    expect(
+      maxBorrow({}, { minDebt: room + 1n, availableLiquidity: room }),
+    ).toBe(0n);
   });
 
   it("offers what small collateral carries, and leaves the floor to borrow", async () => {

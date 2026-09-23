@@ -405,14 +405,16 @@ export class CreditSuite extends SDKConstruct {
    *
    * Minimum of:
    * - the pool's available liquidity,
-   * - this manager's remaining debt allowance, and
-   * - the facade's per-account `maxDebt`.
-   * While `maxDebtPerBlockMultiplier` is `0` the facade
-   * takes no new debt at all, so the answer is `0`.
+   * - this manager's remaining debt allowance,
+   * - the facade's per-account `maxDebt`, and
+   * - the remaining quota of the strategy target collateral, when one resolves.
+   *
+   * `amount` is `0` whenever no position can be opened right now, and `limit`
+   * names why.
    */
   public maxBorrowAmount(): MaxBorrowAmount {
     const { pool } = this.market.pool;
-    const { maxDebtPerBlockMultiplier, maxDebt } = this.creditFacade;
+    const { maxDebtPerBlockMultiplier, maxDebt, minDebt } = this.creditFacade;
     if (maxDebtPerBlockMultiplier === 0) {
       return {
         amount: this.market.toUnderlyingAmount(0n),
@@ -422,6 +424,7 @@ export class CreditSuite extends SDKConstruct {
     const available = pool.creditManagerDebtParams.get(
       this.creditManager.address,
     )?.available;
+    const collateral = this.strategyTargetCollateral;
 
     // Ties keep the earlier term.
     const terms: { value: bigint; limit: MaxBorrowAmount["limit"] }[] = [
@@ -430,10 +433,23 @@ export class CreditSuite extends SDKConstruct {
         ? []
         : [{ value: available, limit: "managerDebtAvailable" as const }]),
       { value: maxDebt, limit: "maxDebt" },
+      ...(collateral === undefined
+        ? []
+        : [
+            {
+              value: this.market.pool.pqk.quotaAvailable(collateral),
+              limit: "quotaAvailable" as const,
+            },
+          ]),
     ];
-    const { value, limit } = terms.reduce((a, b) =>
-      b.value < a.value ? b : a,
-    );
+    let { value, limit } = terms.reduce((a, b) => (b.value < a.value ? b : a));
+
+    // The facade refuses every debt below minDebt, so a capacity under it
+    // funds no position at all.
+    if (value < minDebt) {
+      value = 0n;
+      limit = "minDebt";
+    }
 
     return { amount: this.market.toUnderlyingAmount(value), limit };
   }
@@ -518,8 +534,8 @@ export class CreditSuite extends SDKConstruct {
    * or `undefined` when credit suite does not offer a strategy opportunity.
    */
   public strategyOpportunity(): StrategyOpportunity | undefined {
-    // Same number the read model exposes below; 0 while borrowing is frozen
-    // (maxDebtPerBlockMultiplier == 0), which hides the strategy entirely.
+    // Same number the read model exposes below; 0 when no position can be
+    // opened, which hides the strategy entirely.
     const maxBorrowAmount = this.maxBorrowAmount().amount.value;
     if (maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
       return undefined;
