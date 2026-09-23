@@ -3,6 +3,7 @@ import type {
   Bps,
   ChainId,
   CreditManagerPausedError,
+  CreditOperationMarket,
   DebtOutOfRangeError,
   IGearboxError,
   InsufficientPoolLiquidityError,
@@ -28,6 +29,7 @@ import {
 import type {
   Asset,
   BorrowPreviewResult,
+  BorrowState,
   ClaimableWithdrawal,
   CreditAccountSlice,
   DelayableIntent,
@@ -38,11 +40,14 @@ import type {
   LeverageBand,
   OnchainSDK,
   OpenStrategyPreviewResult,
+  OpenStrategyState,
+  OperationState,
   PoolOperationError,
   PoolSimulation,
   ResumableIntent,
   StartIntent,
   WithdrawCeilings,
+  WithPartialState,
 } from "../../onchain/index.js";
 import {
   CreditAccountOperationsService,
@@ -164,23 +169,27 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       FinalizeResult,
-      | AccountFlowError
-      | NoRecordedIntentError
-      | NoDelayedRouteError
-      | WithdrawalInProgressError
-      | UnsupportedTokenPairError
+      (
+        | AccountFlowError
+        | NoRecordedIntentError
+        | NoDelayedRouteError
+        | WithdrawalInProgressError
+        | UnsupportedTokenPairError
+      ) &
+        WithPartialState<OperationState>
     >
   > {
+    const state: Partial<OperationState> = {};
     try {
       const sdk = await this.#chain(position.chainId);
       const at = stateBlock(sdk);
       const intent = resumable(params.intent ?? params.claimable.intent);
       if (!intent) {
-        return sdkErr(noRecordedIntent());
+        return refused(noRecordedIntent(), state);
       }
       const creditAccount = await slice(sdk, position.creditAccount);
       if (!creditAccount) {
-        return sdkErr(creditAccountNotFound(position.creditAccount));
+        return refused(creditAccountNotFound(position.creditAccount), state);
       }
       return finalized(
         await service(sdk).finishIntent({
@@ -190,11 +199,12 @@ export class PrepareApi
           sdk,
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
+          draft: state,
         }),
         at,
       );
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), state);
     }
   }
 
@@ -207,19 +217,28 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       LpResult,
-      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+      (
+        | UnsupportedTokenPairError
+        | UnexpectedFailureError
+        | PoolOperationError
+      ) &
+        WithPartialState<LpState>
     >
   > {
+    const draft: Partial<LpState> = {};
     try {
       const chain = await this.#chain(pool.chainId);
       const { marketRegister, pools } = chain;
+      // The market is named before the pair is settled, so even a pool that
+      // routes nowhere is refused with the market it would have been in.
+      draft.curator = marketRegister.findByPool(pool.pool).curator;
       const tokenIn =
         params.tokenIn ?? marketRegister.findByPool(pool.pool).pool.underlying;
       const tokenOut = lpRoute(params.tokenOut, () =>
         pools.getDepositTokensOut(pool.pool, tokenIn),
       );
       if (!tokenOut) {
-        return unroutable(chain, tokenIn, undefined);
+        return unroutable(chain, tokenIn, undefined, draft);
       }
 
       const state = pools.simulateDeposit({
@@ -228,6 +247,7 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+      Object.assign(draft, state);
 
       const [refusal] = checkPoolOperation({
         sdk: chain,
@@ -236,7 +256,7 @@ export class PrepareApi
         tokenOut: state.tokenOut,
       });
       if (refusal) {
-        return sdkErr(refusal);
+        return refused(refusal, draft);
       }
 
       const call = pools.addLiquidity({
@@ -251,7 +271,7 @@ export class PrepareApi
       // An on-demand RWA market takes deposits through its liquidity provider
       // rather than a transaction of ours, so there is nothing to prepare.
       if (!call) {
-        return unroutable(chain, tokenIn, tokenOut);
+        return unroutable(chain, tokenIn, tokenOut, draft);
       }
 
       return sdkOk<LpResult>({
@@ -264,7 +284,7 @@ export class PrepareApi
         ...stateBlock(chain),
       });
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), draft);
     }
   }
 
@@ -277,20 +297,27 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       LpResult,
-      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+      (
+        | UnsupportedTokenPairError
+        | UnexpectedFailureError
+        | PoolOperationError
+      ) &
+        WithPartialState<LpState>
     >
   > {
     // {@inheritDoc PrepareApi.deposit} — same footing.
+    const draft: Partial<LpState> = {};
     try {
       const chain = await this.#chain(pool.chainId);
       const { pools } = chain;
+      draft.curator = chain.marketRegister.findByPool(pool.pool).curator;
       // Withdrawals are paid in shares, and the share token *is* the pool.
       const tokenIn = params.tokenIn ?? pool.pool;
       const tokenOut = lpRoute(params.tokenOut, () =>
         pools.getWithdrawalTokensOut(pool.pool, tokenIn),
       );
       if (!tokenOut) {
-        return unroutable(chain, tokenIn, undefined);
+        return unroutable(chain, tokenIn, undefined, draft);
       }
 
       // Amount is the tokenOut the wallet wants back, which is what the pool's
@@ -301,6 +328,7 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+      Object.assign(draft, state);
 
       const [refusal] = checkPoolOperation({
         sdk: chain,
@@ -309,7 +337,7 @@ export class PrepareApi
         tokenOut: state.tokenOut,
       });
       if (refusal) {
-        return sdkErr(refusal);
+        return refused(refusal, draft);
       }
 
       const { calls } = pools.removeLiquidity({
@@ -331,7 +359,7 @@ export class PrepareApi
         ...stateBlock(chain),
       });
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), draft);
     }
   }
 
@@ -344,19 +372,26 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       LpResult,
-      UnsupportedTokenPairError | UnexpectedFailureError | PoolOperationError
+      (
+        | UnsupportedTokenPairError
+        | UnexpectedFailureError
+        | PoolOperationError
+      ) &
+        WithPartialState<LpState>
     >
   > {
     // {@inheritDoc PrepareApi.deposit} — same footing.
+    const draft: Partial<LpState> = {};
     try {
       const chain = await this.#chain(pool.chainId);
       const { pools } = chain;
+      draft.curator = chain.marketRegister.findByPool(pool.pool).curator;
       const tokenIn = params.tokenIn ?? pool.pool;
       const tokenOut = lpRoute(params.tokenOut, () =>
         pools.getWithdrawalTokensOut(pool.pool, tokenIn),
       );
       if (!tokenOut) {
-        return unroutable(chain, tokenIn, undefined);
+        return unroutable(chain, tokenIn, undefined, draft);
       }
 
       const state = pools.simulateRedeem({
@@ -365,6 +400,7 @@ export class PrepareApi
         tokenIn,
         tokenOut,
       });
+      Object.assign(draft, state);
 
       const [refusal] = checkPoolOperation({
         sdk: chain,
@@ -373,7 +409,7 @@ export class PrepareApi
         tokenOut: state.tokenOut,
       });
       if (refusal) {
-        return sdkErr(refusal);
+        return refused(refusal, draft);
       }
 
       const { calls } = pools.removeLiquidity({
@@ -395,7 +431,7 @@ export class PrepareApi
         ...stateBlock(chain),
       });
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), draft);
     }
   }
 
@@ -434,29 +470,39 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       OpenStrategyResult,
-      | OpenFlowError
-      | DebtOutOfRangeError
-      | LeverageOutOfRangeError
-      | UnsupportedTokenPairError
-      | InsufficientPoolLiquidityError
-      | NoStrategyTargetCollateralError
-      | CreditAccountNotFoundError
-      | CreditAccountNotEmptyError
+      (
+        | OpenFlowError
+        | DebtOutOfRangeError
+        | LeverageOutOfRangeError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
+        | NoStrategyTargetCollateralError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
+      ) &
+        WithPartialState<OpenStrategyState>
     >
   > {
+    const state: Partial<OpenStrategyState> = {};
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
+      // The request names its market, so every error below can too — the walk
+      // itself says the same of its own once it is reached.
+      Object.assign(state, marketOf(sdk, strategy.creditManager));
       const targetToken =
         params.targetToken ??
         sdk.marketRegister.findCreditManager(strategy.creditManager)
           .strategyTargetCollateral;
       if (!targetToken) {
-        return sdkErr(noStrategyTargetCollateral(strategy.creditManager));
+        return refused(
+          noStrategyTargetCollateral(strategy.creditManager),
+          state,
+        );
       }
       const reused = await reusable(sdk, strategy, params.creditAccount);
       if (reused && "error" in reused) {
-        return reused;
+        return refused(reused.error, state);
       }
       const creditAccount = reused?.account;
       return opened(
@@ -470,11 +516,12 @@ export class PrepareApi
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
           creditAccount,
+          draft: state,
         }),
         at,
       );
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), state);
     }
   }
 
@@ -487,21 +534,27 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       BorrowResult,
-      | OpenFlowError
-      | DebtOutOfRangeError
-      | UnsupportedCollateralTokenError
-      | UnsupportedTokenPairError
-      | InsufficientPoolLiquidityError
-      | CreditAccountNotFoundError
-      | CreditAccountNotEmptyError
+      (
+        | OpenFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
+        | CreditAccountNotFoundError
+        | CreditAccountNotEmptyError
+      ) &
+        WithPartialState<BorrowState>
     >
   > {
+    const state: Partial<BorrowState> = {};
     try {
       const sdk = await this.#chain(strategy.chainId);
       const at = stateBlock(sdk);
+      // {@inheritDoc PrepareApi.openNewStrategy} — the request names its market.
+      Object.assign(state, marketOf(sdk, strategy.creditManager));
       const reused = await reusable(sdk, strategy, params.creditAccount);
       if (reused && "error" in reused) {
-        return reused;
+        return refused(reused.error, state);
       }
       return borrowed(
         await service(sdk).borrowIntent({
@@ -514,11 +567,12 @@ export class PrepareApi
           slippage: params.slippage,
           quotaReserve: params.quotaReserve,
           creditAccount: reused?.account,
+          draft: state,
         }),
         at,
       );
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), state);
     }
   }
 
@@ -531,12 +585,15 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       StrategyResult,
-      | AccountFlowError
-      | DebtOutOfRangeError
-      | LeverageOutOfRangeError
-      | UnsupportedCollateralTokenError
-      | UnsupportedTokenPairError
-      | InsufficientPoolLiquidityError
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | LeverageOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | UnsupportedTokenPairError
+        | InsufficientPoolLiquidityError
+      ) &
+        WithPartialState<OperationState>
     >
   > {
     return this.#startIntent<
@@ -572,7 +629,8 @@ export class PrepareApi
         | MultipleDelayedWithdrawalsError
         | WithdrawalInProgressError
       ) &
-        WithRouteErrors
+        WithRouteErrors &
+        WithPartialState<OperationState>
     >
   > {
     return this.#startRoutes(position, params, {
@@ -605,7 +663,12 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       StrategyResult,
-      AccountFlowError | DebtOutOfRangeError | UnsupportedCollateralTokenError
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+      ) &
+        WithPartialState<OperationState>
     >
   > {
     return this.#startIntent<
@@ -646,7 +709,8 @@ export class PrepareApi
         | InsufficientPoolLiquidityError
         | LeverageOutOfRangeError
       ) &
-        WithRouteErrors
+        WithRouteErrors &
+        WithPartialState<OperationState>
     >
   > {
     return this.#startRoutes<
@@ -664,7 +728,12 @@ export class PrepareApi
   public async addCollateral(
     position: PositionInput,
     params: AddCollateralParams,
-  ): Promise<SDKReturn<StrategyResult, AccountFlowError>> {
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      AccountFlowError & WithPartialState<OperationState>
+    >
+  > {
     return this.#startIntent(position, params, {
       type: "ADD_COLLATERAL",
       token: params.token,
@@ -679,7 +748,12 @@ export class PrepareApi
   public async withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,
-  ): Promise<SDKReturn<StrategyResult, AccountFlowError>> {
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      AccountFlowError & WithPartialState<OperationState>
+    >
+  > {
     return this.#startIntent(position, params, {
       type: "WITHDRAW_ASSET",
       token: params.token,
@@ -798,15 +872,20 @@ export class PrepareApi
         | WithdrawalInProgressError
         | X
       ) &
-        WithRouteErrors
+        WithRouteErrors &
+        WithPartialState<OperationState>
     >
   > {
+    const state: Partial<OperationState> = {};
     try {
       const sdk = await this.#chain(position.chainId);
       const at = stateBlock(sdk);
       const creditAccount = await slice(sdk, position.creditAccount);
       if (!creditAccount) {
-        return neitherRoute(creditAccountNotFound(position.creditAccount));
+        return neitherRoute(
+          creditAccountNotFound(position.creditAccount),
+          state,
+        );
       }
       return routed(
         await service(sdk).intentRoutes({
@@ -815,11 +894,12 @@ export class PrepareApi
           sdk,
           slippage: options.slippage,
           quotaReserve: options.quotaReserve,
+          draft: state,
         }),
         at,
       );
     } catch (e) {
-      return neitherRoute(unexpectedFailure(e));
+      return neitherRoute(unexpectedFailure(e), state);
     }
   }
 
@@ -836,13 +916,21 @@ export class PrepareApi
     position: PositionInput,
     options: PrepareOptions,
     intent: StartIntent,
-  ): Promise<SDKReturn<StrategyResult, AccountFlowError | X>> {
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (AccountFlowError | X) & WithPartialState<OperationState>
+    >
+  > {
+    const state: Partial<OperationState> = {};
     try {
       const sdk = await this.#chain(position.chainId);
       const at = stateBlock(sdk);
       const creditAccount = await slice(sdk, position.creditAccount);
       if (!creditAccount) {
-        return sdkErr(creditAccountNotFound(position.creditAccount));
+        // A position names an account and not a market, so an account the
+        // markets do not hold leaves nothing to say about one.
+        return refused(creditAccountNotFound(position.creditAccount), state);
       }
       return planned(
         await service(sdk).startIntent({
@@ -851,11 +939,12 @@ export class PrepareApi
           sdk,
           slippage: options.slippage,
           quotaReserve: options.quotaReserve,
+          draft: state,
         }),
         at,
       );
     } catch (e) {
-      return sdkErr(unexpectedFailure(e));
+      return refused(unexpectedFailure(e), state);
     }
   }
 }
@@ -979,16 +1068,54 @@ function methodError<E extends IGearboxError>(
 }
 
 /**
+ * An error the namespace decides on itself, carrying as much of the state as
+ * it can say — nothing at all where it stopped before there was a market to
+ * name, see {@link WithPartialState}.
+ *
+ * The engine attaches its own draft on the way out, so this is only for what
+ * is raised on this side of it: a chain that would not resolve, an account the
+ * markets do not hold, a pool pair with no route.
+ **/
+function refused<E extends IGearboxError, S>(
+  error: E,
+  state: Partial<S>,
+): SDKError<E & WithPartialState<S>> {
+  return sdkErr({ ...error, state });
+}
+
+/**
+ * The market fields of a request that names its credit manager, for what is
+ * turned down before the engine has been reached at all.
+ *
+ * Empty where the SDK holds no such manager, which is itself one of those
+ * answers.
+ **/
+function marketOf(
+  sdk: OnchainSDK,
+  creditManager: Address,
+): Partial<CreditOperationMarket> {
+  try {
+    return sdk.marketRegister
+      .findCreditManager(creditManager)
+      .creditOperationMarket();
+  } catch {
+    return {};
+  }
+}
+
+/**
  * A flow with two routes, stopped before either could be quoted: the error is
  * the same one any other flow would report, with nothing to say about the
  * routes because neither was reached.
  **/
-function neitherRoute<E extends IGearboxError>(
+function neitherRoute<E extends IGearboxError, S>(
   error: E,
-): SDKError<E & WithRouteErrors> {
+  state: Partial<S>,
+): SDKError<E & WithRouteErrors & WithPartialState<S>> {
   return sdkErr({
     ...error,
     errors: {},
+    state,
   });
 }
 
@@ -1130,12 +1257,14 @@ function unroutable(
   sdk: OnchainSDK,
   from: Address,
   to: Address | undefined,
-): SDKError<UnsupportedTokenPairError> {
-  return sdkErr(
+  state: Partial<LpState>,
+): SDKError<UnsupportedTokenPairError & WithPartialState<LpState>> {
+  return refused(
     unsupportedTokenPair({
       from: toToken(sdk, from),
       to: to === undefined ? undefined : toToken(sdk, to),
     }),
+    state,
   );
 }
 

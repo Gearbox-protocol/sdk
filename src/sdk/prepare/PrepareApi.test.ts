@@ -18,6 +18,7 @@ import {
   POS,
   POS2,
   UND,
+  valueInUnd,
 } from "../../onchain/accounts/intents/testing/market.js";
 import {
   LEVERAGE_DECIMALS,
@@ -898,6 +899,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
         code: "noStrategyTargetCollateral",
         message: expect.any(String),
         creditManager: CREDIT_MANAGER,
+        // a manager the register cannot describe leaves nothing to say about
+        // the market either, so an empty state comes back with the code
+        state: {},
       },
     });
   });
@@ -918,6 +922,9 @@ describe("PrepareApi — strategy flows reach the engine", () => {
         code: "creditAccountNotFound",
         message: expect.any(String),
         creditAccount: CREDIT_ACCOUNT,
+        // a position names an account rather than a market, so an account
+        // nobody holds leaves not even a market to name
+        state: {},
       },
     });
   });
@@ -940,6 +947,8 @@ describe("PrepareApi — strategy flows reach the engine", () => {
         code: "unexpectedFailure",
         message: expect.stringContaining("rpc is down"),
         cause: boom,
+        // the read that failed is the one that would have named the market
+        state: {},
       },
     });
   });
@@ -1016,14 +1025,115 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       { token: UND, amount: 20000000000n },
     );
 
-    expect(result).toEqual({
-      ok: false,
-      error: {
-        code: "creditManagerPaused",
-        message: expect.any(String),
-        creditManager: CREDIT_MANAGER,
-      },
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error).toMatchObject({
+      code: "creditManagerPaused",
+      message: expect.any(String),
+      creditManager: CREDIT_MANAGER,
     });
+    // A facade that takes no multicall is refused before a single step is
+    // walked, so what can still be said is the market and only the market:
+    // nothing of where the operation would have left the account.
+    expect(Object.keys(result.error.state).sort()).toEqual([
+      "creditManager",
+      "curator",
+      "liquidationDiscount",
+      "name",
+      "underlyingToken",
+    ]);
+    expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
+  });
+
+  it("hands back the state a guard turned down, not just the reason", async () => {
+    const { api, position } = buildStrategyApi();
+
+    // Four fifths of the collateral out while the debt stands: the plan is
+    // walked all the way to an end state, and it is the closing collateral
+    // check that refuses the end it arrived at.
+    const result = await api.withdrawCollateral(position, {
+      token: POS,
+      amount: (TVL * 4n) / 5n,
+      to: WALLET,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("insufficientCollateral");
+
+    // The account as the refused operation would have left it, which is what
+    // lets a caller show the health factor it is being turned down over.
+    const { state } = result.error;
+    expect(state.creditManager).toBe(CREDIT_MANAGER);
+    expect(state.totalDebt?.value).toBe(DEBT);
+    expect(state.totalValue?.value).toBe(valueInUnd(TVL / 5n, POS));
+    expect(state.healthFactor).toBeLessThan(10000);
+    // …all but the one number a walk that never finished cannot have measured
+    expect(state.priceImpact).toBeUndefined();
+  });
+
+  it("says what size an opening was, even when refused for that size", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    // 20 wei of margin at 3x owes 40, far under the market's minimum, and is
+    // turned down before the router is asked for a single quote.
+    const result = await api.openNewStrategy(strategy, {
+      collateral: [{ token: UND, balance: 20n }],
+      leverage: 300n,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("debtOutOfRange");
+
+    // The totals are arithmetic on the margin, so they survive the refusal…
+    const { state } = result.error;
+    expect(state.totalDebt?.value).toBe(40n);
+    expect(state.totalValue?.value).toBe(60n);
+    expect(state.netValue?.value).toBe(20n);
+    // …while everything the route decides is left unsaid rather than guessed
+    expect(state.averageAssets).toBeUndefined();
+    expect(state.healthFactor).toBeUndefined();
+  });
+
+  it("says what a loan would have been, even when refused for its size", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.borrow(strategy, {
+      collateralToken: POS,
+      collateralAmount: 1000n,
+      borrowToken: UND,
+      borrowAmount: 200n,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("debtOutOfRange");
+
+    const { state } = result.error;
+    expect(state.collateral?.value).toBe(1000n);
+    expect(state.totalDebt?.value).toBe(200n);
+    // the loan leaves, so the collateral is the whole of the account's worth
+    expect(state.totalValue?.value).toBe(1000n);
+    expect(state.netValue?.value).toBe(800n);
+    // what the wallet is actually handed waits on the route
+    expect(state.borrowed).toBeUndefined();
+    expect(state.healthFactor).toBeUndefined();
+  });
+
+  it("a request that named no size has no size to report", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.borrow(strategy, {
+      collateralToken: POS,
+      collateralAmount: 0n,
+      borrowToken: UND,
+      borrowAmount: 40000000000n,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("insufficientBalance");
+    // The boundary the state keeps: nothing was computed, so nothing is
+    // claimed — a zero here would read as a position worth zero.
+    expect(result.error.state.totalValue).toBeUndefined();
+    expect(result.error.state.collateral).toBeUndefined();
+    expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
   });
 });
 
@@ -1111,7 +1221,13 @@ describe("PrepareApi — the two-transaction route", () => {
 
     expect(result).toEqual({
       ok: false,
-      error: { code: "noRecordedIntent", message: expect.any(String) },
+      // nothing to resume is nothing to project, and the account has not been
+      // read yet either, so there is no market to name
+      error: {
+        code: "noRecordedIntent",
+        message: expect.any(String),
+        state: {},
+      },
     });
   });
 
