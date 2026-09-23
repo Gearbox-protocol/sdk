@@ -17,6 +17,7 @@ import {
 import { chains, type NetworkType, type OnchainSDK } from "../onchain/index.js";
 import { type AnvilInstance, startAnvil, stopAnvil } from "./anvil.js";
 import { ANVIL_PORT, ANVIL_URL } from "./constants.js";
+import { workaroundRefreshRedstone } from "./workaroundRefreshRedstone.js";
 
 const FIXTURES_DIR = resolve(import.meta.dirname, "fixtures");
 
@@ -71,6 +72,12 @@ export function useFixture(options: UseFixtureOptions): void {
     // Blocks otherwise take their timestamps from the wall clock, so interest
     // accrual and gas drift with machine load. One second per block instead.
     await client.setBlockTimestampInterval({ interval: 1 });
+    // TEMPORARY: remove together with workaroundRefreshRedstone.ts once fixtures are regenerated
+    await workaroundRefreshRedstone({
+      client,
+      network: options.network,
+      block: options.block,
+    });
     snapshotId = (await client.snapshot()) as Hex;
   });
 

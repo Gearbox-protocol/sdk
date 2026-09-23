@@ -54,6 +54,10 @@ describe("my scenario", () => {
 - Put SDK attach in `beforeAll`, not `beforeEach`
 - Keep comments concise
 
+## Known workaround
+
+`workaroundRefreshRedstone` in `src/e2e/workaroundRefreshRedstone.ts` rewrites `lastPayloadTimestamp` on every Redstone price feed before the fixture snapshot. It runs only for blocks 24_728_000 and 24_736_900, whose caches cover a full attach. Those fixtures still price some collaterals through Redstone pull feeds that are stale there, and the SDK no longer pushes those updates. Delete the file and its call in `useFixture` once the fixtures are regenerated at a block where the tested markets have no Redstone feeds.
+
 ## Generating Fixtures
 
 Run `yarn generate:e2e` (needs `RPC_URL` in `.env`). Regenerate when pinning to a new block or adding new market configurators/oracle feeds.
