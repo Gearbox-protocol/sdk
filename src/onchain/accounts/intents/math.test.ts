@@ -128,21 +128,18 @@ describe("math — the three formulas behind every intent", () => {
     });
   });
 
-  it("[INV-10] maxProportionalWithdrawal: the largest W whose proportional repayment leaves debt ≥ minDebt plus the margin", () => {
-    // 2x: 1000 collateral, 1000 debt, minDebt 100, margin 1 → at most 899 of
-    // debt can go, and W < C0 always (the last unit closes rather than withdraws)
+  it("[INV-10] maxProportionalWithdrawal: the largest W whose proportional repayment leaves debt ≥ minDebt", () => {
+    // 2x: 1000 collateral, 1000 debt, minDebt 100 → at most 900 of debt can go,
+    // and W < C0 always (the last unit closes rather than withdraws)
     const twoX = { debt: 1_000n, collateral: 1_000n };
-    const floor = DEBT_LIMITS.minDebt + 1n;
     const w = maxProportionalWithdrawal(twoX, DEBT_LIMITS);
-    expect(twoX.debt - proportionalDebt(twoX, w)).toBeGreaterThanOrEqual(floor);
-    expect(twoX.debt - proportionalDebt(twoX, w + 1n)).toBeLessThan(floor);
-    expect(w).toBe(899n);
-
-    // the margin scales with the debt: 0.1% of 1e9 debt holds 1e6 above minDebt
-    const large = { debt: 1_000_000_000n, collateral: 1_000_000_000n };
-    const limits = { minDebt: 500_000_000n, maxDebt: 10n ** 12n };
-    const wl = maxProportionalWithdrawal(large, limits);
-    expect(large.debt - proportionalDebt(large, wl)).toBe(501_000_000n);
+    expect(twoX.debt - proportionalDebt(twoX, w)).toBeGreaterThanOrEqual(
+      DEBT_LIMITS.minDebt,
+    );
+    expect(twoX.debt - proportionalDebt(twoX, w + 1n)).toBeLessThan(
+      DEBT_LIMITS.minDebt,
+    );
+    expect(w).toBe(900n);
 
     // rounding: 100 debt on 1000 collateral, minDebt 50 → floor(100·W/1000) ≤ 50
     // holds up to W = 509
