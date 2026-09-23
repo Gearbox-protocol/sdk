@@ -96,10 +96,16 @@ export interface OperationState extends AccountProjection, SimulationPrices {
  * The same field under the same name as on the answer beside it, so a screen
  * reads one shape whichever half it got — only here a field it could not
  * arrive at is absent rather than present. What is there depends on how far
- * the walk got: the market from the moment it is resolved, the whole
+ * the walk got: the market from the moment it is resolved, the totals from
+ * the moment the oracle has sized the margin and the debt, the whole
  * projection from the moment the balances are settled, and `priceImpact` only
  * from a walk that finished, since measuring depth is a quote of its own and
  * is not paid for by a plan that was turned down.
+ *
+ * The totals are worth their own step because the flows that open an account
+ * weigh the debt before they route anything: a loan refused for its size is
+ * refused on arithmetic, and the arithmetic is reportable even though the
+ * position it would have bought is not.
  *
  * Absent is not zero and not "unchanged": a walk stopped mid-way says nothing
  * about where the account would have landed, and a caller shows a blank rather

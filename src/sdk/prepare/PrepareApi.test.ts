@@ -1069,6 +1069,72 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     // …all but the one number a walk that never finished cannot have measured
     expect(state.priceImpact).toBeUndefined();
   });
+
+  it("says what size an opening was, even when refused for that size", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    // 20 wei of margin at 3x owes 40, far under the market's minimum, and is
+    // turned down before the router is asked for a single quote.
+    const result = await api.openNewStrategy(strategy, {
+      collateral: [{ token: UND, balance: 20n }],
+      leverage: 300n,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("debtOutOfRange");
+
+    // The totals are arithmetic on the margin, so they survive the refusal…
+    const { state } = result.error;
+    expect(state.totalDebt?.value).toBe(40n);
+    expect(state.totalValue?.value).toBe(60n);
+    expect(state.netValue?.value).toBe(20n);
+    // …while everything the route decides is left unsaid rather than guessed
+    expect(state.averageAssets).toBeUndefined();
+    expect(state.healthFactor).toBeUndefined();
+  });
+
+  it("says what a loan would have been, even when refused for its size", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.borrow(strategy, {
+      collateralToken: POS,
+      collateralAmount: 1000n,
+      borrowToken: UND,
+      borrowAmount: 200n,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("debtOutOfRange");
+
+    const { state } = result.error;
+    expect(state.collateral?.value).toBe(1000n);
+    expect(state.totalDebt?.value).toBe(200n);
+    // the loan leaves, so the collateral is the whole of the account's worth
+    expect(state.totalValue?.value).toBe(1000n);
+    expect(state.netValue?.value).toBe(800n);
+    // what the wallet is actually handed waits on the route
+    expect(state.borrowed).toBeUndefined();
+    expect(state.healthFactor).toBeUndefined();
+  });
+
+  it("a request that named no size has no size to report", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.borrow(strategy, {
+      collateralToken: POS,
+      collateralAmount: 0n,
+      borrowToken: UND,
+      borrowAmount: 40000000000n,
+    });
+
+    if (result.ok) throw new Error("expected a refusal");
+    expect(result.error.code).toBe("insufficientBalance");
+    // The boundary the state keeps: nothing was computed, so nothing is
+    // claimed — a zero here would read as a position worth zero.
+    expect(result.error.state.totalValue).toBeUndefined();
+    expect(result.error.state.collateral).toBeUndefined();
+    expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
+  });
 });
 
 describe("PrepareApi — the two-transaction route", () => {

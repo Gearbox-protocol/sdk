@@ -214,6 +214,13 @@ export async function buildBorrowState(
   }
 
   const margin = convert(collateralToken, underlying, collateralAmount);
+  // The loan leaves, so the collateral is the whole of what the account is
+  // worth — known before the router is asked anything, and priced through the
+  // same helper `projection` uses below so the two cannot disagree.
+  Object.assign(draft, {
+    collateral: priced(collateralToken, collateralAmount),
+    totalValue: market.toUnderlyingAmount(margin),
+  });
   if (margin <= 0n) {
     throw new IntentPreviewError(
       insufficientBalance(),
@@ -231,6 +238,13 @@ export async function buildBorrowState(
     : unwrapsPayout
       ? toTargetDecimals(borrowAmount, borrowToken, underlying, sdk)
       : convert(borrowToken, underlying, borrowAmount);
+  // The oracle has sized the loan, which is the last of the totals that does
+  // not wait on the route, so the two guards below turn a request down with
+  // the debt they turned it down over.
+  Object.assign(draft, {
+    totalDebt: market.toUnderlyingAmount(debt),
+    netValue: market.toUnderlyingAmount(margin - debt),
+  });
   assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
   assertCanBorrow(sdk, suite, debt);
 

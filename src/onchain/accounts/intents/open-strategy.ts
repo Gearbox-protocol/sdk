@@ -140,14 +140,22 @@ export async function buildOpenStrategyState(
     (acc, a) => acc + convert(a.token, underlying, a.balance),
     0n,
   );
+  const debt = debtForLeverage(margin, leverage);
+  // The three totals are arithmetic on the margin alone, settled before the
+  // router is asked anything, so an opening turned down for its size still
+  // says what size it was. Priced through the same helper `projection` uses
+  // below, or the two halves would disagree on the same number.
+  Object.assign(draft, {
+    totalValue: market.toUnderlyingAmount(margin + debt),
+    totalDebt: market.toUnderlyingAmount(debt),
+    netValue: market.toUnderlyingAmount(margin),
+  });
   if (margin <= 0n) {
     throw new IntentPreviewError(
       insufficientBalance(),
       "openStrategy: collateral is worth nothing in underlying",
     );
   }
-
-  const debt = debtForLeverage(margin, leverage);
 
   // Synthetic slice so the router helper can be reused even though no account
   // exists yet. A reused one is handed over as it stands.

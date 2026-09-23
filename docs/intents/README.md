@@ -59,10 +59,12 @@ flowchart TD
 
 Every exit into `no` carries `error.state`: as much of the same shape the `ok`
 answer would have had as the walk got to before it stopped. The market is named
-from the moment the suite is loaded, the whole projection from the moment the
-balances settle, and `priceImpact` only on a walk that finished. A field is
-absent because nothing was computed for it, which is not the same as zero and
-not the same as unchanged.
+from the moment the suite is loaded, the totals once the oracle has sized the
+margin and the debt, the whole projection from the moment the balances settle,
+and `priceImpact` only on a walk that finished. A field is absent because
+nothing was computed for it, which is not the same as zero and not the same as
+unchanged — so a loan refused for being under `minDebt` reports the debt it was
+refused over, and a request that named no amount at all reports no totals.
 
 `execute.buildTx` hands the returned `calls` to `executeCaUpdate`, which prepends
 on-demand price updates and wraps everything in the facade multicall; nothing in
