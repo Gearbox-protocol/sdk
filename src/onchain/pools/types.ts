@@ -170,8 +170,7 @@ export interface PoolSimulation {
    **/
   zapper?: Address;
   /**
-   * Withdrawals only: underlying the pool can actually hand over right now,
-   * trimmed slightly so a withdrawal sized against it does not fail on rounding.
+   * Withdrawals only: {@link IPoolsService.withdrawableLiquidity}.
    *
    * The conversion is a rate, not a promise that the pool is liquid enough, so
    * compare `tokenOut.value` against `availableLiquidity.value` to see if the
@@ -306,6 +305,15 @@ export interface IPoolsService {
    * several routes exist.
    **/
   simulateRedeem(props: SimulatePoolOperationProps): PoolSimulation;
+
+  /**
+   * The most the pool can hand over right now, trimmed so a share-sized
+   * withdrawal (redeem, zapper) survives the share price accruing before it is
+   * sent.
+   *
+   * @param pool - Pool address
+   **/
+  withdrawableLiquidity(pool: Address): Amount;
 
   /**
    * Returns contract call parameters for adding liquidity to a pool

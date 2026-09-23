@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { insufficientBalance } from "../../../model/index.js";
-import { LEVERAGE_DECIMALS } from "../../constants/math.js";
+import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants/math.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import {
@@ -57,12 +57,21 @@ export function proportionalDebt(
 }
 
 /**
+ * Headroom on top of the debt read, in `PERCENTAGE_FACTOR`: enough interest for
+ * the transaction to sit in the mempool for hours at any sane borrow rate,
+ * small enough not to matter to the wallet that fronts it.
+ */
+export const SETTLE_MARGIN = 10n;
+
+/**
  * Largest withdrawal (in underlying) that {@link proportionalDebt} can still
- * pay for: the repayment it implies leaves debt at or above `minDebt`, and
+ * pay for: the repayment it implies leaves debt at or above `minDebt` plus
+ * {@link SETTLE_MARGIN} of the debt, so the figure survives the interest of the
+ * blocks before it is sent, and
  * strictly less than the collateral goes — the last unit closes the account
  * rather than shrinks it. `0n` when the debt already sits below `minDebt`.
  *
- * Solves `floor(D0 · W / C0) ≤ D0 − minDebt` for `W`.
+ * Solves `floor(D0 · W / C0) ≤ D0 − minDebt − margin` for `W`.
  */
 export function maxProportionalWithdrawal(
   position: Position,
@@ -76,7 +85,8 @@ export function maxProportionalWithdrawal(
   if (debt === 0n) {
     return allButLast;
   }
-  const repayable = debt - debtLimits.minDebt;
+  const repayable =
+    debt - debtLimits.minDebt - (debt * SETTLE_MARGIN) / PERCENTAGE_FACTOR;
   if (repayable < 0n) {
     return 0n;
   }

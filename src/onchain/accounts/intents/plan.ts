@@ -18,6 +18,7 @@ import {
   type DebtLimits,
   debtForLeverage,
   proportionalDebt,
+  SETTLE_MARGIN,
 } from "./math.js";
 import type {
   AddCollateralIntent,
@@ -676,13 +677,6 @@ const claim = (claimable: ClaimableWithdrawal): Step => ({
   claimable,
 });
 const clearQuotas = (): Step => ({ kind: "clearQuotas" });
-/**
- * Headroom a settlement raises on top of the debt it read, in
- * `PERCENTAGE_FACTOR`: enough interest for the transaction to sit in the
- * mempool for hours at any sane borrow rate, small enough not to matter to the
- * wallet that fronts it.
- */
-const SETTLE_MARGIN = 10n;
 const withMargin = (debt: bigint): bigint =>
   debt + (debt * SETTLE_MARGIN) / PERCENTAGE_FACTOR;
 /** The amount that asks for all of it, whatever "all" turns out to be. */
