@@ -11,19 +11,12 @@ export interface PoolLiquidityArgs {
   underlying: Token;
 }
 
-/**
- * What the pool holds, against what is being taken out of it.
- *
- * The operator is not `checkBorrowLimit`'s: a pool holding exactly the amount
- * requested still cannot serve it, so equality is already a refusal. That is
- * the rule the legacy withdrawal validator enforced and it is preserved to the
- * unit.
- */
+/** What the pool can hand over, against what is being taken out of it. */
 export function checkPoolLiquidity(
   args: PoolLiquidityArgs,
 ): InsufficientPoolLiquidityError[] {
   const { requested, available, underlying } = args;
-  if (requested < available) {
+  if (requested <= available) {
     return [];
   }
   return [

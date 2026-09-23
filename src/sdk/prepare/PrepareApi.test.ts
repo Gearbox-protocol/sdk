@@ -74,14 +74,14 @@ const amount = (address: Address, value: bigint): TokenAmount => ({
 interface FakePoolState {
   isPaused?: boolean;
   sunset?: boolean;
-  availableLiquidity?: bigint;
+  withdrawable?: bigint;
 }
 
 function buildApi(state: FakePoolState = {}) {
   const {
     isPaused = false,
     sunset = false,
-    availableLiquidity = POOL_LIQUIDITY,
+    withdrawable = POOL_LIQUIDITY,
   } = state;
   const getShareBalance = vi.fn(async () => HELD_SHARES);
   const pools = {
@@ -109,6 +109,7 @@ function buildApi(state: FakePoolState = {}) {
       }),
     ),
     removeLiquidity: vi.fn(() => ({ calls: [], tx: {} })),
+    withdrawableLiquidity: vi.fn(() => amount(UNDERLYING, withdrawable)),
   };
   const api = new PrepareApi({
     chain: () => ({
@@ -126,7 +127,6 @@ function buildApi(state: FakePoolState = {}) {
               getShareBalance,
               sharesToUnderlying: (shares: bigint) => shares,
               isPaused,
-              availableLiquidity,
             },
           },
           curator: CURATOR,
@@ -232,7 +232,7 @@ describe("PrepareApi — the pool's own state refuses before the wallet signs", 
   const params = { amount: 110n, wallet: WALLET, tokenOut: UNDERLYING };
 
   it("refuses a withdrawal the pool cannot serve", async () => {
-    const { api } = buildApi({ availableLiquidity: 100n });
+    const { api } = buildApi({ withdrawable: 100n });
 
     const result = await api.withdraw(pool, params);
 
@@ -240,12 +240,6 @@ describe("PrepareApi — the pool's own state refuses before the wallet signs", 
       ok: false,
       error: { code: "insufficientPoolLiquidity" },
     });
-  });
-
-  it("serves a withdrawal of exactly one wei under what is left", async () => {
-    const { api } = buildApi({ availableLiquidity: 111n });
-
-    expect(await api.withdraw(pool, params)).toMatchObject({ ok: true });
   });
 
   it("refuses every side of a paused pool", async () => {
@@ -293,7 +287,7 @@ describe("PrepareApi — the pool's own state refuses before the wallet signs", 
    * is the one code that is the same on both sides.
    */
   it("refuses a redeem the pool cannot serve", async () => {
-    const { api } = buildApi({ availableLiquidity: 100n });
+    const { api } = buildApi({ withdrawable: 100n });
 
     expect(await api.redeem(pool, { ...params, tokenIn: POOL })).toMatchObject({
       ok: false,
@@ -301,14 +295,10 @@ describe("PrepareApi — the pool's own state refuses before the wallet signs", 
     });
   });
 
-  /** The boundary the check names: the pool holding exactly it cannot serve it. */
-  it("refuses a withdrawal of exactly what is left", async () => {
-    const { api } = buildApi({ availableLiquidity: 110n });
+  it("serves a withdrawal of exactly what the pool can hand over", async () => {
+    const { api } = buildApi({ withdrawable: 110n });
 
-    expect(await api.withdraw(pool, params)).toMatchObject({
-      ok: false,
-      error: { code: "insufficientPoolLiquidity" },
-    });
+    expect(await api.withdraw(pool, params)).toMatchObject({ ok: true });
   });
 });
 

@@ -32,13 +32,7 @@ export interface PoolOperationArgs {
   tokenOut: TokenAmount;
 }
 
-/**
- * What the pool's own state stops, whichever side of it the wallet is on.
- *
- * The liquidity read is the market's rather than the trimmed figure a
- * simulation carries: a withdrawal sized against that figure has to pass the
- * check that follows it.
- */
+/** What the pool's own state stops, whichever side of it the wallet is on. */
 export function checkPoolOperation(
   args: PoolOperationArgs,
 ): PoolOperationError[] {
@@ -52,7 +46,7 @@ export function checkPoolOperation(
       ? []
       : checkPoolLiquidity({
           requested: tokenOut.value,
-          available: market.pool.pool.availableLiquidity,
+          available: sdk.pools.withdrawableLiquidity(pool).value,
           underlying: tokenOut.token,
         })),
   ];
