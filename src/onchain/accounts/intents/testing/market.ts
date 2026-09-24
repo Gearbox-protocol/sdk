@@ -120,6 +120,8 @@ export interface MarketSdkExtras {
   reservePrices?: Record<Address, bigint>;
   /** Additional / overriding token decimals. */
   extraDecimals?: Record<Address, number>;
+  /** Additional / overriding liquidation thresholds. */
+  extraLiquidationThresholds?: Record<Address, number>;
   /** Tokens the registry should report as phantoms. */
   phantoms?: Address[];
   /** Facade `minDebt`; 0n when omitted. */
@@ -159,7 +161,10 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     reservePrices: extras?.reservePrices ?? prices,
     decimals: { ...DECIMALS, ...extras?.extraDecimals },
     quotas: extras?.quotas ?? QUOTAS,
-    liquidationThresholds: LIQUIDATION_THRESHOLDS,
+    liquidationThresholds: {
+      ...LIQUIDATION_THRESHOLDS,
+      ...extras?.extraLiquidationThresholds,
+    },
     maxDebt: MAX_DEBT,
     minDebt: extras?.minDebt,
     creditManager: CREDIT_MANAGER,

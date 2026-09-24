@@ -6,6 +6,7 @@ import { TypedObjectUtils } from "../../../utils/mappers.js";
 import {
   type CalcQuotaUpdateProps,
   calcQuotaUpdate,
+  DIRECT_TRANSFERS_QUOTA,
 } from "../../quota-utils.js";
 import type { QuotaUpdateState } from "../operations.js";
 
@@ -161,6 +162,49 @@ export function clearedQuotas(
     quotaDecrease: quoted.map(
       (token): Asset => ({ token, balance: MIN_INT96 }),
     ),
+  };
+}
+
+/**
+ * Raises `directTransfer`'s quota to at least {@link DIRECT_TRANSFERS_QUOTA};
+ * skips a token the pool can't quote.
+ */
+export function withDirectTransferQuota(
+  update: QuotaUpdateState,
+  directTransfer: Address | undefined,
+  initialQuotas: Array<InitialQuota> | readonly InitialQuota[],
+  quotas: AddressMap<Quota>,
+): QuotaUpdateState {
+  if (!directTransfer) {
+    return update;
+  }
+  const token = directTransfer.toLowerCase() as Address;
+  const quota = quotas.get(token);
+  const initial =
+    initialQuotas.find(q => q.token.toLowerCase() === token)?.quota ?? 0n;
+  const change = DIRECT_TRANSFERS_QUOTA - initial;
+  if (
+    !quota?.isActive ||
+    quota.limit - quota.totalQuoted < change ||
+    (update.desiredQuota[token]?.balance ?? initial) >= DIRECT_TRANSFERS_QUOTA
+  ) {
+    return update;
+  }
+  const rest = (list: Asset[]) => list.filter(a => a.token !== token);
+  const entry = { token, balance: change };
+  return {
+    desiredQuota: {
+      ...update.desiredQuota,
+      [token]: { token, balance: DIRECT_TRANSFERS_QUOTA },
+    },
+    quotaIncrease:
+      change > 0n
+        ? [...rest(update.quotaIncrease), entry]
+        : rest(update.quotaIncrease),
+    quotaDecrease:
+      change < 0n
+        ? [...rest(update.quotaDecrease), entry]
+        : rest(update.quotaDecrease),
   };
 }
 
