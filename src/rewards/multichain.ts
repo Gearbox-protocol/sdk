@@ -47,21 +47,42 @@ class RewardsFanOut<
       // snapshot the pools and tokens were resolved against.
       block: "state",
       run: async (sdk, block) => {
-        const [merkl, turtleRows] = await Promise.all([
+        const sources: Array<Promise<Reward[]>> = [
           fetchMerklUserRewards({
             chainId: sdk.chainId,
             user,
             apiKey: merklApiKey,
           }).then(response => toMerklRewards(sdk, response)),
-          turtle?.then(async rewards =>
-            toTurtleRewards(
-              sdk,
-              rewards,
-              await readClaimed(sdk, user, rewards, block.blockNumber),
+        ];
+        if (turtle) {
+          sources.push(
+            turtle.then(async rewards =>
+              toTurtleRewards(
+                sdk,
+                rewards,
+                await readClaimed(sdk, user, rewards, block.blockNumber),
+              ),
             ),
-          ) ?? [],
-        ]);
-        return [...merkl, ...turtleRows];
+          );
+        }
+        // A chain fails only when no source answered; a single failed source
+        // leaves the rows of the others.
+        const settled = await Promise.allSettled(sources);
+        const failed = settled.flatMap(r =>
+          r.status === "rejected" ? [r.reason] : [],
+        );
+        if (failed.length === settled.length) {
+          throw failed.length === 1
+            ? failed[0]
+            : new AggregateError(failed, "no rewards source answered");
+        }
+        for (const reason of failed) {
+          (sdk.logger ?? this.sdk.logger)?.warn(
+            reason,
+            `rewards source failed on chain ${sdk.chainId}`,
+          );
+        }
+        return settled.flatMap(r => (r.status === "fulfilled" ? r.value : []));
       },
     });
   }
@@ -91,7 +112,7 @@ async function readClaimed(
 /**
  * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
  * organisation's Turtle streams — across the chains the handle carries.
- * A chain where either source failed is `status: "error"`, while a chain
+ * A chain is `status: "error"` only when every source failed on it; a chain
  * with nothing to claim is a `"success"` with no rows.
  **/
 export async function getRewardsMultichain<

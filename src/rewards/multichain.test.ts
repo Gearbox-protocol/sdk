@@ -301,7 +301,9 @@ describe("getRewardsMultichain with Turtle", () => {
     mockedFetch.mockImplementation(async (url: string) => {
       const { hostname, pathname, searchParams } = new URL(url);
       if (hostname !== "earn.turtle.xyz") {
-        return answers(merkl[Number(searchParams.get("chainId"))] ?? []);
+        const outcome = merkl[Number(searchParams.get("chainId"))];
+        if (outcome instanceof Error) throw outcome;
+        return answers(outcome ?? []);
       }
       if (turtle instanceof Error) throw turtle;
       return answers(
@@ -348,8 +350,57 @@ describe("getRewardsMultichain with Turtle", () => {
     );
   });
 
-  it("fails every chain when Turtle cannot be reached", async () => {
-    respond({ turtle: new Error("turtle down") });
+  it("keeps Merkl's rows when Turtle cannot be reached", async () => {
+    respond({
+      merkl: { [MAINNET]: merklBody("1000") },
+      turtle: new Error("turtle down"),
+    });
+
+    const { data, meta } = await getRewardsMultichain({
+      sdk: multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      wallet: WALLET,
+      turtleApiKey: "k",
+    });
+
+    expect(data.map(r => r.source)).toEqual(["merkl"]);
+    expect(meta.chains.map(c => c.status)).toEqual(["success"]);
+  });
+
+  it("keeps Turtle's rows when Merkl cannot be reached", async () => {
+    respond({ merkl: { [MAINNET]: new Error("merkl down") } });
+
+    const { data, meta } = await getRewardsMultichain({
+      sdk: multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      wallet: WALLET,
+      turtleApiKey: "k",
+    });
+
+    expect(data.map(r => r.source)).toEqual(["turtle"]);
+    expect(meta.chains.map(c => c.status)).toEqual(["success"]);
+  });
+
+  it("keeps Merkl's rows when the claimed amounts could not be read", async () => {
+    respond({ merkl: { [MAINNET]: merklBody("1000") } });
+    multicall.mockRejectedValue(new Error("rpc down"));
+
+    const { data, meta } = await getRewardsMultichain({
+      sdk: multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      wallet: WALLET,
+      turtleApiKey: "k",
+    });
+
+    expect(data.map(r => r.source)).toEqual(["merkl"]);
+    expect(meta.chains.map(c => c.status)).toEqual(["success"]);
+  });
+
+  it("fails only the chain where every source failed", async () => {
+    respond({
+      merkl: {
+        [MAINNET]: new Error("merkl down"),
+        [PLASMA]: merklBody("1000"),
+      },
+      turtle: new Error("turtle down"),
+    });
 
     const { data, meta } = await getRewardsMultichain({
       sdk: multichainSdk([
@@ -360,26 +411,18 @@ describe("getRewardsMultichain with Turtle", () => {
       turtleApiKey: "k",
     });
 
-    expect(data).toEqual([]);
-    for (const chain of meta.chains) {
-      expect(chain.status).toBe("error");
-      expect(chain.status === "error" && chain.error).toBeInstanceOf(
-        TurtleRequestFailedError,
-      );
-    }
-  });
-
-  it("fails the chain whose claimed amounts could not be read", async () => {
-    respond({});
-    multicall.mockRejectedValue(new Error("rpc down"));
-
-    const { meta } = await getRewardsMultichain({
-      sdk: multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
-      wallet: WALLET,
-      turtleApiKey: "k",
-    });
-
-    expect(meta.chains.map(c => c.status)).toEqual(["error"]);
+    expect(data.map(r => r.chainId)).toEqual([PLASMA]);
+    expect(meta.chains.map(c => [c.chainId, c.status])).toEqual([
+      [MAINNET, "error"],
+      [PLASMA, "success"],
+    ]);
+    const failed = meta.chains[0];
+    const error = failed?.status === "error" ? failed.error : undefined;
+    expect(error).toBeInstanceOf(AggregateError);
+    expect((error as AggregateError).errors).toEqual([
+      expect.any(MerklRequestFailedError),
+      expect.any(TurtleRequestFailedError),
+    ]);
   });
 
   it("does not ask Turtle without a key", async () => {
