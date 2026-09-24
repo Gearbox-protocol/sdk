@@ -4,6 +4,36 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v17.x — one rewards read for every source
+
+`getMerklRewardsMultichain` is replaced by `getRewardsMultichain`, which lists
+Merkl campaigns and the Gearbox organisation's Turtle streams in one
+`DataResponse<Reward[]>`. `toMerklRewards` and `MerklRewardsSdk` are no longer
+exported.
+
+**Before:**
+
+```typescript
+const { data } = await getMerklRewardsMultichain({ sdk, wallet, apiKey });
+```
+
+**After:**
+
+```typescript
+const { data } = await getRewardsMultichain({
+  sdk,
+  wallet,
+  merklApiKey,
+  turtleApiKey, // Turtle is skipped without one
+});
+```
+
+Every row carries `source: "merkl" | "turtle"`, which a consumer constructing
+a `MerklReward` (a fixture or a mock) has to fill. A `Reward` is either a
+`MerklReward` or a `PointsReward`, whose `points` replaces `amount`.
+
+---
+
 ## v16.x — an opening that pays out is valued net of it
 
 `OpenStrategyPositionPreview` gained `collateralWithdrawn`, the tokens the
@@ -370,3 +400,4 @@ An agent skill ships with this repo at
 ```bash
 npx skills add Gearbox-protocol/sdk --skill gearbox-sdk-v13-to-v14
 ```
+
