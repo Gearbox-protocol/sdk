@@ -35,6 +35,7 @@ describe("withDirectTransferQuota", () => {
         USDC,
         [],
         quotas,
+        4,
       ),
     ).toEqual({
       desiredQuota: {
@@ -57,12 +58,30 @@ describe("withDirectTransferQuota", () => {
         USDC,
         [{ token: USDC, quota: 30_000n }],
         quotas,
+        4,
       ),
     ).toEqual({
       desiredQuota: { [USDC]: { token: USDC, balance: 10_000n } },
       quotaIncrease: [],
       quotaDecrease: [{ token: USDC, balance: -20_000n }],
     });
+  });
+
+  it("skips the token when every enabled token slot is taken", () => {
+    const update = {
+      desiredQuota: { [OTHER]: { token: OTHER, balance: 20_000n } },
+      quotaIncrease: [],
+      quotaDecrease: [],
+    };
+    expect(
+      withDirectTransferQuota(
+        update,
+        USDC,
+        [{ token: OTHER, quota: 20_000n }],
+        quotas,
+        1,
+      ),
+    ).toBe(update);
   });
 
   it("drops a decrease that would leave exactly the quota held", () => {
@@ -76,6 +95,7 @@ describe("withDirectTransferQuota", () => {
         USDC,
         [{ token: USDC, quota: 10_000n }],
         quotas,
+        4,
       ),
     ).toEqual({
       desiredQuota: { [USDC]: { token: USDC, balance: 10_000n } },
