@@ -553,6 +553,7 @@ export async function realize(
       debt > 0n ? directTransfer : undefined,
       creditAccount.tokens,
       market.pool.pqk.quotas,
+      suite.creditManager.maxEnabledTokens,
     );
 
   // The update names only the tokens the plan touched, so what the account is

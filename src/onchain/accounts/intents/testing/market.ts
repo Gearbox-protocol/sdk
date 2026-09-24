@@ -132,6 +132,8 @@ export interface MarketSdkExtras {
   delayed?: Record<Address, MockDelayedVenue[]>;
   /** Quota params replacing the fixture's, e.g. a token with no room left. */
   quotas?: Record<Address, MockQuotaEntry>;
+  /** Credit manager's enabled token cap; the mock's default when omitted. */
+  maxEnabledTokens?: number;
   /** Facade pause flag. */
   facadePaused?: boolean;
   /** Pool pause flag, which pauses the suite with it. */
@@ -176,6 +178,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     phantoms: extras?.phantoms,
     creditAccounts: extras?.creditAccounts,
     delayed: extras?.delayed,
+    maxEnabledTokens: extras?.maxEnabledTokens,
     facadePaused: extras?.facadePaused,
     poolPaused: extras?.poolPaused,
     expirationDate: extras?.expirationDate,

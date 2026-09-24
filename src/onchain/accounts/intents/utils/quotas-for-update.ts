@@ -167,13 +167,15 @@ export function clearedQuotas(
 
 /**
  * Raises `directTransfer`'s quota to at least {@link DIRECT_TRANSFERS_QUOTA};
- * skips a token the pool can't quote.
+ * skips a token the pool can't quote, or one the account has no free enabled
+ * token slot for.
  */
 export function withDirectTransferQuota(
   update: QuotaUpdateState,
   directTransfer: Address | undefined,
   initialQuotas: Array<InitialQuota> | readonly InitialQuota[],
   quotas: AddressMap<Quota>,
+  maxEnabledTokens: number,
 ): QuotaUpdateState {
   if (!directTransfer) {
     return update;
@@ -186,7 +188,10 @@ export function withDirectTransferQuota(
   if (
     !quota?.isActive ||
     quota.limit - quota.totalQuoted < change ||
-    (update.desiredQuota[token]?.balance ?? initial) >= DIRECT_TRANSFERS_QUOTA
+    (update.desiredQuota[token]?.balance ?? initial) >=
+      DIRECT_TRANSFERS_QUOTA ||
+    Object.keys(quotasAfterUpdate(initialQuotas, update.desiredQuota)).length >=
+      maxEnabledTokens
   ) {
     return update;
   }
