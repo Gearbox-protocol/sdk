@@ -46,6 +46,12 @@ interface CalcQuotaUpdateReturnType {
 }
 
 /**
+ * Quota that keeps a directly transferred token enabled, so a liquidation
+ * counts it.
+ */
+export const DIRECT_TRANSFERS_QUOTA = PERCENTAGE_FACTOR;
+
+/**
  * Rounds quota deltas to protocol precision step (`PERCENTAGE_FACTOR`).
  *
  * The `MIN_INT96` sentinel is preserved as-is because it encodes
