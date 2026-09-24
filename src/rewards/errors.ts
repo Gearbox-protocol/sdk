@@ -39,3 +39,15 @@ function describe(cause: unknown): string {
   }
   return String(cause);
 }
+
+/** Turtle answers for every chain at once, so this names no chain. */
+export class TurtleRequestFailedError extends BaseError {
+  override name = "TurtleRequestFailedError";
+
+  constructor(path: string, cause: unknown) {
+    super("Turtle could not be reached.", {
+      cause: cause instanceof Error ? cause : undefined,
+      metaMessages: [`${path} — ${describe(cause)}`],
+    });
+  }
+}

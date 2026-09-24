@@ -1,6 +1,11 @@
 import type { Address } from "viem";
 import { formatUnits, getAddress, isAddress } from "viem";
-import type { ChainId, Token, TokenAmount } from "../model/index.js";
+import type {
+  ChainId,
+  PointsProgramPnL,
+  Token,
+  TokenAmount,
+} from "../model/index.js";
 import type { OnchainSDK } from "../onchain/index.js";
 import { AddressMap, toBigInt } from "../onchain/index.js";
 import { BigIntMath } from "../onchain/utils/bigint-math.js";
@@ -13,6 +18,8 @@ import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
  * reassembles one out of the loose fields Merkl sends.
  */
 export interface MerklReward {
+  /** Where the reward is claimed. */
+  readonly source: "merkl" | "turtle";
   readonly chainId: ChainId;
   /** Market pool whose depositors the campaign rewards. */
   readonly pool: Address;
@@ -30,12 +37,14 @@ export interface MerklReward {
   readonly amount: TokenAmount;
 }
 
-/**
- * What the mapping needs off a chain's SDK: which chain the rows belong to,
- * the pools a campaign can be keyed on, and the registry that names their
- * tokens. Nothing else, and nothing asynchronous.
- */
-export type MerklRewardsSdk = Pick<
+/** Points have no token and no price, and are not claimed. */
+export interface PointsReward extends Omit<MerklReward, "amount"> {
+  readonly points: PointsProgramPnL;
+}
+
+export type Reward = MerklReward | PointsReward;
+
+export type RewardsSdk = Pick<
   OnchainSDK,
   "chainId" | "marketRegister" | "tokensMeta"
 >;
@@ -44,7 +53,7 @@ export type MerklRewardsSdk = Pick<
  * Merkl's answer for one chain, turned into rows of the read model.
  */
 export function toMerklRewards(
-  sdk: MerklRewardsSdk,
+  sdk: RewardsSdk,
   response: MerkleXYZUserRewardsV4Response,
 ): MerklReward[] {
   // A v3.1 pool is its own ERC-4626 share token, so its address is the only
@@ -145,6 +154,7 @@ interface Claimable {
 function toReward({ price, token, value, ...rest }: Claimable): MerklReward {
   return {
     ...rest,
+    source: "merkl",
     amount: {
       token,
       value,
@@ -157,22 +167,21 @@ function toReward({ price, token, value, ...rest }: Claimable): MerklReward {
 }
 
 /**
- * A campaign's incentive token is not protocol collateral, so the registry
- * usually has no entry for it — and Merkl always names it. The one place the
- * two sources are reconciled.
+ * An incentive token is rarely protocol collateral, so the registry usually
+ * has no entry for it — and both sources always name it.
  */
-function toRewardToken(
-  sdk: MerklRewardsSdk,
+export function toRewardToken(
+  sdk: RewardsSdk,
   address: Address,
-  merkl: { symbol: string; decimals: number },
+  named: { symbol: string; name?: string; decimals: number },
 ): Token {
   return (
     sdk.tokensMeta.getToken(address) ?? {
       chainId: sdk.chainId,
       address,
-      symbol: merkl.symbol,
-      name: merkl.symbol,
-      decimals: merkl.decimals || 18,
+      symbol: named.symbol,
+      name: named.name ?? named.symbol,
+      decimals: named.decimals || 18,
     }
   );
 }

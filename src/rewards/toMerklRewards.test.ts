@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Token } from "../model/index.js";
 import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
-import type { MerklRewardsSdk } from "./toMerklRewards.js";
+import type { RewardsSdk } from "./toMerklRewards.js";
 import { toMerklRewards } from "./toMerklRewards.js";
 
 const ACCOUNT: Address = "0x1234567890123456789012345678901234567890";
@@ -34,7 +34,7 @@ const POOL_TOKEN: Token = {
 function buildSdk(
   known: Record<string, Token> = {},
   { namesPool = true }: { namesPool?: boolean } = {},
-): MerklRewardsSdk {
+): RewardsSdk {
   return {
     // Deliberately not the `chain.id` Merkl echoes below: a row belongs to the
     // chain we asked about, and picking it off the payload would look right
@@ -48,7 +48,7 @@ function buildSdk(
           ? POOL_TOKEN
           : undefined),
     },
-  } as unknown as MerklRewardsSdk;
+  } as unknown as RewardsSdk;
 }
 
 interface BreakdownOverrides {
