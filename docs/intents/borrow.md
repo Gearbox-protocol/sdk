@@ -148,12 +148,13 @@ any size — a collateral worth nothing at safe prices, a payout in the
 collateral token, a market with nothing left to lend, or a manager the SDK does
 not hold yet.
 
-### `minDebt` is a floor, and the ceiling is not held to it
+### `minDebt` is a floor, and the collateral's ceiling is not held to it
 
-`maxBorrow` is a ceiling, not a verdict, so the facade's `minDebt` is left out
-of it. Applied, a market whose floor is 200k would answer `0` for 10k of
-collateral — hiding the ~8.4k that collateral does carry, which is the number a
-user needs in order to see how far short they are.
+`maxBorrow` is a ceiling, not a verdict, so the facade's `minDebt` is not
+applied to what the collateral carries. Applied there, a market whose floor is
+200k would answer `0` for 10k of collateral — hiding the ~8.4k that collateral
+does carry, which is the number a user needs in order to see how far short they
+are.
 
 What comes back is therefore an amount `borrow` may still refuse, and the
 refusal is the better place for it: `debtOutOfRange` carries `requested`,
@@ -161,9 +162,14 @@ refusal is the better place for it: `debtOutOfRange` carries `requested`,
 8362, the market lends no less than 200000" from one error rather than from a
 zero it has to explain by itself.
 
+A market whose own capacity sits under `minDebt` is the other case: no loan of
+any size can be opened, so `maxBorrow` answers `0`. The quota that matters is
+the collateral's own, already inside `backed`; the strategy's target
+collateral plays no part in a borrow.
+
 The other bounds stay in, because they are ceilings like this one: pool
-liquidity, the manager's allowance and `maxDebt` all cap what may be drawn, and
-a `0n` from any of them means there is genuinely nothing to offer.
+liquidity, the manager's allowance and `maxDebt` all cap what may be drawn,
+and a `0n` from any of them means there is genuinely nothing to offer.
 
 ## Notes
 

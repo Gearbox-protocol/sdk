@@ -2,10 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 import type {
   Bps,
   CreditOperationMarket,
-  KycRequirement,
   RWAOperationArgs,
-  StrategyOpportunity,
-  StrategyOpportunityDetail,
   Timestamp,
   Token,
   UnderlyingToken,
@@ -15,7 +12,6 @@ import { SDKConstruct } from "../../base/index.js";
 import {
   getAccountTargetCollateral,
   getLegacyStrategyTarget,
-  isSunsetStrategy,
 } from "../../chain/chains.js";
 import { ADDRESS_0X0, PERCENTAGE_FACTOR, RAY } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
@@ -29,8 +25,6 @@ import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
 import {
-  calcBorrowApy,
-  calcQuotaRate,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
   optimalRepaidAmount,
@@ -38,6 +32,7 @@ import {
 import { createDegenNFT } from "../rwa/createDegenNFT.js";
 import type { IDegenNFT, IRWAFactory } from "../rwa/types.js";
 import { strategyName as formatStrategyName } from "../strategyName.js";
+import { CreditSuiteStrategy } from "./CreditSuiteStrategy.js";
 import {
   dominantCollateral,
   isStrategyCollateral,
@@ -55,14 +50,6 @@ import type {
   MaxBorrowAmount,
   PartialLiquidationParams,
 } from "./types.js";
-
-/**
- * Amount of underlying seeded into each pool at market creation to protect
- * from inflation attacks, in raw token units. A suite whose
- * {@link CreditSuite.maxBorrowAmount} is at or below this is treated as
- * having nothing left to lend.
- **/
-const MIN_STRATEGY_BORROW_AMOUNT = 100_000n;
 
 /**
  * SDK aggregate for one credit-manager branch inside a market.
@@ -192,45 +179,6 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * The KYC gate of this suite's strategy; `null` when there is none.
-   * Wallet-independent.
-   */
-  public async kycRequirement(
-    targetCollateral: Address,
-  ): Promise<KycRequirement | null> {
-    const nft = await this.degenNFT();
-    if (!nft) {
-      return null;
-    }
-    const tokens = await nft.getTokens();
-    const token =
-      tokens.find(t => isAddressEqual(t, targetCollateral)) ?? tokens[0];
-    return {
-      protocol: nft.protocol,
-      token: token ? this.tokensMeta.getToken(token) : undefined,
-      registrationLink: nft.registrationLink,
-    };
-  }
-
-  /**
-   * Whether `wallet` may open this suite's strategy today; `true` when there
-   * is no KYC gate.
-   */
-  public async isEligibleForStrategy(
-    wallet: Address,
-    targetCollateral: Address,
-  ): Promise<boolean> {
-    const nft = await this.degenNFT();
-    if (!nft) {
-      return true;
-    }
-    const requirements = await nft.getOpenAccountRequirements(wallet, {
-      tokenOutAddress: targetCollateral,
-    });
-    return nft.isRegistered(requirements);
-  }
-
-  /**
    * Builds a transaction that executes a multicall on one of this suite's
    * credit accounts.
    *
@@ -357,13 +305,14 @@ export class CreditSuite extends SDKConstruct {
    * row all spread it, so the five fields are filled in one place and cannot
    * drift apart between the halves of the SDK.
    *
-   * The curator comes from the same getter {@link strategyOpportunity} reads, so
+   * The curator comes from the same getter
+   * {@link CreditSuiteStrategy.opportunity} reads, so
    * a result and the opportunity beside it name one entity.
    */
   public creditOperationMarket(): CreditOperationMarket {
     return {
       creditManager: this.creditManager.address,
-      name: this.strategyName ?? this.underlyingToken.symbol,
+      name: this.strategy?.name ?? this.underlyingToken.symbol,
       underlyingToken: this.underlyingToken,
       curator: this.market.curator,
       liquidationDiscount: this.totalLiquidationDiscount(),
@@ -400,15 +349,14 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * Largest debt one new position can take from this credit manager right now,
-   * and which limit set that number.
+   * Largest debt this credit manager allows to borrow, and which limit set that number.
    *
    * Minimum of:
    * - the pool's available liquidity,
    * - this manager's remaining debt allowance, and
    * - the facade's per-account `maxDebt`.
-   * While `maxDebtPerBlockMultiplier` is `0` the facade
-   * takes no new debt at all, so the answer is `0`.
+   *
+   * If the credit manager allows no debt at all, the answer is `0`.
    */
   public maxBorrowAmount(): MaxBorrowAmount {
     const { pool } = this.market.pool;
@@ -439,47 +387,38 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * The single target collateral of this suite's strategy, or `undefined` when
-   * none can be resolved.
+   * This suite's leveraged strategy, or `undefined` when no target collateral
+   * can be resolved.
    *
-   * Resolution, in order:
-   * 1. a hardcoded legacy mapping for this credit manager, when that token is
-   *    still a collateral of the manager (it may be absent on an older
-   *    snapshot, or after it was delisted);
-   * 2. the collateral with the biggest index in
-   *    {@link ICreditManagerContract.collateralTokens} that
-   *    {@link isStrategyCollateral} accepts with quota required;
-   * 3. the biggest-index collateral that {@link isStrategyCollateral} accepts
-   *    without quota.
+   * The strategy exists whether or not it is offered today, because its
+   * target also names existing positions; see
+   * {@link CreditSuiteStrategy.isListed} for whether it is listed as an
+   * opportunity.
    */
-  public get strategyTargetCollateral(): Address | undefined {
+  public get strategy(): CreditSuiteStrategy | undefined {
     const legacy = getLegacyStrategyTarget(
       this.creditManager.address,
       this.chainId,
     );
-    if (legacy && this.creditManager.liquidationThresholds.has(legacy)) {
-      return legacy;
-    }
-
-    return pickStrategyTargetCollateral(
-      this.creditManager.collateralTokens.map(token =>
-        this.#strategyCollateralProps(token),
-      ),
-    );
+    const target =
+      legacy && this.creditManager.liquidationThresholds.has(legacy)
+        ? legacy
+        : pickStrategyTargetCollateral(
+            this.creditManager.collateralTokens.map(token =>
+              this.#strategyCollateralProps(token),
+            ),
+          );
+    return target ? new CreditSuiteStrategy(this, target) : undefined;
   }
 
   /**
-   * Display name of this suite's leveraged strategy, e.g. `"wstETH / WETH"`,
-   * or `undefined` when {@link strategyTargetCollateral} cannot be resolved.
+   * Whether `token` can be this suite's strategy target; see
+   * {@link isStrategyCollateral}.
    */
-  public get strategyName(): string | undefined {
-    const collateral = this.strategyTargetCollateral;
-    if (!collateral) {
-      return undefined;
-    }
-    return formatStrategyName(
-      this.tokensMeta.mustGetToken(collateral),
-      this.underlyingToken,
+  public isStrategyCollateral(token: Address, requireQuota = false): boolean {
+    return isStrategyCollateral(
+      this.#strategyCollateralProps(token),
+      requireQuota,
     );
   }
 
@@ -489,14 +428,15 @@ export class CreditSuite extends SDKConstruct {
    *
    * Resolution, in order:
    * 1. a hardcoded per-account override, when present;
-   * 2. {@link strategyTargetCollateral};
+   * 2. the target of {@link strategy};
    * 3. `null` when neither can be resolved.
    */
   public accountTargetCollateral(creditAccount: Address): Token | null {
-    const addr =
-      getAccountTargetCollateral(creditAccount, this.chainId) ??
-      this.strategyTargetCollateral;
-    return addr ? this.tokensMeta.mustGetToken(addr) : null;
+    const override = getAccountTargetCollateral(creditAccount, this.chainId);
+    if (override) {
+      return this.tokensMeta.mustGetToken(override);
+    }
+    return this.strategy?.token ?? null;
   }
 
   /**
@@ -511,94 +451,6 @@ export class CreditSuite extends SDKConstruct {
     return target
       ? formatStrategyName(target, this.underlyingToken)
       : this.underlyingToken.symbol;
-  }
-
-  /**
-   * Describes this suite's leveraged strategy as the shared read model does,
-   * or `undefined` when credit suite does not offer a strategy opportunity.
-   */
-  public strategyOpportunity(): StrategyOpportunity | undefined {
-    // Same number the read model exposes below; 0 while borrowing is frozen
-    // (maxDebtPerBlockMultiplier == 0), which hides the strategy entirely.
-    const maxBorrowAmount = this.maxBorrowAmount().amount.value;
-    if (maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
-      return undefined;
-    }
-
-    const collateral = this.strategyTargetCollateral;
-    if (!collateral) {
-      return undefined;
-    }
-
-    // strategyTargetCollateral's legacy path does not perdorm any checks,
-    // because it's also used to determine position's strategy.
-    // To know if CreditSuite offers a strategy opportunity, we need do
-    // full check again
-    if (
-      !isStrategyCollateral(this.#strategyCollateralProps(collateral), true)
-    ) {
-      return undefined;
-    }
-
-    const { market, creditManager: cm } = this;
-    const { pool } = market.pool;
-    const oracle = market.priceOracle;
-
-    const liquidationThreshold = cm.liquidationThresholds.mustGet(collateral);
-    const maxLeverage = cm.maxLeverage(collateral);
-    const debtParams = pool.creditManagerDebtParams.get(cm.address);
-    const borrowed = debtParams?.borrowed ?? 0n;
-
-    return {
-      kind: "strategy",
-      chainId: this.chainId,
-      creditManager: cm.address,
-      targetCollateral: this.tokensMeta.mustGetToken(collateral),
-      name: this.strategyName ?? this.underlyingToken.symbol,
-      curator: market.curator,
-      underlyingToken: this.underlyingToken,
-      totalBorrowed: oracle.toAmount(pool.underlying, borrowed),
-      allowedDepositTokens: this.allowedDepositTokens(collateral),
-      paused: this.isPaused,
-      rwa: market.rwa,
-      // a pool being wound down takes every strategy borrowing from it with it
-      sunset:
-        market.sunset || isSunsetStrategy(cm.address, this.sdk.networkType),
-      liquidationThreshold,
-      liquidationPremium: cm.liquidationPremium,
-      liquidationFee: cm.feeLiquidation,
-      expirationDate: this.expirationDate,
-      borrowApy: calcBorrowApy(pool.baseInterestRate, cm.feeInterest),
-      quotaRate: calcQuotaRate(
-        market.pool.pqk.quotaRate(collateral),
-        cm.feeInterest,
-      ),
-      availableLiquidity: oracle.toAmount(
-        pool.underlying,
-        pool.availableLiquidity,
-      ),
-      minDebt: oracle.toAmount(pool.underlying, this.creditFacade.minDebt),
-      totalDebtLimit: oracle.toAmount(pool.underlying, debtParams?.limit ?? 0n),
-      maxBorrowAmount: oracle.toAmount(pool.underlying, maxBorrowAmount),
-      maxLeverage,
-    };
-  }
-
-  /**
-   * {@link strategyOpportunity} plus the data only its detail screen needs.
-   */
-  public strategyOpportunityDetail(): StrategyOpportunityDetail | undefined {
-    const opportunity = this.strategyOpportunity();
-    if (!opportunity) {
-      return undefined;
-    }
-    return {
-      ...opportunity,
-      rateCurve: this.market.pool.rateCurve,
-      priceFeeds: this.market.priceFeedSummary(
-        opportunity.targetCollateral.address,
-      ),
-    };
   }
 
   /**
@@ -649,34 +501,6 @@ export class CreditSuite extends SDKConstruct {
       );
     }
     return collateral;
-  }
-
-  /**
-   * Tokens a user can transfer from their wallet when opening an account in
-   * this suite:
-   *
-   * 1. unwrapped underlying (USDC, never dcUSDC)
-   * 2. target collateral
-   * 3. remaining CM collaterals in manager order, excluding phantom tokens
-   *    and tokens without price
-   */
-  public allowedDepositTokens(targetCollateral: Address): Token[] {
-    const unwrappedUnderlying = this.market.unwrappedUnderlying;
-    const { mainPrices, reservePrices } = this.market.priceOracle;
-
-    const rest = this.creditManager.collateralTokens.filter(token => {
-      const contractType = this.tokensMeta.mustGet(token).contractType;
-      return (
-        !this.market.isUnderlyingLike(token) &&
-        !isAddressEqual(token, targetCollateral) &&
-        !contractType?.startsWith("PHANTOM_TOKEN::") &&
-        (!!mainPrices.get(token)?.price || !!reservePrices.get(token)?.price)
-      );
-    });
-
-    return [unwrappedUnderlying, targetCollateral, ...rest].map(token =>
-      this.tokensMeta.mustGetToken(token),
-    );
   }
 
   /**

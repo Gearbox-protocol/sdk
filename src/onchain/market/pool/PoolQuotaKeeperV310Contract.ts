@@ -11,7 +11,12 @@ import type {
 } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 import type { PoolQuotaKeeperStateHuman } from "../../types/index.js";
-import { AddressMap, formatBNvalue, percentFmt } from "../../utils/index.js";
+import {
+  AddressMap,
+  BigIntMath,
+  formatBNvalue,
+  percentFmt,
+} from "../../utils/index.js";
 
 const abi = iPoolQuotaKeeperV310Abi;
 type abi = typeof abi;
@@ -66,10 +71,12 @@ export class PoolQuotaKeeperV310Contract
   /**
    * How much more quota the market will take for a token, in the underlying.
    * `0n` when the market has no quota entry; not the same as {@link hasActiveQuota}.
+   * Never negative: a limit lowered under what is already quoted leaves no
+   * room, not a debt.
    */
   public quotaAvailable(token: Address): bigint {
     const quota = this.quotas.get(token);
-    return quota ? quota.limit - quota.totalQuoted : 0n;
+    return quota ? BigIntMath.max(0n, quota.limit - quota.totalQuoted) : 0n;
   }
 
   /**

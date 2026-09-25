@@ -619,7 +619,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     });
 
     const prepared = plan(result);
-    // the credit manager's strategyTargetCollateral stands in for an unnamed target token
+    // the credit manager's strategy target stands in for an unnamed target token
     expect(prepared.state.totalDebt.value).toBe(40000000000n);
     expect(
       prepared.state.averageAssets.map(a => ({
@@ -885,7 +885,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("reports a market with no target collateral rather than throwing", async () => {
     const { api, sdk, strategy } = buildStrategyApi();
     vi.spyOn(sdk.marketRegister, "findCreditManager").mockReturnValue({
-      strategyTargetCollateral: undefined,
+      strategy: undefined,
     } as unknown as ReturnType<typeof sdk.marketRegister.findCreditManager>);
 
     const result = await api.openNewStrategy(strategy, {

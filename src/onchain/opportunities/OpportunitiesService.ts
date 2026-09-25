@@ -61,15 +61,16 @@ export class OpportunitiesService extends SDKConstruct {
   public async getStrategy(
     key: StrategyOpportunityKey,
   ): Promise<StrategyOpportunityDetail> {
-    const suite = this.sdk.marketRegister.findCreditManager(key.creditManager);
-    const detail = suite.strategyOpportunityDetail();
-    if (!detail) {
+    const strategy = this.sdk.marketRegister.findCreditManager(
+      key.creditManager,
+    ).strategy;
+    if (!strategy?.isListed) {
       throw new Error(
         `credit manager ${key.creditManager} does not currently offer a strategy`,
       );
     }
-    const kyc = await suite.kycRequirement(detail.targetCollateral.address);
-    return { ...detail, kyc };
+    const kyc = await strategy.kycRequirement();
+    return { ...strategy.opportunityDetail(), kyc };
   }
 
   /**
@@ -83,16 +84,14 @@ export class OpportunitiesService extends SDKConstruct {
     key: StrategyOpportunityKey,
     wallet: Address,
   ): Promise<boolean> {
-    const suite = this.sdk.marketRegister.findCreditManager(key.creditManager);
-    const opportunity = suite.strategyOpportunity();
-    if (!opportunity) {
+    const strategy = this.sdk.marketRegister.findCreditManager(
+      key.creditManager,
+    ).strategy;
+    if (!strategy?.isListed) {
       throw new Error(
         `credit manager ${key.creditManager} does not currently offer a strategy`,
       );
     }
-    return suite.isEligibleForStrategy(
-      wallet,
-      opportunity.targetCollateral.address,
-    );
+    return strategy.isEligible(wallet);
   }
 }

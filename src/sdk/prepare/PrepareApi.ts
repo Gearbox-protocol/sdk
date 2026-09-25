@@ -492,8 +492,8 @@ export class PrepareApi
       Object.assign(state, marketOf(sdk, strategy.creditManager));
       const targetToken =
         params.targetToken ??
-        sdk.marketRegister.findCreditManager(strategy.creditManager)
-          .strategyTargetCollateral;
+        sdk.marketRegister.findCreditManager(strategy.creditManager).strategy
+          ?.targetCollateral;
       if (!targetToken) {
         return refused(
           noStrategyTargetCollateral(strategy.creditManager),
