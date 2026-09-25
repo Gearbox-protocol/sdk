@@ -1,37 +1,42 @@
 import type { Address } from "viem";
 import { getAddress } from "viem";
 import type { ChainId, DataResponse } from "../model/index.js";
-import type { OnchainSDK, PluginsMap } from "../onchain/index.js";
+import type { PluginsMap } from "../onchain/index.js";
 import { MultichainConstruct, type MultichainSDK } from "../onchain/index.js";
 import { fetchMerklUserRewards } from "./merkl-api.js";
-import type { Reward } from "./toMerklRewards.js";
 import { toMerklRewards } from "./toMerklRewards.js";
 import { toTurtleRewards } from "./toTurtleRewards.js";
-import type { TurtleWalletRewards } from "./turtle-api.js";
-import { fetchTurtleWalletRewards, turtleStreamAbi } from "./turtle-api.js";
+import { fetchTurtleWalletRewards, readTurtleClaimed } from "./turtle-api.js";
+import type { Reward } from "./types.js";
 
-export interface GetRewardsMultichainProps<Plugins extends PluginsMap = {}> {
-  sdk: MultichainSDK<Plugins>;
-  wallet: Address;
-  /** Defaults to every chain the handle carries. */
-  chainIds?: ChainId[];
+interface RewardsServiceKeys {
   /** Raises Merkl's rate limit; the keyless path answers too. */
   merklApiKey?: string;
   /** Turtle is skipped without one: its API answers no keyless request. */
   turtleApiKey?: string;
 }
 
-class RewardsFanOut<
+export class RewardsService<
   const Plugins extends PluginsMap = {},
 > extends MultichainConstruct<Plugins> {
-  public async list({
-    wallet,
-    chainIds,
-    merklApiKey,
-    turtleApiKey,
-  }: Omit<GetRewardsMultichainProps<Plugins>, "sdk">): Promise<
-    DataResponse<Reward[]>
-  > {
+  readonly #keys: RewardsServiceKeys;
+
+  constructor(sdk: MultichainSDK<Plugins>, keys: RewardsServiceKeys = {}) {
+    super(sdk);
+    this.#keys = keys;
+  }
+
+  /**
+   * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
+   * organisation's Turtle streams — across the chains the handle carries.
+   * A chain is `status: "error"` only when every source failed on it; a chain
+   * with nothing to claim is a `"success"` with no rewards.
+   **/
+  public async list(
+    wallet: Address,
+    chainIds?: ChainId[],
+  ): Promise<DataResponse<Reward[]>> {
+    const { merklApiKey, turtleApiKey } = this.#keys;
     // Merkl keys its answer on the exact string it is given.
     const user = getAddress(wallet);
     // One request for every chain; a failed one fails each chain that awaits it.
@@ -46,7 +51,9 @@ class RewardsFanOut<
       // Neither source has a block of its own: the reported block is the
       // snapshot the pools and tokens were resolved against.
       block: "state",
-      run: async (sdk, block) => {
+      // Turtle's claimed amounts are read at latest, so a stream claimed a
+      // moment ago is gone.
+      run: async sdk => {
         const sources: Array<Promise<Reward[]>> = [
           fetchMerklUserRewards({
             chainId: sdk.chainId,
@@ -60,13 +67,13 @@ class RewardsFanOut<
               toTurtleRewards(
                 sdk,
                 rewards,
-                await readClaimed(sdk, user, rewards, block.blockNumber),
+                await readTurtleClaimed(sdk, user, rewards),
               ),
             ),
           );
         }
         // A chain fails only when no source answered; a single failed source
-        // leaves the rows of the others.
+        // leaves the rewards of the others.
         const settled = await Promise.allSettled(sources);
         const failed = settled.flatMap(r =>
           r.status === "rejected" ? [r.reason] : [],
@@ -86,40 +93,4 @@ class RewardsFanOut<
       },
     });
   }
-}
-
-async function readClaimed(
-  sdk: OnchainSDK,
-  user: Address,
-  { proofs }: TurtleWalletRewards,
-  blockNumber: bigint,
-): Promise<Map<string, bigint>> {
-  const onChain = proofs.filter(p => p.chainId === sdk.chainId);
-  if (onChain.length === 0) return new Map();
-  const claimed = await sdk.client.multicall({
-    contracts: onChain.map(p => ({
-      address: p.contractAddress,
-      abi: turtleStreamAbi,
-      functionName: "getClaimedRewards",
-      args: [user],
-    })),
-    allowFailure: false,
-    blockNumber,
-  });
-  return new Map(onChain.map((p, i) => [p.streamId, claimed[i]]));
-}
-
-/**
- * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
- * organisation's Turtle streams — across the chains the handle carries.
- * A chain is `status: "error"` only when every source failed on it; a chain
- * with nothing to claim is a `"success"` with no rows.
- **/
-export async function getRewardsMultichain<
-  const Plugins extends PluginsMap = {},
->({
-  sdk,
-  ...props
-}: GetRewardsMultichainProps<Plugins>): Promise<DataResponse<Reward[]>> {
-  return new RewardsFanOut(sdk).list(props);
 }

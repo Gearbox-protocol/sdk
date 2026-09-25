@@ -2,7 +2,7 @@ import { BaseError } from "viem";
 import type { ChainId } from "../model/index.js";
 
 /**
- * Thrown when none of Merkl's domains answered for a chain.
+ * Thrown when Merkl did not answer for a chain.
  *
  * Everything a reader needs is in the message: this error travels to consumers
  * inside a chain's {@link ChainFailed} metadata, where it is typed `unknown`
@@ -13,19 +13,10 @@ export class MerklRequestFailedError extends BaseError {
 
   public readonly chainId: ChainId;
 
-  constructor(
-    chainId: ChainId,
-    path: string,
-    attempts: ReadonlyArray<[domain: string, cause: unknown]>,
-  ) {
+  constructor(chainId: ChainId, path: string, cause: unknown) {
     super(`Merkl could not be reached for chain ${chainId}.`, {
-      // Only an `Error` can be a viem `cause`; the rest are spelled out below.
-      cause: attempts.find(([, c]) => c instanceof Error)?.[1] as
-        | Error
-        | undefined,
-      metaMessages: attempts.map(
-        ([domain, cause]) => `${domain}${path} — ${describe(cause)}`,
-      ),
+      cause: cause instanceof Error ? cause : undefined,
+      metaMessages: [`${path} — ${describe(cause)}`],
     });
     this.chainId = chainId;
   }

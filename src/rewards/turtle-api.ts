@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { OnchainSDK } from "../onchain/index.js";
 import { TurtleRequestFailedError } from "./errors.js";
 
 export interface TurtleWalletStream {
@@ -83,4 +84,25 @@ async function get<T>(path: string, apiKey: string): Promise<T> {
   } catch (error) {
     throw new TurtleRequestFailedError(path, error);
   }
+}
+
+/** What each of the wallet's streams on the chain has paid out, at the latest block. */
+export async function readTurtleClaimed(
+  sdk: OnchainSDK,
+  user: Address,
+  { proofs }: TurtleWalletRewards,
+): Promise<Map<string, bigint>> {
+  const onChain = proofs.filter(p => p.chainId === sdk.chainId);
+  if (onChain.length === 0) return new Map();
+  const claimed = await sdk.client.multicall({
+    contracts: onChain.map(p => ({
+      address: p.contractAddress,
+      abi: turtleStreamAbi,
+      functionName: "getClaimedRewards",
+      args: [user],
+    })),
+    allowFailure: false,
+    blockTag: "latest",
+  });
+  return new Map(onChain.map((p, i) => [p.streamId, claimed[i]]));
 }

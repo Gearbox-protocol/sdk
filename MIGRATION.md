@@ -4,6 +4,31 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v17.x — rewards are read through a service
+
+`getRewardsMultichain` is replaced by `RewardsService`. The API keys move to
+its constructor; `list` returns the same `DataResponse<Reward[]>`.
+
+**Before:**
+
+```typescript
+const { data } = await getRewardsMultichain({
+  sdk,
+  wallet,
+  merklApiKey,
+  turtleApiKey,
+});
+```
+
+**After:**
+
+```typescript
+const rewards = new RewardsService(sdk, { merklApiKey, turtleApiKey });
+const { data } = await rewards.list(wallet);
+```
+
+---
+
 ## v17.x — one rewards read for every source
 
 `getMerklRewardsMultichain` is replaced by `getRewardsMultichain`, which lists
@@ -28,7 +53,7 @@ const { data } = await getRewardsMultichain({
 });
 ```
 
-Every row carries `source: "merkl" | "turtle"`, which a consumer constructing
+Every reward carries `source: "merkl" | "turtle"`, which a consumer constructing
 a `MerklReward` (a fixture or a mock) has to fill. A `Reward` is either a
 `MerklReward` or a `PointsReward`, whose `points` replaces `amount`.
 
@@ -142,7 +167,7 @@ the read reports what happened on each chain.
 ### Summary of changes
 
 - **`getMerklRewards`, `GetMerklRewardsProps` and its `reportError` callback removed.** Use `getMerklRewardsMultichain`, which fans out over the chains a `MultichainSDK` carries and answers the read model's `DataResponse` envelope.
-- **A chain that could not be reached is now distinguishable from one with nothing to claim.** The old call resolved an empty list either way and only whispered the difference through `reportError`; the new one reports `status: "error"` in `meta.chains` for the first and `status: "success"` with no rows for the second.
+- **A chain that could not be reached is now distinguishable from one with nothing to claim.** The old call resolved an empty list either way and only whispered the difference through `reportError`; the new one reports `status: "error"` in `meta.chains` for the first and `status: "success"` with no rewards for the second.
 - **The Merkl transport no longer uses `axios`.** It is `fetch`, with a per-attempt timeout and a fallback to the Angle mirror on a non-2xx as well as on a transport failure.
 - **`axios` is no longer a peer dependency.** Nothing in the SDK imports it any more, so consumers need not install it on the SDK's behalf. It still arrives transitively through `@redstone-finance/utils`, which is a regular dependency.
 - **The APY/points types and `PoolPointsAPI` are removed** — everything the `./rewards` entry point exported besides the Merkl read. See below.

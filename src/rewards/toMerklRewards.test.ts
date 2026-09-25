@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 
 import type { Token } from "../model/index.js";
 import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
-import type { RewardsSdk } from "./toMerklRewards.js";
 import { toMerklRewards } from "./toMerklRewards.js";
+import type { RewardsSdk } from "./types.js";
 
 const ACCOUNT: Address = "0x1234567890123456789012345678901234567890";
 
@@ -36,7 +36,7 @@ function buildSdk(
   { namesPool = true }: { namesPool?: boolean } = {},
 ): RewardsSdk {
   return {
-    // Deliberately not the `chain.id` Merkl echoes below: a row belongs to the
+    // Deliberately not the `chain.id` Merkl echoes below: a reward belongs to the
     // chain we asked about, and picking it off the payload would look right
     // on any fixture where the two agree.
     chainId: SDK_CHAIN,
@@ -100,7 +100,7 @@ function merklResponse(
 describe("toMerklRewards", () => {
   /**
    * A campaign names the pool in a lowercased `reason`, while the registry
-   * holds it checksummed. Match on the wrong case and every row silently
+   * holds it checksummed. Match on the wrong case and every reward silently
    * disappears — with no error anywhere.
    */
   it("matches a lowercased reason against the checksummed pool", () => {
@@ -239,7 +239,7 @@ describe("toMerklRewards", () => {
     expect(reward?.amount.value).toBe(3_500000n);
   });
 
-  // Merkl has been seen to report more claimed than distributed; the row is
+  // Merkl has been seen to report more claimed than distributed; the reward is
   // nothing left to claim, never a negative that would subtract from a total.
   it("clamps a claim larger than the distribution to nothing", () => {
     expect(
@@ -260,7 +260,7 @@ describe("toMerklRewards", () => {
   });
 
   /**
-   * A row whose amount cannot be parsed is dropped like any other unusable
+   * A reward whose amount cannot be parsed is dropped like any other unusable
    * one. Throwing would sink the whole chain, which the fan-out would then
    * report as Merkl being unreachable — the very conflation this read exists
    * to remove.

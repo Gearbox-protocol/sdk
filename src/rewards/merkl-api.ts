@@ -40,21 +40,15 @@ interface MerkleXYZChain {
   icon: string;
 }
 
-/**
- * Merkl's own host and the Angle mirror, tried in this order.
- */
-export const MERKL_DOMAINS = [
-  "https://api.merkl.xyz",
-  "https://api-merkl.angle.money",
-] as const;
+const MERKL_API_URL = "https://api.merkl.xyz";
 
 export const MERKL_API_KEY_HEADER = "X-API-Key";
 
 /**
- * Per-attempt budget. Merkl has no timeout of its own, and a hung connection
- * would otherwise stall its leg of a fan-out for as long as the socket lives.
+ * Merkl has no timeout of its own, and a hung connection would otherwise stall
+ * its leg of a fan-out for as long as the socket lives.
  */
-const ATTEMPT_TIMEOUT = 10_000;
+const TIMEOUT = 10_000;
 
 export interface FetchMerklUserRewardsProps {
   chainId: ChainId;
@@ -67,11 +61,10 @@ export interface FetchMerklUserRewardsProps {
 /**
  * The wallet's raw Merkl rewards on one chain.
  *
- * Rejects with {@link MerklRequestFailedError} when neither domain answers, so
- * a caller can tell an unreachable Merkl from a wallet with nothing to claim.
- * A non-2xx counts as no answer and moves to the next domain: it carries no
- * rewards either way, and treating it as success would report emptiness that
- * was never established.
+ * Rejects with {@link MerklRequestFailedError} when Merkl does not answer, so a
+ * caller can tell an unreachable Merkl from a wallet with nothing to claim. A
+ * non-2xx counts as no answer: it carries no rewards either way, and treating
+ * it as success would report emptiness that was never established.
  */
 export async function fetchMerklUserRewards({
   chainId,
@@ -79,26 +72,14 @@ export async function fetchMerklUserRewards({
   apiKey,
 }: FetchMerklUserRewardsProps): Promise<MerkleXYZUserRewardsV4Response> {
   const path = `/v4/users/${user}/rewards?chainId=${chainId}`;
-  const headers = apiKey ? { [MERKL_API_KEY_HEADER]: apiKey } : undefined;
-  const attempts: Array<[domain: string, cause: unknown]> = [];
-
-  for (const domain of MERKL_DOMAINS) {
-    try {
-      const response = await fetch(`${domain}${path}`, {
-        headers,
-        // A fresh signal per attempt: one shared budget would let a slow
-        // primary eat the mirror's.
-        signal: AbortSignal.timeout(ATTEMPT_TIMEOUT),
-      });
-      if (!response.ok) {
-        attempts.push([domain, new Error(`answered ${response.status}`)]);
-        continue;
-      }
-      return (await response.json()) as MerkleXYZUserRewardsV4Response;
-    } catch (error) {
-      attempts.push([domain, error]);
-    }
+  try {
+    const response = await fetch(`${MERKL_API_URL}${path}`, {
+      headers: apiKey ? { [MERKL_API_KEY_HEADER]: apiKey } : undefined,
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
+    if (!response.ok) throw new Error(`answered ${response.status}`);
+    return (await response.json()) as MerkleXYZUserRewardsV4Response;
+  } catch (error) {
+    throw new MerklRequestFailedError(chainId, path, error);
   }
-
-  throw new MerklRequestFailedError(chainId, path, attempts);
 }
