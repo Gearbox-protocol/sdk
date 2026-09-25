@@ -3,6 +3,7 @@ export * from "./CreditFacadeV310BaseContract.js";
 export * from "./CreditFacadeV310Contract.js";
 export * from "./CreditManagerV310Contract.js";
 export * from "./CreditSuite.js";
+export * from "./CreditSuiteStrategy.js";
 export * from "./collateralUtils.js";
 export * from "./expectedBalanceDeltas.js";
 export * from "./types.js";

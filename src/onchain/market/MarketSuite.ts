@@ -18,7 +18,7 @@ import { isRWAToken, isSunsetPool } from "../chain/chains.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
 import type { MarketStateHuman } from "../types/index.js";
 import { AddressMap } from "../utils/index.js";
-import { CreditSuite } from "./credit/index.js";
+import { CreditSuite, type CreditSuiteStrategy } from "./credit/index.js";
 import {
   createLossPolicy,
   type ILossPolicyContract,
@@ -295,14 +295,20 @@ export class MarketSuite extends SDKConstruct {
       rows.push(this.poolOpportunity());
     }
     if (!isFilterSet(kind) || kind === "strategy") {
-      for (const suite of this.creditManagers) {
-        const opportunity = suite.strategyOpportunity();
-        if (opportunity) {
-          rows.push(opportunity);
-        }
-      }
+      rows.push(...this.strategies().map(s => s.opportunity()));
     }
     return rows.filter(row => matchesOpportunityFilter(row, filter));
+  }
+
+  /**
+   * Strategies this market lists as opportunities; see
+   * {@link CreditSuiteStrategy.isListed}.
+   */
+  public strategies(): CreditSuiteStrategy[] {
+    return this.creditManagers.flatMap(suite => {
+      const strategy = suite.strategy;
+      return strategy?.isListed ? [strategy] : [];
+    });
   }
 
   /**

@@ -129,7 +129,7 @@ health factor is one division away from the amount:
 ```text
 backed = min(quota · price(U), price(collateral) · LT)   what the check counts
 D      = backed / targetHF                               the most the debt may be worth
-       ∧ maxStrategyBorrowAmount()                       pool liquidity, manager allowance, maxDebt, target quota
+       ∧ maxBorrowAmount()                               pool liquidity, manager allowance, maxDebt
 answer = price(U → payout, D)                            back into the token asked for
                                                          (rescaled, for an RWA asset)
 ```
@@ -163,16 +163,13 @@ refusal is the better place for it: `debtOutOfRange` carries `requested`,
 zero it has to explain by itself.
 
 A market whose own capacity sits under `minDebt` is the other case: no loan of
-any size can be opened, so `maxStrategyBorrowAmount` answers `0` and `maxBorrow`
-does too. That floor and the target's quota belong to an account being opened
-alone — `assertCanBorrow` weighs an existing account's debt increase against
-`maxBorrowAmount`, which carries neither, and leaves the quota to
-`assertQuotaAvailable`, which names the token it ran out for.
+any size can be opened, so `maxBorrow` answers `0`. The quota that matters is
+the collateral's own, already inside `backed`; the strategy's target
+collateral plays no part in a borrow.
 
 The other bounds stay in, because they are ceilings like this one: pool
-liquidity, the manager's allowance, `maxDebt` and the target collateral's
-remaining quota all cap what may be drawn, and a `0n` from any of them means
-there is genuinely nothing to offer.
+liquidity, the manager's allowance and `maxDebt` all cap what may be drawn,
+and a `0n` from any of them means there is genuinely nothing to offer.
 
 ## Notes
 

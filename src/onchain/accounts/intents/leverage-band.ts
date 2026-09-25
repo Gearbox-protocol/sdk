@@ -71,7 +71,7 @@ export function calcLeverageBand({
   }
   const { suite, market } = found;
 
-  const target = suite.strategyTargetCollateral;
+  const target = suite.strategy?.targetCollateral;
   if (!target) {
     return undefined;
   }

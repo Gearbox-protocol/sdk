@@ -35,9 +35,9 @@ export interface MaxBorrowProps {
  * Collateral is valued the way the transaction will be judged — at safe
  * prices, under its liquidation threshold, capped by the quota the borrow
  * buys for it, all of which is {@link collateralValuation}'s business. The ceiling
- * is then held to what the market will actually lend: the pool's free
- * liquidity, the manager's own allowance, the facade's `maxDebt` and the
- * remaining quota of the strategy target collateral, whichever binds first.
+ * is then held to what the market will actually lend,
+ * {@link CreditSuite.maxBorrowAmount}: the pool's free liquidity, the
+ * manager's own allowance and the facade's `maxDebt`, whichever binds first.
  *
  * The facade's `minDebt` is not applied to the collateral's own ceiling. It
  * is a floor, and a ceiling answered as `0n` because the collateral is too
@@ -46,8 +46,8 @@ export interface MaxBorrowProps {
  * that carries something therefore answers with it, whether or not the market
  * would lend that little; a loan under the floor is refused by `borrow`
  * itself, with `debtOutOfRange` naming both ends. A market whose own capacity
- * is under `minDebt` is different: `maxStrategyBorrowAmount` answers `0n`,
- * because no loan of any size exists there.
+ * is under `minDebt` is different: the answer is `0n`, because no loan of any
+ * size exists there.
  *
  * Nothing is fetched or simulated — the account does not exist yet and every
  * input is loaded market state, so a form can call this on each keystroke.
@@ -135,9 +135,13 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
   // `backed` is USD × PERCENTAGE_FACTOR against a health factor in basis
   // points, so the quotient is plain USD: the most the debt may be worth.
   // Truncating is what keeps the answer under the check rather than at it.
+  const lends = suite.maxBorrowAmount().amount.value;
+  if (lends < suite.creditFacade.minDebt) {
+    return 0n;
+  }
   const ceiling = BigIntMath.min(
     priceOracle.safeConvertFromUSD(underlying, backed / targetHF).value,
-    suite.maxStrategyBorrowAmount().amount.value,
+    lends,
   );
 
   // Into the units the caller asked in, by the same three branches the borrow

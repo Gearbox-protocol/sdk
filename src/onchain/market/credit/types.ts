@@ -33,7 +33,9 @@ export interface ICreditConfiguratorContract extends IBaseContract {
 }
 
 /**
- * Largest debt a new position can take right now, and which limit set it.
+ * Largest debt that can be borrowed right now, and which limit set it. See
+ * {@link CreditSuite.maxBorrowAmount} and
+ * {@link CreditSuiteStrategy.maxBorrowAmount} for the bounds each applies.
  **/
 export interface MaxBorrowAmount {
   /** In the pool's underlying. */

@@ -1,11 +1,6 @@
-import { type Address, getAddress, isAddressEqual } from "viem";
+import { type Address, getAddress } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  type Curator,
-  KYC_REGISTRATION_LINKS,
-  type Token,
-  type UnderlyingToken,
-} from "../../../model/index.js";
+import type { Curator, Token, UnderlyingToken } from "../../../model/index.js";
 import type { CreditSuiteState } from "../../base/index.js";
 import { ADDRESS_0X0 } from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
@@ -64,7 +59,7 @@ function suite(strategyTarget: Token["address"] | undefined): CreditSuite {
   ]);
   const s = {
     chainId: 1,
-    strategyTargetCollateral: strategyTarget,
+    strategy: strategyTarget ? { token: known.get(strategyTarget) } : undefined,
     underlyingToken: UNDERLYING,
     tokensMeta: {
       mustGetToken: (addr: Token["address"]) => {
@@ -135,7 +130,10 @@ function marketSuite(
   extra: MarketSuiteExtra = { strategyName: "wstETH / WETH" },
 ): CreditSuite {
   const s = {
-    strategyName: extra.strategyName,
+    strategy:
+      extra.strategyName === undefined
+        ? undefined
+        : { name: extra.strategyName },
     underlyingToken: UNDERLYING,
     creditManager: { address: CREDIT_MANAGER },
     market: { curator: CURATOR },
@@ -212,16 +210,12 @@ describe("CreditSuite.creditOperationMarket", () => {
 
 const CM = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;
 
-const QUOTA_TOKEN = getAddress("0x5555555555555555555555555555555555555555");
-
 /**
- * `maxBorrowAmount` and `maxStrategyBorrowAmount` both decide which limit a
- * caller is told about, so each of their terms has to be able to win, the tie
- * has to keep the earlier one, and a strategy capacity under `minDebt` has to
- * come back as nothing.
+ * `maxBorrowAmount` decides which limit a caller is told about, so each of its
+ * terms has to be able to win and a tie has to keep the earlier one.
  *
- * The methods are borrowed onto a plain object rather than run on a constructed
- * suite: they read a handful of fields, and a real suite needs a loaded market
+ * The method is borrowed onto a plain object rather than run on a constructed
+ * suite: it reads a handful of fields, and a real suite needs a loaded market
  * to exist.
  */
 interface MaxBorrowOfArgs {
@@ -229,21 +223,17 @@ interface MaxBorrowOfArgs {
   maxDebt: bigint;
   multiplier: number;
   managerAvailable?: bigint;
-  strategyTargetCollateral?: Address;
-  quotaAvailable?: bigint;
   minDebt?: bigint;
 }
 
-function suiteOf(args: MaxBorrowOfArgs): CreditSuite {
+function maxBorrowOf(args: MaxBorrowOfArgs) {
   const suite = {
     creditManager: { address: CM },
-    maxBorrowAmount: CreditSuite.prototype.maxBorrowAmount,
     creditFacade: {
       maxDebt: args.maxDebt,
       minDebt: args.minDebt ?? 0n,
       maxDebtPerBlockMultiplier: args.multiplier,
     },
-    strategyTargetCollateral: args.strategyTargetCollateral,
     market: {
       toUnderlyingAmount: (value: bigint) => ({ value }),
       pool: {
@@ -256,21 +246,10 @@ function suiteOf(args: MaxBorrowOfArgs): CreditSuite {
                 : { available: args.managerAvailable },
           },
         },
-        pqk: {
-          quotaAvailable: () => args.quotaAvailable ?? 0n,
-        },
       },
     },
   } as unknown as CreditSuite;
-  return suite;
-}
-
-function maxBorrowOf(args: MaxBorrowOfArgs) {
-  return CreditSuite.prototype.maxBorrowAmount.call(suiteOf(args));
-}
-
-function maxStrategyBorrowOf(args: MaxBorrowOfArgs) {
-  return CreditSuite.prototype.maxStrategyBorrowAmount.call(suiteOf(args));
+  return CreditSuite.prototype.maxBorrowAmount.call(suite);
 }
 
 describe("CreditSuite.maxBorrowAmount", () => {
@@ -335,147 +314,22 @@ describe("CreditSuite.maxBorrowAmount", () => {
     ).toEqual({ amount: { value: 0n }, limit: "debtPerBlockLimit" });
   });
 
-  it("is what the market lends, which neither quota nor floor bounds", () => {
-    // An account that already exists buys quota for the token its own plan
-    // names, and its debt is already over the floor, so a debt increase the
-    // pool can cover is one `maxBorrowAmount` offers.
+  it("is what the market lends, which the floor does not bound", () => {
+    // An account that already exists has its debt over the floor, so a debt
+    // increase the pool can cover is one `maxBorrowAmount` offers.
     expect(
       maxBorrowOf({
         availableLiquidity: 100n,
         maxDebt: 1000n,
         multiplier: 1,
         managerAvailable: 500n,
-        strategyTargetCollateral: QUOTA_TOKEN,
-        quotaAvailable: 0n,
         minDebt: 1000n,
       }),
     ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
   });
 });
 
-describe("CreditSuite.maxStrategyBorrowAmount", () => {
-  it("reports the target collateral's remaining quota when it is the tightest", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 1000n,
-        maxDebt: 1000n,
-        multiplier: 1,
-        managerAvailable: 500n,
-        strategyTargetCollateral: QUOTA_TOKEN,
-        quotaAvailable: 12n,
-      }),
-    ).toEqual({ amount: { value: 12n }, limit: "quotaAvailable" });
-  });
-
-  it("keeps maxDebt when it ties with the remaining quota", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 1000n,
-        maxDebt: 40n,
-        multiplier: 1,
-        managerAvailable: 500n,
-        strategyTargetCollateral: QUOTA_TOKEN,
-        quotaAvailable: 40n,
-      }),
-    ).toEqual({ amount: { value: 40n }, limit: "maxDebt" });
-  });
-
-  it("leaves the quota term out when the suite has no strategy target", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 1000n,
-        maxDebt: 40n,
-        multiplier: 1,
-        quotaAvailable: 1n,
-      }),
-    ).toEqual({ amount: { value: 40n }, limit: "maxDebt" });
-  });
-
-  it("is zero with the quota cause when the target's quota is exhausted and there is no floor", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 1000n,
-        maxDebt: 1000n,
-        multiplier: 1,
-        managerAvailable: 1000n,
-        strategyTargetCollateral: QUOTA_TOKEN,
-        quotaAvailable: 0n,
-      }),
-    ).toEqual({ amount: { value: 0n }, limit: "quotaAvailable" });
-  });
-
-  it("is zero with the minDebt cause when exhausted quota sits under the floor", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 1000n,
-        maxDebt: 1000n,
-        multiplier: 1,
-        managerAvailable: 1000n,
-        strategyTargetCollateral: QUOTA_TOKEN,
-        quotaAvailable: 0n,
-        minDebt: 1n,
-      }),
-    ).toEqual({ amount: { value: 0n }, limit: "minDebt" });
-  });
-
-  it("is zero when the tightest term is under minDebt, and keeps it when equal", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 100n,
-        maxDebt: 1000n,
-        multiplier: 1,
-        managerAvailable: 500n,
-        minDebt: 101n,
-      }),
-    ).toEqual({ amount: { value: 0n }, limit: "minDebt" });
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 100n,
-        maxDebt: 1000n,
-        multiplier: 1,
-        managerAvailable: 500n,
-        minDebt: 100n,
-      }),
-    ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
-  });
-
-  it("keeps the frozen block's cause ahead of the floor", () => {
-    expect(
-      maxStrategyBorrowOf({
-        availableLiquidity: 1000n,
-        maxDebt: 1000n,
-        multiplier: 0,
-        managerAvailable: 1000n,
-        minDebt: 1n,
-      }),
-    ).toEqual({ amount: { value: 0n }, limit: "debtPerBlockLimit" });
-  });
-});
-
-describe("CreditSuite.strategyOpportunity", () => {
-  it("is absent while borrowing is frozen", () => {
-    const suite = {
-      maxStrategyBorrowAmount: () => ({
-        amount: { value: 0n },
-        limit: "debtPerBlockLimit",
-      }),
-    } as unknown as CreditSuite;
-    expect(
-      CreditSuite.prototype.strategyOpportunity.call(suite),
-    ).toBeUndefined();
-  });
-});
-
 const DEGEN = getAddress("0x1111111111111111111111111111111111111111");
-const WALLET = getAddress("0x4444444444444444444444444444444444444444");
-const TARGET = getAddress("0x5555555555555555555555555555555555555555");
-const TOKEN: Token = {
-  chainId: 1,
-  address: TARGET,
-  symbol: "mGLO",
-  name: "Midas Global",
-  decimals: 18,
-};
 
 const create = vi.mocked(createDegenNFT);
 
@@ -483,7 +337,7 @@ beforeEach(() => {
   create.mockReset();
 });
 
-function kycSuite(degenNFT: Address, token?: Token): CreditSuite {
+function degenSuite(degenNFT: Address): CreditSuite {
   vi.mocked(createCreditFacade).mockReturnValue({
     degenNFT,
   } as unknown as ICreditFacadeContract);
@@ -495,13 +349,6 @@ function kycSuite(degenNFT: Address, token?: Token): CreditSuite {
   );
   const sdk = {
     client: {},
-    tokensMeta: {
-      getToken: vi.fn((address: Address) =>
-        token && address.toLowerCase() === token.address.toLowerCase()
-          ? token
-          : undefined,
-      ),
-    },
     marketRegister: {
       findByCreditManager: () => ({ rwaFactory: undefined }),
     },
@@ -513,116 +360,18 @@ function kycSuite(degenNFT: Address, token?: Token): CreditSuite {
 
 describe("CreditSuite.degenNFT", () => {
   it("returns undefined without RPC when the facade has no degen NFT", async () => {
-    await expect(kycSuite(ADDRESS_0X0).degenNFT()).resolves.toBeUndefined();
+    await expect(degenSuite(ADDRESS_0X0).degenNFT()).resolves.toBeUndefined();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("loads once and reuses the cached promise", async () => {
     const nft = { protocol: "midas" } as IDegenNFT;
     create.mockResolvedValue(nft);
-    const suite = kycSuite(DEGEN);
+    const suite = degenSuite(DEGEN);
     await expect(suite.degenNFT()).resolves.toBe(nft);
     await expect(suite.degenNFT()).resolves.toBe(nft);
     expect(create).toHaveBeenCalledTimes(1);
     expect(create).toHaveBeenCalledWith(expect.anything(), DEGEN);
-  });
-});
-
-describe("CreditSuite.kycRequirement", () => {
-  it("returns null without RPC when the facade has no degen NFT", async () => {
-    await expect(
-      kycSuite(ADDRESS_0X0).kycRequirement(TARGET),
-    ).resolves.toBeNull();
-    expect(create).not.toHaveBeenCalled();
-  });
-
-  it("returns null when the degen NFT is not a KYC gate", async () => {
-    create.mockResolvedValue(undefined);
-    await expect(kycSuite(DEGEN).kycRequirement(TARGET)).resolves.toBeNull();
-  });
-
-  it.each([
-    {
-      name: "Midas mToken",
-      protocol: "midas" as const,
-      tokens: [TARGET],
-      token: TOKEN,
-      expectedToken: TOKEN,
-    },
-    {
-      name: "Securitize target is DS",
-      protocol: "securitize" as const,
-      tokens: [TARGET],
-      token: TOKEN,
-      expectedToken: TOKEN,
-    },
-    {
-      name: "Securitize target is not DS → first DS token",
-      protocol: "securitize" as const,
-      tokens: [TARGET],
-      target: getAddress("0x6666666666666666666666666666666666666666"),
-      token: TOKEN,
-      expectedToken: TOKEN,
-    },
-    {
-      name: "token unknown to registry",
-      protocol: "midas" as const,
-      tokens: [TARGET],
-      token: undefined,
-      expectedToken: undefined,
-    },
-  ])("$name", async ({ protocol, tokens, target, token, expectedToken }) => {
-    create.mockResolvedValue({
-      protocol,
-      registrationLink: KYC_REGISTRATION_LINKS[protocol],
-      getTokens: vi.fn(async () => tokens),
-    } as unknown as IDegenNFT);
-    await expect(
-      kycSuite(DEGEN, token).kycRequirement(target ?? TARGET),
-    ).resolves.toEqual({
-      protocol,
-      token: expectedToken,
-      registrationLink: KYC_REGISTRATION_LINKS[protocol],
-    });
-  });
-});
-
-describe("CreditSuite.isEligibleForStrategy", () => {
-  it.each([
-    {
-      name: "no NFT → true",
-      degenNFT: ADDRESS_0X0,
-      nft: undefined,
-      registered: undefined,
-      expected: true,
-    },
-    {
-      name: "registered",
-      degenNFT: DEGEN,
-      nft: true,
-      registered: true,
-      expected: true,
-    },
-    {
-      name: "not registered",
-      degenNFT: DEGEN,
-      nft: true,
-      registered: false,
-      expected: false,
-    },
-  ])("$name", async ({ degenNFT, nft, registered, expected }) => {
-    if (nft) {
-      create.mockResolvedValue({
-        getOpenAccountRequirements: vi.fn(async () => ({})),
-        isRegistered: vi.fn(() => registered),
-      } as unknown as IDegenNFT);
-    }
-    await expect(
-      kycSuite(degenNFT).isEligibleForStrategy(WALLET, TARGET),
-    ).resolves.toBe(expected);
-    if (degenNFT === ADDRESS_0X0) {
-      expect(create).not.toHaveBeenCalled();
-    }
   });
 });
 
@@ -649,231 +398,5 @@ describe("CreditSuite.openingCalls", () => {
       CALL_A,
       CALL_B,
     ]);
-  });
-});
-
-const USDC = getAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48");
-const DCUSDC = getAddress("0xDc00000000000000000000000000000000000001");
-const COLLATERAL_A = getAddress("0xAa00000000000000000000000000000000000001");
-const COLLATERAL_B = getAddress("0xBb00000000000000000000000000000000000002");
-const COLLATERAL_C = getAddress("0xCc00000000000000000000000000000000000003");
-const COLLATERAL_X = getAddress("0xDd00000000000000000000000000000000000004");
-const PHANTOM = getAddress("0xEe00000000000000000000000000000000000005");
-const MAIN_PRICE = 100_000_000n;
-
-interface DepositPrice {
-  price: bigint;
-  success: boolean;
-  updatedAt: bigint;
-}
-
-interface DepositSuiteArgs {
-  collaterals: Address[];
-  contractTypes?: Array<[Address, string]>;
-  main?: Array<[Address, DepositPrice]>;
-  reserve?: Array<[Address, DepositPrice]>;
-}
-
-interface DepositOrderCase {
-  name: string;
-  collaterals: Address[];
-  contractTypes?: Array<[Address, string]>;
-  unpriced?: Address[];
-  expected: string[];
-}
-
-interface DepositPriceCase {
-  name: string;
-  main: bigint | null;
-  reserve: bigint | null;
-  failed?: boolean;
-  kept: boolean;
-}
-
-function depositPrice(price: bigint, success = true): DepositPrice {
-  return { price, success, updatedAt: 0n };
-}
-
-function depositSuite(args: DepositSuiteArgs): CreditSuite {
-  const symbols = new Map<Address, string>([
-    [USDC, "USDC"],
-    [DCUSDC, "dcUSDC"],
-    [TARGET, "TARGET"],
-    [COLLATERAL_A, "A"],
-    [COLLATERAL_B, "B"],
-    [COLLATERAL_C, "C"],
-    [COLLATERAL_X, "X"],
-    [PHANTOM, "PHANTOM"],
-  ]);
-  const contractTypes = new AddressMap<string>(args.contractTypes);
-  return {
-    market: {
-      underlying: DCUSDC,
-      unwrappedUnderlying: USDC,
-      isUnderlyingLike: (token: Address) =>
-        isAddressEqual(token, USDC) || isAddressEqual(token, DCUSDC),
-      priceOracle: {
-        mainPrices: new AddressMap(args.main),
-        reservePrices: new AddressMap(args.reserve),
-      },
-    },
-    creditManager: { collateralTokens: args.collaterals },
-    tokensMeta: {
-      mustGet: (token: Address) => ({
-        contractType: contractTypes.get(token),
-      }),
-      mustGetToken: (token: Address) => {
-        const address = getAddress(token);
-        const symbol = symbols.get(address);
-        if (!symbol) {
-          throw new Error(`token ${token} not found`);
-        }
-        return { chainId: 1, address, symbol, name: symbol, decimals: 18 };
-      },
-    },
-  } as unknown as CreditSuite;
-}
-
-function depositSymbols(args: DepositSuiteArgs): string[] {
-  return CreditSuite.prototype.allowedDepositTokens
-    .call(depositSuite(args), TARGET)
-    .map(token => token.symbol);
-}
-
-function pricedCollaterals(
-  collaterals: Address[],
-  unpriced: Address[] = [],
-): Array<[Address, DepositPrice]> {
-  return collaterals
-    .filter(token => !unpriced.some(skip => isAddressEqual(skip, token)))
-    .map(token => [token, depositPrice(MAIN_PRICE)]);
-}
-
-describe("CreditSuite.allowedDepositTokens", () => {
-  it.each<DepositOrderCase>([
-    {
-      name: "keeps manager order after the underlying and the target",
-      collaterals: [COLLATERAL_A, COLLATERAL_B, COLLATERAL_C],
-      expected: ["USDC", "TARGET", "A", "B", "C"],
-    },
-    {
-      name: "leaves the wrapped underlying out of the rest",
-      collaterals: [DCUSDC, COLLATERAL_A],
-      expected: ["USDC", "TARGET", "A"],
-    },
-    {
-      name: "does not repeat the unwrapped underlying",
-      collaterals: [USDC, COLLATERAL_A],
-      expected: ["USDC", "TARGET", "A"],
-    },
-    {
-      name: "does not repeat the target",
-      collaterals: [TARGET, COLLATERAL_A],
-      expected: ["USDC", "TARGET", "A"],
-    },
-    {
-      name: "excludes phantom tokens",
-      collaterals: [PHANTOM, COLLATERAL_A],
-      contractTypes: [[PHANTOM, "PHANTOM_TOKEN::CONVEX"]],
-      expected: ["USDC", "TARGET", "A"],
-    },
-    {
-      name: "is the underlying and the target when nothing else qualifies",
-      collaterals: [DCUSDC, USDC, TARGET],
-      expected: ["USDC", "TARGET"],
-    },
-    {
-      name: "keeps an unpriced target",
-      collaterals: [COLLATERAL_A],
-      unpriced: [TARGET],
-      expected: ["USDC", "TARGET", "A"],
-    },
-  ])("$name", ({ collaterals, contractTypes, unpriced, expected }) => {
-    expect(
-      depositSymbols({
-        collaterals,
-        contractTypes,
-        main: pricedCollaterals(collaterals, unpriced),
-      }),
-    ).toEqual(expected);
-  });
-
-  it.each<DepositPriceCase>([
-    {
-      name: "keeps a rest token with only a main price",
-      main: MAIN_PRICE,
-      reserve: null,
-      kept: true,
-    },
-    {
-      name: "keeps a rest token with only a reserve price",
-      main: null,
-      reserve: MAIN_PRICE,
-      kept: true,
-    },
-    {
-      name: "keeps a rest token with both prices",
-      main: MAIN_PRICE,
-      reserve: MAIN_PRICE,
-      kept: true,
-    },
-    {
-      name: "keeps a rest token with a zero main price and a reserve price",
-      main: 0n,
-      reserve: MAIN_PRICE,
-      kept: true,
-    },
-    {
-      name: "keeps a rest token with a main price and a zero reserve price",
-      main: MAIN_PRICE,
-      reserve: 0n,
-      kept: true,
-    },
-    {
-      name: "drops a rest token with no prices",
-      main: null,
-      reserve: null,
-      kept: false,
-    },
-    {
-      name: "drops a rest token with both prices zero",
-      main: 0n,
-      reserve: 0n,
-      kept: false,
-    },
-    {
-      name: "drops a rest token with a zero main price and no reserve",
-      main: 0n,
-      reserve: null,
-      kept: false,
-    },
-    {
-      name: "drops a rest token with no main price and a zero reserve",
-      main: null,
-      reserve: 0n,
-      kept: false,
-    },
-    {
-      name: "drops a rest token whose main answer failed",
-      main: 0n,
-      reserve: null,
-      failed: true,
-      kept: false,
-    },
-  ])("$name", ({ main, reserve, failed, kept }) => {
-    const mainEntries: Array<[Address, DepositPrice]> =
-      main === null
-        ? []
-        : [[COLLATERAL_X, depositPrice(main, failed ? false : true)]];
-    const reserveEntries: Array<[Address, DepositPrice]> =
-      reserve === null ? [] : [[COLLATERAL_X, depositPrice(reserve)]];
-    const expected = kept ? ["USDC", "TARGET", "X"] : ["USDC", "TARGET"];
-    expect(
-      depositSymbols({
-        collaterals: [TARGET, COLLATERAL_X],
-        main: mainEntries,
-        reserve: reserveEntries,
-      }),
-    ).toEqual(expected);
   });
 });

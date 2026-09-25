@@ -14,6 +14,7 @@ import type {
   OnchainSDK,
 } from "../../../index.js";
 import { CreditSuite } from "../../../market/credit/CreditSuite.js";
+import { CreditSuiteStrategy } from "../../../market/credit/CreditSuiteStrategy.js";
 import { calcMaxLeverage } from "../../../market/math.js";
 import {
   type TestOracleToken,
@@ -373,8 +374,15 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     : undefined;
   const creditManagerSuite = {
     name: "TestCreditManager",
-    strategyName,
     underlyingToken,
+    get strategy(): CreditSuiteStrategy | undefined {
+      return strategyTargetCollateral
+        ? new CreditSuiteStrategy(
+            creditManagerSuite as unknown as CreditSuite,
+            strategyTargetCollateral,
+          )
+        : undefined;
+    },
     accountTargetCollateral: () =>
       strategyTargetCollateral ? tokenOf(strategyTargetCollateral) : null,
     accountStrategyName: () => strategyName ?? underlyingToken.symbol,
@@ -383,7 +391,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
     isForbidden: CreditSuite.prototype.isForbidden,
     maxBorrowAmount: CreditSuite.prototype.maxBorrowAmount,
-    maxStrategyBorrowAmount: CreditSuite.prototype.maxStrategyBorrowAmount,
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,
@@ -406,7 +413,6 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     market,
     isPaused: facadePaused || poolPaused,
     forbiddenTokens: [...forbidden] as Address[],
-    strategyTargetCollateral,
     isExpired: expirationDate > 0 && expirationDate < (args.timestamp ?? 0),
   };
 
@@ -666,6 +672,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   } as unknown as OnchainSDK;
 
   Object.assign(sdk, { positions: new PositionsService(sdk) });
+  Object.assign(creditManagerSuite, { sdk });
   return sdk;
 }
 
