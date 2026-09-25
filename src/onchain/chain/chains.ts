@@ -228,8 +228,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
           "0x31454faa1daa04cacf59a6bd37681da9160d092a",
         "0xd7273d9594ac88f993eda9773041e621633acea0":
           "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d",
-        "0x34442ca47435e90b80d835aab9737166e76d9962":
-          "0x403cc0d2694ec2639101f32b146b90d766461ce9",
       }),
       sunsetPools: new AddressSet([
         "0xF791Ecc5F2472637eac9DFe3f7894C0B32C32bDf",
