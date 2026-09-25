@@ -155,14 +155,7 @@ function toReward({ price, token, value, ...rest }: Claimable): MerklReward {
   return {
     ...rest,
     source: "merkl",
-    amount: {
-      token,
-      value,
-      valueUsd:
-        price === undefined
-          ? null
-          : Number(formatUnits(value, token.decimals)) * price,
-    },
+    amount: toPricedAmount(token, value, price),
   };
 }
 
@@ -184,4 +177,20 @@ export function toRewardToken(
       decimals: named.decimals || 18,
     }
   );
+}
+
+/** Both sources price the whole token in USD; a missing or unparsable price is `null`. */
+export function toPricedAmount(
+  token: Token,
+  value: bigint,
+  price: number | string | null | undefined,
+): TokenAmount {
+  const usd = Number(price ?? NaN);
+  return {
+    token,
+    value,
+    valueUsd: Number.isFinite(usd)
+      ? Number(formatUnits(value, token.decimals)) * usd
+      : null,
+  };
 }

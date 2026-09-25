@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Token } from "../model/index.js";
@@ -17,8 +17,39 @@ const WALLET_CHECKSUMMED = "0xabCDeF0123456789AbcdEf0123456789aBCDEF01";
 
 const POOL: Address = "0x9396DCbf78fc526bb003665337C5E73b699571EF";
 const REWARD_TOKEN: Address = "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D";
+const PROOF: Hex = `0x${"ab".repeat(32)}`;
 
 const mockedFetch = vi.fn();
+const multicall = vi.fn();
+
+/** On-chain state every chain's multicall answers from. */
+let merklClaimed: Record<string, bigint>;
+let streamClaimed: Record<string, bigint>;
+/** A read of this function rejects its whole multicall. */
+let failing: string | undefined;
+
+interface Read {
+  address: Address;
+  functionName: string;
+  args?: unknown[];
+}
+
+beforeEach(() => {
+  merklClaimed = {};
+  streamClaimed = {};
+  failing = undefined;
+  multicall.mockImplementation(async ({ contracts }: { contracts: Read[] }) => {
+    if (contracts.some(c => c.functionName === failing)) {
+      throw new Error("rpc down");
+    }
+    return contracts.map(({ address, functionName, args }) => {
+      if (functionName === "getClaimedRewards") {
+        return streamClaimed[address] ?? 0n;
+      }
+      return [merklClaimed[String(args?.[1]).toLowerCase()] ?? 0n, 0, PROOF];
+    });
+  });
+});
 
 /**
  * A chain the SDK is attached to, at the block of its loaded snapshot — the
@@ -41,6 +72,7 @@ function chainSdk(network: NetworkType, snapshot: bigint) {
       getToken: (address: Address) =>
         address.toLowerCase() === POOL.toLowerCase() ? poolToken : undefined,
     },
+    client: { multicall },
     logger: undefined,
   };
 }
@@ -50,6 +82,8 @@ function multichainSdk(
 ): MultichainSDK {
   return {
     chains: new Map(entries),
+    chain: (chainId: number) =>
+      entries.find(([, sdk]) => sdk.chainId === chainId)?.[1],
     logger: undefined,
   } as unknown as MultichainSDK;
 }
@@ -63,7 +97,7 @@ function merklBody(amount: string) {
         {
           root: WALLET,
           recipient: WALLET,
-          amount: "0",
+          amount,
           claimed: "0",
           pending: "0",
           proofs: [],
@@ -243,7 +277,6 @@ describe("RewardsService.list on Merkl", () => {
 
 describe("RewardsService.list with Turtle", () => {
   const STREAM = "0xf5a6A90a91b4C60122537aA0DB6a2be13a58E305";
-  const multicall = vi.fn();
 
   const turtleStreams = {
     streams: [
@@ -275,13 +308,11 @@ describe("RewardsService.list with Turtle", () => {
         chainId: MAINNET,
         contractAddress: STREAM,
         amount: "700",
+        proof: [],
+        timestamp: "2026-09-23T00:00:00Z",
       },
     ],
   };
-
-  function withClient(network: NetworkType, snapshot: bigint) {
-    return { ...chainSdk(network, snapshot), client: { multicall } };
-  }
 
   function respond({
     merkl = {},
@@ -307,18 +338,18 @@ describe("RewardsService.list with Turtle", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", mockedFetch);
-    multicall.mockResolvedValue([200n]);
+    streamClaimed[STREAM] = 200n;
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("puts both sources' rows on the chain, reading claimed at its block", async () => {
+  it("puts both sources' rows on the chain, reading claimed at latest", async () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
 
     const { data, meta } = await new RewardsService(
-      multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
     ).list(WALLET);
 
@@ -329,7 +360,7 @@ describe("RewardsService.list with Turtle", () => {
     expect(meta.chains.map(c => c.status)).toEqual(["success"]);
     expect(multicall).toHaveBeenCalledWith(
       expect.objectContaining({
-        blockNumber: 100n,
+        blockTag: "latest",
         contracts: [
           expect.objectContaining({
             address: STREAM,
@@ -348,7 +379,7 @@ describe("RewardsService.list with Turtle", () => {
     });
 
     const { data, meta } = await new RewardsService(
-      multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
     ).list(WALLET);
 
@@ -360,7 +391,7 @@ describe("RewardsService.list with Turtle", () => {
     respond({ merkl: { [MAINNET]: new Error("merkl down") } });
 
     const { data, meta } = await new RewardsService(
-      multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
     ).list(WALLET);
 
@@ -368,12 +399,12 @@ describe("RewardsService.list with Turtle", () => {
     expect(meta.chains.map(c => c.status)).toEqual(["success"]);
   });
 
-  it("keeps Merkl's rows when the claimed amounts could not be read", async () => {
+  it("keeps Merkl's rows when Turtle's claimed amounts could not be read", async () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
-    multicall.mockRejectedValue(new Error("rpc down"));
+    failing = "getClaimedRewards";
 
     const { data, meta } = await new RewardsService(
-      multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
     ).list(WALLET);
 
@@ -392,8 +423,8 @@ describe("RewardsService.list with Turtle", () => {
 
     const { data, meta } = await new RewardsService(
       multichainSdk([
-        ["Mainnet", withClient("Mainnet", 100n)],
-        ["Plasma", withClient("Plasma", 200n)],
+        ["Mainnet", chainSdk("Mainnet", 100n)],
+        ["Plasma", chainSdk("Plasma", 200n)],
       ]),
       { turtleApiKey: "k" },
     ).list(WALLET);
@@ -416,13 +447,19 @@ describe("RewardsService.list with Turtle", () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
 
     const { data } = await new RewardsService(
-      multichainSdk([["Mainnet", withClient("Mainnet", 100n)]]),
+      multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
     ).list(WALLET);
 
     expect(data.map(r => r.source)).toEqual(["merkl"]);
     for (const [url] of mockedFetch.mock.calls) {
       expect(url).not.toContain("turtle");
     }
-    expect(multicall).not.toHaveBeenCalled();
+    expect(multicall).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        contracts: [
+          expect.objectContaining({ functionName: "getClaimedRewards" }),
+        ],
+      }),
+    );
   });
 });

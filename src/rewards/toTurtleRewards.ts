@@ -7,7 +7,7 @@ import type {
   Reward,
   RewardsSdk,
 } from "./toMerklRewards.js";
-import { toRewardToken } from "./toMerklRewards.js";
+import { toPricedAmount, toRewardToken } from "./toMerklRewards.js";
 import type { TurtleWalletRewards } from "./turtle-api.js";
 
 /**
@@ -77,16 +77,13 @@ export function toTurtleRewards(
     const key = `${pool}_${token.address}`;
     const seen = rows.get(key) as MerklReward | undefined;
     const total = (seen?.amount.value ?? 0n) + value;
-    const price = Number(stream.lastSnapshot?.rewardTokenPrice ?? NaN);
     rows.set(key, {
       ...base,
-      amount: {
+      amount: toPricedAmount(
         token,
-        value: total,
-        valueUsd: Number.isFinite(price)
-          ? Number(formatUnits(total, token.decimals)) * price
-          : null,
-      },
+        total,
+        stream.lastSnapshot?.rewardTokenPrice,
+      ),
     });
   }
 
