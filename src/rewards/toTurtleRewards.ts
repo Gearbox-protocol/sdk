@@ -1,100 +1,88 @@
 import { formatUnits, getAddress, isAddress } from "viem";
-import { AddressMap, toBigInt } from "../onchain/index.js";
-import { BigIntMath } from "../onchain/utils/bigint-math.js";
-import type {
-  MerklReward,
+import type { RewardPart } from "./helpers.js";
+import {
+  mergeRewards,
+  parseAmount,
+  remaining,
+  resolvePool,
+  toRewardToken,
+} from "./helpers.js";
+import type { TurtleWalletRewards, TurtleWalletStream } from "./turtle-api.js";
+import type { PointsReward, Reward, RewardsSdk } from "./types.js";
+
+type Targeted = { stream: TurtleWalletStream } & Pick<
   PointsReward,
-  Reward,
-  RewardsSdk,
-} from "./toMerklRewards.js";
-import { toPricedAmount, toRewardToken } from "./toMerklRewards.js";
-import type { TurtleWalletRewards } from "./turtle-api.js";
+  "pool" | "poolToken"
+>;
 
 /**
- * Rows for the streams targeting a pool on the SDK's chain, merged per pool
- * and incentive. A token row is what is committed and not yet claimed.
+ * The streams targeting a pool on the SDK's chain, merged per pool and
+ * incentive. A token reward is what is committed and not yet claimed.
  */
 export function toTurtleRewards(
   sdk: RewardsSdk,
   { streams, proofs }: TurtleWalletRewards,
   claimed: ReadonlyMap<string, bigint>,
 ): Reward[] {
-  const pools = AddressMap.fromMappedArray(
-    sdk.marketRegister.pools.map(({ pool }) => pool.address),
-    address => address,
-  );
-  const proofByStream = new Map(proofs.map(p => [p.streamId, p]));
-  const rows = new Map<string, Reward>();
+  const poolOf = resolvePool(sdk);
+  const committed = new Map(proofs.map(p => [p.streamId, p.amount]));
 
-  for (const { streamId, snapshots, stream } of streams) {
-    const target = stream.customArgs.targetToken;
-    if (!target || Number(target.chain.chainId) !== sdk.chainId) continue;
-    if (!isAddress(target.address, { strict: false })) continue;
-    const pool = pools.get(target.address);
-    const poolToken = pool && sdk.tokensMeta.getToken(pool);
-    if (!pool || !poolToken) continue;
-    const base = {
-      source: "turtle" as const,
+  const targeted = streams.flatMap((stream): Targeted[] => {
+    const target = stream.stream.customArgs.targetToken;
+    if (Number(target?.chain.chainId) !== sdk.chainId) return [];
+    const pool = poolOf(target?.address);
+    return pool ? [{ stream, ...pool }] : [];
+  });
+
+  const tokens = targeted.flatMap(
+    ({ stream, pool, poolToken }): RewardPart[] => {
+      const { point, rewardToken, lastSnapshot } = stream.stream;
+      if (
+        point ||
+        !rewardToken ||
+        !isAddress(rewardToken.address, { strict: false })
+      ) {
+        return [];
+      }
+      const value = remaining(
+        parseAmount(committed.get(stream.streamId)),
+        claimed.get(stream.streamId),
+      );
+      if (!value) return [];
+      const token = toRewardToken(
+        sdk,
+        getAddress(rewardToken.address),
+        rewardToken,
+      );
+      const price = lastSnapshot?.rewardTokenPrice;
+      return [{ pool, poolToken, token, value, price }];
+    },
+  );
+
+  return [...mergeRewards(sdk, "turtle", tokens), ...toPoints(sdk, targeted)];
+}
+
+/** Points accrue per snapshot; the last one holds the running total. */
+function toPoints(
+  sdk: RewardsSdk,
+  targeted: readonly Targeted[],
+): PointsReward[] {
+  const merged = new Map<string, PointsReward>();
+  for (const { stream, pool, poolToken } of targeted) {
+    const { point } = stream.stream;
+    const raw = parseAmount(stream.snapshots.at(-1)?.rewardsAccumulated);
+    if (!point || !raw) continue;
+    const key = `${pool}_${point.id}`;
+    const value =
+      (merged.get(key)?.points.value ?? 0) +
+      Number(formatUnits(raw, point.decimals));
+    merged.set(key, {
+      source: "turtle",
       chainId: sdk.chainId,
       pool,
       poolToken,
-    };
-
-    const { point, rewardToken } = stream;
-    if (point) {
-      const value = parse(snapshots.at(-1)?.rewardsAccumulated);
-      if (!value) continue;
-      const key = `${pool}_${point.id}`;
-      const seen = rows.get(key) as PointsReward | undefined;
-      rows.set(key, {
-        ...base,
-        points: {
-          id: point.id,
-          name: point.name,
-          multiplier: null,
-          value:
-            (seen?.points.value ?? 0) +
-            Number(formatUnits(value, point.decimals)),
-        },
-      });
-      continue;
-    }
-
-    if (!rewardToken || !isAddress(rewardToken.address, { strict: false })) {
-      continue;
-    }
-    const committed = parse(proofByStream.get(streamId)?.amount);
-    const done = claimed.get(streamId);
-    if (committed === undefined || done === undefined) continue;
-    const value = BigIntMath.max(committed - done, 0n);
-    if (value === 0n) continue;
-
-    const token = toRewardToken(
-      sdk,
-      getAddress(rewardToken.address),
-      rewardToken,
-    );
-    const key = `${pool}_${token.address}`;
-    const seen = rows.get(key) as MerklReward | undefined;
-    const total = (seen?.amount.value ?? 0n) + value;
-    rows.set(key, {
-      ...base,
-      amount: toPricedAmount(
-        token,
-        total,
-        stream.lastSnapshot?.rewardTokenPrice,
-      ),
+      points: { id: point.id, name: point.name, multiplier: null, value },
     });
   }
-
-  return [...rows.values()];
-}
-
-function parse(amount: string | undefined): bigint | undefined {
-  if (amount === undefined) return undefined;
-  try {
-    return toBigInt(amount);
-  } catch {
-    return undefined;
-  }
+  return [...merged.values()];
 }

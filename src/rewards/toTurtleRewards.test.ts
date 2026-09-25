@@ -2,9 +2,9 @@ import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import type { Token } from "../model/index.js";
-import type { RewardsSdk } from "./toMerklRewards.js";
 import { toTurtleRewards } from "./toTurtleRewards.js";
 import type { TurtleMerkleProof, TurtleWalletStream } from "./turtle-api.js";
+import type { RewardsSdk } from "./types.js";
 
 const POOL: Address = "0xbD8EC7444dB271635584Cc38F5d06c72eAB762f5";
 const GEAR: Address = "0xBa3335588D9403515223F109EdC4eB7269a9Ab5D";
@@ -80,13 +80,13 @@ function proof(streamId: string, amount: string): TurtleMerkleProof {
 
 describe("toTurtleRewards", () => {
   it("claims what is committed minus what is claimed, priced by Turtle", () => {
-    const rows = toTurtleRewards(
+    const rewards = toTurtleRewards(
       buildSdk(),
       { streams: [stream("a")], proofs: [proof("a", (5n * E18).toString())] },
       new Map([["a", E18]]),
     );
 
-    expect(rows).toEqual([
+    expect(rewards).toEqual([
       {
         source: "turtle",
         chainId: 1,
@@ -107,12 +107,15 @@ describe("toTurtleRewards", () => {
     ]);
   });
 
-  it("merges streams paying the same token into the same pool", () => {
-    const rows = toTurtleRewards(
+  it("merges streams paying the same token into the same pool, at the last price", () => {
+    const rewards = toTurtleRewards(
       buildSdk(),
       {
-        streams: [stream("a"), stream("b")],
-        proofs: [proof("a", "3"), proof("b", "4")],
+        streams: [
+          stream("a"),
+          stream("b", { lastSnapshot: { rewardTokenPrice: "2" } }),
+        ],
+        proofs: [proof("a", String(3n * E18)), proof("b", String(4n * E18))],
       },
       new Map([
         ["a", 0n],
@@ -120,24 +123,26 @@ describe("toTurtleRewards", () => {
       ]),
     );
 
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ amount: { value: 6n } });
+    expect(rewards).toHaveLength(1);
+    expect(rewards[0]).toMatchObject({
+      amount: { value: 7n * E18 - 1n, valueUsd: 14 },
+    });
   });
 
   it("prefers the registry's reward token", () => {
     const registered: Token = { ...POOL_TOKEN, address: GEAR, symbol: "gGEAR" };
 
-    const [row] = toTurtleRewards(
+    const [reward] = toTurtleRewards(
       buildSdk({ [GEAR.toLowerCase()]: registered }),
       { streams: [stream("a")], proofs: [proof("a", "1")] },
       new Map([["a", 0n]]),
     );
 
-    expect(row).toMatchObject({ amount: { token: registered } });
+    expect(reward).toMatchObject({ amount: { token: registered } });
   });
 
   it("prices at null when Turtle has no price", () => {
-    const [row] = toTurtleRewards(
+    const [reward] = toTurtleRewards(
       buildSdk(),
       {
         streams: [stream("a", { lastSnapshot: null })],
@@ -146,7 +151,7 @@ describe("toTurtleRewards", () => {
       new Map([["a", 0n]]),
     );
 
-    expect(row).toMatchObject({ amount: { valueUsd: null } });
+    expect(reward).toMatchObject({ amount: { valueUsd: null } });
   });
 
   it.each([
@@ -185,7 +190,7 @@ describe("toTurtleRewards", () => {
   });
 
   it("lists points at the latest snapshot, scaled by the point's decimals", () => {
-    const rows = toTurtleRewards(
+    const rewards = toTurtleRewards(
       buildSdk(),
       {
         streams: [pointStream("p1", "12550"), pointStream("p2", "50")],
@@ -194,7 +199,7 @@ describe("toTurtleRewards", () => {
       new Map(),
     );
 
-    expect(rows).toEqual([
+    expect(rewards).toEqual([
       {
         source: "turtle",
         chainId: 1,

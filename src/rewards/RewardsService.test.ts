@@ -88,7 +88,7 @@ function multichainSdk(
   } as unknown as MultichainSDK;
 }
 
-/** One claimable row, as Merkl answers it for `POOL`. */
+/** One claimable reward, as Merkl answers it for `POOL`. */
 function merklBody(amount: string) {
   return [
     {
@@ -150,7 +150,7 @@ describe("RewardsService.list on Merkl", () => {
    * The distinction the single-chain read could not make: nothing to claim is
    * a success, not a silence that looks like one.
    */
-  it("calls a chain with no rewards a success that contributed no rows", async () => {
+  it("calls a chain with no rewards a success that contributed no rewards", async () => {
     respondByChain({ [MAINNET]: [] });
 
     const { data, meta } = await new RewardsService(
@@ -244,7 +244,7 @@ describe("RewardsService.list on Merkl", () => {
     }
   });
 
-  it("concatenates the rows of every chain that answered", async () => {
+  it("concatenates the rewards of every chain that answered", async () => {
     respondByChain({
       [MAINNET]: merklBody("1000"),
       [PLASMA]: merklBody("2000"),
@@ -345,7 +345,7 @@ describe("RewardsService.list with Turtle", () => {
     vi.unstubAllGlobals();
   });
 
-  it("puts both sources' rows on the chain, reading claimed at latest", async () => {
+  it("puts both sources' rewards on the chain, reading claimed at latest", async () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
 
     const { data, meta } = await new RewardsService(
@@ -372,7 +372,7 @@ describe("RewardsService.list with Turtle", () => {
     );
   });
 
-  it("keeps Merkl's rows when Turtle cannot be reached", async () => {
+  it("keeps Merkl's rewards when Turtle cannot be reached", async () => {
     respond({
       merkl: { [MAINNET]: merklBody("1000") },
       turtle: new Error("turtle down"),
@@ -387,7 +387,7 @@ describe("RewardsService.list with Turtle", () => {
     expect(meta.chains.map(c => c.status)).toEqual(["success"]);
   });
 
-  it("keeps Turtle's rows when Merkl cannot be reached", async () => {
+  it("keeps Turtle's rewards when Merkl cannot be reached", async () => {
     respond({ merkl: { [MAINNET]: new Error("merkl down") } });
 
     const { data, meta } = await new RewardsService(
@@ -399,7 +399,7 @@ describe("RewardsService.list with Turtle", () => {
     expect(meta.chains.map(c => c.status)).toEqual(["success"]);
   });
 
-  it("keeps Merkl's rows when Turtle's claimed amounts could not be read", async () => {
+  it("keeps Merkl's rewards when Turtle's claimed amounts could not be read", async () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
     failing = "getClaimedRewards";
 

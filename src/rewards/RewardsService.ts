@@ -4,10 +4,10 @@ import type { ChainId, DataResponse } from "../model/index.js";
 import type { PluginsMap } from "../onchain/index.js";
 import { MultichainConstruct, type MultichainSDK } from "../onchain/index.js";
 import { fetchMerklUserRewards } from "./merkl-api.js";
-import type { Reward } from "./toMerklRewards.js";
 import { toMerklRewards } from "./toMerklRewards.js";
 import { toTurtleRewards } from "./toTurtleRewards.js";
 import { fetchTurtleWalletRewards, readTurtleClaimed } from "./turtle-api.js";
+import type { Reward } from "./types.js";
 
 interface RewardsServiceKeys {
   /** Raises Merkl's rate limit; the keyless path answers too. */
@@ -30,7 +30,7 @@ export class RewardsService<
    * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
    * organisation's Turtle streams — across the chains the handle carries.
    * A chain is `status: "error"` only when every source failed on it; a chain
-   * with nothing to claim is a `"success"` with no rows.
+   * with nothing to claim is a `"success"` with no rewards.
    **/
   public async list(
     wallet: Address,
@@ -73,7 +73,7 @@ export class RewardsService<
           );
         }
         // A chain fails only when no source answered; a single failed source
-        // leaves the rows of the others.
+        // leaves the rewards of the others.
         const settled = await Promise.allSettled(sources);
         const failed = settled.flatMap(r =>
           r.status === "rejected" ? [r.reason] : [],
