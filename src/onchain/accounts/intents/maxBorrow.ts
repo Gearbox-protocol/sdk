@@ -46,8 +46,8 @@ export interface MaxBorrowProps {
  * that carries something therefore answers with it, whether or not the market
  * would lend that little; a loan under the floor is refused by `borrow`
  * itself, with `debtOutOfRange` naming both ends. A market whose own capacity
- * is under `minDebt` is different: `maxBorrowAmount` answers `0n`, because no
- * loan of any size exists there.
+ * is under `minDebt` is different: `maxStrategyBorrowAmount` answers `0n`,
+ * because no loan of any size exists there.
  *
  * Nothing is fetched or simulated — the account does not exist yet and every
  * input is loaded market state, so a form can call this on each keystroke.
@@ -137,7 +137,7 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
   // Truncating is what keeps the answer under the check rather than at it.
   const ceiling = BigIntMath.min(
     priceOracle.safeConvertFromUSD(underlying, backed / targetHF).value,
-    suite.maxBorrowAmount().amount.value,
+    suite.maxStrategyBorrowAmount().amount.value,
   );
 
   // Into the units the caller asked in, by the same three branches the borrow

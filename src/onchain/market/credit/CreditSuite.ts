@@ -59,7 +59,7 @@ import type {
 /**
  * Amount of underlying seeded into each pool at market creation to protect
  * from inflation attacks, in raw token units. A suite whose
- * {@link CreditSuite.maxBorrowAmount} is at or below this is treated as
+ * {@link CreditSuite.maxStrategyBorrowAmount} is at or below this is treated as
  * having nothing left to lend.
  **/
 const MIN_STRATEGY_BORROW_AMOUNT = 100_000n;
@@ -400,21 +400,23 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * Largest debt one new position can take from this credit manager right now,
+   * Largest debt this credit manager will hand out on one operation right now,
    * and which limit set that number.
    *
    * Minimum of:
    * - the pool's available liquidity,
-   * - this manager's remaining debt allowance,
-   * - the facade's per-account `maxDebt`, and
-   * - the remaining quota of the strategy target collateral, when one resolves.
+   * - this manager's remaining debt allowance, and
+   * - the facade's per-account `maxDebt`.
+   * While `maxDebtPerBlockMultiplier` is `0` the facade
+   * takes no new debt at all, so the answer is `0`.
    *
-   * `amount` is `0` whenever no position can be opened right now, and `limit`
-   * names why.
+   * These are the bounds every debt increase answers to, an existing account's
+   * included, which is what the guards hold a simulation to. Opening a position
+   * answers to two more — see {@link maxStrategyBorrowAmount}.
    */
   public maxBorrowAmount(): MaxBorrowAmount {
     const { pool } = this.market.pool;
-    const { maxDebtPerBlockMultiplier, maxDebt, minDebt } = this.creditFacade;
+    const { maxDebtPerBlockMultiplier, maxDebt } = this.creditFacade;
     if (maxDebtPerBlockMultiplier === 0) {
       return {
         amount: this.market.toUnderlyingAmount(0n),
@@ -424,7 +426,6 @@ export class CreditSuite extends SDKConstruct {
     const available = pool.creditManagerDebtParams.get(
       this.creditManager.address,
     )?.available;
-    const collateral = this.strategyTargetCollateral;
 
     // Ties keep the earlier term.
     const terms: { value: bigint; limit: MaxBorrowAmount["limit"] }[] = [
@@ -433,22 +434,53 @@ export class CreditSuite extends SDKConstruct {
         ? []
         : [{ value: available, limit: "managerDebtAvailable" as const }]),
       { value: maxDebt, limit: "maxDebt" },
-      ...(collateral === undefined
-        ? []
-        : [
-            {
-              value: this.market.pool.pqk.quotaAvailable(collateral),
-              limit: "quotaAvailable" as const,
-            },
-          ]),
     ];
-    let { value, limit } = terms.reduce((a, b) => (b.value < a.value ? b : a));
+    const { value, limit } = terms.reduce((a, b) =>
+      b.value < a.value ? b : a,
+    );
+
+    return { amount: this.market.toUnderlyingAmount(value), limit };
+  }
+
+  /**
+   * Largest debt one new position can take from this credit manager right now,
+   * and which limit set that number.
+   *
+   * {@link maxBorrowAmount} held to the two bounds only a position being opened
+   * answers to: the remaining quota of the strategy target collateral, which
+   * the position has to buy to be worth anything, and the facade's `minDebt`,
+   * which a first debt cannot sit under. `amount` is `0` whenever no position
+   * can be opened right now, and `limit` names why.
+   *
+   * An operation on an account that already exists is held to neither: its
+   * quota is weighed against the token its own plan buys, and its debt is
+   * already over the floor, so a top-up smaller than `minDebt` is legal.
+   */
+  public maxStrategyBorrowAmount(): MaxBorrowAmount {
+    const lends = this.maxBorrowAmount();
+    if (lends.limit === "debtPerBlockLimit") {
+      return lends;
+    }
+    const collateral = this.strategyTargetCollateral;
+
+    // A tie keeps the market's own limit, which binds first.
+    let value = lends.amount.value;
+    let limit = lends.limit;
+    if (collateral !== undefined) {
+      const quota = this.market.pool.pqk.quotaAvailable(collateral);
+      if (quota < value) {
+        value = quota;
+        limit = "quotaAvailable";
+      }
+    }
 
     // The facade refuses every debt below minDebt, so a capacity under it
     // funds no position at all.
-    if (value < minDebt) {
-      value = 0n;
-      limit = "minDebt";
+    if (value < this.creditFacade.minDebt) {
+      return {
+        amount: this.market.toUnderlyingAmount(0n),
+        limit: "minDebt",
+      };
     }
 
     return { amount: this.market.toUnderlyingAmount(value), limit };
@@ -536,7 +568,7 @@ export class CreditSuite extends SDKConstruct {
   public strategyOpportunity(): StrategyOpportunity | undefined {
     // Same number the read model exposes below; 0 when no position can be
     // opened, which hides the strategy entirely.
-    const maxBorrowAmount = this.maxBorrowAmount().amount.value;
+    const maxBorrowAmount = this.maxStrategyBorrowAmount().amount.value;
     if (maxBorrowAmount <= MIN_STRATEGY_BORROW_AMOUNT) {
       return undefined;
     }

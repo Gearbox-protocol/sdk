@@ -215,12 +215,13 @@ const CM = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as Address;
 const QUOTA_TOKEN = getAddress("0x5555555555555555555555555555555555555555");
 
 /**
- * `maxBorrowAmount` decides which limit a caller is told about, so each of its
- * four terms has to be able to win, the tie has to keep the earlier one, and a
- * capacity under `minDebt` has to come back as nothing.
+ * `maxBorrowAmount` and `maxStrategyBorrowAmount` both decide which limit a
+ * caller is told about, so each of their terms has to be able to win, the tie
+ * has to keep the earlier one, and a strategy capacity under `minDebt` has to
+ * come back as nothing.
  *
- * The method is borrowed onto a plain object rather than run on a constructed
- * suite: it reads a handful of fields, and a real suite needs a loaded market
+ * The methods are borrowed onto a plain object rather than run on a constructed
+ * suite: they read a handful of fields, and a real suite needs a loaded market
  * to exist.
  */
 interface MaxBorrowOfArgs {
@@ -233,9 +234,10 @@ interface MaxBorrowOfArgs {
   minDebt?: bigint;
 }
 
-function maxBorrowOf(args: MaxBorrowOfArgs) {
+function suiteOf(args: MaxBorrowOfArgs): CreditSuite {
   const suite = {
     creditManager: { address: CM },
+    maxBorrowAmount: CreditSuite.prototype.maxBorrowAmount,
     creditFacade: {
       maxDebt: args.maxDebt,
       minDebt: args.minDebt ?? 0n,
@@ -260,7 +262,15 @@ function maxBorrowOf(args: MaxBorrowOfArgs) {
       },
     },
   } as unknown as CreditSuite;
-  return CreditSuite.prototype.maxBorrowAmount.call(suite);
+  return suite;
+}
+
+function maxBorrowOf(args: MaxBorrowOfArgs) {
+  return CreditSuite.prototype.maxBorrowAmount.call(suiteOf(args));
+}
+
+function maxStrategyBorrowOf(args: MaxBorrowOfArgs) {
+  return CreditSuite.prototype.maxStrategyBorrowAmount.call(suiteOf(args));
 }
 
 describe("CreditSuite.maxBorrowAmount", () => {
@@ -325,9 +335,28 @@ describe("CreditSuite.maxBorrowAmount", () => {
     ).toEqual({ amount: { value: 0n }, limit: "debtPerBlockLimit" });
   });
 
-  it("reports the target collateral's remaining quota when it is the tightest", () => {
+  it("is what the market lends, which neither quota nor floor bounds", () => {
+    // An account that already exists buys quota for the token its own plan
+    // names, and its debt is already over the floor, so a debt increase the
+    // pool can cover is one `maxBorrowAmount` offers.
     expect(
       maxBorrowOf({
+        availableLiquidity: 100n,
+        maxDebt: 1000n,
+        multiplier: 1,
+        managerAvailable: 500n,
+        strategyTargetCollateral: QUOTA_TOKEN,
+        quotaAvailable: 0n,
+        minDebt: 1000n,
+      }),
+    ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
+  });
+});
+
+describe("CreditSuite.maxStrategyBorrowAmount", () => {
+  it("reports the target collateral's remaining quota when it is the tightest", () => {
+    expect(
+      maxStrategyBorrowOf({
         availableLiquidity: 1000n,
         maxDebt: 1000n,
         multiplier: 1,
@@ -340,7 +369,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
 
   it("keeps maxDebt when it ties with the remaining quota", () => {
     expect(
-      maxBorrowOf({
+      maxStrategyBorrowOf({
         availableLiquidity: 1000n,
         maxDebt: 40n,
         multiplier: 1,
@@ -353,7 +382,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
 
   it("leaves the quota term out when the suite has no strategy target", () => {
     expect(
-      maxBorrowOf({
+      maxStrategyBorrowOf({
         availableLiquidity: 1000n,
         maxDebt: 40n,
         multiplier: 1,
@@ -364,7 +393,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
 
   it("is zero with the quota cause when the target's quota is exhausted and there is no floor", () => {
     expect(
-      maxBorrowOf({
+      maxStrategyBorrowOf({
         availableLiquidity: 1000n,
         maxDebt: 1000n,
         multiplier: 1,
@@ -377,7 +406,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
 
   it("is zero with the minDebt cause when exhausted quota sits under the floor", () => {
     expect(
-      maxBorrowOf({
+      maxStrategyBorrowOf({
         availableLiquidity: 1000n,
         maxDebt: 1000n,
         multiplier: 1,
@@ -391,7 +420,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
 
   it("is zero when the tightest term is under minDebt, and keeps it when equal", () => {
     expect(
-      maxBorrowOf({
+      maxStrategyBorrowOf({
         availableLiquidity: 100n,
         maxDebt: 1000n,
         multiplier: 1,
@@ -400,7 +429,7 @@ describe("CreditSuite.maxBorrowAmount", () => {
       }),
     ).toEqual({ amount: { value: 0n }, limit: "minDebt" });
     expect(
-      maxBorrowOf({
+      maxStrategyBorrowOf({
         availableLiquidity: 100n,
         maxDebt: 1000n,
         multiplier: 1,
@@ -409,12 +438,24 @@ describe("CreditSuite.maxBorrowAmount", () => {
       }),
     ).toEqual({ amount: { value: 100n }, limit: "poolAvailableLiquidity" });
   });
+
+  it("keeps the frozen block's cause ahead of the floor", () => {
+    expect(
+      maxStrategyBorrowOf({
+        availableLiquidity: 1000n,
+        maxDebt: 1000n,
+        multiplier: 0,
+        managerAvailable: 1000n,
+        minDebt: 1n,
+      }),
+    ).toEqual({ amount: { value: 0n }, limit: "debtPerBlockLimit" });
+  });
 });
 
 describe("CreditSuite.strategyOpportunity", () => {
   it("is absent while borrowing is frozen", () => {
     const suite = {
-      maxBorrowAmount: () => ({
+      maxStrategyBorrowAmount: () => ({
         amount: { value: 0n },
         limit: "debtPerBlockLimit",
       }),

@@ -383,6 +383,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     creditOperationMarket: CreditSuite.prototype.creditOperationMarket,
     isForbidden: CreditSuite.prototype.isForbidden,
     maxBorrowAmount: CreditSuite.prototype.maxBorrowAmount,
+    maxStrategyBorrowAmount: CreditSuite.prototype.maxStrategyBorrowAmount,
     creditManager: {
       address: args.creditManager,
       liquidationThresholds,
