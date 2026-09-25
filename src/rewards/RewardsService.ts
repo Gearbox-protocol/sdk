@@ -10,28 +10,34 @@ import { toTurtleRewards } from "./toTurtleRewards.js";
 import type { TurtleWalletRewards } from "./turtle-api.js";
 import { fetchTurtleWalletRewards, turtleStreamAbi } from "./turtle-api.js";
 
-export interface GetRewardsMultichainProps<Plugins extends PluginsMap = {}> {
-  sdk: MultichainSDK<Plugins>;
-  wallet: Address;
-  /** Defaults to every chain the handle carries. */
-  chainIds?: ChainId[];
+interface RewardsServiceKeys {
   /** Raises Merkl's rate limit; the keyless path answers too. */
   merklApiKey?: string;
   /** Turtle is skipped without one: its API answers no keyless request. */
   turtleApiKey?: string;
 }
 
-class RewardsFanOut<
+export class RewardsService<
   const Plugins extends PluginsMap = {},
 > extends MultichainConstruct<Plugins> {
-  public async list({
-    wallet,
-    chainIds,
-    merklApiKey,
-    turtleApiKey,
-  }: Omit<GetRewardsMultichainProps<Plugins>, "sdk">): Promise<
-    DataResponse<Reward[]>
-  > {
+  readonly #keys: RewardsServiceKeys;
+
+  constructor(sdk: MultichainSDK<Plugins>, keys: RewardsServiceKeys = {}) {
+    super(sdk);
+    this.#keys = keys;
+  }
+
+  /**
+   * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
+   * organisation's Turtle streams — across the chains the handle carries.
+   * A chain is `status: "error"` only when every source failed on it; a chain
+   * with nothing to claim is a `"success"` with no rows.
+   **/
+  public async list(
+    wallet: Address,
+    chainIds?: ChainId[],
+  ): Promise<DataResponse<Reward[]>> {
+    const { merklApiKey, turtleApiKey } = this.#keys;
     // Merkl keys its answer on the exact string it is given.
     const user = getAddress(wallet);
     // One request for every chain; a failed one fails each chain that awaits it.
@@ -107,19 +113,4 @@ async function readClaimed(
     blockNumber,
   });
   return new Map(onChain.map((p, i) => [p.streamId, claimed[i]]));
-}
-
-/**
- * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
- * organisation's Turtle streams — across the chains the handle carries.
- * A chain is `status: "error"` only when every source failed on it; a chain
- * with nothing to claim is a `"success"` with no rows.
- **/
-export async function getRewardsMultichain<
-  const Plugins extends PluginsMap = {},
->({
-  sdk,
-  ...props
-}: GetRewardsMultichainProps<Plugins>): Promise<DataResponse<Reward[]>> {
-  return new RewardsFanOut(sdk).list(props);
 }

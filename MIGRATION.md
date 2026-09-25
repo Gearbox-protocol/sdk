@@ -4,6 +4,31 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v17.x — rewards are read through a service
+
+`getRewardsMultichain` is replaced by `RewardsService`. The API keys move to
+its constructor; `list` returns the same `DataResponse<Reward[]>`.
+
+**Before:**
+
+```typescript
+const { data } = await getRewardsMultichain({
+  sdk,
+  wallet,
+  merklApiKey,
+  turtleApiKey,
+});
+```
+
+**After:**
+
+```typescript
+const rewards = new RewardsService(sdk, { merklApiKey, turtleApiKey });
+const { data } = await rewards.list(wallet);
+```
+
+---
+
 ## v17.x — one rewards read for every source
 
 `getMerklRewardsMultichain` is replaced by `getRewardsMultichain`, which lists
