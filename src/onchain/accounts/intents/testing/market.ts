@@ -120,6 +120,8 @@ export interface MarketSdkExtras {
   reservePrices?: Record<Address, bigint>;
   /** Additional / overriding token decimals. */
   extraDecimals?: Record<Address, number>;
+  /** Additional / overriding liquidation thresholds. */
+  extraLiquidationThresholds?: Record<Address, number>;
   /** Tokens the registry should report as phantoms. */
   phantoms?: Address[];
   /** Facade `minDebt`; 0n when omitted. */
@@ -130,6 +132,8 @@ export interface MarketSdkExtras {
   delayed?: Record<Address, MockDelayedVenue[]>;
   /** Quota params replacing the fixture's, e.g. a token with no room left. */
   quotas?: Record<Address, MockQuotaEntry>;
+  /** Credit manager's enabled token cap; the mock's default when omitted. */
+  maxEnabledTokens?: number;
   /** Facade pause flag. */
   facadePaused?: boolean;
   /** Pool pause flag, which pauses the suite with it. */
@@ -159,7 +163,10 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     reservePrices: extras?.reservePrices ?? prices,
     decimals: { ...DECIMALS, ...extras?.extraDecimals },
     quotas: extras?.quotas ?? QUOTAS,
-    liquidationThresholds: LIQUIDATION_THRESHOLDS,
+    liquidationThresholds: {
+      ...LIQUIDATION_THRESHOLDS,
+      ...extras?.extraLiquidationThresholds,
+    },
     maxDebt: MAX_DEBT,
     minDebt: extras?.minDebt,
     creditManager: CREDIT_MANAGER,
@@ -171,6 +178,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     phantoms: extras?.phantoms,
     creditAccounts: extras?.creditAccounts,
     delayed: extras?.delayed,
+    maxEnabledTokens: extras?.maxEnabledTokens,
     facadePaused: extras?.facadePaused,
     poolPaused: extras?.poolPaused,
     expirationDate: extras?.expirationDate,
