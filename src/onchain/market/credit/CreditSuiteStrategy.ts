@@ -175,6 +175,8 @@ export class CreditSuiteStrategy {
         pool.underlying,
         pool.availableLiquidity,
       ),
+      totalSupply: oracle.toAmount(pool.underlying, pool.expectedLiquidity),
+      feeInterest: cm.feeInterest,
       minDebt: oracle.toAmount(pool.underlying, suite.creditFacade.minDebt),
       totalDebtLimit: oracle.toAmount(pool.underlying, debtParams?.limit ?? 0n),
       maxBorrowAmount: oracle.toAmount(
