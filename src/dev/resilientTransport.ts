@@ -6,6 +6,24 @@ import { isOutOfSyncError } from "./isOutOfSyncError.js";
 import { isRateLimitError } from "./isRateLimitError.js";
 import { isTransientError } from "./isTransientError.js";
 
+/** Schema for {@link RateLimitOptions}. */
+export const rateLimitOptionsSchema = z.object({
+  /**
+   * Max retry attempts for rate-limit errors.
+   * @default 3
+   **/
+  retryCount: z.number().int().min(0).default(3),
+  /**
+   * Upper bound (ms) for rate-limit delay, applied both to backoff and to
+   * provider-supplied retry hints.
+   * @default 5_000
+   **/
+  maxDelay: z.number().min(0).default(5_000),
+});
+
+/** Rate-limit retry settings accepted by `handleRateLimit`. */
+export type RateLimitOptions = z.input<typeof rateLimitOptionsSchema>;
+
 /** Schema for {@link ResilientTransportOptions}. */
 export const resilientTransportOptionsSchema = z.object({
   /**
@@ -29,10 +47,14 @@ export const resilientTransportOptionsSchema = z.object({
    **/
   jitter: z.number().min(0).default(100),
   /**
-   * Retry on rate-limit (HTTP 429) errors.
+   * Retry on rate-limit (HTTP 429) errors. `false` disables, `true` uses
+   * default {@link RateLimitOptions}, an object overrides them.
    * @default true
    **/
-  handleRateLimit: z.boolean().default(true),
+  handleRateLimit: z
+    .union([z.boolean(), rateLimitOptionsSchema])
+    .transform(v => (v === true ? rateLimitOptionsSchema.parse({}) : v))
+    .prefault(true),
   /**
    * Retry on transient network/infrastructure errors.
    * @default true
@@ -63,22 +85,31 @@ export function resilientTransport(
     const base = underlyingTransport(transportOpts);
     const rpcRequest = base.request as unknown as EIP1193RequestFn;
 
+    const rateLimit = opts.handleRateLimit;
+    const retryCount = rateLimit
+      ? Math.max(opts.retryCount, rateLimit.retryCount)
+      : opts.retryCount;
+
     const request: EIP1193RequestFn = async args =>
       withRetry(() => rpcRequest(args as never) as Promise<unknown>, {
-        retryCount: opts.retryCount,
+        retryCount,
         delay({ count, error }) {
-          if (opts.handleRateLimit) {
+          const jitter = Math.floor(Math.random() * opts.jitter);
+          if (rateLimit) {
             const [isRate, retryAfterMs] = isRateLimitError(error);
-            if (isRate && retryAfterMs !== undefined) {
-              return retryAfterMs + Math.floor(Math.random() * opts.jitter);
+            if (isRate) {
+              const base = retryAfterMs ?? opts.delay * 2 ** count;
+              return Math.min(rateLimit.maxDelay, base) + jitter;
             }
           }
-          const exp = Math.min(opts.maxDelay, opts.delay * 2 ** count);
-          return exp + Math.floor(Math.random() * opts.jitter);
+          return Math.min(opts.maxDelay, opts.delay * 2 ** count) + jitter;
         },
-        shouldRetry({ error }) {
-          if (opts.handleRateLimit && isRateLimitError(error)[0]) {
-            return true;
+        shouldRetry({ count, error }) {
+          if (rateLimit && isRateLimitError(error)[0]) {
+            return count < rateLimit.retryCount;
+          }
+          if (count >= opts.retryCount) {
+            return false;
           }
           if (opts.handleTransient && isTransientError(error)) {
             return true;

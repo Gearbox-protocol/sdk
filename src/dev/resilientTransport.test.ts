@@ -130,9 +130,64 @@ it("throws after exhausting retries", async () => {
     id => rpcError(id, 429, "rate limited", 429),
     id => rpcError(id, 429, "rate limited", 429),
   ]);
-  const client = makeClient(fetchFn, { retryCount: 1 });
+  const client = makeClient(fetchFn, {
+    retryCount: 1,
+    handleRateLimit: { retryCount: 1 },
+  });
 
   await expect(client.getBlockNumber()).rejects.toBeDefined();
+  expect(fetchFn).toHaveBeenCalledTimes(2);
+});
+
+it("retries rate limit beyond retryCount up to handleRateLimit.retryCount", async () => {
+  const fetchFn = sequenceFetch([
+    id => rpcError(id, 429, "rate limited", 429),
+    id => rpcError(id, 429, "rate limited", 429),
+    id => rpcError(id, 429, "rate limited", 429),
+    id => rpcSuccess(id, "0x5"),
+  ]);
+  const client = makeClient(fetchFn, {
+    retryCount: 1,
+    handleRateLimit: { retryCount: 3 },
+    delay: 1,
+  });
+
+  await expect(client.getBlockNumber()).resolves.toBe(5n);
+  expect(fetchFn).toHaveBeenCalledTimes(4);
+});
+
+it("keeps retryCount for non-rate-limit errors", async () => {
+  const fetchFn = sequenceFetch([
+    () => httpError(502, "<html>502 Bad Gateway</html>"),
+    () => httpError(502, "<html>502 Bad Gateway</html>"),
+    id => rpcSuccess(id, "0x6"),
+  ]);
+  const client = makeClient(fetchFn, {
+    retryCount: 1,
+    handleRateLimit: { retryCount: 5 },
+    delay: 1,
+  });
+
+  await expect(client.getBlockNumber()).rejects.toBeDefined();
+  expect(fetchFn).toHaveBeenCalledTimes(2);
+});
+
+it("caps retry hint from message at handleRateLimit.maxDelay", async () => {
+  const fetchFn = sequenceFetch([
+    id =>
+      rpcError(
+        id,
+        -32_090,
+        "Too many requests, reason: call rate limit exhausted, retry in 60s",
+      ),
+    id => rpcSuccess(id, "0x7"),
+  ]);
+  const client = makeClient(fetchFn, {
+    handleRateLimit: { maxDelay: 10 },
+    jitter: 0,
+  });
+
+  await expect(client.getBlockNumber()).resolves.toBe(7n);
   expect(fetchFn).toHaveBeenCalledTimes(2);
 });
 
