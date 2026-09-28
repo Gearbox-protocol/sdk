@@ -51,6 +51,7 @@ export const tokenRewardsSchema = z.object({
   token: tokenSchema,
   supplyApr: bpsSchema.optional(),
   borrowApr: bpsSchema.optional(),
+  links: z.array(z.string()).optional(),
 });
 
 /**
