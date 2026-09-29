@@ -24,10 +24,13 @@ export type ChartRange = (typeof CHART_RANGES)[number];
 
 /**
  * Every metric a pool opportunity can chart.
+ *
+ * `rewardsApyAvg7d` is the trailing seven-day average yield from rewards.
  **/
 export const POOL_OPPORTUNITY_CHART_METRICS = [
   "depositApy",
   "depositApyAvg7d",
+  "rewardsApyAvg7d",
   "dieselRate",
   "supplied",
   "borrowed",
@@ -50,6 +53,7 @@ export type PoolOpportunityChartMetric =
 export const STRATEGY_OPPORTUNITY_CHART_METRICS = [
   "borrowApy",
   "borrowApyAvg7d",
+  "rewardsApyAvg7d",
   "quotaRate",
   "liquidationThreshold",
   "collateralApy",
@@ -238,6 +242,7 @@ export const CHART_METRIC_UNITS = {
   // opportunities
   depositApy: "bps",
   depositApyAvg7d: "bps",
+  rewardsApyAvg7d: "bps",
   borrowApy: "bps",
   borrowApyAvg7d: "bps",
   quotaRate: "bps",

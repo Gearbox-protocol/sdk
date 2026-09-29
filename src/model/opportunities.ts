@@ -72,6 +72,10 @@ export interface TokenRewards {
    * @example `45` for +0.45% APR
    **/
   borrowApr?: Bps;
+  /**
+   * Links with more information about the rewards program.
+   **/
+  links?: string[];
 }
 
 /**
