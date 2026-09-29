@@ -9,7 +9,7 @@ import { toTurtleRewards } from "./toTurtleRewards.js";
 import { fetchTurtleWalletRewards, readTurtleClaimed } from "./turtle-api.js";
 import type { Reward } from "./types.js";
 
-interface RewardsServiceKeys {
+export interface RewardsServiceKeys {
   /** Raises Merkl's rate limit; the keyless path answers too. */
   merklApiKey?: string;
   /** Turtle is skipped without one: its API answers no keyless request. */
