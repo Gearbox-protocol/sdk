@@ -163,4 +163,53 @@ describe("LiquidationsNamespace", () => {
     );
     expect(order).toEqual(["fresh", "check"]);
   });
+
+  describe("isEmergencyLiquidator", () => {
+    const CREDIT_MANAGER =
+      "0x0000000000000000000000000000000000000003" as Address;
+    const isEmergencyLiquidator = vi.fn();
+    const findByCreditManager = vi.fn();
+
+    function namespace(): LiquidationsNamespace {
+      chain.mockReturnValue({
+        marketRegister: { findByCreditManager },
+      } as unknown as OnchainSDK);
+      findByCreditManager.mockReturnValue({ isEmergencyLiquidator });
+      return new LiquidationsNamespace(onchain, { maxOffchainLagSeconds: 0 });
+    }
+
+    const props = {
+      chainId: 1,
+      creditManager: CREDIT_MANAGER,
+      liquidator: LIQUIDATOR,
+    };
+
+    it("answers from the credit manager's market", () => {
+      const ns = namespace();
+      isEmergencyLiquidator.mockReturnValue(true);
+
+      expect(ns.isEmergencyLiquidator(props)).toBe(true);
+      expect(chain).toHaveBeenCalledWith(1);
+      expect(findByCreditManager).toHaveBeenCalledWith(CREDIT_MANAGER);
+      expect(isEmergencyLiquidator).toHaveBeenCalledWith(LIQUIDATOR);
+    });
+
+    it("is false for an unknown credit manager", () => {
+      const ns = namespace();
+      findByCreditManager.mockImplementation(() => {
+        throw new Error("credit manager not found");
+      });
+
+      expect(ns.isEmergencyLiquidator(props)).toBe(false);
+    });
+
+    it("is false before the chain is attached", () => {
+      const ns = namespace();
+      chain.mockImplementation(() => {
+        throw new Error("not attached");
+      });
+
+      expect(ns.isEmergencyLiquidator(props)).toBe(false);
+    });
+  });
 });
