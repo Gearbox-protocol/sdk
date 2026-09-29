@@ -17,7 +17,7 @@ import type {
 } from "../../onchain/index.js";
 import { checkLiquidation, toChainIds } from "../../onchain/index.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
-import type { ILiquidations } from "./types.js";
+import type { ILiquidations, IsEmergencyLiquidatorProps } from "./types.js";
 
 /**
  * {@inheritDoc ILiquidations}
@@ -81,5 +81,19 @@ export class LiquidationsNamespace implements ILiquidations {
     await this.#ensureFresh?.([props.details.chainId]);
     const sdk = this.#onchain.chain(props.details.chainId);
     return checkLiquidation(sdk, props, options);
+  }
+
+  /**
+   * {@inheritDoc ILiquidations.isEmergencyLiquidator}
+   **/
+  public isEmergencyLiquidator(props: IsEmergencyLiquidatorProps): boolean {
+    try {
+      return this.#onchain
+        .chain(props.chainId)
+        .marketRegister.findByCreditManager(props.creditManager)
+        .isEmergencyLiquidator(props.liquidator);
+    } catch {
+      return false;
+    }
   }
 }
