@@ -66,7 +66,7 @@ export class OpportunitiesNamespace
     pool: (onchain, offchain) =>
       mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
     strategy: (onchain, offchain) =>
-      overlayOnchainKyc(
+      overlayOnchainFields(
         mergeChainOne(onchain, offchain, this.maxOffchainLagSeconds),
         onchain,
       ),
@@ -211,10 +211,10 @@ export class OpportunitiesNamespace
 }
 
 /**
- * Freshness still picks the body; `kyc` is taken from a successful chain
- * response because the backend does not evaluate it.
+ * Freshness still picks the body; fields the backend does not serve are taken
+ * from a successful chain response.
  **/
-function overlayOnchainKyc(
+function overlayOnchainFields(
   merged: DataResponse<StrategyOpportunityDetail> | undefined,
   onchain: DataResponse<StrategyOpportunityDetail> | undefined,
 ): DataResponse<StrategyOpportunityDetail> | undefined {
@@ -226,6 +226,12 @@ function overlayOnchainKyc(
   }
   return {
     ...merged,
-    data: { ...merged.data, kyc: onchain.data.kyc },
+    data: {
+      ...merged.data,
+      kyc: onchain.data.kyc,
+      feeInterest: onchain.data.feeInterest,
+      totalSupply: onchain.data.totalSupply,
+      availableLiquidity: onchain.data.availableLiquidity,
+    },
   };
 }

@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
+  Amount,
   DataResponse,
   KycRequirement,
   Opportunity,
@@ -353,19 +354,33 @@ function strategyDetail(
   };
 }
 
-describe("merge.strategy keeps freshness but takes kyc from the chain", () => {
-  it("overlays on-chain kyc onto a fresh backend body", () => {
+function amount(value: bigint): Amount {
+  return { value } as Amount;
+}
+
+describe("merge.strategy keeps freshness but takes on-chain fields from the chain", () => {
+  it("overlays on-chain fields onto a fresh backend body", () => {
     const onchain = strategyDetail("onchain", NOW, {
       kyc: KYC,
       name: "chain",
+      feeInterest: 2500,
+      totalSupply: amount(1000n),
+      availableLiquidity: amount(250n),
     });
     const offchain = strategyDetail("offchain", (NOW - 5) as Timestamp, {
       name: "backend",
+      availableLiquidity: amount(300n),
     });
 
     const merged = namespace().merge.strategy(onchain, offchain);
 
-    expect(merged?.data).toEqual({ ...offchain.data, kyc: KYC });
+    expect(merged?.data).toEqual({
+      ...offchain.data,
+      kyc: KYC,
+      feeInterest: 2500,
+      totalSupply: amount(1000n),
+      availableLiquidity: amount(250n),
+    });
     expect(merged?.meta).toEqual(offchain.meta);
   });
 

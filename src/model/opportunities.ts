@@ -348,6 +348,19 @@ export interface StrategyOpportunity extends OpportunityBase {
    **/
   availableLiquidity: Amount;
   /**
+   * Size of the pool the strategy borrows from, `pool.expectedLiquidity`.
+   * Same value the market's {@link PoolOpportunity} reports.
+   *
+   * @mode onchain
+   **/
+  totalSupply?: Amount;
+  /**
+   * Percentage of accrued interest in bps taken by the protocol as profit.
+   *
+   * @mode onchain
+   **/
+  feeInterest?: Bps;
+  /**
    * Smallest debt a position in this credit manager may hold, denominated in
    * the underlying (`creditFacade.minDebt`).
    **/

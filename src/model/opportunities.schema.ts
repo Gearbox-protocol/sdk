@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { ZodAddress } from "../onchain/utils/zod.js";
-import { offchainOnly, tolerance } from "./compare.schema.js";
+import { offchainOnly, onchainOnly, tolerance } from "./compare.schema.js";
 import { curatorSchema } from "./curators.schema.js";
 import { isFilterSet } from "./filters.js";
 import {
@@ -142,6 +142,8 @@ export const strategyOpportunitySchema = z.object({
   totalValue: offchainOnly(amountSchema).optional(),
   utilization: offchainOnly(bpsSchema).optional(),
   availableLiquidity: tolerance(amountSchema, "amount"),
+  totalSupply: onchainOnly(amountSchema).optional(),
+  feeInterest: onchainOnly(bpsSchema).optional(),
   minDebt: amountSchema,
   totalDebtLimit: amountSchema,
   maxBorrowAmount: tolerance(amountSchema, "amount"),

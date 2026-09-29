@@ -79,6 +79,13 @@ const cases: Array<{
     name: "Generic - retry after hint in message (code -32005, status 200)",
     status: 200,
     body: '{"jsonrpc":"2.0","id":1,"error":{"code":-32005,"message":"Request limit exceeded, retry after 5 seconds"}}',
+    retryAfterMs: 5_000,
+  },
+  {
+    name: "Etherlink - call rate limit exhausted (code -32090, status 200)",
+    status: 200,
+    body: '{"jsonrpc":"2.0","id":1,"error":{"code":-32090,"message":"Too many requests, reason: call rate limit exhausted, retry in 10s"}}',
+    retryAfterMs: 10_000,
   },
 ];
 
