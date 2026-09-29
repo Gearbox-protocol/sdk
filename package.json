@@ -59,6 +59,16 @@
       "import": "./dist/esm/permissionless/index.js",
       "default": "./dist/cjs/permissionless/index.js"
     },
+    "./permissionless/gip": {
+      "types": "./dist/types/permissionless/gip/index.d.ts",
+      "import": "./dist/esm/permissionless/gip/index.js",
+      "default": "./dist/cjs/permissionless/gip/index.js"
+    },
+    "./permissionless/gip/catalog": {
+      "types": "./dist/types/permissionless/gip/bundles/catalog/index.d.ts",
+      "import": "./dist/esm/permissionless/gip/bundles/catalog/index.js",
+      "default": "./dist/cjs/permissionless/gip/bundles/catalog/index.js"
+    },
     "./rewards": {
       "types": "./dist/types/rewards/index.d.ts",
       "import": "./dist/esm/rewards/index.js",

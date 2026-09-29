@@ -1,0 +1,311 @@
+{
+  "name": "mEDGE strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
+        "priceFeed": "0x4Ec6A3222fA6FA8c671db3060fdBDBcAB94F7bc4"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "priceFeed": "0x58e0d540841e4bd6e8be6e46fcc68a897e3fd3e4"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "priceFeed": "0xed861082c8d5f9c469c08e549390457102ddca4a"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+        "priceFeed": "0x33f3cd52c55416ca2eac184b62fa7481af88271d"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+        "priceFeed": "0x33f3cd52c55416ca2eac184b62fa7481af88271d"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f",
+        "priceFeed": "0xe5980273ea70aa2f7982aabc90f607185fbad50f"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f",
+        "priceFeed": "0x8108e389ba1b2494eab1364b8910fe5d6f4e8a3c"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "mEDGE strategy",
+        "maxEnabledTokens": 2,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 100000,
+        "maxDebt": 5000000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V4_GATEWAY",
+          "version": 310,
+          "target": "0xcc7944c237dc540585935f19bc9aea0003bc4224"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0xc1a5930502E503c205af8bD63FC35E8Af6e2f16F"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x942644106B073E30D72c2C5D7529D5C296ea91ab",
+          "lpToken": "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xc1a5930502E503c205af8bD63FC35E8Af6e2f16F",
+        "pools": [
+          {
+            "token0": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+            "token1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V4_GATEWAY::setPoolKeyStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xcc7944c237dc540585935f19bc9aea0003bc4224",
+        "poolKeys": [
+          {
+            "poolKey": {
+              "token0": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+              "token1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+              "fee": 50,
+              "tickSpacing": 1,
+              "hooks": "0x0000000000000000000000000000000000000000"
+            },
+            "allowed": true
+          },
+          {
+            "poolKey": {
+              "token0": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+              "token1": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+              "fee": 50,
+              "tickSpacing": 1,
+              "hooks": "0x0000000000000000000000000000000000000000"
+            },
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "MIDAS_ISSUANCE_VAULT",
+          "version": 310,
+          "target": "0xdF7dEb47635AF76Da5e455C6b0F4E26222326FD9",
+          "reffererId": "gearbox_edge"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "MIDAS_REDEMPTION_VAULT",
+          "version": 310,
+          "target": "0x4B0e8BB928d04E5e8524a6EF6c0b9502a6Cd90e9"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::MIDAS_REDEMPTION_VAULT::setTokenAllowedStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0x4B0e8BB928d04E5e8524a6EF6c0b9502a6Cd90e9",
+        "allowedTokens": [
+          {
+            "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "phantomToken": "0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f",
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "ADAPTER::MIDAS_ISSUANCE_VAULT::setTokenAllowedStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xdF7dEb47635AF76Da5e455C6b0F4E26222326FD9",
+        "allowedTokens": [
+          {
+            "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "allowed": true
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+    "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+    "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+    "0x1c8ee940b654bfced403f2a44c1603d5be0f50fa",
+    "0xd2a72aa2d3f2815673f4bb887559c333d7f1f34f"
+  ],
+  "tokensIn": [
+    "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+    "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+    "0xe7cd86e13ac4309349f30b3435a9d337750fc82d"
+  ],
+  "tokensOut": ["0x1c8ee940b654bfced403f2a44c1603d5be0f50fa"],
+  "maxEnabledTokens": 2
+}

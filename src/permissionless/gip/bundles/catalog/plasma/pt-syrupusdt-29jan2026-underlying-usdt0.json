@@ -1,0 +1,122 @@
+{
+  "name": "PT-syrupUSDT-29JAN2026",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xc4374775489cb9c56003bf2c9b12495fc64f0771",
+        "priceFeed": "0x75c06a83c7e12a29e86b4881dbd48c61466683b6"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x8dfb9a39dfab16bffe77f15544b5bf03e377e419",
+        "priceFeed": "0xb93f2f5e8c3451dfc3c3550443bf7e06e3eb911c"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x8dfb9a39dfab16bffe77f15544b5bf03e377e419",
+        "priceFeed": "0x9b42fca928c4d98f27b71eec38fb4378f9c57341"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x8dfb9a39dfab16bffe77f15544b5bf03e377e419",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "PT-syrupUSDT-29JAN2026",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 1000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xc4374775489cb9c56003bf2c9b12495fc64f0771",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x8dfb9a39dfab16bffe77f15544b5bf03e377e419",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x2886a01a0645390872a9eb99dAe1283664b0c524"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "PENDLE_ROUTER",
+          "version": 311,
+          "target": "0x888888888889758F76e7103c6CbF23ABbF58F946"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::PENDLE_ROUTER::setPairStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+        "pairs": [
+          {
+            "market": "0x18d89b23d2875590C502cd3eAC8f448f3CcF9999",
+            "inputToken": "0xc4374775489cb9c56003bf2c9b12495fc64f0771",
+            "pendleToken": "0x8dfb9a39dfab16bffe77f15544b5bf03e377e419",
+            "pendleTokenType": 0,
+            "status": 1
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0xc4374775489cb9c56003bf2c9b12495fc64f0771",
+    "0x8dfb9a39dfab16bffe77f15544b5bf03e377e419"
+  ],
+  "tokensIn": ["0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"],
+  "tokensOut": ["0x8dfb9a39dfab16bffe77f15544b5bf03e377e419"],
+  "maxEnabledTokens": 1
+}

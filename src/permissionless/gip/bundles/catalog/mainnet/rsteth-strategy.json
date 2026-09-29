@@ -1,0 +1,360 @@
+{
+  "name": "rstETH strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x06325440d014e39736583c165c2963ba99faf14e",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x2411802d8bea09be0af8fd8d08314a63e706b29c",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x90551c1795392094fe6d29b758eccd233cfaa260",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+        "priceFeed": "0x257707abb203ff243303634a800d7d58dd62b7ab"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+        "priceFeed": "0xf309e558209b5f0398bf85dfdd694d2979b547ad"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x6252467c2fefb61cb55180282943139baeea36c5",
+        "priceFeed": "0x587660d2d2ccba5efd0594ccfda03c5adc1a3dc9"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x6252467c2fefb61cb55180282943139baeea36c5",
+        "priceFeed": "0x11fa616a80bd0c1c2b173ebcffeb51d6d948e330"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x6252467c2fefb61cb55180282943139baeea36c5",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x775f661b0bd1739349b9a2a3ef60be277c5d2d29",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "rstETH strategy",
+        "maxEnabledTokens": 2,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 0.01,
+        "feeLiquidationPremiumExpired": 2,
+        "minDebt": 10,
+        "maxDebt": 500,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 10000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x06325440d014e39736583c165c2963ba99faf14e",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x2411802d8bea09be0af8fd8d08314a63e706b29c",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x90551c1795392094fe6d29b758eccd233cfaa260",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "BALANCER_V3_ROUTER",
+          "version": 310,
+          "target": "0x21F55223de449224e8BdF4f59452E072BDF7af57"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_V1_2ASSETS",
+          "version": 311,
+          "target": "0x0675cb2066bacae2edfd09633d5b62be3c619a35",
+          "lpToken": "0x06325440d014e39736583c165c2963ba99faf14e",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0x2411802d8bea09be0af8fd8d08314a63e706b29c",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0x90551c1795392094fe6d29b758eccd233cfaa260",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x9f294BF3201533B652aFb6B10c0385972C28a16f"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "LIDO_WSTETH_V1",
+          "version": 310,
+          "target": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "pools": [
+          {
+            "token0": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+            "token1": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "fee": 100,
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x6252467c2fefb61cb55180282943139baeea36c5",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x775f661b0bd1739349b9a2a3ef60be277c5d2d29",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "ADAPTER::BALANCER_V3_ROUTER::setPoolStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0x21F55223de449224e8BdF4f59452E072BDF7af57",
+        "pools": [
+          {
+            "pool": "0x6b31a94029fd7840d780191b6d63fa0d269bd883",
+            "status": true
+          },
+          {
+            "pool": "0x121edb0badc036f5fc610d015ee14093c142313b",
+            "status": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0x775f661b0bd1739349b9a2a3ef60be277c5d2d29",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "MELLOW_ERC4626_VAULT",
+          "version": 312,
+          "target": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+          "stakedToken": "0x6252467c2fefb61cb55180282943139baeea36c5"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "MELLOW_CLAIMER",
+          "version": 310,
+          "target": "0x25024a3017B8da7161d8c5DCcF768F8678fB5802",
+          "referral": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::MELLOW_CLAIMER::setMultiVaultStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0x25024a3017B8da7161d8c5DCcF768F8678fB5802",
+        "vaults": [
+          {
+            "multiVault": "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+            "stakedToken": "0x6252467c2fefb61cb55180282943139baeea36c5",
+            "allowed": true
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "0x06325440d014e39736583c165c2963ba99faf14e",
+    "0x2411802d8bea09be0af8fd8d08314a63e706b29c",
+    "0x90551c1795392094fe6d29b758eccd233cfaa260",
+    "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+    "0x7a4effd87c2f3c55ca251080b1343b605f327e3a",
+    "0x6252467c2fefb61cb55180282943139baeea36c5",
+    "0x775f661b0bd1739349b9a2a3ef60be277c5d2d29"
+  ],
+  "tokensIn": ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"],
+  "tokensOut": ["0x7a4effd87c2f3c55ca251080b1343b605f327e3a"],
+  "maxEnabledTokens": 2
+}

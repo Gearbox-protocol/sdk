@@ -1,0 +1,101 @@
+{
+  "name": "sUSDai Strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x0b2b2b2076d95dda7817e785989fe353fe955ef9",
+        "priceFeed": "0x5597642fef6c99c36688567c2f7e3f05624575ae"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x0b2b2b2076d95dda7817e785989fe353fe955ef9",
+        "priceFeed": "0x5597642fef6c99c36688567c2f7e3f05624575ae"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x0b2b2b2076d95dda7817e785989fe353fe955ef9",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "sUSDai Strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 1000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x0b2b2b2076d95dda7817e785989fe353fe955ef9",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x36a905dcd12c0201f884fafda71e63e9547975da"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "BALANCER_V3_ROUTER",
+          "version": 311,
+          "target": "0x55109bA88c396008cfBe9F27Ad97A7e1e4394f6F"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::BALANCER_V3_ROUTER::setPoolStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x55109bA88c396008cfBe9F27Ad97A7e1e4394f6F",
+        "pools": [
+          {
+            "pool": "0xB3Ca3ead1c59dEd552cD30a6992038284B418b65",
+            "status": 3
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": ["0x0b2b2b2076d95dda7817e785989fe353fe955ef9"],
+  "tokensIn": ["0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"],
+  "tokensOut": ["0x0b2b2b2076d95dda7817e785989fe353fe955ef9"],
+  "maxEnabledTokens": 1
+}

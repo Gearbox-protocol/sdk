@@ -1,0 +1,65 @@
+{
+  "name": "mHYPER strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xb31bea5c2a43f942a3800558b1aa25978da75f8a",
+        "priceFeed": "0xfc3e47c4da8f3a01ac76c3c5ecfbfc302e1a08f0"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xb31bea5c2a43f942a3800558b1aa25978da75f8a",
+        "priceFeed": "0xfc3e47c4da8f3a01ac76c3c5ecfbfc302e1a08f0"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xb31bea5c2a43f942a3800558b1aa25978da75f8a",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "mHYPER strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 20,
+        "feeLiquidation": 0.01,
+        "feeLiquidationPremium": 4,
+        "feeLiquidationExpired": 0.01,
+        "feeLiquidationPremiumExpired": 4,
+        "minDebt": 10000,
+        "maxDebt": 1000000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 1000000000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xb31bea5c2a43f942a3800558b1aa25978da75f8a",
+        "liquidationThreshold": 90
+      }
+    }
+  ],
+  "tokens": ["0xb31bea5c2a43f942a3800558b1aa25978da75f8a"],
+  "tokensIn": ["0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"],
+  "tokensOut": ["0xb31bea5c2a43f942a3800558b1aa25978da75f8a"],
+  "maxEnabledTokens": 1
+}

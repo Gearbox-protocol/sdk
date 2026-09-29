@@ -1,0 +1,120 @@
+{
+  "name": "xUSD Strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x6eaf19b2fc24552925db245f9ff613157a7dbb4c",
+        "priceFeed": "0x51d947b18f546696c31d9a1c81b55d84e6d8e959"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x6eaf19b2fc24552925db245f9ff613157a7dbb4c",
+        "priceFeed": "0x51d947b18f546696c31d9a1c81b55d84e6d8e959"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x6eaf19b2fc24552925db245f9ff613157a7dbb4c",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "xUSD Strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 1000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x6eaf19b2fc24552925db245f9ff613157a7dbb4c",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "BALANCER_V3_ROUTER",
+          "version": 311,
+          "target": "0x55109bA88c396008cfBe9F27Ad97A7e1e4394f6F"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::BALANCER_V3_ROUTER::setPoolStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x55109bA88c396008cfBe9F27Ad97A7e1e4394f6F",
+        "pools": [
+          {
+            "pool": "0x694c009aa31B3F80EE18C218B02390ca2D7151e7",
+            "status": 3
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x6eaf19b2fc24552925db245f9ff613157a7dbb4c",
+    "0xe0126f0c4451b2b917064a93040fd4770d6774b5"
+  ],
+  "tokensIn": ["0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"],
+  "tokensOut": ["0x6eaf19b2fc24552925db245f9ff613157a7dbb4c"],
+  "maxEnabledTokens": 1
+}

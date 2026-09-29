@@ -1,0 +1,245 @@
+{
+  "name": "Curve AZND/AUSD strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+        "priceFeed": "0x58E0d540841e4bD6E8bE6e46FCc68a897E3fD3e4"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x4917a5ec9fcb5e10f47cbb197abe6ab63be81fe8",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+        "priceFeed": "0x1d6b8f887bb1352ae09bddb71d6bd24a7021ec32"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+        "priceFeed": "0x181b19338e3c0b1a09fa64aba3ec4a0a890cb0d2"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "Curve AZND/AUSD strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 100000,
+        "maxDebt": 10000000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V4_GATEWAY",
+          "version": 310,
+          "target": "0xcc7944c237dc540585935f19bc9aea0003bc4224"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0xc1a5930502E503c205af8bD63FC35E8Af6e2f16F"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 5000000
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x942644106B073E30D72c2C5D7529D5C296ea91ab",
+          "lpToken": "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xc1a5930502E503c205af8bD63FC35E8Af6e2f16F",
+        "pools": [
+          {
+            "token0": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+            "token1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+            "fee": 100,
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V4_GATEWAY::setPoolKeyStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xcc7944c237dc540585935f19bc9aea0003bc4224",
+        "poolKeys": [
+          {
+            "poolKey": {
+              "token0": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+              "token1": "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+              "fee": 50,
+              "tickSpacing": 1,
+              "hooks": "0x0000000000000000000000000000000000000000"
+            },
+            "allowed": true
+          },
+          {
+            "poolKey": {
+              "token0": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+              "token1": "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+              "fee": 50,
+              "tickSpacing": 1,
+              "hooks": "0x0000000000000000000000000000000000000000"
+            },
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x4917a5ec9fcb5e10f47cbb197abe6ab63be81fe8",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x2D84D79C852f6842AbE0304b70bBaA1506AdD457",
+          "lpToken": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    }
+  ],
+  "tokens": [
+    "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+    "0x942644106b073e30d72c2c5d7529d5c296ea91ab",
+    "0xe7cd86e13ac4309349f30b3435a9d337750fc82d",
+    "0x4917a5ec9fcb5e10f47cbb197abe6ab63be81fe8",
+    "0x2d84d79c852f6842abe0304b70bbaa1506add457"
+  ],
+  "tokensIn": [
+    "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+    "0x754704bc059f8c67012fed69bc8a327a5aafb603",
+    "0xe7cd86e13ac4309349f30b3435a9d337750fc82d"
+  ],
+  "tokensOut": ["0x2d84d79c852f6842abe0304b70bbaa1506add457"],
+  "maxEnabledTokens": 1
+}

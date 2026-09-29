@@ -1,0 +1,710 @@
+{
+  "name": "USDe strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "priceFeed": "0xb8087b4cee6bd4ad1b5dead85dd27614d96c965a"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x00836fe54625be242bcfa286207795405ca4fd10",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x3175df0976dfa876431c2e9ee6bc45b65d3473cc",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x3cef1afc0e8324b57293a6e7ce663781bbefbb79",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+        "priceFeed": "0x717455f044963a915b0de08196728a54cc6241fe"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+        "priceFeed": "0x717455f044963a915b0de08196728a54cc6241fe"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x5dc1bf6f1e983c0b21efb003c105133736fa0743",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x6b175474e89094c44da98b954eedeac495271d0f",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x6c3f90f043a72fa612cbac8115ee7e52bde6e490",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x7bc3485026ac48b6cf9baf0a377477fff5703af8",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x853d955acef822db058eb8505911ed77f175b99e",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xc71ea051a5f82c67adcf634c36ffe6334793d24c",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xd4fa2d31b7968e448877f69a96de69f5de8cd23e",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xdc035d45d973e3ec169d2276ddab16f1e407384f",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x167478921b907422f8e88b43c4af2b8bea278d3a",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x83f20f44975d03b1b09e64809b757c47f942beea",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "USDe strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 1000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 100000000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x00836fe54625be242bcfa286207795405ca4fd10",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x3175df0976dfa876431c2e9ee6bc45b65d3473cc",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x3cef1afc0e8324b57293a6e7ce663781bbefbb79",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x5dc1bf6f1e983c0b21efb003c105133736fa0743",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x6b175474e89094c44da98b954eedeac495271d0f",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x6c3f90f043a72fa612cbac8115ee7e52bde6e490",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x7bc3485026ac48b6cf9baf0a377477fff5703af8",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x853d955acef822db058eb8505911ed77f175b99e",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xc71ea051a5f82c67adcf634c36ffe6334793d24c",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xd4fa2d31b7968e448877f69a96de69f5de8cd23e",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_V1_2ASSETS",
+          "version": 311,
+          "target": "0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2",
+          "lpToken": "0x3175df0976dfa876431c2e9ee6bc45b65d3473cc",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_V1_3ASSETS",
+          "version": 311,
+          "target": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+          "lpToken": "0x6c3f90f043a72fa612cbac8115ee7e52bde6e490",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x00836Fe54625BE242BcFA286207795405ca4fD10",
+          "lpToken": "0x00836fe54625be242bcfa286207795405ca4fd10",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x02950460E2b9529D0E00284A5fA2d7bDF3fA4d72",
+          "lpToken": "0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x3cef1afc0e8324b57293a6e7ce663781bbefbb79",
+          "lpToken": "0x3cef1afc0e8324b57293a6e7ce663781bbefbb79",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x5dc1BF6f1e983C0b21EfB003c105133736fA0743",
+          "lpToken": "0x5dc1bf6f1e983c0b21efb003c105133736fa0743",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0x7bc3485026ac48b6cf9baf0a377477fff5703af8",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0xc71ea051a5f82c67adcf634c36ffe6334793d24c",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0xd4fa2d31b7968e448877f69a96de69f5de8cd23e",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xdc035d45d973e3ec169d2276ddab16f1e407384f",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "DAI_USDS_EXCHANGE",
+          "version": 310,
+          "target": "0x3225737a9Bbb6473CB4a45b7244ACa2BeFdB276A"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x1DD125C32e4B5086c63CC13B3cA02C4A2a61Fa9b"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x667701e51B4D1Ca244F17C78F7aB8744B4C99F9B"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x862FC0A67623a4E6f0776103340836c91728B06D"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0xDd5F2AFab5Ae5484339F9aD40FB4d51Fc5c96be3"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0xdE632C3a214D5f14C1d8ddF0b92F8BCd188fee45"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0xea734B615888c669667038D11950f44b177F15C0"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0xf063BD202E45d6b2843102cb4EcE339026645D4a"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x167478921b907422f8e88b43c4af2b8bea278d3a",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x83f20f44975d03b1b09e64809b757c47f942beea",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x167478921b907422F8E88B43C4Af2B8BEa278d3A",
+          "lpToken": "0x167478921b907422f8e88b43c4af2b8bea278d3a",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0x83f20f44975d03b1b09e64809b757c47f942beea",
+          "gateway": "0x0000000000000000000000000000000000000000"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "pools": [
+          {
+            "token0": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "token1": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+            "token1": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+            "token1": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x6b175474e89094c44da98b954eedeac495271d0f",
+            "token1": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x6b175474e89094c44da98b954eedeac495271d0f",
+            "token1": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "fee": 100,
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "BALANCER_V3_ROUTER",
+          "version": 311,
+          "target": "0x8A57c21234ddc225499843F6A073dd374c952560"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::BALANCER_V3_ROUTER::setPoolStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x8A57c21234ddc225499843F6A073dd374c952560",
+        "pools": [
+          {
+            "pool": "0x85b2b559bc2d21104c4defdd6efca8a20343361d",
+            "status": 3
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x00836fe54625be242bcfa286207795405ca4fd10",
+    "0x02950460e2b9529d0e00284a5fa2d7bdf3fa4d72",
+    "0x3175df0976dfa876431c2e9ee6bc45b65d3473cc",
+    "0x3cef1afc0e8324b57293a6e7ce663781bbefbb79",
+    "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f",
+    "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+    "0x5dc1bf6f1e983c0b21efb003c105133736fa0743",
+    "0x6b175474e89094c44da98b954eedeac495271d0f",
+    "0x6c3f90f043a72fa612cbac8115ee7e52bde6e490",
+    "0x7bc3485026ac48b6cf9baf0a377477fff5703af8",
+    "0x853d955acef822db058eb8505911ed77f175b99e",
+    "0xc71ea051a5f82c67adcf634c36ffe6334793d24c",
+    "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+    "0xd4fa2d31b7968e448877f69a96de69f5de8cd23e",
+    "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd",
+    "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    "0xdc035d45d973e3ec169d2276ddab16f1e407384f",
+    "0x167478921b907422f8e88b43c4af2b8bea278d3a",
+    "0x83f20f44975d03b1b09e64809b757c47f942beea"
+  ],
+  "tokensIn": [
+    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f",
+    "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+    "0x6b175474e89094c44da98b954eedeac495271d0f"
+  ],
+  "tokensOut": ["0x4c9edd5852cd905f086c759e8383e09bff1e68b3"],
+  "maxEnabledTokens": 1
+}

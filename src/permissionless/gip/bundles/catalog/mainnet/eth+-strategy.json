@@ -1,0 +1,154 @@
+{
+  "name": "ETH+ strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+        "priceFeed": "0x78f2abe9c06e385a510dd9309888fa58892c3251"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+        "priceFeed": "0xd69c7b2c461a604ff449a32e360e2e2af996a484"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xe8a5677171c87fcb65b76957f2852515b404c7b1",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x2c683fad51da2cd17793219cc86439c1875c353e",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "ETH+ strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 1000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 10000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xe8a5677171c87fcb65b76957f2852515b404c7b1",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_V1_2ASSETS",
+          "version": 311,
+          "target": "0x7fb53345f1B21aB5d9510ADB38F7d3590BE6364b",
+          "lpToken": "0xe8a5677171c87fcb65b76957f2852515b404c7b1",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": true
+        }
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x2c683fad51da2cd17793219cc86439c1875c353e",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x2c683fAd51da2cd17793219CC86439C1875c353e",
+          "lpToken": "0x2c683fad51da2cd17793219cc86439c1875c353e",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "pools": [
+          {
+            "token0": "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+            "token1": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "fee": 500,
+            "allowed": true
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+    "0xe8a5677171c87fcb65b76957f2852515b404c7b1",
+    "0x2c683fad51da2cd17793219cc86439c1875c353e"
+  ],
+  "tokensIn": ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"],
+  "tokensOut": ["0xe72b141df173b999ae7c1adcbf60cc9833ce56a8"],
+  "maxEnabledTokens": 1
+}

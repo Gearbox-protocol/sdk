@@ -1,0 +1,167 @@
+{
+  "name": "PT-siUSD Strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "priceFeed": "0x8ad48f5269a9e8c21f677bc81cce503e55196949"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+        "priceFeed": "0x1a941dde9fe76be3047218c52b99b1ac22782b14"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+        "priceFeed": "0x1a941dde9fe76be3047218c52b99b1ac22782b14"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5",
+        "priceFeed": "0xcc2be3e23aaa9ec08b5a9fcc05cb029bb0231571"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5",
+        "priceFeed": "0x3e5030c266e8588573e5c8a85ca19ec8977c21f3"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "PT-siUSD Strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 20,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 0.01,
+        "feeLiquidationPremiumExpired": 2,
+        "minDebt": 100000,
+        "maxDebt": 10000000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 1000000000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "INFINIFI_GATEWAY",
+          "version": 310,
+          "target": "0x3f04b65Ddbd87f9CE0A2e7Eb24d80e7fb87625b5"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "PENDLE_ROUTER",
+          "version": 311,
+          "target": "0x888888888889758F76e7103c6CbF23ABbF58F946"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::PENDLE_ROUTER::setPairStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+        "pairs": [
+          {
+            "market": "0x564f279b0226f60a40f1e4b8c596feb87c383bfa",
+            "inputToken": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+            "pendleToken": "0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5",
+            "pendleTokenType": 0,
+            "status": 1
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+    "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+    "0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5"
+  ],
+  "tokensIn": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"],
+  "tokensOut": ["0xaf76b3af3477e4a2cd0b7f80c3152108c19a25e5"],
+  "maxEnabledTokens": 1
+}

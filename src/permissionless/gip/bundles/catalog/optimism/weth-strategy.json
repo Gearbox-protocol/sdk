@@ -1,0 +1,225 @@
+{
+  "name": "WETH Strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+        "priceFeed": "0x718a5788b89454aae3a028ae9c111a29be6c2a6f"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x4200000000000000000000000000000000000006",
+        "priceFeed": "0x13e3ee699d1909e989722e753853ae30b17e08c5"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x4200000000000000000000000000000000000006",
+        "priceFeed": "0xc3e47c509967750cc97c24e8246961c440253548"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x4200000000000000000000000000000000000006",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+        "priceFeed": "0xded2d73758776d5424c9a944af441eb38e067247"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "WETH Strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 20,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 0.01,
+        "feeLiquidationPremiumExpired": 2,
+        "minDebt": 100000,
+        "maxDebt": 500000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 1000000000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x4200000000000000000000000000000000000006",
+        "liquidationThreshold": 83
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "UNISWAP_V3_ROUTER",
+          "version": 310,
+          "target": "0x0792a633F0c19c351081CF4B211F68F79bCc9676"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "pools": [
+          {
+            "token0": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+            "token1": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "fee": 3000,
+            "allowed": true
+          },
+          {
+            "token0": "0x4200000000000000000000000000000000000006",
+            "token1": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "fee": 10000,
+            "allowed": true
+          },
+          {
+            "token0": "0x4200000000000000000000000000000000000006",
+            "token1": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x4200000000000000000000000000000000000006",
+            "token1": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "fee": 500,
+            "allowed": true
+          },
+          {
+            "token0": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+            "token1": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "fee": 10000,
+            "allowed": true
+          },
+          {
+            "token0": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+            "token1": "0x4200000000000000000000000000000000000006",
+            "fee": 500,
+            "allowed": true
+          },
+          {
+            "token0": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+            "token1": "0x4200000000000000000000000000000000000006",
+            "fee": 10000,
+            "allowed": true
+          },
+          {
+            "token0": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "token1": "0x4200000000000000000000000000000000000006",
+            "fee": 500,
+            "allowed": true
+          },
+          {
+            "token0": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "token1": "0x4200000000000000000000000000000000000006",
+            "fee": 3000,
+            "allowed": true
+          },
+          {
+            "token0": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "token1": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "fee": 100,
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "ADAPTER::UNISWAP_V3_ROUTER::setPoolBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0x0792a633F0c19c351081CF4B211F68F79bCc9676",
+        "pools": [
+          {
+            "token0": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "token1": "0x4200000000000000000000000000000000000006",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+            "token1": "0x4200000000000000000000000000000000000006",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x68f180fcce6836688e9084f035309e29bf0a2095",
+            "token1": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "fee": 100,
+            "allowed": true
+          },
+          {
+            "token0": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+            "token1": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+            "fee": 1,
+            "allowed": true
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x68f180fcce6836688e9084f035309e29bf0a2095",
+    "0x4200000000000000000000000000000000000006",
+    "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58"
+  ],
+  "tokensIn": ["0x0b2c639c533813f4aa9d7837caf62653d097ff85"],
+  "tokensOut": ["0x4200000000000000000000000000000000000006"],
+  "maxEnabledTokens": 1
+}

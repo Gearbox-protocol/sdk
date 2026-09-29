@@ -1,0 +1,86 @@
+{
+  "name": "ezETH strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xbf5495efe5db9ce00f80364c8b423567e58d2110",
+        "priceFeed": "0x8ca5ea1f57e39bae637bab8567725552c831ae16"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xbf5495efe5db9ce00f80364c8b423567e58d2110",
+        "priceFeed": "0xa1fa35561aba3a78d993f898fbaf08736e99b245"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xbf5495efe5db9ce00f80364c8b423567e58d2110",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x596192bb6e41802428ac943d2f1476c1af25cc0e",
+        "priceFeed": "0xfe1ec406d777b0c4e2bf5e12d0f645721b2b86be"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "ezETH strategy",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 1000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 10000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xbf5495efe5db9ce00f80364c8b423567e58d2110",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0xa59fc0102b7c2aee66e237ee15cb56ad58a97b2e"
+        }
+      }
+    }
+  ],
+  "tokens": [
+    "0xbf5495efe5db9ce00f80364c8b423567e58d2110",
+    "0x596192bb6e41802428ac943d2f1476c1af25cc0e"
+  ],
+  "tokensIn": ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"],
+  "tokensOut": ["0xbf5495efe5db9ce00f80364c8b423567e58d2110"],
+  "maxEnabledTokens": 1
+}

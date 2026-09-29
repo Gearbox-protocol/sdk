@@ -1,0 +1,233 @@
+{
+  "name": "PT-USDe-15JAN2026-NEW",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+        "priceFeed": "0x19a5f93c768ce215c16691a85f63f8acd8fdb6c9"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xc63f1a8c0cd4493e18f6f3371182be01ce0bef02",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a",
+        "priceFeed": "0xfd1f3d0a41a7a1ddd3a4d15c653973bb30edd026"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a",
+        "priceFeed": "0xe1fa05324c7e58ede0890f9f0d56335a54cb919a"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "PT-USDe-15JAN2026-NEW",
+        "maxEnabledTokens": 1,
+        "feeInterest": 10,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 2,
+        "feeLiquidationPremiumExpired": 2.5,
+        "minDebt": 10000,
+        "maxDebt": 100000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 1000000000
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xc63f1a8c0cd4493e18f6f3371182be01ce0bef02",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "CURVE_STABLE_NG",
+          "version": 311,
+          "target": "0x2D84D79C852f6842AbE0304b70bBaA1506AdD457",
+          "lpToken": "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+          "basePool": "0x0000000000000000000000000000000000000000",
+          "use256": false
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+          "gateway": "0xE0126F0c4451B2B917064A93040fd4770D6774b5"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "ERC4626_VAULT",
+          "version": 312,
+          "target": "0xc63f1a8c0cd4493e18f6f3371182be01ce0bef02",
+          "gateway": "0xC63F1a8c0cD4493E18f6f3371182BE01Ce0BeF02"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "FLUID_DEX",
+          "version": 310,
+          "target": "0x667701e51B4D1Ca244F17C78F7aB8744B4C99F9B"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "PENDLE_ROUTER",
+          "version": 311,
+          "target": "0x888888888889758F76e7103c6CbF23ABbF58F946"
+        }
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "BALANCER_V3_ROUTER",
+          "version": 311,
+          "target": "0x55109bA88c396008cfBe9F27Ad97A7e1e4394f6F"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::BALANCER_V3_ROUTER::setPoolStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x55109bA88c396008cfBe9F27Ad97A7e1e4394f6F",
+        "pools": [
+          {
+            "pool": "0x6a74be33b5393d8a3eba4d69b78f9d9da947c48c",
+            "status": 3
+          }
+        ]
+      }
+    },
+    {
+      "type": "ADAPTER::PENDLE_ROUTER::setPairStatusBatch",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 311,
+        "target": "0x888888888889758F76e7103c6CbF23ABbF58F946",
+        "pairs": [
+          {
+            "market": "0xfd3eb62302fa3cbc3c7e59e887b92dbbc814285d",
+            "inputToken": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
+            "pendleToken": "0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a",
+            "pendleTokenType": 0,
+            "status": 1
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
+    "0xe0126f0c4451b2b917064a93040fd4770d6774b5",
+    "0x2d84d79c852f6842abe0304b70bbaa1506add457",
+    "0xc63f1a8c0cd4493e18f6f3371182be01ce0bef02",
+    "0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a"
+  ],
+  "tokensIn": ["0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"],
+  "tokensOut": ["0x93b544c330f60a2aa05ced87aeeffb8d38fd8c9a"],
+  "maxEnabledTokens": 1
+}

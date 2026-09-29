@@ -1,0 +1,211 @@
+{
+  "name": "liUSD-1w Strategy",
+  "actions": [
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "priceFeed": "0x8ad48f5269a9e8c21f677bc81cce503e55196949"
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+        "priceFeed": "0x33c69c82797e8b9df5181cb594a84d10e75a3110"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+        "priceFeed": "0x33c69c82797e8b9df5181cb594a84d10e75a3110"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xc71219dca5a671aa6268ab8fb35e570bd72f372b",
+        "priceFeed": "0x33c69c82797e8b9df5181cb594a84d10e75a3110"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0xc71219dca5a671aa6268ab8fb35e570bd72f372b",
+        "priceFeed": "0x16c9fb971315247727b1861f4122e25f883c3eff"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0xc71219dca5a671aa6268ab8fb35e570bd72f372b",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+        "priceFeed": "0x59d761a4e2102b2d369b739d9c13b01b9febd3a5"
+      }
+    },
+    {
+      "type": "ORACLE::setReservePriceFeed",
+      "params": {
+        "token": "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+        "priceFeed": "0x59d761a4e2102b2d369b739d9c13b01b9febd3a5"
+      }
+    },
+    {
+      "type": "POOL::setTokenLimit",
+      "params": {
+        "token": "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+        "limit": 10000000
+      }
+    },
+    {
+      "type": "MARKET::addAsset",
+      "params": {
+        "token": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+        "priceFeed": "0x5dc92ec92cd5423ef95aebe8ac96619bcc9ffc88"
+      }
+    },
+    {
+      "type": "MARKET::createCreditSuite",
+      "params": {
+        "name": "liUSD-1w Strategy",
+        "maxEnabledTokens": 2,
+        "feeInterest": 20,
+        "feeLiquidation": 2,
+        "feeLiquidationPremium": 2.5,
+        "feeLiquidationExpired": 0.01,
+        "feeLiquidationPremiumExpired": 2,
+        "minDebt": 100000,
+        "maxDebt": 5000000,
+        "minorVersion": 310,
+        "accountFactoryType": "DEFAULT",
+        "isExpired": false,
+        "expirationDate": 0,
+        "whitelistPolicy": "0x0000000000000000000000000000000000000000",
+        "debtLimit": 100000100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "POOL::setCreditManagerDebtLimit",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "limit": 100000100000
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xc71219dca5a671aa6268ab8fb35e570bd72f372b",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+        "liquidationThreshold": 90
+      }
+    },
+    {
+      "type": "CREDIT::addCollateralToken",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "token": "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb",
+        "liquidationThreshold": 0
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "INFINIFI_GATEWAY",
+          "version": 310,
+          "target": "0x3f04b65Ddbd87f9CE0A2e7Eb24d80e7fb87625b5"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::INFINIFI_GATEWAY::setLockedTokenBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0x3f04b65Ddbd87f9CE0A2e7Eb24d80e7fb87625b5",
+        "lockedTokens": [
+          {
+            "lockedToken": "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+            "unwindingEpochs": 1,
+            "allowed": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "CREDIT::allowAdapter",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "adapter": {
+          "type": "INFINIFI_UNWINDING",
+          "version": 310,
+          "target": "0x702b11ac02c4498f29beff3bbc4f90c92d552668",
+          "phantomToken": "0xc71219dca5a671aa6268ab8fb35e570bd72f372b"
+        }
+      }
+    },
+    {
+      "type": "ADAPTER::INFINIFI_UNWINDING::setLockedTokenBatchStatus",
+      "params": {
+        "creditManager": "0x0000000000000000000000000000000000000000",
+        "version": 310,
+        "target": "0x702b11ac02c4498f29beff3bbc4f90c92d552668",
+        "lockedTokens": [
+          {
+            "lockedToken": "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+            "unwindingEpochs": 1,
+            "allowed": true
+          }
+        ]
+      }
+    }
+  ],
+  "tokens": [
+    "0x48f9e38f3070ad8945dfeae3fa70987722e3d89c",
+    "0xc71219dca5a671aa6268ab8fb35e570bd72f372b",
+    "0x12b004719fb632f1e7c010c6f5d6009fb4258442",
+    "0xdbdc1ef57537e34680b898e1febd3d68c7389bcb"
+  ],
+  "tokensIn": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"],
+  "tokensOut": ["0x12b004719fb632f1e7c010c6f5d6009fb4258442"],
+  "maxEnabledTokens": 2
+}
