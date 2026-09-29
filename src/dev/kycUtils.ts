@@ -239,6 +239,18 @@ export async function registerSecuritizeInvestor(
   } else {
     logger?.debug(`Investor ${investor} is already a registered wallet`);
   }
+
+  const registered = await anvil.readContract({
+    address: registryService,
+    abi: iDSRegistryServiceAbi,
+    functionName: "isWallet",
+    args: [investor],
+  });
+  if (!registered) {
+    throw new Error(
+      `securitize: registry ${registryService} did not register wallet ${investor}`,
+    );
+  }
 }
 
 /**

@@ -100,9 +100,9 @@ export function createLogger(): Logger {
   });
 }
 
-export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
+import { errorMessage } from "../errorMessage.js";
+
+export { errorMessage };
 
 /**
  * Runs `fn` over `items` with at most `concurrency` in flight.
