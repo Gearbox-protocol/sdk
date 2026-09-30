@@ -1,4 +1,6 @@
+import type { Address } from "viem";
 import type {
+  ChainId,
   DataResponse,
   LiquidatableAccount,
   LiquidationDetails,
@@ -58,6 +60,16 @@ export interface ILiquidations {
     props: CheckLiquidationInput,
     options?: CheckLiquidationOptions,
   ): Promise<LiquidationValidationError[]>;
+  /**
+   * Whether `liquidator` may liquidate while the facade is paused; `false` when unknown.
+   **/
+  isEmergencyLiquidator(props: IsEmergencyLiquidatorProps): boolean;
+}
+
+export interface IsEmergencyLiquidatorProps {
+  chainId: ChainId;
+  creditManager: Address;
+  liquidator: Address;
 }
 
 /**
