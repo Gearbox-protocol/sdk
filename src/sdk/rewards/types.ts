@@ -1,13 +1,13 @@
 import type { Address } from "viem";
-import type { ChainId, DataResponse } from "../../model/index.js";
-import type { Reward } from "../../rewards/index.js";
+import type { ChainId, DataResponse, Reward } from "../../model/index.js";
+import type { OnchainSDK } from "../../onchain/index.js";
 
 /**
  * Claimable Merkl and Turtle rewards.
  **/
 export interface IRewards {
   /**
-   * {@inheritDoc RewardsService.list}
+   * Claimable rewards of `wallet`; a chain errors only when every source failed on it.
    **/
   list(wallet: Address, chainIds?: ChainId[]): Promise<DataResponse<Reward[]>>;
 }
@@ -20,3 +20,16 @@ export interface IRewardsByMode {
   offchain: undefined;
   both: IRewards;
 }
+
+export interface RewardsKeys {
+  /** Raises Merkl's rate limit; the keyless path answers too. */
+  merklApiKey?: string;
+  /** Turtle is skipped without one: its API answers no keyless request. */
+  turtleApiKey?: string;
+}
+
+/** What the mapping needs off a chain's SDK, and nothing asynchronous. */
+export type RewardsSdk = Pick<
+  OnchainSDK,
+  "chainId" | "marketRegister" | "tokensMeta"
+>;

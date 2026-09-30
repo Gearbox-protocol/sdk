@@ -12,13 +12,12 @@ import type {
   NetworkType,
 } from "../onchain/index.js";
 import type { ILogger } from "../onchain/types/logger.js";
-import type { RewardsServiceKeys } from "../rewards/index.js";
 import type { IAnalyticsByMode } from "./analytics/types.js";
 import type { ILiquidationsByMode } from "./liquidations/types.js";
 import type { IOpportunities } from "./opportunities/types.js";
 import type { IPositions } from "./positions/types.js";
 import type { IPreviewByMode } from "./preview/types.js";
-import type { IRewardsByMode } from "./rewards/types.js";
+import type { IRewardsByMode, RewardsKeys } from "./rewards/types.js";
 
 /**
  * Which sources a {@link GearboxSDK} reads from, and therefore which of its
@@ -87,7 +86,7 @@ export interface GearboxSDKOptions<M extends Mode = Mode> {
   /**
    * API keys for {@link IGearboxSDK.rewards}.
    **/
-  rewards?: RewardsServiceKeys;
+  rewards?: RewardsKeys;
   logger?: ILogger;
 }
 

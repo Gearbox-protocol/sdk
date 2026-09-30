@@ -58,11 +58,6 @@
       "types": "./dist/types/permissionless/index.d.ts",
       "import": "./dist/esm/permissionless/index.js",
       "default": "./dist/cjs/permissionless/index.js"
-    },
-    "./rewards": {
-      "types": "./dist/types/rewards/index.d.ts",
-      "import": "./dist/esm/rewards/index.js",
-      "default": "./dist/cjs/rewards/index.js"
     }
   },
   "files": [
