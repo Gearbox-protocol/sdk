@@ -47,6 +47,7 @@ export type PoolOpportunityChartMetric =
 /**
  * Every metric a strategy opportunity can chart.
  *
+ * `quotaRateAvg7d` is the trailing seven-day average quota rate.
  * `collateralPrice` is the collateral/underlying series a liquidation-price
  * chart draws; the two USD series are the same prices quoted in dollars.
  **/
@@ -55,6 +56,7 @@ export const STRATEGY_OPPORTUNITY_CHART_METRICS = [
   "borrowApyAvg7d",
   "rewardsApyAvg7d",
   "quotaRate",
+  "quotaRateAvg7d",
   "liquidationThreshold",
   "collateralApy",
   "tvl",
@@ -246,6 +248,7 @@ export const CHART_METRIC_UNITS = {
   borrowApy: "bps",
   borrowApyAvg7d: "bps",
   quotaRate: "bps",
+  quotaRateAvg7d: "bps",
   liquidationThreshold: "bps",
   collateralApy: "bps",
   supplied: "token",
