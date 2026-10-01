@@ -25,6 +25,7 @@ import {
   AddressSet,
   AssetsMap,
   childLogger,
+  DIRECT_TRANSFERS_QUOTA,
   MAX_UINT256,
   PERCENTAGE_FACTOR,
   PoolService,
@@ -35,8 +36,6 @@ import { iDegenNftv2Abi } from "./abi.js";
 import { claimFromFaucet } from "./claimFromFaucet.js";
 import { type AnvilClient, extendAnvilClient } from "./createAnvilClient.js";
 import { createMinter } from "./mint/index.js";
-
-const DIRECT_TRANSFERS_QUOTA = 10_000n;
 
 export class OpenTxRevertedError extends BaseError {
   public readonly txHash: Hash;

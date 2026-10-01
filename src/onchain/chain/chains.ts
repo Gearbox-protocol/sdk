@@ -62,6 +62,12 @@ export interface GearboxChain extends Chain {
    **/
   rwaTokens?: AddressSet;
   /**
+   * Collateral whose sale pays part of the proceeds later, as a direct
+   * transfer of another token to the credit account. Maps collateral → the
+   * token transferred.
+   **/
+  directTransfers?: AddressMap<Address>;
+  /**
    * Pools being wound down. Curated, and unrelated to any on-chain flag.
    **/
   sunsetPools?: AddressSet;
@@ -192,6 +198,11 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x238a700eD6165261Cf8b2e544ba797BC11e466Ba", // mF-ONE, Midas
         "0x7433806912Eae67919e66aea853d46Fa0aef98A8", // mGLOBAL, Midas
       ]),
+      directTransfers: AddressMap.fromRecord<Address>({
+        // mGLOBAL → USDC
+        "0x7433806912Eae67919e66aea853d46Fa0aef98A8":
+          "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      }),
       legacyStrategyTargets: AddressMap.fromRecord<Address>({
         "0x1293a69e4ad4a93293a06b6303104be35bdd83af":
           "0x1a711a5bc48b5c1352c1882fa65dc14b5b9e829d",
@@ -802,6 +813,20 @@ export function isSunsetStrategy(
   network: NetworkType,
 ): boolean {
   return !!chains[network].sunsetStrategies?.has(creditManager);
+}
+
+/**
+ * Token a collateral's sale later transfers directly to the credit account,
+ * or `undefined` when the collateral is not in the table.
+ *
+ * @param collateral - Collateral token address.
+ * @param network - Chain id or {@link NetworkType} label.
+ **/
+export function getDirectTransferToken(
+  collateral: Address,
+  network: number | bigint | NetworkType,
+): Address | undefined {
+  return getChain(network).directTransfers?.get(collateral);
 }
 
 /**

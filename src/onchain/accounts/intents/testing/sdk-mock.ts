@@ -611,6 +611,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     // what the multichain layer stamps a read with, and what the suite judges
     // an expiry against
     chainId: 1,
+    networkType: "Mainnet",
     currentBlock: 1n,
     timestamp: args.timestamp ?? 0,
     withdrawalCompressor,

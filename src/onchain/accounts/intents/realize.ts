@@ -5,6 +5,7 @@ import {
   noDelayedRoute,
   withdrawalInProgress,
 } from "../../../model/index.js";
+import { getDirectTransferToken } from "../../chain/chains.js";
 import { PERCENTAGE_FACTOR_1KK } from "../../constants/math.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
@@ -48,6 +49,7 @@ import {
   clearedQuotas,
   getQuotasForUpdate,
   quotasAfterUpdate,
+  withDirectTransferQuota,
 } from "./utils/quotas-for-update.js";
 import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
 import { withdrawLimits } from "./withdraw-limits.js";
@@ -185,6 +187,8 @@ export async function realize(
    * judge the closing collateral check at safe prices.
    */
   let withdrawsCollateral = false;
+  /** Token a sold collateral later transfers to the account; needs a quota. */
+  let directTransfer: Address | undefined;
   const amountOf = (a: Amount): bigint =>
     typeof a === "bigint" ? a : min(raised, a.max ?? raised);
   const assertHolds = (token: Address, amount: bigint, what: string): void => {
@@ -293,6 +297,7 @@ export async function realize(
           raised = amountOut;
           break;
         }
+        directTransfer ??= getDirectTransferToken(step.from, sdk.networkType);
         const held = ledger.balanceOf(step.from);
         const leg = await paths.swap({
           tokenIn: step.from,
@@ -409,6 +414,13 @@ export async function realize(
           );
         }
         assertHolds(step.token, step.amount + step.reserve, "request");
+        // A delayed exit closes the account in its tail: no quota to hold.
+        if (step.record.type !== "CLOSE_ACCOUNT") {
+          directTransfer ??= getDirectTransferToken(
+            step.token,
+            sdk.networkType,
+          );
+        }
 
         const preview = await sdk.accounts.previewDelayedWithdrawal({
           creditAccount: creditAccount.creditAccount,
@@ -525,17 +537,24 @@ export async function realize(
   // not argue.
   const quotas =
     cleared ??
-    getQuotasForUpdate({
-      assetsBefore: creditAccount.tokens,
-      assetsAfter: assets,
-      initialQuotas: creditAccount.tokens,
-      quotaReserve,
-      underlyingToken: underlying,
-      liquidationThresholds: suite.creditManager.liquidationThresholds,
-      quotas: market.pool.pqk.quotas,
-      maxDebt: suite.creditFacade.maxDebt,
-      convert: price,
-    });
+    withDirectTransferQuota(
+      getQuotasForUpdate({
+        assetsBefore: creditAccount.tokens,
+        assetsAfter: assets,
+        initialQuotas: creditAccount.tokens,
+        quotaReserve,
+        underlyingToken: underlying,
+        liquidationThresholds: suite.creditManager.liquidationThresholds,
+        quotas: market.pool.pqk.quotas,
+        maxDebt: suite.creditFacade.maxDebt,
+        convert: price,
+      }),
+      // The facade refuses a quota increase on an account left with no debt.
+      debt > 0n ? directTransfer : undefined,
+      creditAccount.tokens,
+      market.pool.pqk.quotas,
+      suite.creditManager.maxEnabledTokens,
+    );
 
   // The update names only the tokens the plan touched, so what the account is
   // quoted at afterwards is it laid over the quotas the account came with —
