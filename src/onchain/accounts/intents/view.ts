@@ -22,7 +22,7 @@ export function accountView(
     sdk.marketRegister.findByCreditManager(creditManager).priceOracle;
   const price: ConvertFn = (from, to, amount) =>
     oracle.safeConvert(from, to, amount).value;
-  const { creditFacade } = sdk.marketRegister.findCreditManager(creditManager);
+  const creditSuite = sdk.marketRegister.findCreditManager(creditManager);
 
   let totalValue = 0n;
   for (const t of creditAccount.tokens) {
@@ -36,9 +36,10 @@ export function accountView(
     debt: creditAccount.totalDebt,
     collateral: totalValue - creditAccount.totalDebt,
     debtLimits: {
-      minDebt: creditFacade.minDebt,
-      maxDebt: creditFacade.maxDebt,
+      minDebt: creditSuite.creditFacade.minDebt,
+      maxDebt: creditSuite.creditFacade.maxDebt,
     },
+    maxBorrowAmount: creditSuite.maxBorrowAmount(),
     balanceOf: (token: Address) =>
       creditAccount.tokens.find(t => eq(t.token, token))?.balance ?? 0n,
     price,

@@ -3,7 +3,16 @@ import { UND } from "../testing/tokens.js";
 import { checkDebtLimits } from "./checkDebtLimits.js";
 
 describe("checkDebtLimits", () => {
-  const limits = { minDebt: 100n, maxDebt: 10_000n, underlying: UND };
+  const maxBorrowAmount = {
+    amount: { token: UND, value: 20_000n, valueUsd: null },
+    limit: "poolAvailableLiquidity" as const,
+  };
+  const limits = {
+    minDebt: 100n,
+    maxDebt: 10_000n,
+    underlying: UND,
+    maxBorrowAmount,
+  };
   const at = (debt: bigint, allowZero: boolean) =>
     checkDebtLimits({ ...limits, debt, allowZero });
 
@@ -20,6 +29,7 @@ describe("checkDebtLimits", () => {
         requested: { token: UND, value: 10_001n, valueUsd: null },
         minDebt: { token: UND, value: 100n, valueUsd: null },
         maxDebt: { token: UND, value: 10_000n, valueUsd: null },
+        maxBorrowAmount,
       },
     ]);
     expect(at(99n, true)[0]?.code).toBe("debtOutOfRange");
@@ -42,8 +52,8 @@ describe("checkDebtLimits", () => {
     });
   });
 
-  it("leaves it out for a caller that raises to throw", () => {
-    expect(at(10_001n, true)[0]?.maxBorrowAmount).toBeUndefined();
+  it("always includes market capacity with the debt range", () => {
+    expect(at(10_001n, true)[0]?.maxBorrowAmount).toEqual(maxBorrowAmount);
   });
 
   it("exempts a zero debt only where the caller says so", () => {

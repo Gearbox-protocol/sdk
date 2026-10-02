@@ -8,6 +8,7 @@ import {
   unsupportedCollateralToken,
 } from "../../../model/index.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
+import type { MaxBorrowAmount } from "../../market/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
@@ -106,6 +107,7 @@ export interface AccountView {
   /** TVL − debt, in underlying. */
   collateral: bigint;
   debtLimits: DebtLimits;
+  maxBorrowAmount: MaxBorrowAmount;
   balanceOf(token: Address): bigint;
   /** Oracle conversion; unpriceable tokens contribute 0n. */
   price(from: Address, to: Address, amount: bigint): bigint;
@@ -197,7 +199,13 @@ export function planDeposit(
       `deposit: target leverage ${intent.targetLeverage} would require repaying debt`,
     );
   }
-  assertDebtLimits(view.sdk, view.debt + debtDelta, view.debtLimits, U);
+  assertDebtLimits(
+    view.sdk,
+    view.debt + debtDelta,
+    view.debtLimits,
+    U,
+    view.maxBorrowAmount,
+  );
 
   const T = intent.positionToken ?? positionToken(view, "deposit");
   // The deposit is already the position token: convert only what is borrowed.
@@ -246,6 +254,7 @@ export function planRepay(
         requested: toTokenAmount(view.sdk, U, view.debt),
         minDebt: toTokenAmount(view.sdk, U, view.debtLimits.minDebt),
         maxDebt: toTokenAmount(view.sdk, U, view.debtLimits.maxDebt),
+        maxBorrowAmount: view.maxBorrowAmount,
       }),
       "repay: the account owes nothing",
     );
@@ -264,6 +273,7 @@ export function planRepay(
     view.debt - repaid,
     view.debtLimits,
     view.underlying,
+    view.maxBorrowAmount,
   );
 
   return [
@@ -622,7 +632,13 @@ function withdrawShape(
   }
 
   const dD = proportionalDebt(view, WU);
-  assertDebtLimits(view.sdk, view.debt - dD, view.debtLimits, view.underlying);
+  assertDebtLimits(
+    view.sdk,
+    view.debt - dD,
+    view.debtLimits,
+    view.underlying,
+    view.maxBorrowAmount,
+  );
 
   return { U, T, S, WU, dD, all: false };
 }
@@ -645,7 +661,13 @@ function leverageShape(
   }
 
   const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtLimits(view.sdk, target, view.debtLimits, view.underlying);
+  assertDebtLimits(
+    view.sdk,
+    target,
+    view.debtLimits,
+    view.underlying,
+    view.maxBorrowAmount,
+  );
 
   return { U: view.underlying, delta: target - view.debt };
 }
