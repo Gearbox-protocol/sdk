@@ -884,6 +884,11 @@ export interface IOpportunitiesPrepare {
    * amounts; omitted, both this and the flow itself reach for the account's
    * largest non-phantom balance.
    *
+   * `targetHF` is the health factor `safePartial` has to leave behind, in
+   * basis points. The default is the facade's own threshold; a form holding
+   * the account to something stricter passes its own, so the ceiling it
+   * offers clears its own bar rather than landing a basis point under it.
+   *
    * Taking everything out needs none of the figures: send `MAX_UINT256` to
    * {@link withdrawStrategy} and the exit is what runs, named rather than
    * priced.
@@ -894,6 +899,7 @@ export interface IOpportunitiesPrepare {
   maxWithdraw(
     position: PositionInput,
     sourceToken?: Address,
+    targetHF?: bigint,
   ): Promise<WithdrawCeilings>;
 
   /**

@@ -648,10 +648,16 @@ export class PrepareApi
   public async maxWithdraw(
     position: PositionInput,
     sourceToken?: Address,
+    targetHF?: bigint,
   ): Promise<WithdrawCeilings> {
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
-    return service(sdk).maxWithdraw({ creditAccount, sdk, sourceToken });
+    return service(sdk).maxWithdraw({
+      creditAccount,
+      sdk,
+      sourceToken,
+      targetHF,
+    });
   }
 
   /**
