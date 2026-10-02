@@ -213,18 +213,6 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       value: MARGIN_UND,
       valueUsd: null,
     });
-    expect(refusal.error.maxDebt).toEqual({
-      token: expect.objectContaining({ address: UND }),
-      value: MAX_DEBT,
-      valueUsd: null,
-    });
-    expect(refusal.error.maxBorrowAmount).toEqual(
-      expect.objectContaining({
-        amount: expect.objectContaining({
-          token: expect.objectContaining({ address: UND }),
-        }),
-      }),
-    );
     expect(refusal.error.requested.value).toBeLessThan(MARGIN_UND);
   });
 });

@@ -16,7 +16,7 @@ export interface DebtLimitsArgs {
    */
   allowZero: boolean;
   /** From the caller's suite; a caller that raises to throw advises nobody. */
-  maxBorrowAmount: MaxBorrowAmount;
+  maxBorrowAmount?: MaxBorrowAmount;
 }
 
 /** A debt the facade would revert on. */
