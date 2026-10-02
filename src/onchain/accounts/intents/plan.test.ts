@@ -50,6 +50,20 @@ function view(args: {
     debt: args.debt,
     collateral: totalValue - args.debt,
     debtLimits: { minDebt: 1n, maxDebt: 1_000_000n },
+    maxBorrowAmount: {
+      amount: {
+        token: {
+          chainId: 1,
+          address: U,
+          symbol: "UND",
+          name: "Underlying",
+          decimals: 18,
+        },
+        value: 1_000_000n,
+        valueUsd: null,
+      },
+      limit: "poolAvailableLiquidity",
+    },
     balanceOf: token => args.balances[token] ?? 0n,
     price: (_from, _to, amount) => amount,
     fattest: exclude => {

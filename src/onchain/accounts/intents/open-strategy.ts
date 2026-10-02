@@ -166,7 +166,13 @@ export async function buildOpenStrategyState(
       creditFacade: suite.creditFacade.address,
       underlying,
     });
-  assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
+  assertDebtLimits(
+    sdk,
+    debt,
+    suite.creditFacade,
+    underlying,
+    suite.maxBorrowAmount(),
+  );
   assertCanBorrow(sdk, suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });

@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 import type { Token } from "../../../model/index.js";
-
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
+import type { MaxBorrowAmount } from "../../market/index.js";
 import { IntentPreviewError } from "../../validation/raise.js";
 import {
   assertDebtLimits,
@@ -32,11 +32,15 @@ const SDK = {
 
 /** The amount shape a refusal reports: the token inlined, no price attached. */
 const und = (value: bigint) => ({ token: UND_TOKEN, value, valueUsd: null });
+const maxBorrowAmount: MaxBorrowAmount = {
+  amount: und(20_000n),
+  limit: "poolAvailableLiquidity",
+};
 
 /** The error a debtLimits check raises, for a debt that draws one. */
 function debtLimitsError(debt: bigint) {
   try {
-    assertDebtLimits(SDK, debt, DEBT_LIMITS, UND);
+    assertDebtLimits(SDK, debt, DEBT_LIMITS, UND, maxBorrowAmount);
   } catch (e) {
     if (e instanceof IntentPreviewError) return e.error;
   }
@@ -94,7 +98,7 @@ describe("math — the three formulas behind every intent", () => {
 
   it("[INV-9] debt must be zero or inside [minDebt, maxDebt]", () => {
     const withinLimits = (debt: bigint) => () =>
-      assertDebtLimits(SDK, debt, DEBT_LIMITS, UND);
+      assertDebtLimits(SDK, debt, DEBT_LIMITS, UND, maxBorrowAmount);
     expect(withinLimits(0n)).not.toThrow();
     expect(withinLimits(100n)).not.toThrow();
     expect(withinLimits(10_000n)).not.toThrow();
@@ -118,6 +122,7 @@ describe("math — the three formulas behind every intent", () => {
       requested: und(10_001n),
       minDebt: und(DEBT_LIMITS.minDebt),
       maxDebt: und(DEBT_LIMITS.maxDebt),
+      maxBorrowAmount,
     });
     // Under the floor the same three numbers say which end was missed.
     expect(debtLimitsError(99n)).toMatchObject({
@@ -125,6 +130,7 @@ describe("math — the three formulas behind every intent", () => {
       requested: und(99n),
       minDebt: und(DEBT_LIMITS.minDebt),
       maxDebt: und(DEBT_LIMITS.maxDebt),
+      maxBorrowAmount,
     });
   });
 
@@ -181,6 +187,8 @@ describe("math — the three formulas behind every intent", () => {
   it("refuses a negative debt, which the old debtLimits check let through", () => {
     // The previous rule was `debt > 0n && debt < minDebt`, so anything below
     // zero slipped past it. A withdrawal that over-repays can produce one.
-    expect(() => assertDebtLimits(SDK, -1n, DEBT_LIMITS, UND)).toThrowError();
+    expect(() =>
+      assertDebtLimits(SDK, -1n, DEBT_LIMITS, UND, maxBorrowAmount),
+    ).toThrowError();
   });
 });
