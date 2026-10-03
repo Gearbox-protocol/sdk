@@ -101,14 +101,16 @@ export function assertLeverageAtLeastOne(leverage: bigint): void {
 }
 
 /**
- * Rejects a debt the facade would revert on: zero is always fine (no loan at
- * all), anything else has to sit inside `[minDebt, maxDebt]`.
+ * Rejects a debt the facade would revert on: anything else has to sit inside
+ * `[minDebt, maxDebt]`. Zero is fine only `allowZero`-ing it: an adjustment
+ * may end owing nothing, an opening may not.
  */
 export function assertDebtLimits(
   sdk: OnchainSDK,
   debt: bigint,
   debtLimits: DebtLimits,
   underlying: Address,
+  allowZero = true,
 ): void {
   // An account being adjusted may end owing nothing; the facade only weighs a
   // loan that exists.
@@ -118,7 +120,7 @@ export function assertDebtLimits(
       minDebt: debtLimits.minDebt,
       maxDebt: debtLimits.maxDebt,
       underlying: toToken(sdk, underlying),
-      allowZero: true,
+      allowZero,
     }),
     debt > debtLimits.maxDebt
       ? `debt ${debt} exceeds maxDebt ${debtLimits.maxDebt}`

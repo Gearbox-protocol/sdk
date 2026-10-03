@@ -164,6 +164,19 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     });
   });
 
+  it("rejects a zero-debt opening against a nonzero debt floor", async () => {
+    const { result } = run(
+      case_underlying_1x,
+      buildOpenStrategySdk({ minDebt: MARGIN_UND }),
+    );
+    const refusal = await result;
+
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange") {
+      throw new Error("expected debtOutOfRange");
+    }
+    expect(refusal.error.requested?.value).toBe(0n);
+  });
+
   it("rejects collateral that is worth nothing in underlying", async () => {
     const { result } = run({ ...case_underlying_3x, collateral: [] });
     const refusal = await result;

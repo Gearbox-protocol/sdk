@@ -166,7 +166,10 @@ export async function buildOpenStrategyState(
       creditFacade: suite.creditFacade.address,
       underlying,
     });
-  assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
+  // An opening carries a real loan: the update validation refuses a zero-debt
+  // one, and the intent has to agree with it (empty openings go through
+  // openEmptyAccount instead).
+  assertDebtLimits(sdk, debt, suite.creditFacade, underlying, false);
   assertCanBorrow(sdk, suite, debt);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
