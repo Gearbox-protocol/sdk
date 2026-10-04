@@ -32,6 +32,24 @@ function band(
 }
 
 describe("calcLeverageBand", () => {
+  it("retains 1.3x when debt rounding leaves exactly 100 USDC", () => {
+    const sdk = buildMarketSdk({
+      minDebt: 100_000_000n,
+      debtLimitAvailable: 100_000_000n,
+      extraDecimals: { [UND]: 6 },
+    });
+    const margin = 333_333_334n;
+    expect(debtForLeverage(margin, 130n)).toBe(100_000_000n);
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        collateral: [{ token: UND, balance: margin }],
+      }),
+    ).toEqual({ min: 1.3, max: 1.3 });
+    expect(debtForLeverage(margin, 131n)).toBeGreaterThan(100_000_000n);
+  });
+
   it("inverts debt = netValue x (leverage - 1)", () => {
     // 10k of net value carries the 1k minimum at 1.1x; the threshold cuts the
     // top long before the 200k facade limit does
