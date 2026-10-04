@@ -7,6 +7,7 @@ import type { Asset } from "../../base/index.js";
 import { MAX_UINT256 } from "../../constants/index.js";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants/math.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
+import type { MaxBorrowAmount } from "../../market/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import {
@@ -118,10 +119,11 @@ export function assertDebtLimits(
   underlying: Address,
   options: {
     allowZero?: boolean;
+    maxBorrowAmount?: MaxBorrowAmount;
     getCollateralLimits?: () => DebtOutOfRangeError["collateralLimits"];
   } = {},
 ): void {
-  const { allowZero = true, getCollateralLimits } = options;
+  const { allowZero = true, getCollateralLimits, maxBorrowAmount } = options;
   // An account being adjusted may end owing nothing; the facade only weighs a
   // loan that exists.
   raise(
@@ -132,6 +134,7 @@ export function assertDebtLimits(
       underlying: toToken(sdk, underlying),
       allowZero,
       getCollateralLimits,
+      maxBorrowAmount,
     }),
     debt > debtLimits.maxDebt
       ? `debt ${debt} exceeds maxDebt ${debtLimits.maxDebt}`

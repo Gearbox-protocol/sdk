@@ -380,3 +380,39 @@ describe("borrow — what it refuses, and with which numbers", () => {
     expect(error.code).toBe("insufficientPoolLiquidity");
   });
 });
+
+describe("borrow debt refusal live borrowing ceiling", () => {
+  it("attaches subminimum capacity before collateral or liquidity simulation", async () => {
+    const error = await refusal(
+      {},
+      { minDebt: LOAN * 2n, availableLiquidity: LOAN / 2n },
+    );
+    if (error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(error.maxBorrowAmount?.amount.value).toBe(LOAN / 2n);
+    expect(error.maxBorrowAmount?.limit).toBe("poolAvailableLiquidity");
+  });
+
+  it("keeps borrowing on an existing account outside full-debt advice", async () => {
+    const existing = buildFixtureCreditAccount({ totalDebt: 0n, tokens: [] });
+    const sdk = buildMarketSdk({
+      minDebt: LOAN * 2n,
+      availableLiquidity: LOAN / 2n,
+    });
+    const outcome = await new CreditAccountOperationsService(sdk).borrowIntent({
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: UND,
+      borrowAmount: LOAN,
+      slippage: undefined,
+      quotaReserve: undefined,
+      creditAccount: existing,
+    });
+    if (outcome.ok || outcome.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(outcome.error.maxBorrowAmount).toBeUndefined();
+    expect(outcome.error.requested.value).toBe(LOAN);
+  });
+});

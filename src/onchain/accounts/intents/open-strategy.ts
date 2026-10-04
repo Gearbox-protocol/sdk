@@ -174,6 +174,7 @@ export async function buildOpenStrategyState(
     openCollateralForDebtLimits({ suite, collateral, leverage });
   assertDebtLimits(sdk, debt, suite.creditFacade, underlying, {
     allowZero: false,
+    maxBorrowAmount: suite.maxBorrowAmount(),
     getCollateralLimits,
   });
   assertCanBorrow(sdk, suite, debt, { getCollateralLimits });

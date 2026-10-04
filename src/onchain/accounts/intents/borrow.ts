@@ -245,7 +245,9 @@ export async function buildBorrowState(
     totalDebt: market.toUnderlyingAmount(debt),
     netValue: market.toUnderlyingAmount(margin - debt),
   });
-  assertDebtLimits(sdk, debt, suite.creditFacade, underlying);
+  assertDebtLimits(sdk, debt, suite.creditFacade, underlying, {
+    maxBorrowAmount: existing ? undefined : suite.maxBorrowAmount(),
+  });
   assertCanBorrow(sdk, suite, debt);
 
   // Synthetic slice so the router helper can be reused even though no account

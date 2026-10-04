@@ -483,3 +483,18 @@ describe("lazy opening bounds in guards", () => {
     expect(getBounds).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("open debt refusal live borrowing ceiling", () => {
+  it("attaches subminimum market capacity to the first debt refusal", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: MARGIN_UND * 3n,
+      availableLiquidity: MARGIN_UND,
+    });
+    const outcome = await run(case_underlying_3x, sdk).result;
+    if (outcome.ok || outcome.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(outcome.error.maxBorrowAmount?.amount.value).toBe(MARGIN_UND);
+    expect(outcome.error.maxBorrowAmount?.limit).toBe("poolAvailableLiquidity");
+    expect(outcome.error.minDebt.value).toBe(MARGIN_UND * 3n);
+  });
+});
