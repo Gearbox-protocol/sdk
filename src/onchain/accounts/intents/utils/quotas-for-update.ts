@@ -167,8 +167,8 @@ export function clearedQuotas(
 
 /**
  * Raises `directTransfer`'s quota to at least {@link DIRECT_TRANSFERS_QUOTA};
- * skips a token the pool can't quote, or one the account has no free enabled
- * token slot for.
+ * skips a token absent from the credit manager, one the pool can't quote, or
+ * one the account has no free enabled token slot for.
  */
 export function withDirectTransferQuota(
   update: QuotaUpdateState,
@@ -176,6 +176,7 @@ export function withDirectTransferQuota(
   initialQuotas: Array<InitialQuota> | readonly InitialQuota[],
   quotas: AddressMap<Quota>,
   maxEnabledTokens: number,
+  collateralTokens: readonly Address[],
 ): QuotaUpdateState {
   if (!directTransfer) {
     return update;
@@ -186,6 +187,7 @@ export function withDirectTransferQuota(
     initialQuotas.find(q => q.token.toLowerCase() === token)?.quota ?? 0n;
   const change = DIRECT_TRANSFERS_QUOTA - initial;
   if (
+    !collateralTokens.some(t => t.toLowerCase() === token) ||
     !quota?.isActive ||
     quota.limit - quota.totalQuoted < change ||
     (update.desiredQuota[token]?.balance ?? initial) >=

@@ -225,6 +225,15 @@ describe("direct transfers — selling mGLOBAL holds a USDC quota", () => {
     expect(usdcQuota(ops)?.increase).toBeUndefined();
   });
 
+  it("skips a transferred token absent from the credit manager", async () => {
+    const ops = await start(
+      { type: "ADJUST_LEVERAGE", targetLeverage: LEV_2X, token: MGLOBAL },
+      levered,
+      buildSdk({ extraLiquidationThresholds: { [MGLOBAL]: 9200 } }),
+    );
+    expect(usdcQuota(ops)?.increase).toBeUndefined();
+  });
+
   it("skips a transferred token with no enabled token slot left", async () => {
     const ops = await start(
       { type: "ADJUST_LEVERAGE", targetLeverage: LEV_2X, token: MGLOBAL },

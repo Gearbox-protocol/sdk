@@ -554,6 +554,7 @@ export async function realize(
       creditAccount.tokens,
       market.pool.pqk.quotas,
       suite.creditManager.maxEnabledTokens,
+      suite.creditManager.collateralTokens,
     );
 
   // The update names only the tokens the plan touched, so what the account is

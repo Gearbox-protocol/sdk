@@ -36,6 +36,7 @@ describe("withDirectTransferQuota", () => {
         [],
         quotas,
         4,
+        [USDC, OTHER],
       ),
     ).toEqual({
       desiredQuota: {
@@ -59,6 +60,7 @@ describe("withDirectTransferQuota", () => {
         [{ token: USDC, quota: 30_000n }],
         quotas,
         4,
+        [USDC, OTHER],
       ),
     ).toEqual({
       desiredQuota: { [USDC]: { token: USDC, balance: 10_000n } },
@@ -80,6 +82,7 @@ describe("withDirectTransferQuota", () => {
         [{ token: OTHER, quota: 20_000n }],
         quotas,
         1,
+        [USDC, OTHER],
       ),
     ).toBe(update);
   });
@@ -96,6 +99,7 @@ describe("withDirectTransferQuota", () => {
         [{ token: USDC, quota: 10_000n }],
         quotas,
         4,
+        [USDC, OTHER],
       ),
     ).toEqual({
       desiredQuota: { [USDC]: { token: USDC, balance: 10_000n } },
