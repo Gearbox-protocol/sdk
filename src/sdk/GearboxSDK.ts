@@ -18,8 +18,6 @@ import type { IPositions } from "./positions/index.js";
 import { PositionsNamespace } from "./positions/index.js";
 import type { IPreviewByMode } from "./preview/index.js";
 import { PreviewNamespace } from "./preview/index.js";
-import type { IRewardsByMode } from "./rewards/index.js";
-import { RewardsNamespace } from "./rewards/index.js";
 import type {
   GearboxSDKOptions,
   IGearboxSDK,
@@ -89,10 +87,6 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
    **/
   public readonly preview: IPreviewByMode[M];
   /**
-   * Namespace for claimable rewards. Absent in `offchain` mode.
-   **/
-  public readonly rewards: IRewardsByMode[M];
-  /**
    * The banners the backend attaches to a pool opportunity or a strategy
    * position, see {@link Notice}. Top-level because the subject is either
    * kind of entity, so neither namespace owns it. Backend-only, hence gated
@@ -120,7 +114,6 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
       onchain,
       offchain,
       attach,
-      rewards,
       logger,
       maxOffchainLagSeconds = DEFAULT_MAX_OFFCHAIN_LAG,
       maxStateAgeSeconds = DEFAULT_MAX_STATE_AGE,
@@ -212,11 +205,6 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
         ? new PreviewNamespace(this.#onchain, namespaceOptions)
         : undefined
     ) as IPreviewByMode[M];
-    this.rewards = (
-      this.#onchain
-        ? new RewardsNamespace(this.#onchain, rewards, namespaceOptions)
-        : undefined
-    ) as IRewardsByMode[M];
     const backend = this.#offchain;
     this.notices = (
       backend

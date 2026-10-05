@@ -23,7 +23,6 @@ export * from "./primitives.schema.js";
 export * from "./response.js";
 export * from "./response.schema.js";
 export * from "./result.js";
-export * from "./rewards.js";
 export * from "./rwa.js";
 export * from "./rwa.schema.js";
 export * from "./withdrawals.js";

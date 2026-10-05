@@ -1,5 +1,5 @@
 import { BaseError } from "viem";
-import type { ChainId } from "../../model/index.js";
+import type { ChainId } from "../model/index.js";
 
 /**
  * Thrown when Merkl did not answer for a chain.

@@ -99,15 +99,11 @@ const mockSDK = {
     buildLiquidationTx: notImplemented,
     getLiquidationPositions: notImplemented,
     checkLiquidation: notImplemented,
-    isEmergencyLiquidator: notImplemented,
   },
   preview: {
     previewOperation: notImplemented,
     checkOperation: notImplemented,
     checkSimulation: notImplemented,
-  },
-  rewards: {
-    list: notImplemented,
   },
   notices: notImplemented,
 } as const satisfies IGearboxSDK<"both">;

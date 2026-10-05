@@ -1,5 +1,4 @@
 import { formatUnits, getAddress, isAddress } from "viem";
-import type { PointsReward, Reward } from "../../model/index.js";
 import type { RewardPart } from "./helpers.js";
 import {
   mergeRewards,
@@ -9,7 +8,7 @@ import {
   toRewardToken,
 } from "./helpers.js";
 import type { TurtleWalletRewards, TurtleWalletStream } from "./turtle-api.js";
-import type { RewardsSdk } from "./types.js";
+import type { PointsReward, Reward, RewardsSdk } from "./types.js";
 
 type Targeted = { stream: TurtleWalletStream } & Pick<
   PointsReward,

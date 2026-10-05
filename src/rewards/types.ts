@@ -1,6 +1,11 @@
 import type { Address } from "viem";
-import type { PointsProgramPnL } from "./positions.js";
-import type { ChainId, Token, TokenAmount } from "./primitives.js";
+import type {
+  ChainId,
+  PointsProgramPnL,
+  Token,
+  TokenAmount,
+} from "../model/index.js";
+import type { OnchainSDK } from "../onchain/index.js";
 
 /**
  * One claimable token reward, denominated and priced.
@@ -34,3 +39,9 @@ export interface PointsReward extends Omit<MerklReward, "amount"> {
 }
 
 export type Reward = MerklReward | PointsReward;
+
+/** What the mapping needs off a chain's SDK, and nothing asynchronous. */
+export type RewardsSdk = Pick<
+  OnchainSDK,
+  "chainId" | "marketRegister" | "tokensMeta"
+>;
