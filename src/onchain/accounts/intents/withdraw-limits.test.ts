@@ -179,7 +179,9 @@ describe("CreditAccountOperationsService.maxWithdraw", () => {
         creditAccount,
         sdk,
         sourceToken: UND,
-        targetHF: FACADE_THRESHOLD,
+        // The service sizes two basis points clear of the threshold, so a Max
+        // button's amount clears the bar instead of landing exactly on it.
+        targetHF: FACADE_THRESHOLD + 2n,
       }),
     );
     // The exit answers to no collateral check, so it is untouched by any of it.
@@ -199,5 +201,61 @@ describe("CreditAccountOperationsService.maxWithdraw", () => {
     });
 
     expect(limits.safePartial).toBe(limits.partial);
+  });
+
+  it("shrinks the safe figure as the caller's threshold rises", () => {
+    const creditAccount = mixedAccount();
+    const extras: MarketSdkExtras = {
+      reservePrices: reserves(50000000n),
+    };
+    const sdk = sdkFor(creditAccount, extras);
+    const service = new CreditAccountOperationsService(sdk);
+
+    const atFacade = service.maxWithdraw({
+      creditAccount,
+      sdk,
+      sourceToken: UND,
+    });
+    const atForm = service.maxWithdraw({
+      creditAccount,
+      sdk,
+      sourceToken: UND,
+      targetHF: 10001n,
+    });
+
+    expect(atForm.safePartial).toBeLessThan(atFacade.safePartial);
+    expect(atForm.safePartial).toBe(
+      maxSafeWithdrawal({
+        creditAccount,
+        sdk,
+        sourceToken: UND,
+        targetHF: 10001n + 2n,
+      }),
+    );
+    // The debt-limits end and the exit answer to no health factor at all.
+    expect(atForm.partial).toBe(atFacade.partial);
+    expect(atForm.exit).toBe(atFacade.exit);
+  });
+
+  it("offers no partial figure to a threshold the account already sits under", () => {
+    // Every dollar of collateral is the marked-down token: the safe-price
+    // factor is 0.92, under any bar a form would hold the account to.
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: U("1000"),
+      tokens: [caToken(POS, U("2000"), quotaOf(U("2000")))],
+    });
+    const sdk = sdkFor(creditAccount, {
+      reservePrices: reserves(100000000n),
+    });
+
+    const limits = new CreditAccountOperationsService(sdk).maxWithdraw({
+      creditAccount,
+      sdk,
+      sourceToken: POS,
+      targetHF: 10001n,
+    });
+
+    expect(limits.safePartial).toBe(0n);
+    expect(limits.exit).toBe(U("1000"));
   });
 });

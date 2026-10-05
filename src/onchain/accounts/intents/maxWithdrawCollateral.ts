@@ -13,11 +13,13 @@ export interface MaxWithdrawCollateralProps {
   token: Address;
   /** Health factor the withdrawal has to leave behind, in basis points. */
   targetHF: bigint;
+  /** Safe-price health factor the withdrawal has to leave behind. */
+  targetSafeHF: bigint;
 }
 
 /**
  * Largest amount of one collateral the account can withdraw while its health
- * factor stays at or above `targetHF`.
+ * factors stay at or above `targetHF` and `targetSafeHF`.
  *
  * This is the collateral check solved for one balance, and it counts what that
  * check counts — see {@link collateralValuation} for it, safe prices included.
@@ -34,7 +36,18 @@ export interface MaxWithdrawCollateralProps {
 export function maxWithdrawCollateral(
   props: MaxWithdrawCollateralProps,
 ): bigint {
-  const { creditAccount, sdk, token, targetHF } = props;
+  return BigIntMath.min(
+    ceilingAtPrice(props, props.targetHF, false),
+    ceilingAtPrice(props, props.targetSafeHF, true),
+  );
+}
+
+function ceilingAtPrice(
+  props: MaxWithdrawCollateralProps,
+  targetHF: bigint,
+  safePrices: boolean,
+): bigint {
+  const { creditAccount, sdk, token } = props;
 
   const target = creditAccount.tokens.find(t => eq(t.token, token));
   if (!target || target.balance <= DUST_THRESHOLD) {
@@ -44,7 +57,7 @@ export function maxWithdrawCollateral(
     return target.balance;
   }
 
-  const valuation = collateralValuation(creditAccount, sdk);
+  const valuation = collateralValuation(creditAccount, sdk, safePrices);
 
   let otherValue = 0n;
   for (const t of creditAccount.tokens) {

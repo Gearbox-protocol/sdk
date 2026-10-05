@@ -100,7 +100,9 @@ export function calcLeverageBand({
     available === undefined ? maxDebt : BigIntMath.min(maxDebt, available);
 
   const floor = BigIntMath.ceilDiv(LEVERAGE_DECIMALS * minDebt, netValue);
-  const roof = (LEVERAGE_DECIMALS * borrowLimit) / netValue;
+  // Forward debt truncates, so invert the exclusive next debt unit.
+  const roof =
+    BigIntMath.ceilDiv(LEVERAGE_DECIMALS * (borrowLimit + 1n), netValue) - 1n;
 
   // Only the hundredths cross into floating point; the operands above are
   // token amounts, which an 18-decimal balance takes past what a double holds.

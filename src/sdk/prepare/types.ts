@@ -50,6 +50,13 @@ import type {
   WithPartialState,
 } from "../../onchain/index.js";
 
+export interface MaxWithdrawCollateralOptions {
+  /** Main-price HF threshold, in basis points; defaults to 10101. */
+  targetHF?: bigint;
+  /** Safe-price HF threshold, in basis points; defaults to 10001. */
+  targetSafeHF?: bigint;
+}
+
 export type {
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
@@ -884,6 +891,11 @@ export interface IOpportunitiesPrepare {
    * amounts; omitted, both this and the flow itself reach for the account's
    * largest non-phantom balance.
    *
+   * `targetHF` is the health factor `safePartial` has to leave behind, in
+   * basis points. The default is the facade's own threshold; a form holding
+   * the account to something stricter passes its own, so the ceiling it
+   * offers clears its own bar rather than landing a basis point under it.
+   *
    * Taking everything out needs none of the figures: send `MAX_UINT256` to
    * {@link withdrawStrategy} and the exit is what runs, named rather than
    * priced.
@@ -894,6 +906,7 @@ export interface IOpportunitiesPrepare {
   maxWithdraw(
     position: PositionInput,
     sourceToken?: Address,
+    targetHF?: bigint,
   ): Promise<WithdrawCeilings>;
 
   /**
@@ -1050,8 +1063,8 @@ export interface IOpportunitiesPrepare {
    * requires. Zero debt frees the whole balance — the ceiling a
    * withdraw-collateral form should offer.
    *
-   * `targetHF` names the health factor to leave the account at, in basis
-   * points; omitted, the SDK holds it to the threshold a form would.
+   * Options name independent main and safe price health-factor thresholds in
+   * basis points. The SDK defaults to the form thresholds and adds its margin.
    *
    * A bare read: it answers its number, and throws on an account or a chain
    * the SDK does not hold.
@@ -1059,7 +1072,7 @@ export interface IOpportunitiesPrepare {
   maxWithdrawCollateral(
     position: PositionInput,
     token: Address,
-    targetHF?: bigint,
+    options?: MaxWithdrawCollateralOptions,
   ): Promise<bigint>;
 
   /**

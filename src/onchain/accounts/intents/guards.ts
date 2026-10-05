@@ -1,4 +1,8 @@
-import type { Bps, TokenAmount } from "../../../model/index.js";
+import type {
+  Bps,
+  InsufficientPoolLiquidityError,
+  TokenAmount,
+} from "../../../model/index.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { MarketSuite } from "../../market/MarketSuite.js";
@@ -59,6 +63,9 @@ export function assertCanBorrow(
   sdk: OnchainSDK,
   suite: CreditSuite,
   amount: bigint,
+  options: {
+    getCollateralLimits?: () => InsufficientPoolLiquidityError["collateralLimits"];
+  } = {},
 ): void {
   const maxBorrowAmount = suite.maxBorrowAmount();
   raise(
@@ -67,6 +74,7 @@ export function assertCanBorrow(
       available: maxBorrowAmount.amount.value,
       limit: maxBorrowAmount.limit,
       underlying: toToken(sdk, suite.market.pool.underlying),
+      getCollateralLimits: options.getCollateralLimits,
     }),
     `borrow: ${amount} exceeds what the pool can lend now (${maxBorrowAmount.amount.value})`,
   );

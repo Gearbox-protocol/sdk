@@ -1,7 +1,10 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 import type { AccountSnapshot } from "../../positions/types.js";
-import { MIN_HF_LIMITED } from "../../validation/index.js";
+import {
+  MIN_HEALTH_FACTOR_FORM,
+  MIN_SAFE_HEALTH_FACTOR_FORM,
+} from "../../validation/index.js";
 import { CreditAccountOperationsService } from "./index.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
@@ -38,6 +41,7 @@ function ceiling(
     sdk: buildMarketSdk({ creditAccounts: [creditAccount], ...extras }),
     token,
     targetHF: TARGET_HF,
+    targetSafeHF: TARGET_HF,
   });
 }
 
@@ -51,6 +55,7 @@ function hfAfter(
   token: Address,
   amount: bigint,
   extras?: MarketSdkExtras,
+  safePrices = true,
 ): number {
   const sdk = buildMarketSdk({ creditAccounts: [creditAccount], ...extras });
   const tokens = creditAccount.tokens.map(t =>
@@ -66,7 +71,7 @@ function hfAfter(
     totalDebt: creditAccount.totalDebt,
     totalValue: 0n,
   };
-  return sdk.positions.healthFactor(snapshot, { safePrices: true });
+  return sdk.positions.healthFactor(snapshot, { safePrices });
 }
 
 describe("maxWithdrawCollateral", () => {
@@ -202,7 +207,13 @@ describe("maxWithdrawCollateral", () => {
     const sdk = buildMarketSdk({ creditAccounts: [ca] });
 
     const at = (targetHF: bigint) =>
-      maxWithdrawCollateral({ creditAccount: ca, sdk, token: POS, targetHF });
+      maxWithdrawCollateral({
+        creditAccount: ca,
+        sdk,
+        token: POS,
+        targetHF,
+        targetSafeHF: targetHF,
+      });
 
     expect(at(12_000n)).toBeLessThan(at(TARGET_HF));
     expect(at(TARGET_HF)).toBeLessThan(at(10_000n));
@@ -221,10 +232,57 @@ describe("maxWithdrawCollateral", () => {
 });
 
 describe("CreditAccountOperationsService.maxWithdrawCollateral", () => {
+  it("permits a withdrawal when main and safe form thresholds both clear", () => {
+    const creditAccount = account(
+      [caToken(POS, toBN("100", 8), toBN("1000", 8))],
+      toBN("87", 8),
+    );
+    const extras = {
+      reservePrices: { [POS]: 190_000_000n, [UND]: 200_000_000n },
+    };
+    const sdk = buildMarketSdk({ creditAccounts: [creditAccount], ...extras });
+    const amount = new CreditAccountOperationsService(
+      sdk,
+    ).maxWithdrawCollateral({
+      creditAccount,
+      sdk,
+      token: POS,
+    });
+    expect(amount).toBeGreaterThanOrEqual(10_000_000n);
+    expect(hfAfter(creditAccount, POS, amount, extras)).toBeGreaterThanOrEqual(
+      10_003,
+    );
+    expect(
+      hfAfter(creditAccount, POS, amount, extras, false),
+    ).toBeGreaterThanOrEqual(10_103);
+    expect(hfAfter(creditAccount, POS, amount + 1n, extras)).toBeLessThan(
+      10_003,
+    );
+  });
+
   const ca = () =>
     account([caToken(POS, toBN("100", 8), toBN("1000", 8))], toBN("50", 8));
 
-  it("holds the account to MIN_HF_LIMITED when no target is named", () => {
+  it("limits withdrawal by main HF when the reserve price does not constrain it", () => {
+    const creditAccount = ca();
+    const sdk = buildMarketSdk({ creditAccounts: [creditAccount] });
+    const amount = new CreditAccountOperationsService(
+      sdk,
+    ).maxWithdrawCollateral({
+      creditAccount,
+      sdk,
+      token: POS,
+    });
+    expect(
+      hfAfter(creditAccount, POS, amount, undefined, false),
+    ).toBeGreaterThanOrEqual(10_103);
+    expect(
+      hfAfter(creditAccount, POS, amount + 1n, undefined, false),
+    ).toBeLessThan(10_103);
+    expect(hfAfter(creditAccount, POS, amount)).toBeGreaterThanOrEqual(10_003);
+  });
+
+  it("holds the account to independent form thresholds when no targets are named", () => {
     const creditAccount = ca();
     const sdk = buildMarketSdk({ creditAccounts: [creditAccount] });
 
@@ -240,7 +298,8 @@ describe("CreditAccountOperationsService.maxWithdrawCollateral", () => {
         creditAccount,
         sdk,
         token: POS,
-        targetHF: MIN_HF_LIMITED + 2n,
+        targetHF: BigInt(MIN_HEALTH_FACTOR_FORM) + 2n,
+        targetSafeHF: BigInt(MIN_SAFE_HEALTH_FACTOR_FORM) + 2n,
       }),
     );
   });
@@ -262,6 +321,7 @@ describe("CreditAccountOperationsService.maxWithdrawCollateral", () => {
         sdk,
         token: POS,
         targetHF: 12_002n,
+        targetSafeHF: BigInt(MIN_SAFE_HEALTH_FACTOR_FORM) + 2n,
       }),
     );
   });

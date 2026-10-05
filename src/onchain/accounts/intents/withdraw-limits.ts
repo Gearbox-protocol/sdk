@@ -17,6 +17,13 @@ export interface WithdrawLimitsProps {
    * names none.
    */
   sourceToken?: Address;
+  /**
+   * Health factor `safePartial` has to leave behind, in basis points. The
+   * default is the facade's own threshold — what the collateral guard refuses
+   * against, and what the guard quotes back; a form holding the account to
+   * something stricter passes its own.
+   */
+  targetHF?: bigint;
 }
 
 /**
@@ -32,12 +39,12 @@ export interface WithdrawLimitsProps {
  * @returns The three limits, see {@link WithdrawCeilings}
  **/
 export function withdrawLimits(props: WithdrawLimitsProps): WithdrawCeilings {
-  const { creditAccount, sdk } = props;
+  const { creditAccount, sdk, targetHF } = props;
   const view = accountView(creditAccount, sdk);
   const partial = maxProportionalWithdrawal(view, view.debtLimits);
   const safe = maxSafeWithdrawal({
     ...props,
-    targetHF: BigInt(MIN_HEALTH_FACTOR_FACADE),
+    targetHF: targetHF ?? BigInt(MIN_HEALTH_FACTOR_FACADE),
   });
   return {
     partial,

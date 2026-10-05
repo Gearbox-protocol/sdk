@@ -8,6 +8,7 @@ export interface DebtLimitsArgs {
   minDebt: bigint;
   maxDebt: bigint;
   underlying: Token;
+  getCollateralLimits?: () => DebtOutOfRangeError["collateralLimits"];
   /**
    * Whether ending with no loan at all is acceptable. The one place the two
    * callers genuinely disagree: an account being adjusted may end owing
@@ -30,6 +31,7 @@ export function checkDebtLimits(args: DebtLimitsArgs): DebtOutOfRangeError[] {
   }
   return [
     debtOutOfRange({
+      collateralLimits: args.getCollateralLimits?.(),
       requested: amountOf(underlying, debt),
       minDebt: amountOf(underlying, minDebt),
       maxDebt: amountOf(underlying, maxDebt),

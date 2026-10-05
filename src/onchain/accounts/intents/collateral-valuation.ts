@@ -40,10 +40,13 @@ export interface CollateralValuation {
   lt(token: Address): bigint;
 }
 
-/** {@inheritDoc CollateralValuation} */
+/** {@inheritDoc CollateralValuation}
+ * Set `safePrices` to false to value the same counted holdings at main prices.
+ */
 export function collateralValuation(
   creditAccount: CreditAccountSlice,
   sdk: OnchainSDK,
+  safePrices = true,
 ): CollateralValuation {
   const { market, creditManager } = sdk.marketRegister.findCreditManager(
     creditAccount.creditManager,
@@ -68,7 +71,7 @@ export function collateralValuation(
     BigInt(creditManager.liquidationThresholds.get(token) ?? 0);
 
   const checkedUsd = (holding: Holding): bigint =>
-    eq(holding.token, underlying)
+    !safePrices || eq(holding.token, underlying)
       ? (mainUsd(holding.token, holding.balance) ?? 0n)
       : priceOracle.safeConvertMinUSD(holding.token, holding.balance).value;
 

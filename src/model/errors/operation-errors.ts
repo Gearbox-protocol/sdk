@@ -113,6 +113,11 @@ export function poolSunset(pool: Address): PoolSunsetError {
  **/
 export interface InsufficientPoolLiquidityError extends IGearboxError {
   code: "insufficientPoolLiquidity";
+  /** Single-token Open amounts whose projected debt fits the current debt limits. */
+  collateralLimits?: {
+    min: TokenAmount;
+    max: TokenAmount;
+  };
   /** Both in the market's underlying. */
   requested: TokenAmount;
   available: TokenAmount;
@@ -144,6 +149,11 @@ export function insufficientPoolLiquidity(
  **/
 export interface DebtOutOfRangeError extends IGearboxError {
   code: "debtOutOfRange";
+  /** Single-token Open amounts whose projected debt fits the current debt limits. */
+  collateralLimits?: {
+    min: TokenAmount;
+    max: TokenAmount;
+  };
   /** All three in the market's underlying. */
   requested: TokenAmount;
   minDebt: TokenAmount;

@@ -257,7 +257,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   }
   const priceOracle = new TestPriceOracle(tokenCfgs);
   const convert = (from: Address, to: Address, amount: bigint): bigint =>
-    priceOracle.convert(from, to, amount);
+    priceOracle.safeConvert(from, to, amount).value;
 
   const fullQuota = (q: MockQuotaEntry) => ({
     cumulativeIndexLU: 0n,
