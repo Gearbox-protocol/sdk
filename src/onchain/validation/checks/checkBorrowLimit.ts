@@ -11,6 +11,7 @@ export interface BorrowLimitArgs {
   available: bigint;
   limit: BorrowLimitCause;
   underlying: Token;
+  getCollateralLimits?: () => InsufficientPoolLiquidityError["collateralLimits"];
   maxBorrowAmount?: bigint;
 }
 
@@ -30,6 +31,7 @@ export function checkBorrowLimit(
   }
   return [
     insufficientPoolLiquidity({
+      collateralLimits: args.getCollateralLimits?.(),
       requested: amountOf(underlying, requested),
       available: amountOf(underlying, available),
       limit,

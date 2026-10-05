@@ -19,6 +19,7 @@ import {
   assertDebtLimits,
   assertLeverageAtLeastOne,
   debtForLeverage,
+  openCollateralForDebtLimits,
 } from "./math.js";
 import type { CreditAccountSlice, SimulationPrices } from "./types.js";
 import {
@@ -169,8 +170,13 @@ export async function buildOpenStrategyState(
   // An opening carries a real loan: the update validation refuses a zero-debt
   // one, and the intent has to agree with it (empty openings go through
   // openEmptyAccount instead).
-  assertDebtLimits(sdk, debt, suite.creditFacade, underlying, false);
-  assertCanBorrow(sdk, suite, debt);
+  const getCollateralLimits = () =>
+    openCollateralForDebtLimits({ suite, collateral, leverage });
+  assertDebtLimits(sdk, debt, suite.creditFacade, underlying, {
+    allowZero: false,
+    getCollateralLimits,
+  });
+  assertCanBorrow(sdk, suite, debt, { getCollateralLimits });
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
   const expectedBalances = mergeExpectedBalances(collateral, underlying, debt);

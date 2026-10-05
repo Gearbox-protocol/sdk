@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { NATIVE_ADDRESS } from "../../../constants/index.js";
 import { LEVERAGE_DECIMALS } from "../../../constants/math.js";
 import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
+import { MockTokens } from "../../../market/oracle/TestPriceOracle.mock.js";
+import { assertCanBorrow } from "../guards.js";
 import { CreditAccountOperationsService } from "../index.js";
+import { assertDebtLimits } from "../math.js";
 import {
   ANY,
   CREDIT_ACCOUNT,
@@ -150,6 +154,175 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
   });
 
   /** Each refusal carries the numbers a form would otherwise re-derive. */
+  it("returns exact collateral bounds in a size refusal and accepts both endpoints", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n,
+      availableLiquidity: 100n,
+    });
+    const scenario = {
+      ...case_underlying_3x,
+      leverage: 130n,
+      collateral: [{ token: UND, balance: 1000n }],
+    };
+    const refusal = await run(scenario, sdk).result;
+    expect(refusal).toMatchObject({
+      ok: false,
+      error: {
+        collateralLimits: {
+          min: { value: 334n, token: { address: UND } },
+          max: { value: 336n, token: { address: UND } },
+        },
+      },
+    });
+    for (const balance of [334n, 336n]) {
+      const outcome = await run(
+        { ...scenario, collateral: [{ token: UND, balance }] },
+        sdk,
+      ).result;
+      expect(outcome.ok).toBe(true);
+    }
+  });
+
+  it.each([false, true])(
+    "returns converted-token bounds using forward oracle prices (reserve fallback %s)",
+    async reserve => {
+      const sdk = buildOpenStrategySdk({
+        minDebt: 100n,
+        availableLiquidity: 100n,
+        reservePrices: reserve
+          ? { [ANY]: 300000000n, [UND]: 200000000n, [POS]: 200000000n }
+          : undefined,
+      });
+      const oracle =
+        sdk.marketRegister.findByCreditManager(CREDIT_MANAGER).priceOracle;
+      if (reserve) {
+        const convert = oracle.convert.bind(oracle);
+        vi.spyOn(oracle, "convert").mockImplementation(
+          (from, to, amount, useReserve) => {
+            if (!useReserve && from === ANY)
+              throw new Error("main feed unavailable");
+            return convert(from, to, amount, useReserve);
+          },
+        );
+      }
+      const scenario = {
+        ...case_underlying_3x,
+        leverage: 130n,
+        collateral: [{ token: ANY, balance: 1n }],
+      };
+      // Tiny converted collateral is worth zero, so start at one representable underlying unit.
+      scenario.collateral[0].balance = 20000000000n;
+      const refusal = await run(scenario, sdk).result;
+      if (
+        refusal.ok ||
+        refusal.error.code !== "debtOutOfRange" ||
+        !refusal.error.collateralLimits
+      )
+        throw new Error("expected debt bounds");
+      const { min, max } = refusal.error.collateralLimits;
+      expect(min.token.address).toBe(ANY);
+      expect(min.value).toBe(reserve ? 2226666666667n : 6680000000000n);
+      expect(max.value).toBe(reserve ? 2246666666666n : 6739999999999n);
+      for (const balance of [min.value, max.value]) {
+        expect(
+          (
+            await run(
+              { ...scenario, collateral: [{ token: ANY, balance }] },
+              sdk,
+            ).result
+          ).ok,
+        ).toBe(true);
+      }
+      for (const balance of [min.value - 1n, max.value + 1n]) {
+        expect(
+          (
+            await run(
+              { ...scenario, collateral: [{ token: ANY, balance }] },
+              sdk,
+            ).result
+          ).ok,
+        ).toBe(false);
+      }
+    },
+  );
+
+  it("uses native/WETH mapping for refusal bounds and repeated opening", async () => {
+    const weth = MockTokens.WETH.toLowerCase() as typeof UND;
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n,
+      availableLiquidity: 100n,
+      extraPrices: { [weth]: 100000000n },
+      extraDecimals: { [weth]: 18, [NATIVE_ADDRESS]: 18 },
+    });
+    const scenario = {
+      ...case_underlying_3x,
+      leverage: 130n,
+      collateral: [{ token: NATIVE_ADDRESS, balance: 20000000000n }],
+    };
+    const refusal = await run(scenario, sdk).result;
+    if (
+      refusal.ok ||
+      refusal.error.code !== "debtOutOfRange" ||
+      !refusal.error.collateralLimits
+    )
+      throw new Error("expected native debt bounds");
+    const { min, max } = refusal.error.collateralLimits;
+    expect(min.token.address).toBe(NATIVE_ADDRESS);
+    expect(min.value).toBe(6680000000000n);
+    expect(max.value).toBe(6739999999999n);
+    for (const balance of [min.value, max.value]) {
+      expect(
+        (
+          await run(
+            { ...scenario, collateral: [{ token: NATIVE_ADDRESS, balance }] },
+            sdk,
+          ).result
+        ).ok,
+      ).toBe(true);
+    }
+  });
+
+  it("does not suggest collateral when no amount can meet the debt interval", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n,
+      availableLiquidity: 99n,
+    });
+    const refusal = await run(
+      { ...case_underlying_3x, collateral: [{ token: UND, balance: 1n }] },
+      sdk,
+    ).result;
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(refusal.error.collateralLimits).toBeUndefined();
+  });
+
+  it("does not suggest an amount for an unrepresentable converted debt", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n,
+      availableLiquidity: 100n,
+      extraDecimals: { [ANY]: 0 },
+    });
+    const refusal = await run(
+      {
+        ...case_underlying_3x,
+        leverage: 130n,
+        collateral: [{ token: ANY, balance: 1n }],
+      },
+      sdk,
+    ).result;
+    if (refusal.ok || refusal.error.code !== "insufficientPoolLiquidity")
+      throw new Error("expected liquidity refusal");
+    expect(refusal.error.collateralLimits).toBeUndefined();
+  });
+
+  it("does not suggest a single-token replacement for multiple collateral tokens", async () => {
+    const sdk = buildOpenStrategySdk({ minDebt: MARGIN_UND * 2n });
+    const refusal = await run(case_mixed_with_leftover, sdk).result;
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(refusal.error.collateralLimits).toBeUndefined();
+  });
+
   it("rejects leverage below 1x", async () => {
     const { result } = run({ ...case_underlying_3x, leverage: 50n });
     const refusal = await result;
@@ -175,6 +348,7 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       throw new Error("expected debtOutOfRange");
     }
     expect(refusal.error.requested?.value).toBe(0n);
+    expect(refusal.error.collateralLimits).toBeUndefined();
   });
 
   it("rejects collateral that is worth nothing in underlying", async () => {
@@ -278,5 +452,34 @@ describe("openStrategy on a pre-opened empty account", () => {
         target: case_underlying_3x.targetToken,
       }),
     );
+  });
+});
+
+describe("lazy opening bounds in guards", () => {
+  it("computes bounds only for the guard that refuses", () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n,
+      availableLiquidity: 200n,
+    });
+    const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
+    const getBounds = vi.fn(() => undefined);
+    assertDebtLimits(sdk, 100n, suite.creditFacade, UND, {
+      allowZero: false,
+      getCollateralLimits: getBounds,
+    });
+    assertCanBorrow(sdk, suite, 100n, { getCollateralLimits: getBounds });
+    expect(getBounds).not.toHaveBeenCalled();
+    expect(() =>
+      assertDebtLimits(sdk, 99n, suite.creditFacade, UND, {
+        allowZero: false,
+        getCollateralLimits: getBounds,
+      }),
+    ).toThrow();
+    expect(getBounds).toHaveBeenCalledTimes(1);
+    getBounds.mockClear();
+    expect(() =>
+      assertCanBorrow(sdk, suite, 201n, { getCollateralLimits: getBounds }),
+    ).toThrow();
+    expect(getBounds).toHaveBeenCalledTimes(1);
   });
 });
