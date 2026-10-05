@@ -4,6 +4,42 @@ Migration notes between consecutive versions of `@gearbox-protocol/sdk` that
 introduce consumer-visible breaking changes. New sections are appended below
 as future releases ship.
 
+## v17.x — rewards live on sdk.rewards
+
+`RewardsService` and the `@gearbox-protocol/sdk/rewards` entry point are gone.
+Rewards are read through the `rewards` namespace of `GearboxSDK`, which takes
+the API keys in its options; the reward types moved to the model.
+
+**Before:**
+
+```typescript
+import { RewardsService, type Reward } from "@gearbox-protocol/sdk/rewards";
+
+const rewards = new RewardsService(multichainSdk, { merklApiKey, turtleApiKey });
+const { data } = await rewards.list(wallet);
+```
+
+**After:**
+
+```typescript
+import { GearboxSDK } from "@gearbox-protocol/sdk";
+import type { Reward } from "@gearbox-protocol/sdk/model";
+
+const sdk = new GearboxSDK({ ...options, rewards: { merklApiKey, turtleApiKey } });
+const { data } = await sdk.rewards.list(wallet);
+```
+
+```diff
+- import type { MerklReward, PointsReward, Reward } from "@gearbox-protocol/sdk/rewards";
++ import type { MerklReward, PointsReward, Reward } from "@gearbox-protocol/sdk/model";
+- import type { MerkleXYZUserRewardsV4Response, TurtleWalletRewards } from "@gearbox-protocol/sdk/rewards";
++ import type { MerkleXYZUserRewardsV4Response, TurtleWalletRewards } from "@gearbox-protocol/sdk";
+- import { MerklRequestFailedError, TurtleRequestFailedError } from "@gearbox-protocol/sdk/rewards";
++ import { MerklRequestFailedError, TurtleRequestFailedError } from "@gearbox-protocol/sdk";
+```
+
+---
+
 ## v17.x — rewards are read through a service
 
 `getRewardsMultichain` is replaced by `RewardsService`. The API keys move to

@@ -1,4 +1,5 @@
 import { getAddress, isAddress } from "viem";
+import type { MerklReward } from "../../model/index.js";
 import type { RewardPart } from "./helpers.js";
 import {
   mergeRewards,
@@ -8,7 +9,7 @@ import {
   toRewardToken,
 } from "./helpers.js";
 import type { MerkleXYZUserRewardsV4Response } from "./merkl-api.js";
-import type { MerklReward, RewardsSdk } from "./types.js";
+import type { RewardsSdk } from "./types.js";
 
 /**
  * Merkl's answer for one chain, one reward per pool and incentive token.

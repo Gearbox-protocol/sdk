@@ -1,5 +1,5 @@
 import type { Address } from "viem";
-import type { OnchainSDK } from "../onchain/index.js";
+import type { OnchainSDK } from "../../onchain/index.js";
 import { TurtleRequestFailedError } from "./errors.js";
 
 export interface TurtleWalletStream {
