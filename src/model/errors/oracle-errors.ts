@@ -3,6 +3,8 @@ import type { IGearboxError } from "./base.js";
 
 /**
  * The oracle has no price for token
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface UnpriceableTokenError extends IGearboxError {
   code: "unpriceableToken";

@@ -53,6 +53,8 @@ export function creditManagerPaused(
 
 /**
  * The pool is paused: it neither takes deposits nor serves withdrawals.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface PoolPausedError extends IGearboxError {
   code: "poolPaused";
@@ -70,6 +72,8 @@ export function poolPaused(pool: Address): PoolPausedError {
 
 /**
  * The facade is past its expiration date and takes no more multicalls.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface MarketExpiredError extends IGearboxError {
   code: "marketExpired";
@@ -93,6 +97,8 @@ export function marketExpired(
 
 /**
  * The pool is winding down: it still serves withdrawals, but takes no more deposits.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface PoolSunsetError extends IGearboxError {
   code: "poolSunset";
@@ -290,6 +296,8 @@ export function reservePriceLimited(
 
 /**
  * The operation would increase the balance of a token the market forbids.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface ForbiddenTokenError extends IGearboxError {
   code: "forbiddenToken";
@@ -339,6 +347,8 @@ export function quotaLimitReached(
 /**
  * The account would end up with more quoted tokens than the facade enables at
  * once. A count, not an amount — unlike {@link QuotaLimitReachedError}.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface QuotaCountExceededError extends IGearboxError {
   code: "quotaCountExceeded";
