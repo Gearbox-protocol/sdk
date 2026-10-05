@@ -17,6 +17,7 @@ import type { ILiquidationsByMode } from "./liquidations/types.js";
 import type { IOpportunities } from "./opportunities/types.js";
 import type { IPositions } from "./positions/types.js";
 import type { IPreviewByMode } from "./preview/types.js";
+import type { IRewardsByMode, RewardsKeys } from "./rewards/types.js";
 
 /**
  * Which sources a {@link GearboxSDK} reads from, and therefore which of its
@@ -82,6 +83,10 @@ export interface GearboxSDKOptions<M extends Mode = Mode> {
    * builds the on-chain source itself.
    **/
   attach?: MultichainAttachOptions;
+  /**
+   * API keys for {@link IGearboxSDK.rewards}.
+   **/
+  rewards?: RewardsKeys;
   logger?: ILogger;
 }
 
@@ -188,6 +193,10 @@ export interface IGearboxSDK<M extends Mode = Mode> {
    * `offchain` mode.
    **/
   readonly preview: IPreviewByMode[M];
+  /**
+   * Namespace for claimable rewards. Absent in `offchain` mode.
+   **/
+  readonly rewards: IRewardsByMode[M];
   /**
    * The banners the backend attaches to a pool opportunity or a strategy
    * position, see {@link Notice}. Absent in `onchain` mode.

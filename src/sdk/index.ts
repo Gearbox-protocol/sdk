@@ -8,5 +8,6 @@ export * from "./opportunities/index.js";
 export * from "./positions/index.js";
 export * from "./prepare/index.js";
 export * from "./preview/index.js";
+export * from "./rewards/index.js";
 export * from "./types.js";
 export * from "./utils/index.js";

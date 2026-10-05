@@ -1,13 +1,14 @@
 import type { Address, Hex } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Token } from "../model/index.js";
-import type { MultichainSDK, NetworkType } from "../onchain/index.js";
-import { chains } from "../onchain/index.js";
+import type { Token } from "../../model/index.js";
+import type { MultichainSDK, NetworkType } from "../../onchain/index.js";
+import { chains } from "../../onchain/index.js";
 import { MerklRequestFailedError, TurtleRequestFailedError } from "./errors.js";
 import { MERKL_API_KEY_HEADER } from "./merkl-api.js";
-import { RewardsService } from "./RewardsService.js";
+import { RewardsNamespace } from "./RewardsNamespace.js";
 
+const NO_OPTIONS = { maxOffchainLagSeconds: 0 };
 const MAINNET = chains.Mainnet.id;
 const PLASMA = chains.Plasma.id;
 
@@ -136,7 +137,7 @@ function respondByChain(byChain: Record<number, unknown | Error>) {
   });
 }
 
-describe("RewardsService.list on Merkl", () => {
+describe("RewardsNamespace.list on Merkl", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", mockedFetch);
@@ -153,8 +154,10 @@ describe("RewardsService.list on Merkl", () => {
   it("calls a chain with no rewards a success that contributed no rewards", async () => {
     respondByChain({ [MAINNET]: [] });
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data).toEqual([]);
@@ -180,11 +183,13 @@ describe("RewardsService.list on Merkl", () => {
       [PLASMA]: merklBody("1000"),
     });
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([
         ["Mainnet", chainSdk("Mainnet", 100n)],
         ["Plasma", chainSdk("Plasma", 200n)],
       ]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data).toHaveLength(1);
@@ -202,8 +207,10 @@ describe("RewardsService.list on Merkl", () => {
   it("hands the failure itself to the chain's metadata entry", async () => {
     respondByChain({ [MAINNET]: new Error("merkl down") });
 
-    const { meta } = await new RewardsService(
+    const { meta } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET);
 
     const failed = meta.chains[0];
@@ -217,8 +224,10 @@ describe("RewardsService.list on Merkl", () => {
   it("checksums the wallet before Merkl sees it", async () => {
     respondByChain({ [MAINNET]: [] });
 
-    await new RewardsService(
+    await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(mockedFetch).toHaveBeenCalledWith(
@@ -230,12 +239,13 @@ describe("RewardsService.list on Merkl", () => {
   it("forwards the api key to every chain it asks", async () => {
     respondByChain({ [MAINNET]: [], [PLASMA]: [] });
 
-    await new RewardsService(
+    await new RewardsNamespace(
       multichainSdk([
         ["Mainnet", chainSdk("Mainnet", 100n)],
         ["Plasma", chainSdk("Plasma", 200n)],
       ]),
       { merklApiKey: "k" },
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(mockedFetch).toHaveBeenCalledTimes(2);
@@ -250,11 +260,13 @@ describe("RewardsService.list on Merkl", () => {
       [PLASMA]: merklBody("2000"),
     });
 
-    const { data } = await new RewardsService(
+    const { data } = await new RewardsNamespace(
       multichainSdk([
         ["Mainnet", chainSdk("Mainnet", 100n)],
         ["Plasma", chainSdk("Plasma", 200n)],
       ]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => r.chainId)).toEqual([MAINNET, PLASMA]);
@@ -263,11 +275,13 @@ describe("RewardsService.list on Merkl", () => {
   it("narrows the fan-out to the chains it was given", async () => {
     respondByChain({ [MAINNET]: merklBody("1000"), [PLASMA]: [] });
 
-    const { meta } = await new RewardsService(
+    const { meta } = await new RewardsNamespace(
       multichainSdk([
         ["Mainnet", chainSdk("Mainnet", 100n)],
         ["Plasma", chainSdk("Plasma", 200n)],
       ]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET, [MAINNET]);
 
     expect(mockedFetch).toHaveBeenCalledTimes(1);
@@ -275,7 +289,7 @@ describe("RewardsService.list on Merkl", () => {
   });
 });
 
-describe("RewardsService.list with Turtle", () => {
+describe("RewardsNamespace.list with Turtle", () => {
   const STREAM = "0xf5a6A90a91b4C60122537aA0DB6a2be13a58E305";
 
   const turtleStreams = {
@@ -348,9 +362,10 @@ describe("RewardsService.list with Turtle", () => {
   it("puts both sources' rewards on the chain, reading claimed at latest", async () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => [r.source, "amount" in r && r.amount.value])).toEqual([
@@ -378,9 +393,10 @@ describe("RewardsService.list with Turtle", () => {
       turtle: new Error("turtle down"),
     });
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => r.source)).toEqual(["merkl"]);
@@ -390,9 +406,10 @@ describe("RewardsService.list with Turtle", () => {
   it("keeps Turtle's rewards when Merkl cannot be reached", async () => {
     respond({ merkl: { [MAINNET]: new Error("merkl down") } });
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => r.source)).toEqual(["turtle"]);
@@ -403,9 +420,10 @@ describe("RewardsService.list with Turtle", () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
     failing = "getClaimedRewards";
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
       { turtleApiKey: "k" },
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => r.source)).toEqual(["merkl"]);
@@ -421,12 +439,13 @@ describe("RewardsService.list with Turtle", () => {
       turtle: new Error("turtle down"),
     });
 
-    const { data, meta } = await new RewardsService(
+    const { data, meta } = await new RewardsNamespace(
       multichainSdk([
         ["Mainnet", chainSdk("Mainnet", 100n)],
         ["Plasma", chainSdk("Plasma", 200n)],
       ]),
       { turtleApiKey: "k" },
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => r.chainId)).toEqual([PLASMA]);
@@ -446,8 +465,10 @@ describe("RewardsService.list with Turtle", () => {
   it("does not ask Turtle without a key", async () => {
     respond({ merkl: { [MAINNET]: merklBody("1000") } });
 
-    const { data } = await new RewardsService(
+    const { data } = await new RewardsNamespace(
       multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
+      undefined,
+      NO_OPTIONS,
     ).list(WALLET);
 
     expect(data.map(r => r.source)).toEqual(["merkl"]);
@@ -461,5 +482,25 @@ describe("RewardsService.list with Turtle", () => {
         ],
       }),
     );
+  });
+});
+
+describe("RewardsNamespace.list loading", () => {
+  it("reads nothing before ensureFresh settles for the named chains", async () => {
+    vi.clearAllMocks();
+    vi.stubGlobal("fetch", mockedFetch);
+    const ensureFresh = vi.fn(async () => {
+      throw new Error("not attached");
+    });
+
+    await expect(
+      new RewardsNamespace(
+        multichainSdk([["Mainnet", chainSdk("Mainnet", 100n)]]),
+        undefined,
+        { ...NO_OPTIONS, ensureFresh },
+      ).list(WALLET, [MAINNET]),
+    ).rejects.toThrow("not attached");
+    expect(ensureFresh).toHaveBeenCalledWith([MAINNET]);
+    expect(mockedFetch).not.toHaveBeenCalled();
   });
 });
