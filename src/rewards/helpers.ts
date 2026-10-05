@@ -1,8 +1,8 @@
 import type { Address } from "viem";
 import { formatUnits, isAddress } from "viem";
-import type { MerklReward, Token, TokenAmount } from "../../model/index.js";
-import { AddressMap, toBigInt } from "../../onchain/index.js";
-import type { RewardsSdk } from "./types.js";
+import type { Token, TokenAmount } from "../model/index.js";
+import { AddressMap, toBigInt } from "../onchain/index.js";
+import type { MerklReward, RewardsSdk } from "./types.js";
 
 /** A claimable amount of one token in one pool, before it is merged. */
 export interface RewardPart {

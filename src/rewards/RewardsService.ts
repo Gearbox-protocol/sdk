@@ -1,42 +1,41 @@
 import type { Address } from "viem";
 import { getAddress } from "viem";
-import type { ChainId, DataResponse, Reward } from "../../model/index.js";
-import {
-  MultichainConstruct,
-  type MultichainSDK,
-} from "../../onchain/index.js";
-import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
+import type { ChainId, DataResponse } from "../model/index.js";
+import type { PluginsMap } from "../onchain/index.js";
+import { MultichainConstruct, type MultichainSDK } from "../onchain/index.js";
 import { fetchMerklUserRewards } from "./merkl-api.js";
 import { toMerklRewards } from "./toMerklRewards.js";
 import { toTurtleRewards } from "./toTurtleRewards.js";
 import { fetchTurtleWalletRewards, readTurtleClaimed } from "./turtle-api.js";
-import type { IRewards, RewardsKeys } from "./types.js";
+import type { Reward } from "./types.js";
 
-/**
- * {@inheritDoc IRewards}
- **/
-export class RewardsNamespace extends MultichainConstruct implements IRewards {
-  readonly #keys: RewardsKeys;
-  readonly #ensureFresh?: EnsureFreshChains;
+interface RewardsServiceKeys {
+  /** Raises Merkl's rate limit; the keyless path answers too. */
+  merklApiKey?: string;
+  /** Turtle is skipped without one: its API answers no keyless request. */
+  turtleApiKey?: string;
+}
 
-  constructor(
-    onchain: MultichainSDK,
-    keys: RewardsKeys | undefined,
-    options: NamespaceOptions,
-  ) {
-    super(onchain);
-    this.#keys = keys ?? {};
-    this.#ensureFresh = options.ensureFresh;
+export class RewardsService<
+  const Plugins extends PluginsMap = {},
+> extends MultichainConstruct<Plugins> {
+  readonly #keys: RewardsServiceKeys;
+
+  constructor(sdk: MultichainSDK<Plugins>, keys: RewardsServiceKeys = {}) {
+    super(sdk);
+    this.#keys = keys;
   }
 
   /**
-   * {@inheritDoc IRewards.list}
+   * Every claimable reward a wallet holds — Merkl campaigns and the Gearbox
+   * organisation's Turtle streams — across the chains the handle carries.
+   * A chain is `status: "error"` only when every source failed on it; a chain
+   * with nothing to claim is a `"success"` with no rewards.
    **/
   public async list(
     wallet: Address,
     chainIds?: ChainId[],
   ): Promise<DataResponse<Reward[]>> {
-    await this.#ensureFresh?.(chainIds);
     const { merklApiKey, turtleApiKey } = this.#keys;
     // Merkl keys its answer on the exact string it is given.
     const user = getAddress(wallet);

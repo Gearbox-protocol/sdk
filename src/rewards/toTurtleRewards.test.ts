@@ -1,7 +1,7 @@
 import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
-import type { Token } from "../../model/index.js";
+import type { Token } from "../model/index.js";
 import { toTurtleRewards } from "./toTurtleRewards.js";
 import type { TurtleMerkleProof, TurtleWalletStream } from "./turtle-api.js";
 import type { RewardsSdk } from "./types.js";
