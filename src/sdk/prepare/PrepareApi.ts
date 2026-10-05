@@ -77,6 +77,7 @@ import type {
   LpResult,
   LpState,
   MaxBorrowParams,
+  MaxWithdrawCollateralOptions,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -806,7 +807,7 @@ export class PrepareApi
   public async maxWithdrawCollateral(
     position: PositionInput,
     token: Address,
-    targetHF?: bigint,
+    options?: MaxWithdrawCollateralOptions,
   ): Promise<bigint> {
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
@@ -814,7 +815,7 @@ export class PrepareApi
       creditAccount,
       sdk,
       token,
-      targetHF,
+      ...options,
     });
   }
 

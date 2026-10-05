@@ -689,6 +689,11 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     const { api, position } = buildStrategyApi();
 
     const max = await api.maxWithdrawCollateral(position, POS);
+    const conservative = await api.maxWithdrawCollateral(position, POS, {
+      targetHF: 12_000n,
+      targetSafeHF: 11_000n,
+    });
+    expect(conservative).toBeLessThan(max);
     expect(max).toBeGreaterThan(0n);
     // the ceiling is the account's, not the whole balance it happens to hold
     expect(max).toBeLessThan(TVL);

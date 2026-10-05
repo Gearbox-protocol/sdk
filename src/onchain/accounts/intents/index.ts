@@ -7,7 +7,9 @@ import {
 import { SDKConstruct } from "../../base/SDKConstruct.js";
 import {
   MIN_HEALTH_FACTOR_FACADE,
+  MIN_HEALTH_FACTOR_FORM,
   MIN_HF_LIMITED,
+  MIN_SAFE_HEALTH_FACTOR_FORM,
 } from "../../validation/index.js";
 import {
   IntentPreviewError,
@@ -271,13 +273,12 @@ export class CreditAccountOperationsService extends SDKConstruct {
 
   /**
    * Largest `WITHDRAW_ASSET` amount of one token the account can take out
-   * while its health factor stays at `targetHF` — the ceiling a
+   * while its main and safe health factors clear their targets — the ceiling a
    * withdraw-collateral form should offer. Thresholds, prices and quota
    * activity come from the account's market, valued the way the facade values
    * a call that withdraws collateral; zero debt frees the whole balance.
    *
-   * The default is {@link MIN_HF_LIMITED}, the threshold a form holds an
-   * account to.
+   * Defaults are the independent main and safe form thresholds.
    *
    * @param props - Account slice, the SDK holding its market, the collateral
    * to withdraw, and optionally the health factor to leave behind
@@ -287,14 +288,19 @@ export class CreditAccountOperationsService extends SDKConstruct {
     props: Pick<StartIntentProps, "creditAccount" | "sdk"> & {
       token: Address;
       targetHF?: bigint;
+      targetSafeHF?: bigint;
     },
   ): bigint {
-    const { targetHF = MIN_HF_LIMITED, ...rest } = props;
+    const {
+      targetHF = BigInt(MIN_HEALTH_FACTOR_FORM),
+      targetSafeHF = BigInt(MIN_SAFE_HEALTH_FACTOR_FORM),
+      ...rest
+    } = props;
     return maxWithdrawCollateral({
       ...rest,
-      // two basis points clear of the threshold: a ceiling equal to it would
-      // make a Max button produce an amount the form then refuses
+      // Keep the existing two-basis-point margin once for each price threshold.
       targetHF: targetHF + 2n,
+      targetSafeHF: targetSafeHF + 2n,
     });
   }
 
