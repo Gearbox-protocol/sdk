@@ -5,6 +5,8 @@ import type { IGearboxError } from "./base.js";
 /**
  * The RWA factory has frozen this credit account, so its RWA collateral
  * cannot move and a liquidation cannot run.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface CreditAccountFrozenError extends IGearboxError {
   code: "creditAccountFrozen";
@@ -25,6 +27,8 @@ export function creditAccountFrozen(
 /**
  * The market is paused and `liquidator` is not one of its emergency liquidators,
  * so a liquidation would revert.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
  **/
 export interface NotEmergencyLiquidatorError extends IGearboxError {
   code: "notEmergencyLiquidator";
