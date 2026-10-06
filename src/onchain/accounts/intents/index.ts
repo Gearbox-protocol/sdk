@@ -283,9 +283,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * given deposit reaches is decided by the debt it implies and by the
    * `debtLimits` the market puts that debt in — the range a leverage slider should offer.
    *
-   * Unlike the other ceilings here this one reads no account: opening has none
-   * yet, and adjusting measures against the net value the caller already
-   * holds. Nothing is fetched, so a form can ask on every keystroke.
+   * Nothing is fetched: opening uses the supplied collateral, while adjust
+   * uses a supplied account slice, so a form can ask on every keystroke.
    *
    * @param props - The manager, the SDK holding its market, what stands
    * behind the position, and optionally the health factor the ceiling should

@@ -776,6 +776,7 @@ export class PrepareApi
     strategy: StrategyInput,
     collateral: readonly Asset[],
     targetHF?: Bps,
+    position?: StrategyPosition,
   ): LeverageBand | undefined {
     // Bare: there is nothing to read and nothing to await, and wrapping
     // arithmetic in an envelope would cost the caller the very immediacy this
@@ -786,6 +787,7 @@ export class PrepareApi
       creditManager: strategy.creditManager,
       collateral,
       targetHF,
+      position,
     });
   }
 

@@ -1022,9 +1022,8 @@ export interface IOpportunitiesPrepare {
    *
    * Synchronous, unlike the ceilings above it: those read the account from the
    * chain, this one only needs loaded market state, so a form can ask on every
-   * keystroke. Hand over the collateral as it stands and the SDK values it —
-   * opening takes the tokens being deposited, adjusting the position's own net
-   * value in the underlying.
+   * keystroke. Opening values `collateral`; passing `position` selects adjust
+   * mode, which derives own funds, debt and quota state from that position.
    *
    * Nothing at all when the market has no range to offer: a deposit too small
    * to carry `minDebt` at any leverage the threshold allows, or a manager with
@@ -1035,6 +1034,7 @@ export interface IOpportunitiesPrepare {
     strategy: StrategyInput,
     collateral: readonly Asset[],
     targetHF?: Bps,
+    position?: StrategyPosition,
   ): LeverageBand | undefined;
 
   /**
