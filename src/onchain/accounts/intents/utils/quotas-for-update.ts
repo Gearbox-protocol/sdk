@@ -396,14 +396,23 @@ export function quotaIncreaseLimit({
   });
   if (maxQuotaValue === undefined) return { value: undefined };
 
-  const quotaBalanceResult = oracle.safeConvertInput(
-    token,
+  const quotaBalanceResult = oracle.safeConvert(
     market.pool.underlying,
-    maxQuotaValue + 1n,
+    token,
+    maxQuotaValue,
   );
   if (quotaBalanceResult.error) return quotaBalanceResult;
+  const quotaValueResult = oracle.safeConvert(
+    token,
+    market.pool.underlying,
+    quotaBalanceResult.value,
+  );
+  if (quotaValueResult.error) return quotaValueResult;
+  const quotaBalance =
+    quotaBalanceResult.value -
+    (quotaValueResult.value > maxQuotaValue ? 1n : 0n);
 
-  const availableTokenIncrease = quotaBalanceResult.value - 1n - balance;
+  const availableTokenIncrease = quotaBalance - balance;
   const excessTokenIncrease = BigIntMath.max(availableTokenIncrease, 0n) + 1n;
   if (rwaAsset?.toLowerCase() === token.toLowerCase()) {
     const underlyingScale =
@@ -416,12 +425,21 @@ export function quotaIncreaseLimit({
     };
   }
 
-  const increaseResult = oracle.safeConvertInput(
+  const increaseResult = oracle.safeConvert(
+    token,
+    market.pool.underlying,
+    excessTokenIncrease - 1n,
+  );
+  if (increaseResult.error) return increaseResult;
+  const purchaseValue = oracle.safeConvert(
     market.pool.underlying,
     token,
-    excessTokenIncrease,
+    increaseResult.value,
   );
-  return increaseResult.error
-    ? increaseResult
-    : { value: increaseResult.value - 1n };
+  if (purchaseValue.error) return purchaseValue;
+  return {
+    value:
+      increaseResult.value -
+      (purchaseValue.value >= excessTokenIncrease ? 1n : 0n),
+  };
 }

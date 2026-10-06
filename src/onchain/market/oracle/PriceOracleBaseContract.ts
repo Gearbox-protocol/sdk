@@ -222,6 +222,16 @@ export abstract class PriceOracleBaseContract<
     amount: bigint,
     reserve = false,
   ): bigint {
+    return this.#convert(from, to, amount, reserve, false);
+  }
+
+  #convert(
+    from: Address,
+    to: Address,
+    amount: bigint,
+    reserve: boolean,
+    roundUp: boolean,
+  ): bigint {
     if (isAddressEqual(from, to)) {
       return amount;
     }
@@ -236,7 +246,11 @@ export abstract class PriceOracleBaseContract<
       : this.mainPrice(toToken);
     const toScale = 10n ** BigInt(this.tokensMeta.decimals(toToken));
 
-    return (amount * fromPrice * toScale) / (toPrice * fromScale);
+    const numerator = amount * fromPrice * toScale;
+    const denominator = toPrice * fromScale;
+    return roundUp
+      ? BigIntMath.ceilDiv(numerator, denominator)
+      : numerator / denominator;
   }
 
   /**
@@ -265,57 +279,16 @@ export abstract class PriceOracleBaseContract<
     return (amount * scale) / price;
   }
 
-  /** {@inheritDoc IPriceOracleContract.safeConvertInput} */
-  public safeConvertInput(
-    from: Address,
-    to: Address,
-    output: bigint,
-  ): SafeValue<bigint, UnpriceableTokenError> {
-    if (isAddressEqual(from, to)) return { value: output };
-    const input = (reserve: boolean) => {
-      // Select the same available feed branch as forward conversion.
-      this.convert(from, to, 0n, reserve);
-      const fromToken = this.#priceableToken(from);
-      const toToken = this.#priceableToken(to);
-      const fromPrice = reserve
-        ? this.reservePrice(fromToken)
-        : this.mainPrice(fromToken);
-      const toPrice = reserve
-        ? this.reservePrice(toToken)
-        : this.mainPrice(toToken);
-      const numerator =
-        output * toPrice * 10n ** BigInt(this.tokensMeta.decimals(fromToken));
-      const denominator =
-        fromPrice * 10n ** BigInt(this.tokensMeta.decimals(toToken));
-      if (denominator === 0n)
-        return output === 0n
-          ? { value: 0n }
-          : safeValue(0n, unpriceableTokenError(from));
-      // Invert the floor-rounded forward conversion with ceiling division.
-      // Rounding down could produce an input whose conversion misses output.
-      return { value: (numerator + denominator - 1n) / denominator };
-    };
-    try {
-      return input(false);
-    } catch {
-      try {
-        return input(true);
-      } catch {
-        return safeValue(0n, unpriceableTokenError(from));
-      }
-    }
-  }
-
   public safeConvert(
     from: Address,
     to: Address,
     amount: bigint,
   ): SafeValue<bigint, UnpriceableTokenError> {
     try {
-      return { value: this.convert(from, to, amount) };
+      return { value: this.#convert(from, to, amount, false, true) };
     } catch {
       try {
-        return { value: this.convert(from, to, amount, true) };
+        return { value: this.#convert(from, to, amount, true, true) };
       } catch {
         return safeValue(0n, unpriceableTokenError(from));
       }

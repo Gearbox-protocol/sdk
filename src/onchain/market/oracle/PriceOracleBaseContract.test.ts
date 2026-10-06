@@ -41,6 +41,17 @@ describe("PriceOracleBaseContract.convert", () => {
 });
 
 describe("PriceOracleBaseContract.safeConvert", () => {
+  it("rounds a fractional target unit up while contract conversion stays down", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 2 },
+      [WETH]: { price: 3 },
+    });
+    expect(oracle.convert(WETH, USDC, 1000000000000n)).toBe(1n);
+    expect(oracle.safeConvert(WETH, USDC, 1000000000000n)).toEqual({
+      value: 2n,
+    });
+  });
+
   it("passes through when from equals to, even with no feeds", () => {
     expect(new TestPriceOracle().safeConvert(USDC, USDC, 100n)).toEqual({
       value: 100n,
@@ -297,40 +308,39 @@ describe("PriceOracleBaseContract native through WETH", () => {
   });
 });
 
-describe("PriceOracleBaseContract.safeConvertInput", () => {
-  it("returns tight inverse endpoints for floor conversion", () => {
-    const oracle = new TestPriceOracle({
-      [USDC]: { price: 1 },
-      [WETH]: { price: 2000 },
-    });
-    for (const output of [1n, 777777777777n, 1000000000000000000n]) {
-      const result = oracle.safeConvertInput(USDC, WETH, output);
-      expect(result.error).toBeUndefined();
-      expect(
-        oracle.safeConvert(USDC, WETH, result.value).value,
-      ).toBeGreaterThanOrEqual(output);
-      expect(
-        oracle.safeConvert(USDC, WETH, result.value - 1n).value,
-      ).toBeLessThan(output);
-    }
-  });
-  it("does not use reserve after successful zero main source conversion", () => {
+describe("PriceOracleBaseContract.safeConvert rounding", () => {
+  it.each([false, true])(
+    "rounds up in both decimal directions (reserve %s)",
+    reserve => {
+      const oracle = new TestPriceOracle({
+        [USDC]: reserve ? { reservePrice: 2 } : { price: 2 },
+        [WETH]: reserve ? { reservePrice: 3 } : { price: 3 },
+      });
+      expect(oracle.safeConvert(WETH, USDC, 666666666667n)).toEqual({
+        value: 2n,
+      });
+      expect(oracle.safeConvert(USDC, WETH, 2n)).toEqual({
+        value: 1333333333334n,
+      });
+      expect(oracle.safeConvert(WETH, USDC, 0n)).toEqual({ value: 0n });
+    },
+  );
+
+  it("does not use reserve after a successful zero main source conversion", () => {
     const oracle = new TestPriceOracle({
       [USDC]: { price: 0, reservePrice: 1 },
       [WETH]: { price: 2000, reservePrice: 2000 },
     });
     expect(oracle.safeConvert(USDC, WETH, ONE_USDC)).toEqual({ value: 0n });
-    expect(oracle.safeConvertInput(USDC, WETH, 1n).error?.code).toBe(
-      "unpriceableToken",
-    );
   });
-  it("uses reserve when zero main target price makes forward conversion fail", () => {
+
+  it("uses reserve when the main target price is zero", () => {
     const oracle = new TestPriceOracle({
       [USDC]: { price: 1, reservePrice: 1 },
       [WETH]: { price: 0, reservePrice: 2000 },
     });
-    expect(oracle.safeConvertInput(USDC, WETH, 1000000000000000000n)).toEqual({
-      value: 2000000000n,
+    expect(oracle.safeConvert(USDC, WETH, ONE_USDC)).toEqual({
+      value: 500000000000000n,
     });
   });
 });

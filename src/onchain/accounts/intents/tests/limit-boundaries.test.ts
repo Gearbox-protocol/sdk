@@ -77,10 +77,10 @@ describe("limit boundary characterization", () => {
       { min: "23", max: "138", quota: "8837" },
       { min: "23", max: "138", quota: "0" },
       { min: "23", max: "138", quota: "8717" },
-      { min: "460000000000", max: "2779999999999", quota: "0" },
-      { min: "460000000000", max: "2779999999999", quota: "176759999999999" },
-      { min: "460000000000", max: "2779999999999", quota: "0" },
-      { min: "460000000000", max: "2779999999999", quota: "174359999999999" },
+      { min: "440000000001", max: "2760000000000", quota: "0" },
+      { min: "440000000001", max: "2760000000000", quota: "176740000000000" },
+      { min: "440000000001", max: "2760000000000", quota: "0" },
+      { min: "440000000001", max: "2760000000000", quota: "174340000000000" },
     ]);
   });
   it("preserves exact deposit and leverage boundaries independently", () => {

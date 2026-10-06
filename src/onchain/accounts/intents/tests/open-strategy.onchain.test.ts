@@ -309,6 +309,31 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     }
   });
 
+  it("omits bounds when a zero main price makes conversion directions use different feeds", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n,
+      availableLiquidity: 100n,
+      extraPrices: { [UND]: 0n },
+      reservePrices: {
+        [ANY]: 300000000n,
+        [UND]: 200000000n,
+        [POS]: 200000000n,
+      },
+    });
+    const refusal = await run(
+      {
+        ...case_underlying_3x,
+        leverage: 130n,
+        collateral: [{ token: ANY, balance: 20000000000n }],
+      },
+      sdk,
+    ).result;
+    expect(refusal.ok).toBe(false);
+    if (refusal.ok || refusal.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(refusal.error.collateralLimits).toBeUndefined();
+  });
+
   it.each([false, true])(
     "returns converted-token bounds using forward oracle prices (reserve fallback %s)",
     async reserve => {
@@ -322,21 +347,18 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       const oracle =
         sdk.marketRegister.findByCreditManager(CREDIT_MANAGER).priceOracle;
       if (reserve) {
-        const convert = oracle.convert.bind(oracle);
-        vi.spyOn(oracle, "convert").mockImplementation(
-          (from, to, amount, useReserve) => {
-            if (!useReserve && from === ANY)
-              throw new Error("main feed unavailable");
-            return convert(from, to, amount, useReserve);
-          },
-        );
+        const mainPrice = oracle.mainPrice.bind(oracle);
+        vi.spyOn(oracle, "mainPrice").mockImplementation(token => {
+          if (token === ANY) throw new Error("main feed unavailable");
+          return mainPrice(token);
+        });
       }
       const scenario = {
         ...case_underlying_3x,
         leverage: 130n,
         collateral: [{ token: ANY, balance: 1n }],
       };
-      // Tiny converted collateral is worth zero, so start at one representable underlying unit.
+      // Start below minDebt with a small, priceable collateral amount.
       scenario.collateral[0].balance = 20000000000n;
       const refusal = await run(scenario, sdk).result;
       if (
@@ -347,8 +369,8 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
         throw new Error("expected debt bounds");
       const { min, max } = refusal.error.collateralLimits;
       expect(min.token.address).toBe(ANY);
-      expect(min.value).toBe(reserve ? 2226666666667n : 6680000000000n);
-      expect(max.value).toBe(reserve ? 2246666666666n : 6739999999999n);
+      expect(min.value).toBe(reserve ? 2220000000001n : 6660000000001n);
+      expect(max.value).toBe(reserve ? 2240000000000n : 6720000000000n);
       for (const balance of [min.value, max.value]) {
         expect(
           (
@@ -394,8 +416,8 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       throw new Error("expected native debt bounds");
     const { min, max } = refusal.error.collateralLimits;
     expect(min.token.address).toBe(NATIVE_ADDRESS);
-    expect(min.value).toBe(6680000000000n);
-    expect(max.value).toBe(6739999999999n);
+    expect(min.value).toBe(6660000000001n);
+    expect(max.value).toBe(6720000000000n);
     for (const balance of [min.value, max.value]) {
       expect(
         (

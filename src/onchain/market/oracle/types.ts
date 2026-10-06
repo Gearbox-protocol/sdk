@@ -169,33 +169,10 @@ export interface IPriceOracleContract extends IBaseContract {
     reserve?: boolean,
   ) => bigint;
   /**
-   * Returns the smallest source-token amount whose forward conversion is at
-   * least `output`: `convert(from, to, input) >= output` using the selected feeds.
-   *
-   * This inverts the floor-rounded conversion and rounds the input UP.
-   * Calling `safeConvert(to, from, output)` instead rounds DOWN and can leave
-   * the forward-converted amount below the requested output.
-   * For example, if conversion is `floor(input / 2)`, output `3` requires
-   * input `6`; larger inputs also reach the output, but `6` is the smallest.
-   *
-   * Uses main feeds, then reserve feeds on failure. Returns
-   * `{ value: 0n, error }` if the amount cannot be priced; identical tokens
-   * return `output` unchanged. This is an oracle valuation, not a swap quote.
-   *
-   * @param from - Source token address; the returned amount uses its decimals.
-   * @param to - Destination token address.
-   * @param output - Required amount in destination-token minimal units.
-   **/
-  safeConvertInput: (
-    from: Address,
-    to: Address,
-    output: bigint,
-  ) => SafeValue<bigint, UnpriceableTokenError>;
-
-  /**
-   * Like {@link convert}, but never throws: main feed, then reserve, else
-   * `{ value: 0n, error }`. Fallback only on a missing or failed feed, not
-   * on a successful 0 price.
+   * Values the amount with rounding UP to a target-token unit, unlike the
+   * floor-rounded contract-compatible {@link convert}.
+   * Never throws: main feed, then reserve, else `{ value: 0n, error }`.
+   * Fallback only on a missing or failed feed, not on a successful 0 price.
    **/
   safeConvert: (
     from: Address,

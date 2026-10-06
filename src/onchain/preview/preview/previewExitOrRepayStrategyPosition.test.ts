@@ -139,8 +139,8 @@ it("previews lending: native ETH collateral stays on the account, wstETH debt is
         value: parseEther("75"),
       },
     ],
-    estTotalValue: amt(WSTETH, 81_462_650_139_176_631_035n),
-    estNetValue: amt(WSTETH, 6_462_650_139_176_631_035n),
+    estTotalValue: amt(WSTETH, 81_462_650_139_176_631_036n),
+    estNetValue: amt(WSTETH, 6_462_650_139_176_631_036n),
     totalDebt: amt(WSTETH, parseEther("75")),
     quotas: [
       {
@@ -218,7 +218,7 @@ it("previews strategy 2: wstETH collateral already in target, WETH debt swapped"
         value: 5_000_000_000_000_000_000n,
       },
     ],
-    estNetValue: amt(WETH, 6_192_629_874_516_533_829n),
+    estNetValue: amt(WETH, 6_192_629_874_516_533_830n),
     totalDebt: amt(WETH, 77_526_880_236_650_455_507n),
     quotas: [
       {
@@ -257,7 +257,7 @@ it("previews strategy 3: wstETH collateral deliberately not swapped, WETH debt s
         value: parseEther("10"),
       },
     ],
-    estNetValue: amt(WETH, 12_385_259_749_033_067_658n),
+    estNetValue: amt(WETH, 12_385_259_749_033_067_659n),
     totalDebt: amt(WETH, 49_544_083_514_075_663_524n),
     quotas: [
       {

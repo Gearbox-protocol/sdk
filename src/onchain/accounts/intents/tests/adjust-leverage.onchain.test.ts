@@ -9,6 +9,7 @@ import {
   withOnchainOpCalls,
 } from "../testing/expect.js";
 import {
+  ANY,
   buildMarketSdk,
   CREDIT_FACADE,
   caToken,
@@ -112,6 +113,51 @@ describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
     if (result.ok || result.error.code !== "insufficientPoolLiquidity")
       throw new Error("expected liquidity refusal");
     expect(result.error.leverageLimits?.max).toBe(200n);
+  });
+
+  it("reprepares leverage quota boundaries with fractional prices and different decimals", async () => {
+    const sdk = buildMarketSdk({
+      extraPrices: { [ANY]: 300000000n },
+      routeQuote: amount => (amount * 2n * 10n ** 10n) / 3n,
+      quotas: {
+        [ANY]: {
+          token: ANY,
+          rate: 500n,
+          limit: 1100n * 10n ** 8n,
+          totalQuoted: 1000n * 10n ** 8n,
+          isActive: true,
+        },
+      },
+    });
+    const service = new CreditAccountOperationsService(sdk);
+    const props = buildAdjustLeverageProps(
+      {
+        ...case_increase,
+        intent: { ...case_increase.intent, token: ANY },
+        tokens: [caToken(ANY, 666666666666666666667n, 920n * 10n ** 8n)],
+      },
+      sdk,
+    );
+    const result = await service.startIntent(props);
+    if (result.ok || result.error.code !== "quotaLimitReached")
+      throw new Error("expected quota refusal");
+    const maximum = result.error.quotaLimits?.leverageMax;
+    const minimum = result.error.leverageLimits?.min;
+    if (maximum === undefined || minimum === undefined)
+      throw new Error("expected operation boundaries");
+    for (const value of [minimum, maximum]) {
+      const repeated = await service.startIntent({
+        ...props,
+        intent: { ...props.intent, targetLeverage: value },
+      });
+      expect(repeated.ok).toBe(true);
+    }
+    const outside = await service.startIntent({
+      ...props,
+      intent: { ...props.intent, targetLeverage: maximum + 1n },
+    });
+    expect(outside.ok).toBe(false);
+    if (!outside.ok) expect(outside.error.code).toBe("quotaLimitReached");
   });
 
   it.each([0, 1000])(

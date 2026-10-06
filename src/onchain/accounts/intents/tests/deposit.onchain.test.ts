@@ -10,6 +10,7 @@ import {
   withOnchainOpCalls,
 } from "../testing/expect.js";
 import {
+  ANY,
   buildMarketSdk,
   CREDIT_FACADE,
   CREDIT_MANAGER,
@@ -61,7 +62,11 @@ async function expectCase(c: DepositCase, expectedCalls: unknown[]) {
 }
 
 describe("deposit.start — collateral in, debt on top, converted to position", () => {
-  it.each(["insufficientPoolLiquidity", "debtOutOfRange", "quotaLimitReached"] as const)(
+  it.each([
+    "insufficientPoolLiquidity",
+    "debtOutOfRange",
+    "quotaLimitReached",
+  ] as const)(
     "omits solution bounds for a targeted-leverage deposit refused by %s",
     async code => {
       const sdk = buildDepositSdk(case_target_leverage);
@@ -77,10 +82,17 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
       } else {
         vi.spyOn(suite.market.pool.pqk, "quotaAvailable").mockReturnValue(0n);
       }
-      const result = await new CreditAccountOperationsService(sdk).startIntent(props);
+      const result = await new CreditAccountOperationsService(sdk).startIntent(
+        props,
+      );
       if (result.ok) throw new Error("expected refusal");
       expect(result.error.code).toBe(code);
-      if (result.error.code !== "insufficientPoolLiquidity" && result.error.code !== "debtOutOfRange" && result.error.code !== "quotaLimitReached") throw new Error("unexpected refusal");
+      if (
+        result.error.code !== "insufficientPoolLiquidity" &&
+        result.error.code !== "debtOutOfRange" &&
+        result.error.code !== "quotaLimitReached"
+      )
+        throw new Error("unexpected refusal");
       expect(result.error.collateralLimits).toBeUndefined();
       expect(result.error.leverageLimits).toBeUndefined();
       expect(result.error.quotaLimits).toBeUndefined();
@@ -119,6 +131,51 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
       intent: { ...props.intent, amount: limits.max.value },
     });
     expect(repeated.ok).toBe(true);
+  });
+
+  it("reprepares deposit quota boundaries with fractional prices and different decimals", async () => {
+    const sdk = buildMarketSdk({
+      extraPrices: { [ANY]: 300000000n },
+      routeQuote: amount => (amount * 2n * 10n ** 10n) / 3n,
+      quotas: {
+        [ANY]: {
+          token: ANY,
+          rate: 500n,
+          limit: 1100n * 10n ** 8n,
+          totalQuoted: 1000n * 10n ** 8n,
+          isActive: true,
+        },
+      },
+    });
+    const service = new CreditAccountOperationsService(sdk);
+    const props = buildDepositProps(
+      {
+        ...case_fixed_leverage,
+        intent: { ...case_fixed_leverage.intent, positionToken: ANY },
+        tokens: [caToken(ANY, 666666666666666666667n, 920n * 10n ** 8n)],
+      },
+      sdk,
+    );
+    const result = await service.startIntent(props);
+    if (result.ok || result.error.code !== "quotaLimitReached")
+      throw new Error("expected quota refusal");
+    const maximum = result.error.quotaLimits?.collateralMax?.value;
+    const minimum = result.error.collateralLimits?.min.value;
+    if (maximum === undefined || minimum === undefined)
+      throw new Error("expected operation boundaries");
+    for (const value of [minimum, maximum]) {
+      const repeated = await service.startIntent({
+        ...props,
+        intent: { ...props.intent, amount: value },
+      });
+      expect(repeated.ok).toBe(true);
+    }
+    const outside = await service.startIntent({
+      ...props,
+      intent: { ...props.intent, amount: maximum + 1n },
+    });
+    expect(outside.ok).toBe(false);
+    if (!outside.ok) expect(outside.error.code).toBe("quotaLimitReached");
   });
 
   it.each([0, 1000])(
