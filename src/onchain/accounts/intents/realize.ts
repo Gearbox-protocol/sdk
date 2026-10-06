@@ -3,6 +3,7 @@ import {
   insufficientBalance,
   multipleDelayedWithdrawals,
   noDelayedRoute,
+  type OperationLimitOptions,
   withdrawalInProgress,
 } from "../../../model/index.js";
 import { getDirectTransferToken } from "../../chain/chains.js";
@@ -55,6 +56,7 @@ import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
 import { withdrawLimits } from "./withdraw-limits.js";
 
 export interface RealizeProps {
+  limits?: OperationLimitOptions;
   creditAccount: CreditAccountSlice;
   sdk: OnchainSDK;
   /** Router slippage in PERCENTAGE_FORMAT (100% = 10_000). */
@@ -221,7 +223,7 @@ export async function realize(
         break;
 
       case "borrow":
-        assertCanBorrow(sdk, suite, step.amount);
+        assertCanBorrow(sdk, suite, step.amount, props.limits);
         push(
           buildIncreaseDebtOperation({
             amount: step.amount,
@@ -632,12 +634,13 @@ export async function realize(
     market,
     before: creditAccount.tokens,
     after: projected.assets,
+    limits: props.limits,
   });
   if (
     !cleared &&
     quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
   ) {
-    assertQuotaAvailable(sdk, market, quotas.quotaIncrease);
+    assertQuotaAvailable(sdk, market, quotas.quotaIncrease, props.limits);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 

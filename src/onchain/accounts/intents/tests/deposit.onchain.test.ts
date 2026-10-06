@@ -1,20 +1,31 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { BigIntMath } from "../../../utils/bigint-math.js";
 import { CreditAccountOperationsService } from "../index.js";
+import { planDeposit } from "../plan.js";
 import {
   assetBalance,
   expectAdjustPreview,
   expectPreviewError,
   withOnchainOpCalls,
 } from "../testing/expect.js";
-import { POS, RWA_ASSET, UND } from "../testing/market.js";
+import {
+  buildMarketSdk,
+  CREDIT_FACADE,
+  CREDIT_MANAGER,
+  caToken,
+  MAX_DEBT,
+  POS,
+  RWA_ASSET,
+  UND,
+} from "../testing/market.js";
 import {
   CA_OP_CALLS,
   MOCK_ROUTER_CALL,
   MOCK_RWA_UNWRAP_CALL,
   MOCK_RWA_WRAP_CALL,
 } from "../testing/sdk-mock.js";
+import { accountView } from "../view.js";
 import {
   buildDepositProps,
   buildDepositSdk,
@@ -50,6 +61,125 @@ async function expectCase(c: DepositCase, expectedCalls: unknown[]) {
 }
 
 describe("deposit.start — collateral in, debt on top, converted to position", () => {
+  it.each(["insufficientPoolLiquidity", "debtOutOfRange", "quotaLimitReached"] as const)(
+    "omits solution bounds for a targeted-leverage deposit refused by %s",
+    async code => {
+      const sdk = buildDepositSdk(case_target_leverage);
+      const props = buildDepositProps(case_target_leverage, sdk);
+      const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
+      if (code === "insufficientPoolLiquidity") {
+        vi.spyOn(suite, "maxBorrowAmount").mockReturnValue({
+          amount: suite.market.toUnderlyingAmount(1n),
+          limit: "poolAvailableLiquidity",
+        });
+      } else if (code === "debtOutOfRange") {
+        suite.creditFacade.maxDebt = props.creditAccount.totalDebt + 1n;
+      } else {
+        vi.spyOn(suite.market.pool.pqk, "quotaAvailable").mockReturnValue(0n);
+      }
+      const result = await new CreditAccountOperationsService(sdk).startIntent(props);
+      if (result.ok) throw new Error("expected refusal");
+      expect(result.error.code).toBe(code);
+      if (result.error.code !== "insufficientPoolLiquidity" && result.error.code !== "debtOutOfRange" && result.error.code !== "quotaLimitReached") throw new Error("unexpected refusal");
+      expect(result.error.collateralLimits).toBeUndefined();
+      expect(result.error.leverageLimits).toBeUndefined();
+      expect(result.error.quotaLimits).toBeUndefined();
+    },
+  );
+
+  it("values the deposit once for both borrowing and conversion", () => {
+    const sdk = buildDepositSdk(case_fixed_leverage);
+    const props = buildDepositProps(case_fixed_leverage, sdk);
+    const view = accountView(props.creditAccount, sdk);
+    const price = vi.spyOn(view, "price");
+    planDeposit(props.intent, view);
+    expect(price).toHaveBeenCalledTimes(1);
+    expect(price).toHaveBeenCalledWith(
+      props.intent.token,
+      view.underlying,
+      props.intent.amount,
+    );
+  });
+
+  it("limits the added collateral by debt delta on an existing position", async () => {
+    const sdk = buildMarketSdk({ availableLiquidity: 100n * 10n ** 8n });
+    const service = new CreditAccountOperationsService(sdk);
+    const props = buildDepositProps(case_fixed_leverage, sdk);
+    const result = await service.startIntent(props);
+    if (result.ok || result.error.code !== "insufficientPoolLiquidity")
+      throw new Error("expected liquidity refusal");
+    expect(result.error.collateralLimits?.max.value).toBe(100n * 10n ** 8n);
+    expect(
+      sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOneTokenPath,
+    ).not.toHaveBeenCalled();
+    const limits = result.error.collateralLimits;
+    if (!limits) throw new Error("expected deposit limits");
+    const repeated = await service.startIntent({
+      ...props,
+      intent: { ...props.intent, amount: limits.max.value },
+    });
+    expect(repeated.ok).toBe(true);
+  });
+
+  it.each([0, 1000])(
+    "caps deposit quota increases with reserve %s",
+    async quotaReserve => {
+      const sdk = buildMarketSdk({
+        quotas: {
+          [POS]: {
+            token: POS,
+            rate: 500n,
+            limit: 1200n * 10n ** 8n,
+            totalQuoted: 1000n * 10n ** 8n,
+            isActive: true,
+          },
+        },
+      });
+      const service = new CreditAccountOperationsService(sdk);
+      const props = {
+        ...buildDepositProps(case_fixed_leverage, sdk),
+        quotaReserve,
+      };
+      const result = await service.startIntent(props);
+      if (result.ok || result.error.code !== "quotaLimitReached")
+        throw new Error("expected quota refusal");
+      const limits = result.error.collateralLimits;
+      expect(limits).toBeDefined();
+      if (!limits) throw new Error("expected confirmed limits");
+      const maximum = result.error.quotaLimits?.collateralMax;
+      if (!maximum) throw new Error("expected separate quota ceiling");
+      expect(maximum.value).toBeLessThan(limits.max.value);
+      for (const endpoint of [limits.min, maximum]) {
+        expect(
+          (
+            await service.startIntent({
+              ...props,
+              intent: { ...props.intent, amount: endpoint.value },
+            })
+          ).ok,
+        ).toBe(true);
+      }
+    },
+  );
+
+  it("leaves no button when no positive deposit can fit the debt ceiling", async () => {
+    const sdk = buildMarketSdk();
+    const props = buildDepositProps(
+      {
+        ...case_fixed_leverage,
+        totalDebt: MAX_DEBT,
+        tokens: [caToken(UND, MAX_DEBT + 500n * 10n ** 8n)],
+      },
+      sdk,
+    );
+    const result = await new CreditAccountOperationsService(sdk).startIntent(
+      props,
+    );
+    if (result.ok || result.error.code !== "debtOutOfRange")
+      throw new Error("expected debt ceiling refusal");
+    expect(result.error.collateralLimits).toBeUndefined();
+  });
+
   it("1.1 preserves leverage: addCollateral → increaseDebt → swap", async () => {
     const state = await expectCase(case_fixed_leverage, [
       CA_OP_CALLS.addCollateral,
@@ -135,13 +265,16 @@ describe("deposit.start — collateral in, debt on top, converted to position", 
     expectPreviewError(result, "unsupportedCollateralToken");
   });
 
-  it("rejects a target leverage that would require repaying", async () => {
-    const result = await run({
-      ...case_target_leverage,
-      intent: { ...case_target_leverage.intent, targetLeverage: 100n },
-    });
-    expectPreviewError(result, "leverageOutOfRange");
-  });
+  it.each([0n, 50n, 100n])(
+    "rejects target leverage %s that would require repaying",
+    async targetLeverage => {
+      const result = await run({
+        ...case_target_leverage,
+        intent: { ...case_target_leverage.intent, targetLeverage },
+      });
+      expectPreviewError(result, "leverageOutOfRange");
+    },
+  );
 
   it("rejects a non-positive amount", async () => {
     const result = await run({

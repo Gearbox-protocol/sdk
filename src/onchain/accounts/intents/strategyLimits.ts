@@ -5,6 +5,11 @@ import { MAX_UINT256 } from "../../constants/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
+import type { AccountView } from "./plan.js";
+import type {
+  CreditAccountSlice,
+  DepositStrategyIntent,
+} from "./types.js";
 import { quotaIncreaseLimit } from "./utils/quotas-for-update.js";
 
 interface BaseLimitsProps {
@@ -19,8 +24,17 @@ interface OpenLimitsProps extends BaseLimitsProps {
   targetToken: Address;
 }
 
+interface AccountLimitsProps extends BaseLimitsProps {
+  view: AccountView;
+  initialQuotas: CreditAccountSlice["tokens"];
+}
+
+interface DepositLimitsProps extends AccountLimitsProps, DepositStrategyIntent {}
+
+type StrategyLimitsProps = OpenLimitsProps | DepositLimitsProps;
+
 /** Independent input bounds supplied to debt, liquidity and quota errors. */
-export function strategyLimits(props: OpenLimitsProps): OperationLimitOptions {
+export function strategyLimits(props: StrategyLimitsProps): OperationLimitOptions {
   const { suite, quotaReserve } = props;
   const { market } = suite;
   const { priceOracle: oracle } = market;
@@ -77,6 +91,72 @@ export function strategyLimits(props: OpenLimitsProps): OperationLimitOptions {
 
       return {
         collateralLimits: minCollateral <= maxCollateral
+          ? {
+              min: oracle.toTokenAmount(token, minCollateral),
+              max: oracle.toTokenAmount(token, maxCollateral),
+            }
+          : undefined,
+        quotaLimits: maxCollateralByQuota === undefined
+          ? undefined
+          : { collateralMax: oracle.toTokenAmount(token, maxCollateralByQuota) },
+      };
+    }
+
+    case "DEPOSIT": {
+      const { view, token, positionToken, initialQuotas, targetLeverage } = props;
+      // Only deposits preserving current leverage have an amount solution.
+      if (targetLeverage !== undefined || view.collateral <= 0n) return {};
+
+      const minDebt = BigIntMath.max(view.debt, suite.creditFacade.minDebt);
+      const maxDebt = BigIntMath.min(
+        suite.creditFacade.maxDebt,
+        view.debt + suite.maxBorrowAmount().amount.value,
+      );
+
+      // deltaD = floor(D * addedC / C); existing debt is not scaled away.
+      const minCollateralForDebt = (debt: bigint) => {
+        if (debt <= view.debt) return 0n;
+        if (view.debt === 0n) return undefined;
+        const collateralUnderlying = BigIntMath.ceilDiv((debt - view.debt) * view.collateral, view.debt);
+        const result = oracle.safeConvertInput(token, view.underlying, collateralUnderlying);
+        return result.error ? undefined : result.value;
+      };
+      // An undefined ceiling also covers zero debt: proportional borrowing stays zero.
+      const debtFloorCollateral = minCollateralForDebt(minDebt);
+      const minCollateral = debtFloorCollateral === undefined ? undefined : BigIntMath.max(1n, debtFloorCollateral);
+      const excessCollateral = debtFloorCollateral === undefined ? undefined : minCollateralForDebt(maxDebt + 1n);
+      const maxCollateral = excessCollateral === undefined ? MAX_UINT256 : BigIntMath.min(MAX_UINT256, excessCollateral - 1n);
+
+      const position = positionToken ?? view.fattest([view.underlying]);
+      let maxCollateralByQuota: bigint | undefined;
+      if (position) {
+        if (!market.isUnderlyingLike(position) && !market.pool.pqk.hasActiveQuota(position)) {
+          maxCollateralByQuota = 0n;
+        } else {
+          const quotaResult = quotaIncreaseLimit({
+            suite,
+            token: position,
+            balance: view.balanceOf(position),
+            initialQuotas,
+            quotaReserve,
+            rwaAsset: view.rwaAsset,
+          });
+          // Account projections value unavailable assets at zero: no quota increase.
+          maxCollateralByQuota = MAX_UINT256;
+          if (!quotaResult.error && quotaResult.value !== undefined) {
+            // Purchased increase = addedC + floor(D * addedC / C).
+            const excessUnderlying = BigIntMath.ceilDiv(
+              (quotaResult.value + 1n) * view.collateral,
+              view.collateral + view.debt,
+            );
+            const result = oracle.safeConvertInput(token, view.underlying, BigIntMath.max(excessUnderlying, 0n));
+            maxCollateralByQuota = result.error ? undefined : BigIntMath.min(MAX_UINT256, result.value - 1n);
+          }
+        }
+      }
+
+      return {
+        collateralLimits: minCollateral !== undefined && minCollateral <= maxCollateral
           ? {
               min: oracle.toTokenAmount(token, minCollateral),
               max: oracle.toTokenAmount(token, maxCollateral),

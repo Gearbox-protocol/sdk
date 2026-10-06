@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import {
+  type OperationLimitOptions,
   type SDKError,
   sdkErr,
   unsupportedTokenPair,
@@ -21,7 +22,6 @@ import {
   buildBorrowState,
 } from "./borrow.js";
 import { assertMarketOperable } from "./guards.js";
-
 import {
   calcLeverageBand,
   type LeverageBand,
@@ -39,6 +39,7 @@ import type {
   StartDelayedWithdrawalOperation,
 } from "./operations.js";
 import {
+  type AccountView,
   planAddCollateral,
   planAdjustLeverage,
   planAdjustLeverageDelayed,
@@ -50,6 +51,7 @@ import {
   type Step,
 } from "./plan.js";
 import { realize } from "./realize.js";
+import { strategyLimits } from "./strategyLimits.js";
 import { planTail, projectTail } from "./tail.js";
 import type {
   ClaimRemainder,
@@ -162,10 +164,26 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * balance)
    */
   async startIntent(props: StartProps): Promise<IntentPreviewResult> {
+    const { intent, sdk, creditAccount, quotaReserve } = props;
+    let current: AccountView | undefined;
+    let limits: OperationLimitOptions = {};
+    if (intent.type === "DEPOSIT") {
+      current = accountView(creditAccount, sdk);
+      limits = strategyLimits({
+        ...intent,
+        suite: sdk.marketRegister.findCreditManager(creditAccount.creditManager),
+        view: current,
+        initialQuotas: creditAccount.tokens,
+        quotaReserve,
+      });
+    }
     return plain(
       await this.#preview(props, () => {
         const { intent } = props;
-        const view = accountView(props.creditAccount, props.sdk);
+        const view = {
+          ...(current ?? accountView(props.creditAccount, props.sdk)),
+          limits,
+        };
         switch (intent.type) {
           case "ADD_COLLATERAL":
             return planAddCollateral(intent);
@@ -189,7 +207,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
             );
           }
         }
-      }),
+      }, limits),
     );
   }
 
@@ -626,6 +644,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
   async #preview(
     props: StartIntentProps,
     plan: () => Step[],
+    limits: OperationLimitOptions = {},
   ): Promise<Previewed> {
     const draft = props.draft ?? {};
     try {
@@ -642,6 +661,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
         slippage: props.slippage ?? 0,
         quotaReserve: props.quotaReserve,
         draft,
+        limits,
       });
       return { ok: true, operations, state, calls, delayed };
     } catch (e) {
