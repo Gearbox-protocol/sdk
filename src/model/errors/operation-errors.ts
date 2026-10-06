@@ -8,6 +8,30 @@ import type {
 } from "../rwa.js";
 import type { IGearboxError } from "./base.js";
 
+/** Input amounts bounded by debt and borrowing capacity; quota is separate. */
+export interface CollateralLimits {
+  min: TokenAmount;
+  max: TokenAmount;
+}
+
+/** Target leverage in LEVERAGE_DECIMALS units. */
+export interface LeverageLimits {
+  min: bigint;
+  max: bigint;
+}
+
+/** Independent operation inputs imposed by the quota keeper. */
+export type QuotaInputLimits =
+  | { collateralMax: TokenAmount; leverageMax?: bigint }
+  | { collateralMax?: TokenAmount; leverageMax: bigint };
+
+/** Prepared operation-specific bounds passed to validation errors. */
+export interface OperationLimitOptions {
+  collateralLimits?: CollateralLimits;
+  leverageLimits?: LeverageLimits;
+  quotaLimits?: QuotaInputLimits;
+}
+
 /**
  * Which limit stopped a borrow.
  *
@@ -117,13 +141,10 @@ export function poolSunset(pool: Address): PoolSunsetError {
 /**
  * The pool cannot lend what the operation wants to borrow.
  **/
-export interface InsufficientPoolLiquidityError extends IGearboxError {
+export interface InsufficientPoolLiquidityError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "insufficientPoolLiquidity";
-  /** Single-token Open amounts whose projected debt fits the current debt limits. */
-  collateralLimits?: {
-    min: TokenAmount;
-    max: TokenAmount;
-  };
   /** Both in the market's underlying. */
   requested: TokenAmount;
   available: TokenAmount;
@@ -153,13 +174,10 @@ export function insufficientPoolLiquidity(
  * The debt the operation implies falls outside the facade's `debtLimits`
  * (`minDebt`/`maxDebt`).
  **/
-export interface DebtOutOfRangeError extends IGearboxError {
+export interface DebtOutOfRangeError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "debtOutOfRange";
-  /** Single-token Open amounts whose projected debt fits the current debt limits. */
-  collateralLimits?: {
-    min: TokenAmount;
-    max: TokenAmount;
-  };
   /** All three in the market's underlying. */
   requested: TokenAmount;
   minDebt: TokenAmount;
@@ -316,7 +334,9 @@ export function forbiddenToken(token: Token): ForbiddenTokenError {
 /**
  * The market takes no more quota for a token the operation wants to hold.
  **/
-export interface QuotaLimitReachedError extends IGearboxError {
+export interface QuotaLimitReachedError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "quotaLimitReached";
   /** The token whose quota is increased. */
   token: Token;

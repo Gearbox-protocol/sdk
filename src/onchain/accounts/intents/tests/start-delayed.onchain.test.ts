@@ -96,6 +96,27 @@ function run(
 }
 
 describe("withdraw.startDelayed — request now, settle after the delay", () => {
+  it("keeps deleveraging solutions specific to the delayed route", async () => {
+    const sdk = buildMarketSdk({
+      minDebt: 600n * 10n ** 8n,
+      delayed: { [POS]: [queued] },
+    });
+    const result = await run(
+      { type: "ADJUST_LEVERAGE", targetLeverage: 150n },
+      sdk,
+    );
+    if (result.ok || result.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(result.error.leverageLimits?.min).toBe(160n);
+    const limits = result.error.leverageLimits;
+    if (!limits) throw new Error("expected delayed leverage limits");
+    for (const targetLeverage of [limits.min, limits.max]) {
+      expect(
+        (await run({ type: "ADJUST_LEVERAGE", targetLeverage }, sdk)).ok,
+      ).toBe(true);
+    }
+  });
+
   it("redeems withdrawal plus repayment, and records what the tail owes", async () => {
     const result = await run(
       { type: "WITHDRAW", amount: W, to: WALLET },

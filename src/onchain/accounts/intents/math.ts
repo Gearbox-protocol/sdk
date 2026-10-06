@@ -1,12 +1,9 @@
 import type { Address } from "viem";
 import {
-  type DebtOutOfRangeError,
   insufficientBalance,
+  type OperationLimitOptions,
 } from "../../../model/index.js";
-import type { Asset } from "../../base/index.js";
-import { MAX_UINT256 } from "../../constants/index.js";
 import { LEVERAGE_DECIMALS, PERCENTAGE_FACTOR } from "../../constants/math.js";
-import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { MaxBorrowAmount } from "../../market/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
@@ -107,6 +104,11 @@ export function assertLeverageAtLeastOne(leverage: bigint): void {
   );
 }
 
+interface AssertDebtLimitsOptions extends OperationLimitOptions {
+  allowZero?: boolean;
+  maxBorrowAmount?: MaxBorrowAmount;
+}
+
 /**
  * Rejects a debt the facade would revert on: anything else has to sit inside
  * `[minDebt, maxDebt]`. Zero is fine only `allowZero`-ing it: an adjustment
@@ -117,85 +119,21 @@ export function assertDebtLimits(
   debt: bigint,
   debtLimits: DebtLimits,
   underlying: Address,
-  options: {
-    allowZero?: boolean;
-    maxBorrowAmount?: MaxBorrowAmount;
-    getCollateralLimits?: () => DebtOutOfRangeError["collateralLimits"];
-  } = {},
+  options: AssertDebtLimitsOptions = {},
 ): void {
-  const { allowZero = true, getCollateralLimits, maxBorrowAmount } = options;
+  const { allowZero = true, ...rest } = options;
   // An account being adjusted may end owing nothing; the facade only weighs a
   // loan that exists.
   raise(
     checkDebtLimits({
       debt,
-      minDebt: debtLimits.minDebt,
-      maxDebt: debtLimits.maxDebt,
+      ...debtLimits,
       underlying: toToken(sdk, underlying),
       allowZero,
-      getCollateralLimits,
-      maxBorrowAmount,
+      ...rest,
     }),
     debt > debtLimits.maxDebt
       ? `debt ${debt} exceeds maxDebt ${debtLimits.maxDebt}`
       : `debt ${debt} is below minDebt ${debtLimits.minDebt}`,
   );
-}
-
-/** Finds single-token Open amounts whose projected debt fits the market limits. */
-export function openCollateralForDebtLimits({
-  suite,
-  collateral,
-  leverage,
-}: {
-  suite: CreditSuite;
-  collateral: readonly Asset[];
-  leverage: bigint;
-}): DebtOutOfRangeError["collateralLimits"] {
-  if (collateral.length !== 1 || leverage <= LEVERAGE_DECIMALS)
-    return undefined;
-  const [{ token }] = collateral;
-  const { market } = suite;
-  const limits = {
-    minDebt: suite.creditFacade.minDebt,
-    maxDebt: suite.maxBorrowAmount().amount.value,
-  };
-  if (limits.maxDebt < limits.minDebt) return undefined;
-  const debtAt = (amount: bigint) => {
-    const converted = market.priceOracle.safeConvert(
-      token,
-      market.pool.underlying,
-      amount,
-    );
-    return converted.error
-      ? undefined
-      : debtForLeverage(converted.value, leverage);
-  };
-  const lastDebt = debtAt(MAX_UINT256);
-  if (lastDebt === undefined || lastDebt < limits.minDebt) return undefined;
-  // First input reaching a debt threshold; at most 256 forward conversions.
-  const firstAtLeast = (threshold: bigint) => {
-    let low = 0n;
-    let high = MAX_UINT256;
-    while (low < high) {
-      const middle = (low + high) / 2n;
-      const debt = debtAt(middle);
-      if (debt === undefined) return undefined;
-      if (debt < threshold) low = middle + 1n;
-      else high = middle;
-    }
-    return low;
-  };
-  const min = firstAtLeast(limits.minDebt > 0n ? limits.minDebt : 1n);
-  const above =
-    lastDebt > limits.maxDebt ? firstAtLeast(limits.maxDebt + 1n) : undefined;
-  if (min === undefined || (lastDebt > limits.maxDebt && above === undefined))
-    return undefined;
-  const max = above === undefined ? MAX_UINT256 : above - 1n;
-  return min <= max
-    ? {
-        min: market.priceOracle.toTokenAmount(token, min),
-        max: market.priceOracle.toTokenAmount(token, max),
-      }
-    : undefined;
 }

@@ -50,6 +50,7 @@ import type { Curator, CuratorName } from "./curators.js";
 import type { curatorNameSchema, curatorSchema } from "./curators.schema.js";
 import type { delayedIntentSchema } from "./delayed-intent.schema.js";
 import type { DelayedIntent } from "./delayed-intents.js";
+import type { QuotaInputLimits } from "./errors/operation-errors.js";
 import type {
   DelayedReceivedAsset,
   InstantReceivedAsset,
@@ -547,5 +548,13 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       (typeof STRATEGY_POSITION_CHART_METRICS)[number]
     >().toEqualTypeOf<StrategyPositionChartMetric>();
+  });
+});
+
+describe("quota input limits", () => {
+  it("requires at least one concrete input ceiling", () => {
+    expectTypeOf({}).not.toExtend<QuotaInputLimits>();
+    expectTypeOf<{ collateralMax: TokenAmount }>().toExtend<QuotaInputLimits>();
+    expectTypeOf<{ leverageMax: bigint }>().toExtend<QuotaInputLimits>();
   });
 });

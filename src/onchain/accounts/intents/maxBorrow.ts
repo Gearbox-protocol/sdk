@@ -148,9 +148,14 @@ export function maxBorrow(props: MaxBorrowProps): bigint {
   // itself pays out through: the underlying as it stands, an RWA asset by
   // decimals alone, anything else at the oracle's price.
   const unwrapsPayout = !!rwaAsset && eq(borrowToken, rwaAsset);
-  return eq(borrowToken, underlying)
-    ? ceiling
-    : unwrapsPayout
-      ? toTargetDecimals(ceiling, underlying, borrowToken, sdk)
-      : priceOracle.safeConvert(underlying, borrowToken, ceiling).value;
+  if (eq(borrowToken, underlying)) return ceiling;
+  if (unwrapsPayout)
+    return toTargetDecimals(ceiling, underlying, borrowToken, sdk);
+
+  // The borrow values payout back into underlying with rounding up.
+  const payout = priceOracle.safeConvert(underlying, borrowToken, ceiling);
+  if (payout.error) return 0n;
+  const debt = priceOracle.safeConvert(borrowToken, underlying, payout.value);
+  if (debt.error) return 0n;
+  return BigIntMath.max(payout.value - (debt.value > ceiling ? 1n : 0n), 0n);
 }

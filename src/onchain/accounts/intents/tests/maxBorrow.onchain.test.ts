@@ -100,6 +100,44 @@ describe("maxBorrow — the largest loan a collateral carries", () => {
 });
 
 describe("maxBorrow — the payout token decides the units", () => {
+  it("does not round a converted payout above the available underlying debt", async () => {
+    const sdk = buildMarketSdk({
+      minDebt: 1n,
+      availableLiquidity: 100n,
+      extraPrices: { [POS2]: 300000000n },
+    });
+    const service = new CreditAccountOperationsService(sdk);
+    const ask = {
+      sdk,
+      creditManager: CREDIT_MANAGER,
+      collateralToken: POS,
+      collateralAmount: COLLATERAL,
+      borrowToken: POS2,
+      quotaReserve: undefined,
+    };
+    const amount = service.maxBorrow({ ...ask, targetHF: undefined });
+    expect(amount).toBe(66n);
+    const outcome = await service.borrowIntent({
+      ...ask,
+      borrowAmount: amount,
+      slippage: undefined,
+    });
+    expect(outcome.ok).toBe(true);
+    const excess = await service.borrowIntent({
+      ...ask,
+      borrowAmount: amount + 1n,
+      slippage: undefined,
+    });
+    expect(excess).toMatchObject({
+      ok: false,
+      error: {
+        code: "insufficientPoolLiquidity",
+        requested: { value: 101n },
+        available: { value: 100n },
+      },
+    });
+  });
+
   it("prices the ceiling into a payout the market does not lend in", () => {
     // ANY is $1 against UND's $2 and carries 18 decimals against UND's 8
     expect(maxBorrow({ borrowToken: ANY })).toBe(
