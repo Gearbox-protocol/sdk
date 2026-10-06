@@ -1,8 +1,12 @@
-import type { QuotaLimitReachedError, Token } from "../../../model/index.js";
+import type {
+  OperationLimitOptions,
+  QuotaLimitReachedError,
+  Token,
+} from "../../../model/index.js";
 import { quotaLimitReached } from "../../../model/index.js";
 import { amountOf } from "../helpers/index.js";
 
-export interface QuotaLimitArgs {
+export interface QuotaLimitArgs extends OperationLimitOptions {
   token: Token;
   /**
    * Absent for a token the market opened no quota for at all — nothing is
@@ -17,12 +21,13 @@ export interface QuotaLimitArgs {
 export function checkQuotaLimit(
   args: QuotaLimitArgs,
 ): QuotaLimitReachedError[] {
-  const { token, requested, available, underlying } = args;
+  const { token, requested, available, underlying, ...rest } = args;
   if (requested !== undefined && requested <= available) {
     return [];
   }
   return [
     quotaLimitReached({
+      ...rest,
       token,
       requested:
         requested === undefined ? undefined : amountOf(underlying, requested),

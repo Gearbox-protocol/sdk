@@ -86,6 +86,132 @@ async function expectCase(c: OpenStrategyCase) {
 }
 
 describe("openStrategy — leverage on wallet collateral, no account yet", () => {
+  it("caps the opening solution by quota as well as liquidity", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: 100n * 10n ** 8n,
+      availableLiquidity: 394_520n * 10n ** 8n,
+      quotas: {
+        [POS]: {
+          token: POS,
+          rate: 500n,
+          limit: 300_000n * 10n ** 8n,
+          isActive: true,
+        },
+      },
+    });
+    sdk.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade.maxDebt =
+      1_000_000n * 10n ** 8n;
+    const scenario = {
+      ...case_underlying_3x,
+      leverage: 150n,
+      collateral: [{ token: UND, balance: 1_000_000n * 10n ** 8n }],
+    };
+    const result = await run(scenario, sdk).result;
+    if (
+      result.ok ||
+      result.error.code !== "insufficientPoolLiquidity" ||
+      !result.error.collateralLimits
+    )
+      throw new Error("expected opening limits");
+    expect(result.error.limit).toBe("poolAvailableLiquidity");
+    expect(result.error.available.value).toBe(394_520n * 10n ** 8n);
+    expect(result.error.maxBorrowAmount).toBeUndefined();
+    expect(result.error.collateralLimits.max.value).toBe(
+      789_040n * 10n ** 8n + 1n,
+    );
+    expect(
+      sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
+    ).not.toHaveBeenCalled();
+    const maximum = result.error.quotaLimits?.collateralMax?.value;
+    expect(maximum).toBeLessThan(result.error.collateralLimits.max.value);
+    if (maximum === undefined) throw new Error("expected quota ceiling");
+    const repeated = await run(
+      { ...scenario, collateral: [{ token: UND, balance: maximum }] },
+      sdk,
+    ).result;
+    expect(repeated.ok).toBe(true);
+  });
+
+  it.each([0, 1000])(
+    "returns quota-refusal bounds including reserve %s",
+    async quotaReserve => {
+      const sdk = buildOpenStrategySdk({
+        minDebt: 100n * 10n ** 8n,
+        quotas: {
+          [POS]: {
+            token: POS,
+            rate: 500n,
+            limit: 30_000n * 10n ** 8n,
+            isActive: true,
+          },
+        },
+      });
+      const props = {
+        ...buildOpenStrategyProps(case_underlying_3x, sdk),
+        quotaReserve,
+        collateral: [{ token: UND, balance: 50_000n * 10n ** 8n }],
+      };
+      const service = new CreditAccountOperationsService(sdk);
+      const result = await service.openStrategyIntent(props);
+      if (result.ok || result.error.code !== "quotaLimitReached")
+        throw new Error("expected quota refusal");
+      const limits = result.error.collateralLimits;
+      expect(limits).toBeDefined();
+      if (!limits) throw new Error("expected confirmed limits");
+      expect(
+        sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOpenStrategyPath,
+      ).toHaveBeenCalledTimes(2);
+      const maximum = result.error.quotaLimits?.collateralMax;
+      if (!maximum) throw new Error("expected quota ceiling");
+      for (const endpoint of [limits.min, maximum]) {
+        expect(
+          (
+            await service.openStrategyIntent({
+              ...props,
+              collateral: [
+                { token: endpoint.token.address, balance: endpoint.value },
+              ],
+            })
+          ).ok,
+        ).toBe(true);
+      }
+    },
+  );
+
+  it("reports zero quota independently of the opening debt band", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: MARGIN_UND,
+      quotas: { [POS]: { token: POS, rate: 500n, limit: 0n, isActive: true } },
+    });
+    const result = await run(case_underlying_3x, sdk).result;
+    if (result.ok || result.error.code !== "quotaLimitReached")
+      throw new Error("expected quota refusal");
+    expect(result.error.collateralLimits).toBeDefined();
+    expect(result.error.quotaLimits?.collateralMax?.value).toBe(0n);
+  });
+
+  it("preserves the debt refusal while reporting an exhausted quota separately", async () => {
+    const sdk = buildOpenStrategySdk({
+      minDebt: MARGIN_UND,
+      quotas: { [POS]: { token: POS, rate: 500n, limit: 0n, isActive: true } },
+    });
+    const result = await run(
+      {
+        ...case_underlying_3x,
+        collateral: [{ token: UND, balance: 1_000_000n * 10n ** 8n }],
+      },
+      sdk,
+    ).result;
+    if (result.ok || result.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(result.error.maxBorrowAmount).toMatchObject({
+      limit: "maxDebt",
+      amount: { value: MAX_DEBT },
+    });
+    expect(result.error.collateralLimits).toBeDefined();
+    expect(result.error.quotaLimits?.collateralMax?.value).toBe(0n);
+  });
+
   it("3x on underlying margin: debt is 2x the margin, all of it routed", async () => {
     const state = await expectCase(case_underlying_3x);
 
@@ -455,32 +581,33 @@ describe("openStrategy on a pre-opened empty account", () => {
   });
 });
 
-describe("lazy opening bounds in guards", () => {
-  it("computes bounds only for the guard that refuses", () => {
+describe("prepared opening bounds in guards", () => {
+  it("passes prepared bounds into debt and borrowing refusals", () => {
     const sdk = buildOpenStrategySdk({
       minDebt: 100n,
       availableLiquidity: 200n,
     });
     const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
-    const getBounds = vi.fn(() => undefined);
+    const collateralLimits = {
+      min: suite.market.toUnderlyingAmount(100n),
+      max: suite.market.toUnderlyingAmount(200n),
+    };
+    const options = { collateralLimits };
     assertDebtLimits(sdk, 100n, suite.creditFacade, UND, {
+      ...options,
       allowZero: false,
-      getCollateralLimits: getBounds,
     });
-    assertCanBorrow(sdk, suite, 100n, { getCollateralLimits: getBounds });
-    expect(getBounds).not.toHaveBeenCalled();
+    assertCanBorrow(sdk, suite, 100n, options);
+    const error = expect.objectContaining({
+      error: expect.objectContaining({ collateralLimits }),
+    });
     expect(() =>
       assertDebtLimits(sdk, 99n, suite.creditFacade, UND, {
+        ...options,
         allowZero: false,
-        getCollateralLimits: getBounds,
       }),
-    ).toThrow();
-    expect(getBounds).toHaveBeenCalledTimes(1);
-    getBounds.mockClear();
-    expect(() =>
-      assertCanBorrow(sdk, suite, 201n, { getCollateralLimits: getBounds }),
-    ).toThrow();
-    expect(getBounds).toHaveBeenCalledTimes(1);
+    ).toThrow(error);
+    expect(() => assertCanBorrow(sdk, suite, 201n, options)).toThrow(error);
   });
 });
 

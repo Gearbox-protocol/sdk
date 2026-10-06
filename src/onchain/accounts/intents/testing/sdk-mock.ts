@@ -306,6 +306,16 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
   });
   const market = {
     toUnderlyingAmount,
+    isUnderlyingLike: (token: Address) => {
+      const address = token.toLowerCase();
+      return (
+        address === args.underlying.toLowerCase() ||
+        address ===
+          args.rwaAssets?.[
+            args.underlying.toLowerCase() as Address
+          ]?.toLowerCase()
+      );
+    },
     /** {@inheritDoc MarketSuite.curator} */
     curator: MOCK_CURATOR,
     /** {@inheritDoc MarketSuite.underlying} */

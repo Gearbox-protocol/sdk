@@ -4,17 +4,21 @@ import { MAX_UINT256 } from "../../../constants/index.js";
 import {
   type DebtLimits,
   debtForLeverage,
-  openCollateralForDebtLimits,
 } from "../math.js";
-import { CREDIT_MANAGER, UND } from "../testing/market.js";
+import { strategyLimits } from "../strategyLimits.js";
+import { ANY, CREDIT_MANAGER, UND } from "../testing/market.js";
 import { buildOpenStrategySdk } from "./open-strategy.fixtures.js";
 
 function collateralForDebtLimits(
   convert: (amount: bigint) => bigint | undefined,
   leverage: bigint,
   limits: DebtLimits,
+  ratio = { numerator: 1n, denominator: 1n },
 ) {
-  const sdk = buildOpenStrategySdk();
+  const sdk = buildOpenStrategySdk({
+    extraPrices: { [ANY]: ratio.numerator, [UND]: ratio.denominator },
+    extraDecimals: { [ANY]: 8 },
+  });
   const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
   suite.creditFacade.minDebt = limits.minDebt;
   vi.spyOn(suite, "maxBorrowAmount").mockReturnValue({
@@ -29,21 +33,29 @@ function collateralForDebtLimits(
         : { value };
     },
   );
-  const bounds = openCollateralForDebtLimits({
+  const bounds = strategyLimits({
+    type: "OPEN",
     suite,
-    collateral: [{ token: UND, balance: 1n }],
+    collateral: [{ token: ANY, balance: 1n }],
     leverage,
-  });
+    targetToken: UND,
+    quotaReserve: undefined,
+  })?.collateralLimits;
   return bounds ? { min: bounds.min.value, max: bounds.max.value } : undefined;
 }
 
-describe("openCollateralForDebtLimits", () => {
+describe("strategyLimits — open", () => {
   it("inverts floor-rounded conversion and leverage with tight endpoints", () => {
     const convert = vi.fn((value: bigint) => (value * 17n) / 13n);
-    const bounds = collateralForDebtLimits(convert, 246n, {
-      minDebt: 100n,
-      maxDebt: 200n,
-    });
+    const bounds = collateralForDebtLimits(
+      convert,
+      246n,
+      {
+        minDebt: 100n,
+        maxDebt: 200n,
+      },
+      { numerator: 17n, denominator: 13n },
+    );
     expect(bounds).toBeDefined();
     if (!bounds) throw new Error("expected bounds");
     expect(debtForLeverage(convert(bounds.min), 246n)).toBeGreaterThanOrEqual(
@@ -56,7 +68,7 @@ describe("openCollateralForDebtLimits", () => {
     expect(debtForLeverage(convert(bounds.max + 1n), 246n)).toBeGreaterThan(
       200n,
     );
-    expect(convert.mock.calls.length).toBeLessThanOrEqual(517);
+    expect(convert.mock.calls.length).toBeLessThanOrEqual(1300);
   });
 
   it("clips at uint256 when the debt ceiling cannot be reached", () => {
@@ -70,10 +82,15 @@ describe("openCollateralForDebtLimits", () => {
 
   it("omits bounds when the minimum is outside the uint256 input domain", () => {
     expect(
-      collateralForDebtLimits(value => value / 100n, 130n, {
-        minDebt: MAX_UINT256,
-        maxDebt: MAX_UINT256,
-      }),
+      collateralForDebtLimits(
+        value => value / 100n,
+        130n,
+        {
+          minDebt: MAX_UINT256,
+          maxDebt: MAX_UINT256,
+        },
+        { numerator: 1n, denominator: 100n },
+      ),
     ).toBeUndefined();
   });
 
