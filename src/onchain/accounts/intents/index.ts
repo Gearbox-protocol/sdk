@@ -172,43 +172,49 @@ export class CreditAccountOperationsService extends SDKConstruct {
       current = accountView(creditAccount, sdk);
       limits = strategyLimits({
         ...intent,
-        suite: sdk.marketRegister.findCreditManager(creditAccount.creditManager),
+        suite: sdk.marketRegister.findCreditManager(
+          creditAccount.creditManager,
+        ),
         view: current,
         initialQuotas: creditAccount.tokens,
         quotaReserve,
       });
     }
     return plain(
-      await this.#preview(props, () => {
-        const { intent } = props;
-        const view = {
-          ...(current ?? accountView(props.creditAccount, props.sdk)),
-          limits,
-        };
-        switch (intent.type) {
-          case "ADD_COLLATERAL":
-            return planAddCollateral(intent);
-          case "WITHDRAW_ASSET":
-            return planWithdrawAsset(intent, view);
-          case "ADJUST_LEVERAGE":
-            return planAdjustLeverage(intent, view);
-          case "DEPOSIT":
-            return planDeposit(intent, view);
-          case "REPAY":
-            return planRepay(intent, view);
-          case "WITHDRAW":
-            return planWithdraw(intent, view);
-          default: {
-            // disposition(D1-S6): kept — unreachable invariant behind the
-            // typed StartIntent union; no caller input reaches it.
-            const _exhaustive: never = intent;
-            void _exhaustive;
-            throw new Error(
-              `${(intent as StartIntent).type} - not implemented`,
-            );
+      await this.#preview(
+        props,
+        () => {
+          const { intent } = props;
+          const view = {
+            ...(current ?? accountView(props.creditAccount, props.sdk)),
+            limits,
+          };
+          switch (intent.type) {
+            case "ADD_COLLATERAL":
+              return planAddCollateral(intent);
+            case "WITHDRAW_ASSET":
+              return planWithdrawAsset(intent, view);
+            case "ADJUST_LEVERAGE":
+              return planAdjustLeverage(intent, view);
+            case "DEPOSIT":
+              return planDeposit(intent, view);
+            case "REPAY":
+              return planRepay(intent, view);
+            case "WITHDRAW":
+              return planWithdraw(intent, view);
+            default: {
+              // disposition(D1-S6): kept — unreachable invariant behind the
+              // typed StartIntent union; no caller input reaches it.
+              const _exhaustive: never = intent;
+              void _exhaustive;
+              throw new Error(
+                `${(intent as StartIntent).type} - not implemented`,
+              );
+            }
           }
-        }
-      }, limits),
+        },
+        limits,
+      ),
     );
   }
 
@@ -392,32 +398,39 @@ export class CreditAccountOperationsService extends SDKConstruct {
         ? LEVERAGE_DECIMALS +
           (repayFromSource * LEVERAGE_DECIMALS - 1n) / current.collateral
         : undefined;
-    const limits = intent.type === "ADJUST_LEVERAGE" && maximum !== undefined
-      ? strategyLimits({
-          ...intent,
-          suite: props.sdk.marketRegister.findCreditManager(props.creditAccount.creditManager),
-          view: current,
-          initialQuotas: props.creditAccount.tokens,
-          quotaReserve: props.quotaReserve,
-          maxLeverage: maximum,
-        })
-      : {};
-    const result = await this.#preview(props, () => {
-      const view = { ...current, limits };
-      switch (intent.type) {
-        case "ADJUST_LEVERAGE":
-          return planAdjustLeverageDelayed(intent, view);
-        case "WITHDRAW":
-          return planWithdrawDelayed(intent, view);
-        default: {
-          const _exhaustive: never = intent;
-          void _exhaustive;
-          throw new Error(
-            `${(intent as DelayableIntent).type} - cannot be delayed`,
-          );
+    const limits =
+      intent.type === "ADJUST_LEVERAGE" && maximum !== undefined
+        ? strategyLimits({
+            ...intent,
+            suite: props.sdk.marketRegister.findCreditManager(
+              props.creditAccount.creditManager,
+            ),
+            view: current,
+            initialQuotas: props.creditAccount.tokens,
+            quotaReserve: props.quotaReserve,
+            maxLeverage: maximum,
+          })
+        : {};
+    const result = await this.#preview(
+      props,
+      () => {
+        const view = { ...current, limits };
+        switch (intent.type) {
+          case "ADJUST_LEVERAGE":
+            return planAdjustLeverageDelayed(intent, view);
+          case "WITHDRAW":
+            return planWithdrawDelayed(intent, view);
+          default: {
+            const _exhaustive: never = intent;
+            void _exhaustive;
+            throw new Error(
+              `${(intent as DelayableIntent).type} - cannot be delayed`,
+            );
+          }
         }
-      }
-    }, limits);
+      },
+      limits,
+    );
     if (!result.ok) {
       return result;
     }
