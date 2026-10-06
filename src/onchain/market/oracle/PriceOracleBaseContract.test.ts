@@ -296,3 +296,41 @@ describe("PriceOracleBaseContract native through WETH", () => {
     });
   });
 });
+
+describe("PriceOracleBaseContract.safeConvertInput", () => {
+  it("returns tight inverse endpoints for floor conversion", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 1 },
+      [WETH]: { price: 2000 },
+    });
+    for (const output of [1n, 777777777777n, 1000000000000000000n]) {
+      const result = oracle.safeConvertInput(USDC, WETH, output);
+      expect(result.error).toBeUndefined();
+      expect(
+        oracle.safeConvert(USDC, WETH, result.value).value,
+      ).toBeGreaterThanOrEqual(output);
+      expect(
+        oracle.safeConvert(USDC, WETH, result.value - 1n).value,
+      ).toBeLessThan(output);
+    }
+  });
+  it("does not use reserve after successful zero main source conversion", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 0, reservePrice: 1 },
+      [WETH]: { price: 2000, reservePrice: 2000 },
+    });
+    expect(oracle.safeConvert(USDC, WETH, ONE_USDC)).toEqual({ value: 0n });
+    expect(oracle.safeConvertInput(USDC, WETH, 1n).error?.code).toBe(
+      "unpriceableToken",
+    );
+  });
+  it("uses reserve when zero main target price makes forward conversion fail", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 1, reservePrice: 1 },
+      [WETH]: { price: 0, reservePrice: 2000 },
+    });
+    expect(oracle.safeConvertInput(USDC, WETH, 1000000000000000000n)).toEqual({
+      value: 2000000000n,
+    });
+  });
+});
