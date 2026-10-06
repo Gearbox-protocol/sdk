@@ -8,7 +8,15 @@ import {
   expectPreviewError,
   withOnchainOpCalls,
 } from "../testing/expect.js";
-import { POS, RWA_ASSET, UND } from "../testing/market.js";
+import {
+  buildMarketSdk,
+  CREDIT_FACADE,
+  caToken,
+  POS,
+  QUOTAS,
+  RWA_ASSET,
+  UND,
+} from "../testing/market.js";
 import {
   CA_OP_CALLS,
   MOCK_ROUTER_CALL,
@@ -52,6 +60,150 @@ function expectCase(c: AdjustLeverageCase, expectedCalls: unknown[]) {
 }
 
 describe("adjustLeverage.start — collateral fixed, debt retargeted", () => {
+  it("retains the quota ceiling when one asset cannot repay the entire debt", async () => {
+    const unit = 10n ** 8n;
+    const sdk = buildMarketSdk({
+      availableLiquidity: 100n * unit,
+      quotas: {
+        ...QUOTAS,
+        [POS]: {
+          token: POS,
+          rate: 500n,
+          limit: 1050n * unit,
+          totalQuoted: 1000n * unit,
+          isActive: true,
+        },
+      },
+    });
+    const props = buildAdjustLeverageProps(
+      {
+        ...case_increase,
+        intent: { ...case_increase.intent, token: POS },
+        tokens: [
+          caToken(POS, 300n * unit, 276n * unit),
+          caToken(RWA_ASSET, 700n * unit, 644n * unit),
+        ],
+      },
+      sdk,
+    );
+    const service = new CreditAccountOperationsService(sdk);
+    const result = await service.startIntent(props);
+    if (result.ok || result.error.code !== "insufficientPoolLiquidity")
+      throw new Error("expected liquidity refusal");
+    const max = result.error.quotaLimits?.leverageMax;
+    expect(max).toBeDefined();
+    if (max === undefined) throw new Error("expected quota ceiling");
+    expect(max).toBeLessThan(result.error.leverageLimits?.max ?? 0n);
+    expect(
+      (
+        await service.startIntent({
+          ...props,
+          intent: { ...props.intent, targetLeverage: max },
+        })
+      ).ok,
+    ).toBe(true);
+  });
+
+  it("reports the debt ceiling independently at zero borrowing capacity", async () => {
+    const sdk = buildMarketSdk({ availableLiquidity: 0n });
+    const result = await new CreditAccountOperationsService(sdk).startIntent(
+      buildAdjustLeverageProps(case_increase, sdk),
+    );
+    if (result.ok || result.error.code !== "insufficientPoolLiquidity")
+      throw new Error("expected liquidity refusal");
+    expect(result.error.leverageLimits?.max).toBe(200n);
+  });
+
+  it.each([0, 1000])(
+    "caps leverage by quota delta with reserve %s",
+    async quotaReserve => {
+      const sdk = buildMarketSdk({
+        quotas: {
+          [POS]: {
+            token: POS,
+            rate: 500n,
+            limit: 1100n * 10n ** 8n,
+            totalQuoted: 1000n * 10n ** 8n,
+            isActive: true,
+          },
+        },
+      });
+      const service = new CreditAccountOperationsService(sdk);
+      const props = {
+        ...buildAdjustLeverageProps(case_increase, sdk),
+        quotaReserve,
+      };
+      const result = await service.startIntent(props);
+      if (result.ok || result.error.code !== "quotaLimitReached")
+        throw new Error("expected quota refusal");
+      const limits = result.error.leverageLimits;
+      expect(limits).toBeDefined();
+      if (!limits) throw new Error("expected leverage limits");
+      const maximum = result.error.quotaLimits?.leverageMax;
+      if (maximum === undefined)
+        throw new Error("expected separate quota ceiling");
+      expect(maximum).toBeLessThan(300n);
+      expect(limits.max).toBeGreaterThan(300n);
+      for (const targetLeverage of [limits.min, maximum]) {
+        expect(
+          (
+            await service.startIntent({
+              ...props,
+              intent: { ...props.intent, targetLeverage },
+            })
+          ).ok,
+        ).toBe(true);
+      }
+    },
+  );
+
+  it("rounds the minimum leverage up when decreasing below minDebt", async () => {
+    const sdk = buildMarketSdk({
+      minDebt: 101n * 10n ** 8n,
+      availableLiquidity: 0n,
+    });
+    const service = new CreditAccountOperationsService(sdk);
+    const props = {
+      ...buildAdjustLeverageProps(case_increase, sdk),
+      intent: { ...case_increase.intent, targetLeverage: 110n },
+    };
+    const result = await service.startIntent(props);
+    if (result.ok || result.error.code !== "debtOutOfRange")
+      throw new Error("expected debt refusal");
+    expect(result.error.leverageLimits?.min).toBe(121n);
+    expect(
+      (
+        await service.startIntent({
+          ...props,
+          intent: { ...props.intent, targetLeverage: 121n },
+        })
+      ).ok,
+    ).toBe(true);
+  });
+
+  it("caps target leverage by the available debt increase", async () => {
+    const sdk = buildMarketSdk({ availableLiquidity: 100n * 10n ** 8n });
+    const service = new CreditAccountOperationsService(sdk);
+    const props = buildAdjustLeverageProps(case_increase, sdk);
+    const result = await service.startIntent(props);
+    if (result.ok || result.error.code !== "insufficientPoolLiquidity")
+      throw new Error("expected liquidity refusal");
+    expect(result.error.leverageLimits?.max).toBe(220n);
+    expect(
+      sdk.routerFor({ creditFacade: CREDIT_FACADE }).findOneTokenPath,
+    ).not.toHaveBeenCalled();
+    const limits = result.error.leverageLimits;
+    if (!limits) throw new Error("expected leverage limits");
+    expect(
+      (
+        await service.startIntent({
+          ...props,
+          intent: { ...props.intent, targetLeverage: limits.max },
+        })
+      ).ok,
+    ).toBe(true);
+  });
+
   it("2x → 3x: increaseDebt then swap the borrowed underlying into the position", async () => {
     const state = await expectCase(case_increase, [
       CA_OP_CALLS.increaseDebt,

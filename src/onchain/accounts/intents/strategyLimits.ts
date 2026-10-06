@@ -7,6 +7,7 @@ import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import type { AccountView } from "./plan.js";
 import type {
+  AdjustLeverageIntent,
   CreditAccountSlice,
   DepositStrategyIntent,
 } from "./types.js";
@@ -31,7 +32,12 @@ interface AccountLimitsProps extends BaseLimitsProps {
 
 interface DepositLimitsProps extends AccountLimitsProps, DepositStrategyIntent {}
 
-type StrategyLimitsProps = OpenLimitsProps | DepositLimitsProps;
+interface LeverageLimitsProps extends AccountLimitsProps, AdjustLeverageIntent {
+  /** Additional ceiling imposed by the selected delayed route. */
+  maxLeverage?: bigint;
+}
+
+type StrategyLimitsProps = OpenLimitsProps | DepositLimitsProps | LeverageLimitsProps;
 
 /** Independent input bounds supplied to debt, liquidity and quota errors. */
 export function strategyLimits(props: StrategyLimitsProps): OperationLimitOptions {
@@ -168,5 +174,55 @@ export function strategyLimits(props: StrategyLimitsProps): OperationLimitOption
       };
     }
 
+    case "ADJUST_LEVERAGE": {
+      const { view, token, initialQuotas, targetLeverage, maxLeverage = MAX_UINT256 } = props;
+      if (view.collateral <= 0n || targetLeverage < LEVERAGE_DECIMALS) return {};
+
+      const maxDebt = BigIntMath.min(
+        suite.creditFacade.maxDebt,
+        view.debt + suite.maxBorrowAmount().amount.value,
+      );
+      // D = floor(C * (L - 100) / 100); L is already in hundredths.
+      const minLeverage = BigIntMath.max(
+        LEVERAGE_DECIMALS + 1n,
+        LEVERAGE_DECIMALS + BigIntMath.ceilDiv(suite.creditFacade.minDebt * LEVERAGE_DECIMALS, view.collateral),
+      );
+      const debtMaxLeverage = BigIntMath.min(
+        maxLeverage,
+        LEVERAGE_DECIMALS + BigIntMath.ceilDiv((maxDebt + 1n) * LEVERAGE_DECIMALS, view.collateral) - 1n,
+      );
+
+      const position = token ?? view.fattest([view.underlying]);
+      let maxLeverageByQuota: bigint | undefined;
+      if (position) {
+        if (!market.isUnderlyingLike(position) && !market.pool.pqk.hasActiveQuota(position)) {
+          maxLeverageByQuota = LEVERAGE_DECIMALS;
+        } else {
+          const quotaResult = quotaIncreaseLimit({
+            suite,
+            token: position,
+            balance: view.balanceOf(position),
+            initialQuotas,
+            quotaReserve,
+            rwaAsset: view.rwaAsset,
+          });
+          // As with Deposit, an unavailable asset produces no projected quota increase.
+          maxLeverageByQuota = maxLeverage;
+          if (!quotaResult.error && quotaResult.value !== undefined) {
+            // With fixed own funds, purchased increase is the positive debt delta.
+            const quotaMaxDebt = view.debt + quotaResult.value;
+            maxLeverageByQuota = BigIntMath.min(
+              maxLeverage,
+              LEVERAGE_DECIMALS + BigIntMath.ceilDiv((quotaMaxDebt + 1n) * LEVERAGE_DECIMALS, view.collateral) - 1n,
+            );
+          }
+        }
+      }
+
+      return {
+        leverageLimits: minLeverage <= debtMaxLeverage ? { min: minLeverage, max: debtMaxLeverage } : undefined,
+        quotaLimits: maxLeverageByQuota === undefined ? undefined : { leverageMax: maxLeverageByQuota },
+      };
+    }
   }
 }

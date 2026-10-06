@@ -141,13 +141,10 @@ export function poolSunset(pool: Address): PoolSunsetError {
 /**
  * The pool cannot lend what the operation wants to borrow.
  **/
-export interface InsufficientPoolLiquidityError extends IGearboxError {
-  quotaLimits?: QuotaInputLimits;
+export interface InsufficientPoolLiquidityError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "insufficientPoolLiquidity";
-  /** Input amounts bounded by debt and borrowing capacity; quota is separate. */
-  collateralLimits?: CollateralLimits;
-  /** Target leverage in LEVERAGE_DECIMALS units. */
-  leverageLimits?: LeverageLimits;
   /** Both in the market's underlying. */
   requested: TokenAmount;
   available: TokenAmount;
@@ -177,13 +174,10 @@ export function insufficientPoolLiquidity(
  * The debt the operation implies falls outside the facade's `debtLimits`
  * (`minDebt`/`maxDebt`).
  **/
-export interface DebtOutOfRangeError extends IGearboxError {
-  quotaLimits?: QuotaInputLimits;
+export interface DebtOutOfRangeError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "debtOutOfRange";
-  /** Input amounts bounded by debt and borrowing capacity; quota is separate. */
-  collateralLimits?: CollateralLimits;
-  /** Target leverage in LEVERAGE_DECIMALS units. */
-  leverageLimits?: LeverageLimits;
   /** All three in the market's underlying. */
   requested: TokenAmount;
   minDebt: TokenAmount;
@@ -340,12 +334,10 @@ export function forbiddenToken(token: Token): ForbiddenTokenError {
 /**
  * The market takes no more quota for a token the operation wants to hold.
  **/
-export interface QuotaLimitReachedError extends IGearboxError {
-  quotaLimits?: QuotaInputLimits;
+export interface QuotaLimitReachedError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "quotaLimitReached";
-  collateralLimits?: CollateralLimits;
-  /** Target leverage in LEVERAGE_DECIMALS units. */
-  leverageLimits?: LeverageLimits;
   /** The token whose quota is increased. */
   token: Token;
   /**

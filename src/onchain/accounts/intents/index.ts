@@ -6,6 +6,7 @@ import {
   unsupportedTokenPair,
 } from "../../../model/index.js";
 import { SDKConstruct } from "../../base/SDKConstruct.js";
+import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import {
   MIN_HEALTH_FACTOR_FACADE,
   MIN_HEALTH_FACTOR_FORM,
@@ -167,7 +168,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
     const { intent, sdk, creditAccount, quotaReserve } = props;
     let current: AccountView | undefined;
     let limits: OperationLimitOptions = {};
-    if (intent.type === "DEPOSIT") {
+    if (intent.type === "DEPOSIT" || intent.type === "ADJUST_LEVERAGE") {
       current = accountView(creditAccount, sdk);
       limits = strategyLimits({
         ...intent,
@@ -381,8 +382,28 @@ export class CreditAccountOperationsService extends SDKConstruct {
     props: StartIntentProps & { intent: DelayableIntent },
   ): Promise<DelayedStartResult> {
     const { intent } = props;
+    const current = accountView(props.creditAccount, props.sdk);
+    const repayFromSource =
+      current.debt - current.balanceOf(current.underlying);
+    const maximum =
+      intent.type === "ADJUST_LEVERAGE" &&
+      current.collateral > 0n &&
+      repayFromSource > 0n
+        ? LEVERAGE_DECIMALS +
+          (repayFromSource * LEVERAGE_DECIMALS - 1n) / current.collateral
+        : undefined;
+    const limits = intent.type === "ADJUST_LEVERAGE" && maximum !== undefined
+      ? strategyLimits({
+          ...intent,
+          suite: props.sdk.marketRegister.findCreditManager(props.creditAccount.creditManager),
+          view: current,
+          initialQuotas: props.creditAccount.tokens,
+          quotaReserve: props.quotaReserve,
+          maxLeverage: maximum,
+        })
+      : {};
     const result = await this.#preview(props, () => {
-      const view = accountView(props.creditAccount, props.sdk);
+      const view = { ...current, limits };
       switch (intent.type) {
         case "ADJUST_LEVERAGE":
           return planAdjustLeverageDelayed(intent, view);
@@ -396,7 +417,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
           );
         }
       }
-    });
+    }, limits);
     if (!result.ok) {
       return result;
     }
@@ -430,6 +451,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
         creditAccount: props.creditAccount,
         sdk: props.sdk,
         quotaReserve: props.quotaReserve,
+        limits,
       });
       // The tail trades at oracle prices, so what the route costs is the request's.
       return {
