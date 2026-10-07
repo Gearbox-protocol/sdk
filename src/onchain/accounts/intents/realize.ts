@@ -489,6 +489,8 @@ export async function realize(
           push(
             await buildUnwrapRwaCollateralOperation({
               tokenIn: underlying,
+              // Full repayment consumes the live debt, not the quoted debt.
+              all: true,
               amountIn: wrapped,
               tokenOut: rwaAsset,
               amountOut: toTargetDecimals(wrapped, underlying, rwaAsset, sdk),

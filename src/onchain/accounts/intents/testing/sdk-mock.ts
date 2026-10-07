@@ -668,6 +668,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       prepareUpdateQuotas: vi.fn(() => [CA_OP_CALLS.changeQuota]),
       assembleRWAWrapCalls: vi.fn(async () => [MOCK_RWA_WRAP_CALL]),
       assembleRWAUnwrapCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
+      assembleRedeemDiffCalls: vi.fn(async () => [MOCK_RWA_UNWRAP_CALL]),
       previewDelayedWithdrawal,
       assembleStartDelayedWithdrawalCalls: vi.fn(
         ({ preview }: { preview: { requestCalls: MultiCall[] } }) => [

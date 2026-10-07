@@ -10,6 +10,7 @@ import {
 import {
   buildFixtureCreditAccount,
   buildMarketSdk,
+  CREDIT_MANAGER,
   caToken,
   POS,
   POS2,
@@ -172,6 +173,22 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
       CA_OP_CALLS.withdrawCollateral,
       CA_OP_CALLS.changeQuota,
     ]);
+  });
+
+  it("keeps the fixed RWA redeem amount for a partial withdrawal", async () => {
+    const sdk = buildWithdrawSdk(case_rwa_pos_und);
+    const result = await new CreditAccountOperationsService(sdk).startIntent(
+      buildWithdrawProps(case_rwa_pos_und, sdk),
+    );
+    if (!result.ok) throw new Error(result.error.code);
+
+    expect(sdk.accounts.assembleRWAUnwrapCalls).toHaveBeenCalledWith(
+      W,
+      CREDIT_MANAGER,
+    );
+    expect(sdk.accounts.assembleRedeemDiffCalls).not.toHaveBeenCalled();
+    expect(result.state.totalDebt.value).toBe(DEBT_AFTER);
+    expect(assetBalance(result.state.assets, POS)).toBe(TVL_AFTER);
   });
 
   it("defaults the source to the fattest balance", async () => {
