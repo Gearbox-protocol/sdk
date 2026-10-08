@@ -169,9 +169,10 @@ export interface IPriceOracleContract extends IBaseContract {
     reserve?: boolean,
   ) => bigint;
   /**
-   * Like {@link convert}, but never throws: main feed, then reserve, else
-   * `{ value: 0n, error }`. Fallback only on a missing or failed feed, not
-   * on a successful 0 price.
+   * Values the amount with rounding UP to a target-token unit, unlike the
+   * floor-rounded contract-compatible {@link convert}.
+   * Never throws: main feed, then reserve, else `{ value: 0n, error }`.
+   * Fallback only on a missing or failed feed, not on a successful 0 price.
    **/
   safeConvert: (
     from: Address,

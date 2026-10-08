@@ -132,7 +132,7 @@ it("previews raising leverage to 6", async () => {
         value: -34_681_141_736_785_841n,
       },
     ],
-    estTotalValue: und(49_849_913_868_940_488_429n),
+    estTotalValue: und(49_849_913_868_940_488_430n),
   });
 });
 
@@ -179,7 +179,7 @@ it("previews depositing 1 WETH collateral", async () => {
         value: 3_717_440_632_034_401_115n,
       },
     ],
-    estTotalValue: und(54_106_121_084_072_372_049n),
+    estTotalValue: und(54_106_121_084_072_372_050n),
   });
 });
 
@@ -224,7 +224,7 @@ it("previews raising leverage 5.03 -> 5.2 while adding 1 WETH collateral", async
         value: 3_717_440_669_182_992_789n,
       },
     ],
-    estTotalValue: und(54_106_121_126_211_757_028n),
+    estTotalValue: und(54_106_121_126_211_757_029n),
   });
 });
 
@@ -269,7 +269,7 @@ it("previews adding 1 WETH collateral, then raising leverage 5.04 -> 5.2", async
         value: 3_717_440_669_182_911_911n,
       },
     ],
-    estTotalValue: und(54_106_121_126_211_665_285n),
+    estTotalValue: und(54_106_121_126_211_665_286n),
   });
 });
 
@@ -310,7 +310,7 @@ it("previews adding 1 WETH collateral", async () => {
         value: 860_277_672_192_746_062n,
       },
     ],
-    estTotalValue: und(50_865_107_508_901_768_679n),
+    estTotalValue: und(50_865_107_508_901_768_680n),
   });
 });
 
@@ -371,7 +371,7 @@ it("previews withdrawing 1 cbETH", async () => {
         value: 59_823_460_339_788_484n,
       },
     ],
-    estTotalValue: und(44_184_126_188_300_681_109n),
+    estTotalValue: und(44_184_126_188_300_681_110n),
   });
 });
 
@@ -418,7 +418,7 @@ it("previews adjusting leverage to 7", async () => {
         value: -65_077_809_156_555_499n,
       },
     ],
-    estTotalValue: und(49_815_433_507_430_804_274n),
+    estTotalValue: und(49_815_433_507_430_804_275n),
   });
 });
 
@@ -454,7 +454,7 @@ it("previews adjusting leverage to 4", async () => {
       },
     ],
     assetsChange: [],
-    estTotalValue: und(49_889_254_310_053_293_583n),
+    estTotalValue: und(49_889_254_310_053_293_584n),
   });
 });
 
@@ -508,7 +508,7 @@ it("reports an unpriceable-token warning and keeps the best-effort preview", asy
         value: amount,
       }),
     ]),
-    estTotalValue: und(49_889_254_310_053_293_583n),
+    estTotalValue: und(49_889_254_310_053_293_584n),
     warning: {
       code: "unpriceableToken",
       token: UNKNOWN,

@@ -5,6 +5,7 @@ import {
   insufficientBalance,
   leverageOutOfRange,
   noDelayedRoute,
+  type OperationLimitOptions,
   unsupportedCollateralToken,
 } from "../../../model/index.js";
 import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
@@ -97,6 +98,7 @@ export type Step =
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
+  limits?: OperationLimitOptions;
   underlying: Address;
   /** The attached SDK, for the guards that inline a token into a refusal. */
   sdk: OnchainSDK;
@@ -197,7 +199,13 @@ export function planDeposit(
       `deposit: target leverage ${intent.targetLeverage} would require repaying debt`,
     );
   }
-  assertDebtLimits(view.sdk, view.debt + debtDelta, view.debtLimits, U);
+  assertDebtLimits(
+    view.sdk,
+    view.debt + debtDelta,
+    view.debtLimits,
+    U,
+    view.limits,
+  );
 
   const T = intent.positionToken ?? positionToken(view, "deposit");
   // The deposit is already the position token: convert only what is borrowed.
@@ -264,6 +272,7 @@ export function planRepay(
     view.debt - repaid,
     view.debtLimits,
     view.underlying,
+    view.limits,
   );
 
   return [
@@ -622,7 +631,13 @@ function withdrawShape(
   }
 
   const dD = proportionalDebt(view, WU);
-  assertDebtLimits(view.sdk, view.debt - dD, view.debtLimits, view.underlying);
+  assertDebtLimits(
+    view.sdk,
+    view.debt - dD,
+    view.debtLimits,
+    view.underlying,
+    view.limits,
+  );
 
   return { U, T, S, WU, dD, all: false };
 }
@@ -645,7 +660,13 @@ function leverageShape(
   }
 
   const target = debtForLeverage(view.collateral, intent.targetLeverage);
-  assertDebtLimits(view.sdk, target, view.debtLimits, view.underlying);
+  assertDebtLimits(
+    view.sdk,
+    target,
+    view.debtLimits,
+    view.underlying,
+    view.limits,
+  );
 
   return { U: view.underlying, delta: target - view.debt };
 }

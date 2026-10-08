@@ -7,12 +7,22 @@ import {
   expectPreviewError,
   withOnchainOpCalls,
 } from "../testing/expect.js";
-import { POS, POS2, UND, WALLET } from "../testing/market.js";
+import {
+  buildFixtureCreditAccount,
+  buildMarketSdk,
+  CREDIT_MANAGER,
+  caToken,
+  POS,
+  POS2,
+  UND,
+  WALLET,
+} from "../testing/market.js";
 import {
   CA_OP_CALLS,
   MOCK_ROUTER_CALL,
   MOCK_RWA_UNWRAP_CALL,
 } from "../testing/sdk-mock.js";
+import { withdrawLimits } from "../withdraw-limits.js";
 import {
   buildWithdrawProps,
   buildWithdrawSdk,
@@ -49,6 +59,54 @@ async function expectCase(c: WithdrawCase, expectedCalls: unknown[]) {
 }
 
 describe("withdraw.start — partial exit at fixed leverage", () => {
+  it("applies the existing safe withdrawal ceiling and passes repeat preparation", async () => {
+    const unit = 10n ** 8n;
+    const sdk = buildMarketSdk({
+      minDebt: 100n * unit,
+      reservePrices: { [POS]: 50000000n, [UND]: 200000000n },
+    });
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: 2000n * unit,
+      tokens: [
+        caToken(POS, 1000n * unit, 920n * unit),
+        caToken(UND, 3000n * unit),
+      ],
+    });
+    const service = new CreditAccountOperationsService(sdk);
+    const limits = service.maxWithdraw({
+      sdk,
+      creditAccount,
+      sourceToken: UND,
+    });
+    const props = {
+      sdk,
+      creditAccount,
+      intent: {
+        type: "WITHDRAW" as const,
+        sourceToken: UND,
+        amount: 1400n * unit,
+        to: WALLET,
+      },
+      quotaReserve: undefined,
+      slippage: undefined,
+    };
+    const refused = await service.startIntent(props);
+    if (refused.ok || refused.error.code !== "reservePriceLimited")
+      throw new Error("expected safe-price refusal");
+    expect(refused.error).toHaveProperty(
+      "withdrawable.value",
+      withdrawLimits({ sdk, creditAccount }).safePartial,
+    );
+    expect(limits.safePartial).toBeGreaterThan(0n);
+    expect(
+      (
+        await service.startIntent({
+          ...props,
+          intent: { ...props.intent, amount: limits.safePartial },
+        })
+      ).ok,
+    ).toBe(true);
+  });
   it("S=U, T=U: decreaseDebt then withdraw", async () => {
     const state = await expectCase(case_und_und, [
       CA_OP_CALLS.decreaseDebt,
@@ -115,6 +173,22 @@ describe("withdraw.start — partial exit at fixed leverage", () => {
       CA_OP_CALLS.withdrawCollateral,
       CA_OP_CALLS.changeQuota,
     ]);
+  });
+
+  it("keeps the fixed RWA redeem amount for a partial withdrawal", async () => {
+    const sdk = buildWithdrawSdk(case_rwa_pos_und);
+    const result = await new CreditAccountOperationsService(sdk).startIntent(
+      buildWithdrawProps(case_rwa_pos_und, sdk),
+    );
+    if (!result.ok) throw new Error(result.error.code);
+
+    expect(sdk.accounts.assembleRWAUnwrapCalls).toHaveBeenCalledWith(
+      W,
+      CREDIT_MANAGER,
+    );
+    expect(sdk.accounts.assembleRedeemDiffCalls).not.toHaveBeenCalled();
+    expect(result.state.totalDebt.value).toBe(DEBT_AFTER);
+    expect(assetBalance(result.state.assets, POS)).toBe(TVL_AFTER);
   });
 
   it("defaults the source to the fattest balance", async () => {

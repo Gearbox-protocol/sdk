@@ -1,14 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
+import type { StrategyPosition } from "../../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../../constants/math.js";
+import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../utils/index.js";
+import { MIN_HEALTH_FACTOR_FORM } from "../../../validation/index.js";
 import { CreditAccountOperationsService } from "../index.js";
 import { calcLeverageBand } from "../leverage-band.js";
 import { assertDebtLimits, debtForLeverage } from "../math.js";
 import {
   ANY,
+  buildFixtureCreditAccount,
   buildMarketSdk,
   CREDIT_MANAGER,
+  caToken,
   MAX_DEBT,
+  POS,
+  QUOTAS,
   UND,
   UND_DECIMALS,
 } from "../testing/market.js";
@@ -18,8 +25,52 @@ const THRESHOLD_CEILING = 11;
 
 const und = (whole: string) => toBN(whole, UND_DECIMALS);
 
+function positionOf(
+  sdk: OnchainSDK,
+  creditAccount: ReturnType<typeof buildFixtureCreditAccount>,
+): StrategyPosition {
+  const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
+  const underlying = suite.underlyingToken;
+  const totalValue = creditAccount.tokens.reduce(
+    (sum, token) =>
+      sum +
+      suite.market.priceOracle.safeConvert(token.token, UND, token.balance)
+        .value,
+    0n,
+  );
+  return {
+    kind: "strategy",
+    name: "test strategy",
+    chainId: sdk.chainId,
+    creditManager: CREDIT_MANAGER,
+    creditAccount: creditAccount.creditAccount,
+    underlyingToken: underlying,
+    targetCollateral: sdk.tokensMeta.mustGetToken(POS),
+    leverage: 1,
+    borrowApy: 0,
+    totalDebt: suite.market.priceOracle.toTokenAmount(
+      UND,
+      creditAccount.totalDebt,
+    ),
+    totalValue: suite.market.priceOracle.toTokenAmount(UND, totalValue),
+    healthFactor: 0,
+    collaterals: creditAccount.tokens.map(token => ({
+      collateral: suite.market.priceOracle.toTokenAmount(
+        token.token,
+        token.balance,
+      ),
+      quota: suite.market.priceOracle.toTokenAmount(UND, token.quota),
+      withdrawals: [],
+    })),
+  };
+}
+
 function band(
-  extras: { minDebt?: bigint; debtLimitAvailable?: bigint },
+  extras: {
+    minDebt?: bigint;
+    debtLimitAvailable?: bigint;
+    quotas?: typeof QUOTAS;
+  },
   collateral: { token: `0x${string}`; balance: bigint }[],
   targetHF?: number,
 ) {
@@ -32,6 +83,122 @@ function band(
 }
 
 describe("calcLeverageBand", () => {
+  const freshAccount = (
+    overrides: {
+      liquidity?: string;
+      debtLimitAvailable?: string;
+      maxDebt?: string;
+      quotaAvailable?: string;
+      quotaLimit?: string;
+    } = {},
+  ) => {
+    const totalQuoted = und("503621");
+    const sdk = buildMarketSdk({
+      minDebt: und("150000"),
+      debtLimitAvailable: und(overrides.debtLimitAvailable ?? "337510"),
+      availableLiquidity: und(overrides.liquidity ?? "571013"),
+      extraPrices: { [POS]: 225_581_506n },
+      extraLiquidationThresholds: { [POS]: 8400 },
+      quotas: {
+        ...QUOTAS,
+        [POS]: {
+          ...QUOTAS[POS],
+          limit:
+            overrides.quotaLimit !== undefined
+              ? und(overrides.quotaLimit)
+              : totalQuoted + und(overrides.quotaAvailable ?? "4496379"),
+          totalQuoted,
+        },
+      },
+    });
+    const suite = sdk.marketRegister.findCreditManager(CREDIT_MANAGER);
+    suite.creditFacade.maxDebt = und(overrides.maxDebt ?? "5000000");
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: und("184030.28"),
+      tokens: [caToken(POS, und("244451.55"), und("231556.85"))],
+    });
+    return { sdk, suite, creditAccount };
+  };
+
+  it.each([
+    { name: "baseline", expected: { min: 2.64, max: 5 } },
+    {
+      name: "one thousand of liquidity",
+      liquidity: "1000",
+      expected: { min: 2.64, max: 3.01 },
+    },
+    {
+      name: "zero liquidity",
+      liquidity: "0",
+      expected: { min: 2.64, max: 3 },
+    },
+    {
+      name: "250k absolute max debt",
+      maxDebt: "250000",
+      expected: { min: 2.64, max: 3.72 },
+    },
+    {
+      name: "50k available quota",
+      quotaAvailable: "50000",
+      expected: { min: 2.64, max: 3.65 },
+    },
+    { name: "zero quota limit", quotaLimit: "0", expected: undefined },
+    {
+      name: "combined debt and quota ceilings",
+      debtLimitAvailable: "50000",
+      maxDebt: "350000",
+      quotaAvailable: "30000",
+      expected: { min: 2.64, max: 3.39 },
+    },
+  ])("matches the fresh account range with $name", testCase => {
+    const { sdk, creditAccount } = freshAccount(testCase);
+
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        collateral: [],
+        targetHF: MIN_HEALTH_FACTOR_FORM,
+        position: positionOf(sdk, creditAccount),
+      }),
+    ).toEqual(testCase.expected);
+  });
+
+  it.each([
+    { name: "baseline", expected: { min: 2.5, max: 4.37 } },
+    {
+      name: "180k liquidity",
+      liquidity: "180000",
+      expected: { min: 2.5, max: 2.8 },
+    },
+    {
+      name: "180k manager capacity",
+      debtLimitAvailable: "180000",
+      expected: { min: 2.5, max: 2.8 },
+    },
+    {
+      name: "180k available quota",
+      quotaAvailable: "180000",
+      expected: { min: 2.5, max: 2.8 },
+    },
+    {
+      name: "quota below min debt",
+      quotaAvailable: "149999",
+      expected: undefined,
+    },
+  ])("matches the fresh opening range with $name", testCase => {
+    const { sdk } = freshAccount(testCase);
+
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        collateral: [{ token: UND, balance: und("100000") }],
+        targetHF: MIN_HEALTH_FACTOR_FORM,
+      }),
+    ).toEqual(testCase.expected);
+  });
+
   it("retains 1.3x when debt rounding leaves exactly 100 USDC", () => {
     const sdk = buildMarketSdk({
       minDebt: 100_000_000n,
@@ -103,6 +270,123 @@ describe("calcLeverageBand", () => {
         { token: UND, balance: und("10000") },
       ]),
     ).toEqual({ min: 1.1, max: 6 });
+  });
+
+  it("stops at the target collateral's available quota", () => {
+    expect(
+      band(
+        {
+          minDebt: und("1000"),
+          quotas: {
+            [POS]: {
+              ...QUOTAS[POS],
+              limit: und("20000"),
+              totalQuoted: 0n,
+            },
+          },
+        },
+        [{ token: UND, balance: und("10000") }],
+      ),
+    ).toEqual({ min: 1.1, max: 3 });
+  });
+
+  it("keeps deleveraging reachable when an existing account has exhausted quota", () => {
+    const sdk = buildMarketSdk({
+      minDebt: und("1000"),
+      quotas: {
+        [POS]: {
+          ...QUOTAS[POS],
+          limit: und("20000"),
+          totalQuoted: und("20000"),
+        },
+      },
+    });
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: und("20000"),
+      tokens: [caToken(POS, und("30000"), und("27600"))],
+    });
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        position: positionOf(sdk, creditAccount),
+        collateral: [],
+      }),
+    ).toEqual({ min: 1.1, max: 3 });
+  });
+
+  it("rounds an existing account's quota ceiling to the last accepted hundredth", async () => {
+    const sdk = buildMarketSdk({
+      minDebt: und("1000"),
+      quotas: {
+        [POS]: {
+          ...QUOTAS[POS],
+          limit: und("20000"),
+          totalQuoted: und("19500"),
+        },
+      },
+    });
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: und("20000"),
+      tokens: [caToken(POS, und("30000"), und("27600"))],
+    });
+    const position = positionOf(sdk, creditAccount);
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        position,
+        collateral: [],
+      }),
+    ).toEqual({ min: 1.1, max: 3.05 });
+
+    const adjust = (targetLeverage: bigint) =>
+      new CreditAccountOperationsService(sdk).startIntent({
+        sdk,
+        creditAccount,
+        intent: { type: "ADJUST_LEVERAGE", targetLeverage, token: POS },
+        quotaReserve: undefined,
+        slippage: 0,
+      });
+    expect((await adjust(305n)).ok).toBe(true);
+    const excess = await adjust(306n);
+    expect(excess.ok).toBe(false);
+    if (!excess.ok) expect(excess.error.code).toBe("quotaLimitReached");
+  });
+
+  it("caps adjust debt at the account max after adding available debt", () => {
+    const sdk = buildMarketSdk({ minDebt: und("1000") });
+    sdk.marketRegister.findCreditManager(CREDIT_MANAGER).creditFacade.maxDebt =
+      und("25000");
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: und("20000"),
+      tokens: [caToken(POS, und("30000"), und("27600"))],
+    });
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        position: positionOf(sdk, creditAccount),
+        collateral: [],
+      }),
+    ).toEqual({ min: 1.1, max: 3.5 });
+  });
+
+  it("intersects adjust limits with the requested health-factor ceiling", () => {
+    const sdk = buildMarketSdk({ minDebt: und("1000") });
+    const creditAccount = buildFixtureCreditAccount({
+      totalDebt: und("20000"),
+      tokens: [caToken(POS, und("30000"), und("27600"))],
+    });
+    expect(
+      calcLeverageBand({
+        sdk,
+        creditManager: CREDIT_MANAGER,
+        position: positionOf(sdk, creditAccount),
+        collateral: [],
+        targetHF: 12_000,
+      }),
+    ).toEqual({ min: 1.1, max: 4 });
   });
 
   it("rounds the floor up and the ceiling down", () => {

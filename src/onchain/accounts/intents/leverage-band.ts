@@ -1,10 +1,12 @@
 import type { Address } from "viem";
-import type { Bps, Leverage } from "../../../model/index.js";
+import type { Bps, Leverage, StrategyPosition } from "../../../model/index.js";
 import { LEVERAGE_DECIMALS } from "../../constants/math.js";
 import type { Asset, OnchainSDK } from "../../index.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
-import { resolveCreditManager } from "./utils/common.js";
+import { strategyLimits } from "./strategyLimits.js";
+import { eq, resolveCreditManager } from "./utils/common.js";
+import { accountView } from "./view.js";
 
 /** The leverages a position of a given size can be opened at, or moved to. */
 export interface LeverageBand {
@@ -17,9 +19,8 @@ export interface LeverageBandProps {
   /** Credit manager the position lives in; every limit is read off it. */
   readonly creditManager: Address;
   /**
-   * What stands behind the position: the tokens being deposited when opening
-   * one, or its own net value when adjusting one. Priced into the market's
-   * underlying here, so a caller hands over amounts and no exchange rates.
+   * Tokens deposited when opening a position. Ignored when `account` selects
+   * adjust mode, because that mode derives own funds from the account slice.
    **/
   readonly collateral: readonly Asset[];
   /**
@@ -27,6 +28,8 @@ export interface LeverageBandProps {
    * points. Omitted keeps `calcMaxLeverage` on its flat buffer.
    **/
   readonly targetHF?: Bps;
+  /** Existing position; when present, its debt and quotas define an adjust band. */
+  readonly position?: StrategyPosition;
 }
 
 /**
@@ -42,8 +45,8 @@ export interface LeverageBandProps {
  * rounds **up** so the leverage it names really does clear `minDebt`, and the
  * ceiling rounds **down** so it really does stay under the borrow limit.
  *
- * Nothing here is fetched or simulated — every input is loaded market state,
- * so a form can call this on each keystroke.
+ * Nothing here is fetched or simulated — adjust state comes from the supplied
+ * position and the attached market, so a form can call this on each keystroke.
  *
  * @param props - {@link LeverageBandProps}
  * @returns The band, or `undefined` when there is nothing to offer: an
@@ -61,6 +64,7 @@ export function calcLeverageBand({
   creditManager,
   collateral,
   targetHF,
+  position,
 }: LeverageBandProps): LeverageBand | undefined {
   // The register throws for a manager it does not know, and a form asks this
   // on every keystroke — including before the SDK has finished attaching. A
@@ -71,11 +75,60 @@ export function calcLeverageBand({
   }
   const { suite, market } = found;
 
-  const target = suite.strategy?.targetCollateral;
-  if (!target) {
+  const strategy = suite.strategy;
+  if (!strategy) {
     return undefined;
   }
+  const target = strategy.targetCollateral;
   const ceiling = suite.creditManager.maxLeverage(target, targetHF);
+
+  if (position) {
+    if (!eq(position.creditManager, creditManager)) {
+      throw new Error("credit account belongs to a different credit manager");
+    }
+    const creditAccount = {
+      creditAccount: position.creditAccount,
+      creditManager: position.creditManager,
+      creditFacade: suite.creditFacade.address,
+      underlying: position.underlyingToken.address,
+      enabledTokensMask: 0n,
+      totalDebtUSD: 0n,
+      totalDebt: position.totalDebt.value,
+      tokens: position.collaterals.map(({ collateral, quota }) => ({
+        token: collateral.token.address,
+        mask: 0n,
+        balance: collateral.value,
+        quota: quota.value,
+        success: true,
+      })),
+    };
+    const view = {
+      ...accountView(creditAccount, sdk),
+      collateral: position.totalValue.value - position.totalDebt.value,
+    };
+    const { leverageLimits, quotaLimits } = strategyLimits({
+      type: "ADJUST_LEVERAGE",
+      suite,
+      view,
+      initialQuotas: creditAccount.tokens,
+      token: target,
+      targetLeverage: LEVERAGE_DECIMALS,
+      quotaReserve: undefined,
+    });
+    if (!leverageLimits) return undefined;
+    const min = Number(leverageLimits.min) / Number(LEVERAGE_DECIMALS);
+    const max = Math.min(
+      ceiling,
+      Number(
+        BigIntMath.min(
+          leverageLimits.max,
+          quotaLimits?.leverageMax ?? leverageLimits.max,
+        ),
+      ) / Number(LEVERAGE_DECIMALS),
+    );
+    return min > max ? undefined : { min, max };
+  }
+
   const underlying = market.pool.underlying;
   const convert: ConvertFn = (from, to, amount) =>
     market.priceOracle.safeConvert(from, to, amount).value;
@@ -89,15 +142,8 @@ export function calcLeverageBand({
     return { min: 1, max: ceiling };
   }
 
-  const { minDebt, maxDebt } = suite.creditFacade;
-  // What this manager may still draw, not what the pool happens to hold: the
-  // pool's free liquidity is shared, this allowance is the manager's own. A
-  // manager the pool has no entry for is simply uncapped by this term.
-  const available = market.pool.pool.creditManagerDebtParams.get(
-    suite.creditManager.address,
-  )?.available;
-  const borrowLimit =
-    available === undefined ? maxDebt : BigIntMath.min(maxDebt, available);
+  const { minDebt } = suite.creditFacade;
+  const borrowLimit = strategy.maxBorrowAmount().amount.value;
 
   const floor = BigIntMath.ceilDiv(LEVERAGE_DECIMALS * minDebt, netValue);
   // Forward debt truncates, so invert the exclusive next debt unit.

@@ -1,6 +1,6 @@
 import type {
   Bps,
-  InsufficientPoolLiquidityError,
+  OperationLimitOptions,
   TokenAmount,
 } from "../../../model/index.js";
 import type { Asset, OnchainSDK } from "../../index.js";
@@ -63,9 +63,7 @@ export function assertCanBorrow(
   sdk: OnchainSDK,
   suite: CreditSuite,
   amount: bigint,
-  options: {
-    getCollateralLimits?: () => InsufficientPoolLiquidityError["collateralLimits"];
-  } = {},
+  options: OperationLimitOptions = {},
 ): void {
   const maxBorrowAmount = suite.maxBorrowAmount();
   raise(
@@ -74,10 +72,19 @@ export function assertCanBorrow(
       available: maxBorrowAmount.amount.value,
       limit: maxBorrowAmount.limit,
       underlying: toToken(sdk, suite.market.pool.underlying),
-      getCollateralLimits: options.getCollateralLimits,
+      ...options,
     }),
     `borrow: ${amount} exceeds what the pool can lend now (${maxBorrowAmount.amount.value})`,
   );
+}
+
+interface GrowthAllowedProps {
+  sdk: OnchainSDK;
+  suite: CreditSuite;
+  market: MarketSuite;
+  before: readonly Asset[];
+  after: readonly Asset[];
+  limits?: OperationLimitOptions;
 }
 
 /**
@@ -92,13 +99,7 @@ export function assertCanBorrow(
  * The underlying answers to neither rule, and a phantom token is a redemption
  * in flight rather than a holding.
  */
-export function assertGrowthAllowed(args: {
-  sdk: OnchainSDK;
-  suite: CreditSuite;
-  market: MarketSuite;
-  before: readonly Asset[];
-  after: readonly Asset[];
-}): void {
+export function assertGrowthAllowed(args: GrowthAllowedProps): void {
   const { sdk, suite, market, before, after } = args;
   const underlying = market.pool.underlying;
 
@@ -125,6 +126,7 @@ export function assertGrowthAllowed(args: {
           token: toToken(sdk, token),
           requested: undefined,
           available: 0n,
+          ...args.limits,
           underlying: toToken(sdk, underlying),
         }),
         `${token} takes no quota in this market, so it counts as no collateral`,
@@ -223,6 +225,7 @@ export function assertQuotaAvailable(
   sdk: OnchainSDK,
   market: MarketSuite,
   increases: readonly Asset[],
+  options: OperationLimitOptions = {},
 ): void {
   const underlying = market.pool.underlying;
   const { pqk } = market.pool;
@@ -238,6 +241,7 @@ export function assertQuotaAvailable(
         token: toToken(sdk, token),
         requested: balance,
         available: left,
+        ...options,
         underlying: toToken(sdk, underlying),
       }),
       `${token} has ${left} of quota left, the plan needs ${balance}`,

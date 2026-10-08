@@ -309,12 +309,17 @@ export async function buildWrapRwaCollateralOperation(
 
 /** Unwraps the market underlying back into its RWA asset. */
 export async function buildUnwrapRwaCollateralOperation(
-  input: RwaLegInput,
+  input: RwaLegInput & { all?: boolean },
 ): Promise<UnwrapRwaCollateralOperation> {
-  const calls = await input.sdk.accounts.assembleRWAUnwrapCalls(
-    input.amountIn,
-    input.creditAccount.creditManager,
-  );
+  const calls = input.all
+    ? await input.sdk.accounts.assembleRedeemDiffCalls(
+        1n,
+        input.creditAccount.creditManager,
+      )
+    : await input.sdk.accounts.assembleRWAUnwrapCalls(
+        input.amountIn,
+        input.creditAccount.creditManager,
+      );
   if (!calls) {
     throw new Error("unwrapRwaCollateral: no unwrap calls found");
   }

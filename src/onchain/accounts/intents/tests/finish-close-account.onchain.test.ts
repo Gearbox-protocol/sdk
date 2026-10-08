@@ -7,6 +7,7 @@ import { expectAdjustPreview, withOnchainOpCalls } from "../testing/expect.js";
 import {
   buildFixtureCreditAccount,
   buildMarketSdk,
+  CREDIT_MANAGER,
   caToken,
   POS,
   POS2,
@@ -178,6 +179,28 @@ describe("finish.closeAccount — the claim lands, the account empties", () => {
     expect(
       result.operations.find(op => op.type === "withdrawCollateral"),
     ).toMatchObject({ token: UND, amount: TVL_BEFORE, all: true });
+  });
+
+  it("unwraps the live RWA remainder after full debt repayment", async () => {
+    const sdk = buildMarketSdk({ rwaAssets: { [UND]: RWA_ASSET } });
+    const result = await run({
+      redeemed: TVL_BEFORE,
+      claimedToken: RWA_ASSET,
+      claimedAmount: TVL_BEFORE,
+      sdk,
+    });
+    if (!result.ok) throw new Error(result.error.code);
+
+    // Full repayment consumes the live debt, so the quoted remainder cannot
+    // be used as a fixed redeem amount when interest accrues before execution.
+    expect(sdk.accounts.assembleRedeemDiffCalls).toHaveBeenCalledWith(
+      1n,
+      CREDIT_MANAGER,
+    );
+    expect(sdk.accounts.assembleRWAUnwrapCalls).not.toHaveBeenCalled();
+    expect(result.calls).toContainEqual(MOCK_RWA_UNWRAP_CALL);
+    expect(result.state.totalDebt.value).toBe(0n);
+    expect(result.state.assets).toEqual([]);
   });
 
   it("RWA market: the claim is wrapped in, the remainder unwrapped out", async () => {
