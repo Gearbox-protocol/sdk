@@ -13,8 +13,14 @@ import {
   PermissionlessNotAttachedError,
 } from "../errors.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
-import { chainListSchema } from "./schemas.js";
-import type { AttachChainsArgs, PermissionlessChain } from "./types.js";
+import { chainListSchema, chainSummaryListSchema } from "./schemas.js";
+import type {
+  AttachChainsArgs,
+  ChainScope,
+  ChainSummaryArgs,
+  PermissionlessChain,
+  PermissionlessChainSummary,
+} from "./types.js";
 
 /**
  * The chains the permissionless stack runs on, and the viem clients that
@@ -38,12 +44,19 @@ import type { AttachChainsArgs, PermissionlessChain } from "./types.js";
  * Every read before that throws {@link PermissionlessNotAttachedError} rather
  * than answering with an empty list, which would be indistinguishable from a
  * backend that serves nothing.
+ *
+ * What {@link attach} reads is only what identifies a chain. The counters a
+ * list renders next to one are {@link summary}, a second read, because they
+ * aggregate over every market the backend knows and nothing should wait on
+ * that to start.
  **/
 export class ChainsNamespace extends AbstractOffchainNamespace {
   readonly #clients = new Map<number, PublicClient<Transport, Chain>>();
 
   #chains?: PermissionlessChain[];
   #attaching?: Promise<void>;
+  /** The scope {@link attach} settled on, which {@link summary} follows. */
+  #scope?: ChainScope;
 
   constructor(options: GearboxPermissionlessOptions) {
     // The chains are what this namespace is about to read, so there is
@@ -99,6 +112,37 @@ export class ChainsNamespace extends AbstractOffchainNamespace {
   }
 
   /**
+   * The same chains, with the counters a list renders next to them.
+   *
+   * A read of its own, and not part of {@link attach}: the counters aggregate
+   * over every market configurator and market the backend knows, which is
+   * slow enough that waiting on it would hold up the whole client. A list
+   * renders off {@link list} and fills the numbers in when this resolves.
+   *
+   * Nothing is cached — each call is a request — so a caller that renders
+   * this should hold it in whatever already owns its async state.
+   *
+   * Covers the scope {@link attach} settled on unless one is named here, so
+   * the counters describe the list that is already on screen rather than a
+   * different set of chains.
+   *
+   * ```ts
+   * await permissionless.attach();
+   * const chains = permissionless.chains.list();
+   * const withCounters = await permissionless.chains.summary();
+   * ```
+   **/
+  public async summary({
+    scope,
+  }: ChainSummaryArgs = {}): Promise<PermissionlessChainSummary[]> {
+    return this.getData({
+      path: "/chain/summary",
+      query: { scope: scope ?? this.#scope },
+      schema: chainSummaryListSchema,
+    });
+  }
+
+  /**
    * Chains a client could be built for. A subset of {@link list} — see
    * {@link client}.
    **/
@@ -126,12 +170,13 @@ export class ChainsNamespace extends AbstractOffchainNamespace {
     return client;
   }
 
-  async #load(scope: AttachChainsArgs["scope"]): Promise<void> {
+  async #load(scope: ChainScope | undefined): Promise<void> {
     const chains = await this.getData({
       path: "/chain/list",
       query: { scope },
       schema: chainListSchema,
     });
+    this.#scope = scope;
 
     this.#clients.clear();
     for (const { chainId } of chains) {

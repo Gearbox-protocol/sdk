@@ -7,11 +7,15 @@
 export type ChainScope = "public" | "all";
 
 /**
- * One chain the permissionless stack is deployed on, with the counters a list
- * renders next to it.
+ * One chain the permissionless stack is deployed on.
  *
  * This list is what exists: the backend holds rows for chains it does not
  * serve, and those are not reachable through it.
+ *
+ * Deliberately bare. It is read during {@link ChainsNamespace.attach}, which
+ * every other call waits on, so it carries only what identifies a chain and
+ * decides whether to show it. The counters are a second read, see
+ * {@link PermissionlessChainSummary}.
  **/
 export interface PermissionlessChain {
   chainId: number;
@@ -24,6 +28,13 @@ export interface PermissionlessChain {
    **/
   isActivated: boolean;
   explorerUrl: string;
+}
+
+/**
+ * A chain with the counters a list renders next to it, see
+ * {@link ChainsNamespace.summary}.
+ **/
+export interface PermissionlessChainSummary extends PermissionlessChain {
   riskCuratorsQty: number;
   marketsQty: number;
 }
@@ -32,6 +43,17 @@ export interface PermissionlessChain {
 export interface AttachChainsArgs {
   /**
    * @defaultValue `"public"`
+   **/
+  scope?: ChainScope;
+}
+
+/** Args of {@link ChainsNamespace.summary}. */
+export interface ChainSummaryArgs {
+  /**
+   * Which chains to count.
+   *
+   * @defaultValue the scope {@link ChainsNamespace.attach} settled on, so
+   * the counters describe the list already on screen.
    **/
   scope?: ChainScope;
 }
