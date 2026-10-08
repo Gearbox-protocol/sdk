@@ -1,13 +1,16 @@
 import type { Address } from "viem";
 import type { ChartRange, ProtocolChartMetric } from "./charts.js";
-import type { ChainScopedFilter } from "./filters.js";
+import type { CuratorName } from "./curators.js";
+import type { ChainScopedFilter, Filterable } from "./filters.js";
 import type { LiquidationPosition } from "./liquidations.js";
 import type {
   PoolPosition,
   Position,
+  PositionCollateral,
   PositionFilter,
   StrategyPosition,
 } from "./positions.js";
+import type { ChainId } from "./primitives.js";
 
 /**
  * A protocol-wide position row together with the wallet that owns it.
@@ -45,23 +48,48 @@ export type AnalyticsPositionSortField =
   | "totalDebtUsd"
   | "pnlUsd"
   | "apy"
-  | "healthFactor"
-  | "leverage"
-  | "chainId"
-  | "name"
-  | "borrower";
+  | "healthFactor";
 
 /** Direction of one analytics list ordering. */
 export type AnalyticsSortDirection = "asc" | "desc";
+
+/** A contract selected on exactly one chain by an analytics filter. */
+export interface AnalyticsContractRef {
+  /** Chain the contract lives on. */
+  chainId: ChainId;
+  /** Address of the pool, credit manager or token contract. */
+  address: Address;
+}
 
 /**
  * Filtering, ordering and offset pagination of the protocol-wide position
  * list. Omitted position criteria have the same meaning as they do on
  * {@link PositionFilter}.
+ *
+ * Pool, credit manager, balance asset and curator filters accept one value or
+ * a list. Values within a list combine with OR; different filters combine with
+ * AND. An empty list matches no positions.
+ *
+ * Pool, credit manager and asset references match both chain and address,
+ * within the chains this SDK covers and any further restriction from
+ * `chainIds`. Curator names match across the selected chains.
  **/
 export interface AnalyticsPositionListOptions extends PositionFilter {
   /** Keep only positions owned by this wallet. */
   borrower?: Address;
+  /** Keep only positions associated with the given pool or pools. */
+  pool?: AnalyticsContractRef | readonly AnalyticsContractRef[];
+  /** Keep only positions associated with the given credit manager or managers. */
+  creditManager?: AnalyticsContractRef | readonly AnalyticsContractRef[];
+  /**
+   * Keep only positions holding a positive balance of any selected token.
+   * For credit accounts, match the token of each
+   * {@link PositionCollateral.collateral}, including underlying balances.
+   * Phantom tokens match their own address as reported in the balance.
+   */
+  asset?: AnalyticsContractRef | readonly AnalyticsContractRef[];
+  /** Keep only positions in markets managed by the named curator or curators. */
+  curator?: Filterable<CuratorName | readonly CuratorName[]>;
   /**
    * Field to order by. Values that do not apply to a position kind, and USD
    * values that cannot be priced, are always placed after concrete values.

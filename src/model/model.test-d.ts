@@ -1,6 +1,7 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type { z } from "zod/v4";
 import type {
+  AnalyticsContractRef,
   AnalyticsPosition,
   AnalyticsPositionListOptions,
   AnalyticsPositionPage,
@@ -8,6 +9,7 @@ import type {
   AnalyticsSortDirection,
 } from "./analytics.js";
 import type {
+  analyticsContractRefSchema,
   analyticsPositionListOptionsSchema,
   analyticsPositionListQuerySchema,
   analyticsPositionPageSchema,
@@ -220,6 +222,9 @@ import type {
 
 describe("model schemas match model types", () => {
   it("analytics", () => {
+    expectTypeOf<
+      z.infer<typeof analyticsContractRefSchema>
+    >().toEqualTypeOf<AnalyticsContractRef>();
     expectTypeOf<
       z.infer<typeof analyticsPositionSchema>
     >().toEqualTypeOf<AnalyticsPosition>();
