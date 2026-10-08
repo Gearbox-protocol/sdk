@@ -1,12 +1,10 @@
 import type { Address } from "viem";
-import type { InstanceTxs } from "../../utils/governance/types.js";
 
 /**
  * What every batch of {@link InstanceOwnerTransactions} names.
  *
- * The chain must be among the ones the client was constructed with, see
- * {@link GearboxPermissionlessOptions.chains}: a batch is built off the chain
- * it will be executed on.
+ * The chain must be one {@link ChainsNamespace} serves a client for: a batch
+ * is built off the chain it will be executed on.
  **/
 export interface InstanceTxsArgs {
   chainId: number;
@@ -14,8 +12,8 @@ export interface InstanceTxsArgs {
    * Whose rows the batch is built from, and who it records as its author.
    *
    * Required: unlike the backend routes this replaced, nothing here carries
-   * an identity of its own, so the caller names the curator whose private
-   * feeds and connections the batch applies.
+   * an identity of its own, so the caller names the curator whose feeds and
+   * connections the batch applies.
    **/
   owner: Address;
 }
@@ -36,22 +34,4 @@ export interface ChangeStalenessPeriodsArgs extends InstanceTxsArgs {
 export interface ForbidFeedsArgs extends InstanceTxsArgs {
   /** The feeds to forbid, keyed by the asset they were allowed for. */
   tokens: Record<Address, Address[]>;
-}
-
-/**
- * What a batch would look like on IPFS, without putting it there.
- **/
-export interface InstanceTxsPreview {
-  /** The CID the batch would get, derived the way the pinning service does. */
-  cid: string;
-  /** Whether the gateway already serves it. */
-  isUploaded: boolean;
-  uploadedAt?: string;
-  /** Size of the serialised batch, in bytes. */
-  size: number;
-}
-
-/** Args of {@link InstanceOwnerTransactions.preview} and `upload`. */
-export interface InstanceTxsBodyArgs {
-  instanceTxs: InstanceTxs;
 }

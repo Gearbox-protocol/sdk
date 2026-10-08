@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import type { PriceFeed } from "../../core/index.js";
 
 /**
@@ -33,9 +33,8 @@ export interface PermissionlessAsset {
 }
 
 /**
- * The PriceFeedStore of one chain as a caller may see it: what the store
- * carries, plus the assets, feeds and connections that caller has added
- * without uploading them yet.
+ * The PriceFeedStore of one chain as the backend has indexed it: the assets
+ * it prices, the feeds it carries, and which feed is allowed on which asset.
  **/
 export interface PermissionlessPriceFeedStore {
   chainId: number;
@@ -57,54 +56,13 @@ export interface PermissionlessPrices {
   time: number;
 }
 
-/**
- * What every route of {@link PermissionlessOracles} names, see
- * {@link PermissionlessOracles}.
- **/
-export interface PermissionlessOraclesArgs {
+/** Args of {@link PermissionlessOracles.getPrices}. */
+export interface GetPricesArgs {
   chainId: number;
   /**
-   * Whose rows to read or write. Only honoured for service calls with the API
-   * key: a signed-in caller is identified by their access token, and naming
-   * another address is rejected rather than quietly scoped to themselves.
+   * The feeds to price. Any address answering `latestRoundData` works — the
+   * store does not have to carry it, which is the point of reading the chain
+   * rather than asking the backend.
    **/
-  owner?: Address;
-}
-
-/** Args of {@link PermissionlessOracles.addAsset}. */
-export interface AddAssetArgs extends PermissionlessOraclesArgs {
-  asset: Address;
-}
-
-/**
- * Args of {@link PermissionlessOracles.connect} and
- * {@link PermissionlessOracles.disconnect}.
- **/
-export interface ConnectPriceFeedArgs extends PermissionlessOraclesArgs {
-  asset: Address;
-  priceFeed: Address;
-}
-
-/** Args of {@link PermissionlessOracles.registerDeployed}. */
-export interface RegisterDeployedPriceFeedArgs
-  extends PermissionlessOraclesArgs {
-  /** Name the feed is registered under, which the store reports as its own. */
-  name: string;
-  /** The `BytecodeRepository.deploy` transaction the feed came out of. */
-  transactionHash: Hex;
-  stalenessPeriod: number;
-}
-
-/** Args of {@link PermissionlessOracles.registerExternal}. */
-export interface RegisterExternalPriceFeedArgs
-  extends PermissionlessOraclesArgs {
-  name: string;
-  priceFeed: Address;
-  stalenessPeriod: number;
-  /**
-   * The owner's signature over
-   * `PriceFeedStoreContract.computeEIP712ExternalPriceFeedDigest`, which is
-   * what vouches for a feed nobody deployed through the repository.
-   **/
-  signature: Hex;
+  priceFeeds: Address[];
 }

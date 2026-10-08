@@ -20,49 +20,18 @@ import {
 import type { InstanceTxs } from "../../utils/governance/types.js";
 import { INSTANCE_MANAGER } from "../../utils/literals.js";
 import { getUpdatablePriceFeeds } from "../../utils/price-update/get-updatable-feeds.js";
-import { AbstractPermissionlessNamespace } from "../AbstractPermissionlessNamespace.js";
 import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
-import {
-  InvalidInstanceTxsError,
-  PriceFeedNotInStoreError,
-} from "../errors.js";
+import { PriceFeedNotInStoreError } from "../errors.js";
 import type { PermissionlessOracles } from "../oracles/PermissionlessOracles.js";
-import type { GearboxPermissionlessOptions } from "../types.js";
 import { getFeedsToUpdate, updateBounds } from "./lp-price-feeds.js";
-import {
-  instanceTxsPreviewSchema,
-  instanceTxsSchema,
-  uploadedCidSchema,
-} from "./schemas.js";
 import type {
   ChangeNamesArgs,
   ChangeStalenessPeriodsArgs,
   ForbidFeedsArgs,
   InstanceTxsArgs,
-  InstanceTxsBodyArgs,
-  InstanceTxsPreview,
 } from "./types.js";
 
 const lower = (value: string): string => value.toLowerCase();
-
-/**
- * The batch, once it is known to be one.
- *
- * The IPFS routes take any JSON — they pin other kinds of document too — so
- * this is the only thing standing between a malformed batch and a CID that
- * looks perfectly valid until someone tries to execute it.
- **/
-function validInstanceTxs(instanceTxs: InstanceTxs): InstanceTxs {
-  const parsed = instanceTxsSchema.safeParse(instanceTxs);
-  if (!parsed.success) {
-    throw new InvalidInstanceTxsError(
-      parsed.error.issues
-        .map(issue => `${issue.path.join(".") || "<root>"}: ${issue.message}`)
-        .join("; "),
-    );
-  }
-  return instanceTxs;
-}
 
 /** Everything a batch needs beyond the transactions themselves. */
 interface BatchContext {
@@ -82,33 +51,24 @@ interface BatchContext {
  * Every batch is wrapped with `wrapConfigureLocal`, so the InstanceManager is
  * the only caller the PriceFeedStore ever sees.
  *
- * Building a batch is on-chain work and happens here. Publishing one does
- * not: the pinning credentials are a secret an interface cannot hold, so
- * {@link preview} and {@link upload} go through the backend.
- *
- * A curator never executes these themselves — they prepare a batch, publish
- * it, and the instance owner reviews and executes it from their Safe.
+ * Backend-free: a batch is built off the chain it will be executed on, and
+ * the store it reads is the one {@link PermissionlessOracles} already
+ * fetched. Nothing is sent either — a curator never executes these
+ * themselves. They prepare a batch and hand it to the instance owner, who
+ * reviews and executes it from their Safe.
  *
  * ```ts
  * const txs = await permissionless.transactions.addFeeds({
  *   chainId: 1,
  *   owner: curator,
  * });
- * const { cid, isUploaded } = await permissionless.transactions.preview({
- *   instanceTxs: txs,
- * });
  * ```
  **/
-export class InstanceOwnerTransactions extends AbstractPermissionlessNamespace {
+export class InstanceOwnerTransactions {
   readonly #chains: ChainsNamespace;
   readonly #oracles: PermissionlessOracles;
 
-  constructor(
-    options: GearboxPermissionlessOptions,
-    chains: ChainsNamespace,
-    oracles: PermissionlessOracles,
-  ) {
-    super("InstanceOwnerTransactions", options);
+  constructor(chains: ChainsNamespace, oracles: PermissionlessOracles) {
     this.#chains = chains;
     this.#oracles = oracles;
   }
@@ -122,7 +82,7 @@ export class InstanceOwnerTransactions extends AbstractPermissionlessNamespace {
   public async addFeeds({ chainId, owner }: InstanceTxsArgs) {
     const [batch, store] = await Promise.all([
       this.#batchContext(chainId),
-      this.#oracles.store({ chainId, owner }),
+      this.#oracles.store({ chainId }),
     ]);
 
     // Edges the store does not carry yet — exactly the ones a batch has to
@@ -171,7 +131,7 @@ export class InstanceOwnerTransactions extends AbstractPermissionlessNamespace {
   public async changeNames({ chainId, owner, names }: ChangeNamesArgs) {
     const [batch, store] = await Promise.all([
       this.#batchContext(chainId),
-      this.#oracles.store({ chainId, owner }),
+      this.#oracles.store({ chainId }),
     ]);
     const feedToAssets = await this.#feedToAssets(batch.store);
 
@@ -293,33 +253,6 @@ export class InstanceOwnerTransactions extends AbstractPermissionlessNamespace {
       // The limiter does not read a price either.
       touchedFeeds: [],
     });
-  }
-
-  /**
-   * The CID the batch would get, and whether it is already published. The
-   * bytes hashed here are the bytes {@link upload} sends, so a preview is the
-   * CID, not a guess at it.
-   **/
-  public async preview({
-    instanceTxs,
-  }: InstanceTxsBodyArgs): Promise<InstanceTxsPreview> {
-    return this.post({
-      path: "/ipfs/preview",
-      body: validInstanceTxs(instanceTxs),
-      schema: instanceTxsPreviewSchema,
-    });
-  }
-
-  /**
-   * Publishes the batch, and answers with the CID it was pinned under.
-   **/
-  public async upload({ instanceTxs }: InstanceTxsBodyArgs): Promise<string> {
-    const { cid } = await this.post({
-      path: "/ipfs/upload",
-      body: validInstanceTxs(instanceTxs),
-      schema: uploadedCidSchema,
-    });
-    return cid;
   }
 
   /**

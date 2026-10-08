@@ -92,8 +92,9 @@ export class PermissionlessDeploy {
    * 0 can never pass its own staleness check, so the real bound is read off
    * the leg, see {@link deriveEffectiveStalenessPeriod}.
    *
-   * The deployed feed is not known to the backend yet; record it with
-   * {@link PermissionlessOracles.registerDeployed} once the transaction lands.
+   * The deployed feed reaches {@link PermissionlessOracles.store} only once
+   * it is in the PriceFeedStore, which is a batch the instance owner
+   * executes, see {@link InstanceOwnerTransactions.addFeeds}.
    **/
   public async priceFeed(
     args: DeployPriceFeedArgs,

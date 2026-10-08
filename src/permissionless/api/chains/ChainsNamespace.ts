@@ -6,8 +6,8 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
+import { AbstractOffchainNamespace } from "../../../offchain/AbstractOffchainNamespace.js";
 import { getChain } from "../../../onchain/chain/chains.js";
-import { AbstractPermissionlessNamespace } from "../AbstractPermissionlessNamespace.js";
 import {
   PermissionlessChainUnreachableError,
   PermissionlessNotAttachedError,
@@ -39,14 +39,16 @@ import type { AttachChainsArgs, PermissionlessChain } from "./types.js";
  * than answering with an empty list, which would be indistinguishable from a
  * backend that serves nothing.
  **/
-export class ChainsNamespace extends AbstractPermissionlessNamespace {
+export class ChainsNamespace extends AbstractOffchainNamespace {
   readonly #clients = new Map<number, PublicClient<Transport, Chain>>();
 
   #chains?: PermissionlessChain[];
   #attaching?: Promise<void>;
 
   constructor(options: GearboxPermissionlessOptions) {
-    super("ChainsNamespace", options);
+    // The chains are what this namespace is about to read, so there is
+    // nothing to scope its own reads by.
+    super("ChainsNamespace", { ...options, chainIds: [] });
   }
 
   /**
@@ -125,7 +127,7 @@ export class ChainsNamespace extends AbstractPermissionlessNamespace {
   }
 
   async #load(scope: AttachChainsArgs["scope"]): Promise<void> {
-    const chains = await this.get({
+    const chains = await this.getData({
       path: "/chain/list",
       query: { scope },
       schema: chainListSchema,

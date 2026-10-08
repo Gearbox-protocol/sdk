@@ -6,20 +6,19 @@ import { InstanceOwnerTransactions } from "./transactions/InstanceOwnerTransacti
 import type { GearboxPermissionlessOptions } from "./types.js";
 
 /**
- * Client for the permissionless stack: the oracle rows a curator keeps before
- * they are on chain, the batches an instance owner executes, and the deploys
- * that produce what goes into both.
+ * Client for the permissionless stack: the oracle rows of a chain, the
+ * batches an instance owner executes, and the deploys that produce what goes
+ * into both.
  *
- * It is the counterpart of {@link GearboxAPI} for the permissionless backend,
- * and reads the same way — one namespace per subject, every call scoped by the
- * chain it names. Which chains those are is not passed in: {@link attach}
- * reads the list off the backend and builds a client for each, so the client
- * covers exactly what the backend serves.
+ * It reads the same backend {@link GearboxAPI} does, and reads the same way —
+ * one namespace per subject, every call scoped by the chain it names. Which
+ * chains those are is not passed in: {@link attach} reads the list off the
+ * backend and builds a client for each, so this client covers exactly what
+ * the backend serves.
  *
  * ```ts
  * const permissionless = new GearboxPermissionless({
- *   baseUrl: "https://permissionless.gearbox.fi",
- *   accessToken: () => session?.accessToken,
+ *   baseUrl: "https://api.gearbox.fi",
  * });
  * await permissionless.attach();
  *
@@ -28,10 +27,10 @@ import type { GearboxPermissionlessOptions } from "./types.js";
  * ```
  *
  * Only what needs a server goes to one. {@link chains} and {@link oracles}
- * are the backend's private rows; {@link deploy} and most of
- * {@link transactions} read the target chain directly, because everything
- * they answer is derived from there and a round trip would only move the
- * derivation further from the wallet that has to sign for it.
+ * are the backend's reads; {@link deploy} and {@link transactions} read the
+ * target chain directly, because everything they answer is derived from there
+ * and a round trip would only move the derivation further from the wallet
+ * that has to sign for it.
  **/
 export class GearboxPermissionless {
   /**
@@ -40,13 +39,12 @@ export class GearboxPermissionless {
    **/
   public readonly chains: ChainsNamespace;
   /**
-   * Namespace for price feeds: the store, its prices, and the assets and feeds
-   * a caller has added without uploading them yet.
+   * Namespace for price feeds: the store and its prices.
    **/
   public readonly oracles: PermissionlessOracles;
   /**
-   * Namespace for the Safe batches an instance owner executes, and their life
-   * on IPFS.
+   * Namespace for the Safe batches an instance owner executes. Backend-free,
+   * see {@link InstanceOwnerTransactions}.
    **/
   public readonly transactions: InstanceOwnerTransactions;
   /**
@@ -57,9 +55,8 @@ export class GearboxPermissionless {
 
   constructor(options: GearboxPermissionlessOptions = {}) {
     this.chains = new ChainsNamespace(options);
-    this.oracles = new PermissionlessOracles(options);
+    this.oracles = new PermissionlessOracles(options, this.chains);
     this.transactions = new InstanceOwnerTransactions(
-      options,
       this.chains,
       this.oracles,
     );

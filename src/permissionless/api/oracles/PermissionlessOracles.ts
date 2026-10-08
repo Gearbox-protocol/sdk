@@ -1,157 +1,105 @@
-import { AbstractPermissionlessNamespace } from "../AbstractPermissionlessNamespace.js";
+import type { Address } from "viem";
+import { AbstractOffchainNamespace } from "../../../offchain/AbstractOffchainNamespace.js";
+import { getPrices } from "../../utils/price-update/get-prices.js";
+import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
 import { priceFeedStoreSchema, pricesSchema } from "./schemas.js";
 import type {
-  AddAssetArgs,
-  ConnectPriceFeedArgs,
-  PermissionlessOraclesArgs,
+  GetPricesArgs,
   PermissionlessPriceFeedStore,
   PermissionlessPrices,
-  RegisterDeployedPriceFeedArgs,
-  RegisterExternalPriceFeedArgs,
 } from "./types.js";
 
+export const GET_PRICES_GAS_LIMIT_BY_CHAIN_ID: Record<number, bigint> = {
+  143: 100_000_000n,
+};
+
+export const GET_PRICES_CHUNK_SIZE = 200;
+
 /**
- * Everything the price feeds of one chain are: the PriceFeedStore as the
- * caller may see it, the prices behind it, and the rows that put a feed there
- * — an asset to price, a feed deployed or vouched for, a feed attached to an
- * asset.
- *
- * Every mutating route answers with the whole {@link PermissionlessPriceFeedStore}
- * again, so a caller never needs a follow-up read to render the result.
+ * The price feeds of one chain: the PriceFeedStore as the backend has indexed
+ * it, and the prices behind it.
  *
  * ```ts
  * const store = await permissionless.oracles.store({ chainId: 1 });
  * const { prices } = await permissionless.oracles.prices({ chainId: 1 });
  * ```
  *
- * The owner of every route is the address in the caller's access token. The
- * `owner` an argument carries is only honoured for service calls with the API
- * key, which have no identity of their own.
+ * Read-only. What the store carries is decided on chain, so putting a feed
+ * there is a batch the instance owner executes — see
+ * {@link InstanceOwnerTransactions} — not a row a client writes here.
  **/
-export class PermissionlessOracles extends AbstractPermissionlessNamespace {
-  constructor(options: GearboxPermissionlessOptions) {
-    super("PermissionlessOracles", options);
+export class PermissionlessOracles extends AbstractOffchainNamespace {
+  readonly #chains: ChainsNamespace;
+
+  constructor(options: GearboxPermissionlessOptions, chains: ChainsNamespace) {
+    // Every route names its chain in the path, so there is no configured set
+    // to scope a read by.
+    super("PermissionlessOracles", { ...options, chainIds: [] });
+    this.#chains = chains;
   }
 
   /**
-   * The store with the assets and feeds the caller may see. Answers
-   * anonymously with just the store, so an interface can render it before
-   * anyone signs in.
+   * The store with the assets and feeds of one chain.
    **/
   public async store({
     chainId,
-    owner,
-  }: PermissionlessOraclesArgs): Promise<PermissionlessPriceFeedStore> {
-    return this.get({
+  }: {
+    chainId: number;
+  }): Promise<PermissionlessPriceFeedStore> {
+    return this.getData({
       path: `/pfs/${chainId}`,
-      query: { owner },
       schema: priceFeedStoreSchema,
     });
   }
 
   /**
-   * A price per feed, and a market cap per feed and asset. The feeds the store
-   * does not carry are read off the chain by the backend, so a caller's own
-   * feeds are priced too.
+   * A price per feed, and a market cap per feed and asset. The feeds the
+   * indexer has not seen are read off the chain by the backend, so the store
+   * is priced whole.
    **/
   public async prices({
     chainId,
-    owner,
-  }: PermissionlessOraclesArgs): Promise<PermissionlessPrices> {
-    return this.get({
+  }: {
+    chainId: number;
+  }): Promise<PermissionlessPrices> {
+    return this.getData({
       path: `/pfs/${chainId}/prices`,
-      query: { owner },
       schema: pricesSchema,
     });
   }
 
   /**
-   * Adds an asset to price. The asset itself is read off the chain, so only
-   * its address is named here.
+   * The price each of the named feeds reports, read off the chain.
+   *
+   * Where {@link prices} answers for the store as a whole and at whatever
+   * moment the backend priced it, this prices exactly the feeds asked for, at
+   * the current block. A feed the store does not carry prices the same way,
+   * which is what makes this the call to reach for after a deploy, or while a
+   * form is still choosing between candidates.
+   *
+   * Feeds needing a fresh answer before they can be read are updated inside
+   * the same simulation, so a push-based feed prices as readily as a
+   * pull-based one. `null` is a feed whose read reverted, not a zero.
+   *
+   * ```ts
+   * const prices = await permissionless.oracles.getPrices({
+   *   chainId: 1,
+   *   priceFeeds: [feed],
+   * });
+   * ```
+   *
+   * @returns A price per feed, in the 8 decimals every Gearbox feed reports.
    **/
-  public async addAsset({
+  public async getPrices({
     chainId,
-    asset,
-    owner,
-  }: AddAssetArgs): Promise<PermissionlessPriceFeedStore> {
-    return this.post({
-      path: `/pfs/${chainId}/asset`,
-      body: { asset, owner },
-      schema: priceFeedStoreSchema,
-    });
-  }
-
-  /**
-   * Attaches a feed to an asset. Nothing is sent on chain: the connection is
-   * held here until it goes into a batch the instance owner executes.
-   **/
-  public async connect({
-    chainId,
-    asset,
-    priceFeed,
-    owner,
-  }: ConnectPriceFeedArgs): Promise<PermissionlessPriceFeedStore> {
-    return this.post({
-      path: `/pfs/${chainId}/connect`,
-      body: { asset, pricefeed: priceFeed, owner },
-      schema: priceFeedStoreSchema,
-    });
-  }
-
-  /**
-   * Detaches a feed from an asset, undoing a {@link connect} that was never
-   * uploaded.
-   **/
-  public async disconnect({
-    chainId,
-    asset,
-    priceFeed,
-    owner,
-  }: ConnectPriceFeedArgs): Promise<PermissionlessPriceFeedStore> {
-    return this.post({
-      path: `/pfs/${chainId}/disconnect`,
-      body: { asset, pricefeed: priceFeed, owner },
-      schema: priceFeedStoreSchema,
-    });
-  }
-
-  /**
-   * Records a feed that was just deployed, see
-   * {@link PermissionlessDeploy.priceFeed}. The address is taken off the
-   * `DeployContract` event of the transaction named, which is why the hash is
-   * what a caller reports rather than the address it produced.
-   **/
-  public async registerDeployed({
-    chainId,
-    name,
-    transactionHash,
-    stalenessPeriod,
-    owner,
-  }: RegisterDeployedPriceFeedArgs): Promise<PermissionlessPriceFeedStore> {
-    return this.post({
-      path: `/pfs/${chainId}/deploy`,
-      body: { name, transactionHash, stalenessPeriod, owner },
-      schema: priceFeedStoreSchema,
-    });
-  }
-
-  /**
-   * Records a feed that was not deployed through the BytecodeRepository, and
-   * is therefore vouched for by a signature instead of by its bytecode.
-   **/
-  public async registerExternal({
-    chainId,
-    name,
-    priceFeed,
-    stalenessPeriod,
-    signature,
-    owner,
-  }: RegisterExternalPriceFeedArgs): Promise<PermissionlessPriceFeedStore> {
-    return this.post({
-      path: `/pfs/${chainId}/external`,
-      body: { name, priceFeed, stalenessPeriod, signature, owner },
-      schema: priceFeedStoreSchema,
+    priceFeeds,
+  }: GetPricesArgs): Promise<Record<Address, bigint | null>> {
+    return getPrices({
+      client: this.#chains.client(chainId),
+      priceFeeds,
+      chunkSize: GET_PRICES_CHUNK_SIZE,
+      gasLimit: GET_PRICES_GAS_LIMIT_BY_CHAIN_ID[chainId],
     });
   }
 }

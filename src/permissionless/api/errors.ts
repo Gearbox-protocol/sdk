@@ -68,22 +68,6 @@ export class PriceFeedNotInStoreError extends BaseError {
 }
 
 /**
- * Thrown when a batch handed to {@link InstanceOwnerTransactions.preview} or
- * `upload` is not an {@link InstanceTxs}.
- *
- * The IPFS routes pin whatever JSON they are given, so a malformed batch
- * would be pinned under a perfectly valid CID and only fail when an instance
- * owner tried to execute it.
- **/
-export class InvalidInstanceTxsError extends BaseError {
-  override name = "InvalidInstanceTxsError";
-
-  constructor(details: string) {
-    super("The batch is not a valid InstanceTxs.", { details });
-  }
-}
-
-/**
  * Thrown when a composite feed names a leg whose own staleness bound cannot be
  * read off the chain.
  *
