@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { PriceFeed } from "../../core/pricefeed.js";
 
 /**
  * What every batch of {@link InstanceOwnerTransactions} names.
@@ -16,6 +17,29 @@ export interface InstanceTxsArgs {
    * connections the batch applies.
    **/
   owner: Address;
+}
+
+/**
+ * One asset-to-feed edge the store has to carry, see
+ * {@link AddFeedsArgs.pairs}.
+ **/
+export interface PriceFeedPair {
+  asset: Address;
+  priceFeed: Address;
+}
+
+/** Args of {@link InstanceOwnerTransactions.addFeeds}. */
+export interface AddFeedsArgs extends InstanceTxsArgs {
+  /**
+   * The feeds to put in the store. Only what the store records is read, so a
+   * caller holding a whole {@link PriceFeed} passes it unchanged.
+   **/
+  feeds: Array<Pick<PriceFeed, "address" | "stalenessPeriod" | "name">>;
+  /**
+   * The edges to allow. Independent of {@link feeds}: an edge may name a feed
+   * the store already carries, which is allowed without adding it again.
+   **/
+  pairs: PriceFeedPair[];
 }
 
 /** Args of {@link InstanceOwnerTransactions.changeNames}. */
