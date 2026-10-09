@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 import { ZodAddress } from "../onchain/utils/zod.js";
 import type {
   AnalyticsChartQuery,
+  AnalyticsContractRef,
   AnalyticsPosition,
   AnalyticsPositionListOptions,
 } from "./analytics.js";
@@ -11,6 +12,8 @@ import {
   chartRangeSchema,
   protocolChartMetricSchema,
 } from "./charts.schema.js";
+import type { CuratorName } from "./curators.js";
+import { curatorNameSchema } from "./curators.schema.js";
 import { isFilterSet } from "./filters.js";
 import { encodeFlag, filterable } from "./filters.schema.js";
 import { liquidationPositionSchema } from "./liquidations.schema.js";
@@ -35,10 +38,6 @@ export const analyticsPositionSortFieldSchema = z.enum([
   "pnlUsd",
   "apy",
   "healthFactor",
-  "leverage",
-  "chainId",
-  "name",
-  "borrower",
 ]);
 
 /** {@link AnalyticsSortDirection} */
@@ -48,6 +47,67 @@ const analyticsOwnerShape = { borrower: ZodAddress() };
 const addressSchema = z.custom<Address>(
   value => typeof value === "string" && isAddress(value, { strict: false }),
 );
+const addressParamSchema = z
+  .string()
+  .refine(value => isAddress(value, { strict: false }), "invalid address");
+/** {@link AnalyticsContractRef} */
+export const analyticsContractRefSchema = z.object({
+  chainId: chainIdSchema,
+  address: addressSchema,
+});
+const contractFilterSchema = z.union([
+  analyticsContractRefSchema,
+  z.array(analyticsContractRefSchema).readonly(),
+]);
+const contractFilterParamSchema = z
+  .string()
+  .regex(
+    /^$|^[1-9]\d*:0x[\da-fA-F]{40}(,[1-9]\d*:0x[\da-fA-F]{40})*$/,
+    "expected comma-separated chainId:address references",
+  );
+const curatorValuesParamSchema = z
+  .string()
+  .refine(
+    value =>
+      value === "" ||
+      value.split(",").every(name => curatorNameSchema.safeParse(name).success),
+    "invalid curator list",
+  );
+
+/** Decode comma-separated choices, preserving scalar reads and empty lists. */
+function decodeFilterValues<T extends string>(param: string): T | readonly T[] {
+  const values = (param === "" ? [] : param.split(",")) as T[];
+  return values.length === 1 ? values[0] : values;
+}
+
+function encodeFilterValues(
+  values: string | readonly string[] | undefined,
+): string | undefined {
+  return typeof values === "string" ? values : values?.join(",");
+}
+
+function decodeContractFilter(
+  param: string,
+): AnalyticsContractRef | readonly AnalyticsContractRef[] {
+  const refs =
+    param === ""
+      ? []
+      : param.split(",").map(value => {
+          const [chainId, address] = value.split(":");
+          return { chainId: Number(chainId), address: address as Address };
+        });
+  return refs.length === 1 ? refs[0] : refs;
+}
+
+function encodeContractFilter(
+  value: AnalyticsContractRef | readonly AnalyticsContractRef[] | undefined,
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const refs = "chainId" in value ? [value] : value;
+  return refs.map(ref => `${ref.chainId}:${ref.address}`).join(",");
+}
 
 /** {@link AnalyticsPosition} */
 export const analyticsPositionSchema = z.discriminatedUnion("kind", [
@@ -59,6 +119,12 @@ export const analyticsPositionSchema = z.discriminatedUnion("kind", [
 /** {@link AnalyticsPositionListOptions} */
 export const analyticsPositionListOptionsSchema = z.object({
   borrower: addressSchema.optional(),
+  pool: contractFilterSchema.optional(),
+  creditManager: contractFilterSchema.optional(),
+  asset: contractFilterSchema.optional(),
+  curator: filterable(
+    z.union([curatorNameSchema, z.array(curatorNameSchema).readonly()]),
+  ).optional(),
   kind: filterable(positionKindSchema).optional(),
   isZeroDebt: filterable(z.boolean()).optional(),
   chainIds: z.array(chainIdSchema).optional(),
@@ -76,12 +142,16 @@ export const analyticsPositionListOptionsSchema = z.object({
 
 /**
  * {@link AnalyticsPositionListOptions} as URL query parameters.
+ * Pool, credit manager and asset choices are comma-separated `chainId:address`
+ * references; curator choices are comma-separated names. An empty string
+ * carries an empty list rather than an unrestricted condition.
  **/
 export const analyticsPositionListQueryParamsSchema = z.object({
-  borrower: z
-    .string()
-    .refine(value => isAddress(value, { strict: false }), "invalid address")
-    .optional(),
+  borrower: addressParamSchema.optional(),
+  pool: contractFilterParamSchema.optional(),
+  creditManager: contractFilterParamSchema.optional(),
+  asset: contractFilterParamSchema.optional(),
+  curator: curatorValuesParamSchema.optional(),
   kind: positionKindSchema.optional(),
   isZeroDebt: z.enum(["true", "false"]).optional(),
   chainIds: z
@@ -110,6 +180,18 @@ export const analyticsPositionListQuerySchema = z.codec(
       ...(params.borrower === undefined
         ? {}
         : { borrower: params.borrower as Address }),
+      ...(params.pool === undefined
+        ? {}
+        : { pool: decodeContractFilter(params.pool) }),
+      ...(params.creditManager === undefined
+        ? {}
+        : { creditManager: decodeContractFilter(params.creditManager) }),
+      ...(params.asset === undefined
+        ? {}
+        : { asset: decodeContractFilter(params.asset) }),
+      ...(params.curator === undefined
+        ? {}
+        : { curator: decodeFilterValues<CuratorName>(params.curator) }),
       ...(params.kind === undefined ? {} : { kind: params.kind }),
       ...(params.isZeroDebt === undefined
         ? {}
@@ -134,6 +216,12 @@ export const analyticsPositionListQuerySchema = z.codec(
     }),
     encode: options => ({
       borrower: options.borrower,
+      pool: encodeContractFilter(options.pool),
+      creditManager: encodeContractFilter(options.creditManager),
+      asset: encodeContractFilter(options.asset),
+      curator: isFilterSet(options.curator)
+        ? encodeFilterValues(options.curator)
+        : undefined,
       kind: isFilterSet(options.kind) ? options.kind : undefined,
       isZeroDebt: encodeFlag(options.isZeroDebt),
       chainIds: options.chainIds?.join(","),

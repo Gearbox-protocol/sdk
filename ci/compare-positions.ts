@@ -209,8 +209,6 @@ async function listAnalyticsKind(
   while (offset < total) {
     const page = await sdk.analytics.positions.list({
       kind,
-      sortBy: "borrower",
-      sortDirection: "asc",
       offset,
       limit: PAGE_SIZE,
     });
