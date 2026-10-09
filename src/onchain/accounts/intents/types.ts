@@ -56,7 +56,8 @@ export interface ExecutionCost {
 export interface SimulationPrices {
   /**
    * What the routed legs lost to market depth. `undefined` where nothing was
-   * routed or nothing could be measured — never a manufactured zero.
+   * routed or nothing could be measured. Zero also represents a sign that
+   * cannot be distinguished within the routed outputs' rounding precision.
    */
   priceImpact: PathLossRate | undefined;
   /**
