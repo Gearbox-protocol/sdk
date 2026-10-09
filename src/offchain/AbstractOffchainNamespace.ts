@@ -94,19 +94,11 @@ export abstract class AbstractOffchainNamespace {
     request: OffchainGetRequest<S>,
   ): Promise<DataResponse<z.output<S>>> {
     const url = this.#url(request.path, request.query);
-    const payload = await this.#fetchJson(url);
+    const { data, meta } = await this.#read(
+      url,
+      responseSchema(request.schema),
+    );
 
-    const parsed = responseSchema(request.schema).safeParse(payload);
-    if (!parsed.success) {
-      const error = new OffchainValidationError(url, parsed.error);
-      this.logger?.error(
-        error,
-        "offchain response does not match the read model",
-      );
-      throw error;
-    }
-
-    const { data, meta } = parsed.data;
     // the backend does not have to send `source`: everything it reports came
     // from it, and stamping it here is what lets a merged envelope name the
     // side that served each chain
@@ -115,6 +107,50 @@ export abstract class AbstractOffchainNamespace {
       source: "offchain" as const,
     }));
     return { data, meta: { chains } };
+  }
+
+  /**
+   * Reads one endpoint that answers with the payload alone, and returns it
+   * unwrapped.
+   *
+   * A read served at no particular block has no envelope to report: the
+   * permissionless routes either span every chain at once, or fall through to
+   * a multicall on the chain itself, so the backend answers `{ data }` and
+   * there is no {@link ResponseMetadata} for {@link get} to decode. The
+   * envelope is still there, which is what keeps a payload that happens to be
+   * an array from being mistaken for an error body.
+   **/
+  protected async getData<S extends z.ZodType>(
+    request: OffchainGetRequest<S>,
+  ): Promise<z.output<S>> {
+    const url = this.#url(request.path, request.query);
+    const { data } = await this.#read(
+      url,
+      z.object({ data: request.schema as z.ZodType }),
+    );
+    return data as z.output<S>;
+  }
+
+  /**
+   * Body of a successful read, decoded. Schema skew is reported against the
+   * url that produced it, which is the only thing that says which read drifted.
+   **/
+  async #read<S extends z.ZodType>(
+    url: string,
+    schema: S,
+  ): Promise<z.output<S>> {
+    const payload = await this.#fetchJson(url);
+
+    const parsed = schema.safeParse(payload);
+    if (!parsed.success) {
+      const error = new OffchainValidationError(url, parsed.error);
+      this.logger?.error(
+        error,
+        "offchain response does not match the read model",
+      );
+      throw error;
+    }
+    return parsed.data;
   }
 
   /**
