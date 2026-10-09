@@ -25,6 +25,7 @@ import { PriceFeedNotInStoreError } from "../errors.js";
 import type { PermissionlessOracles } from "../oracles/PermissionlessOracles.js";
 import { getFeedsToUpdate, updateBounds } from "./lp-price-feeds.js";
 import type {
+  AddFeedsArgs,
   ChangeNamesArgs,
   ChangeStalenessPeriodsArgs,
   ForbidFeedsArgs,
@@ -61,6 +62,8 @@ interface BatchContext {
  * const txs = await permissionless.transactions.addFeeds({
  *   chainId: 1,
  *   owner: curator,
+ *   feeds: [feed],
+ *   pairs: [{ asset, priceFeed: feed.address }],
  * });
  * ```
  **/
@@ -74,32 +77,22 @@ export class InstanceOwnerTransactions {
   }
 
   /**
-   * The batch that adds the owner's private feeds to the store and allows
-   * them on the assets they were connected to. Only feeds that actually carry
-   * a connection are added: a feed nobody priced would land in the store
-   * doing nothing.
+   * The batch that adds the named feeds to the store and allows the named
+   * edges on it.
+   *
+   * Both lists come from the caller. Which feeds are private, and which asset
+   * each is meant to price, is held wherever the curator prepared them — the
+   * backend indexes the store, so a feed that has not reached it yet is not
+   * something this client can discover.
+   *
+   * Only feeds that actually carry an edge are added: a feed nobody priced
+   * would land in the store doing nothing.
    **/
-  public async addFeeds({ chainId, owner }: InstanceTxsArgs) {
-    const [batch, store] = await Promise.all([
-      this.#batchContext(chainId),
-      this.#oracles.store({ chainId }),
-    ]);
-
-    // Edges the store does not carry yet — exactly the ones a batch has to
-    // put there.
-    const pairs = store.assets.flatMap(asset =>
-      asset.priceFeeds
-        .filter(entry => entry.status === "private")
-        .map(entry => ({
-          asset: asset.address,
-          priceFeed: entry.pricefeed.address,
-        })),
-    );
+  public async addFeeds({ chainId, owner, feeds, pairs }: AddFeedsArgs) {
+    const batch = await this.#batchContext(chainId);
 
     const connected = new Set(pairs.map(pair => lower(pair.priceFeed)));
-    const feedsToAdd = store.priceFeeds.filter(
-      feed => !feed.isInStore && connected.has(lower(feed.address)),
-    );
+    const feedsToAdd = feeds.filter(feed => connected.has(lower(feed.address)));
 
     const txs = [
       ...feedsToAdd.map(feed =>
@@ -138,9 +131,7 @@ export class InstanceOwnerTransactions {
     // Both maps are keyed lowercase: the caller names feeds in whatever
     // casing it holds, and a checksummed address must not silently miss.
     const inStore = new Map(
-      store.priceFeeds
-        .filter(feed => feed.isInStore)
-        .map(feed => [lower(feed.address), feed]),
+      store.priceFeeds.map(feed => [lower(feed.address), feed]),
     );
 
     const txs: RawTx[] = [];

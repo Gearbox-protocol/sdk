@@ -2,34 +2,17 @@ import type { Address } from "viem";
 import type { PriceFeed } from "../../core/index.js";
 
 /**
- * Where a feed stands for the asset it prices:
- *
- * - `private` — known to the backend only, not yet in the PriceFeedStore;
- * - `inStore` — allowed for the asset on chain;
- * - `pendingForbidden` — still allowed, with a removal prepared;
- * - `forbidden` — no longer allowed for the asset.
- **/
-export type PermissionlessPriceFeedStatus =
-  | "private"
-  | "inStore"
-  | "pendingForbidden"
-  | "forbidden";
-
-/**
- * One asset of a chain, with the feeds attached to it. The key is spelled
- * `pricefeed` because that is what the backend answers with.
+ * One asset of a chain, with the feeds allowed for it. The backend indexes
+ * the chain, so every feed listed here is one the PriceFeedStore carries and
+ * allows for the asset.
  **/
 export interface PermissionlessAsset {
   address: Address;
   symbol: string;
   name: string;
   decimals: number;
-  isInStore: boolean;
   owner: Address;
-  priceFeeds: Array<{
-    pricefeed: PriceFeed;
-    status: PermissionlessPriceFeedStatus;
-  }>;
+  priceFeeds: PriceFeed[];
 }
 
 /**
