@@ -34,6 +34,7 @@ import {
   SecuritizeLiquidatorContract,
 } from "../../market/rwa/securitize/index.js";
 import type { MultiCall } from "../../types/index.js";
+import type { AddressMap } from "../../utils/index.js";
 import { AddressSet, bytes32ToString, hexEq } from "../../utils/index.js";
 import type { WithdrawalOutput } from "../withdrawal-compressor/index.js";
 import {
@@ -180,17 +181,21 @@ export class LiquidationsService extends SDKConstruct {
    * @param ca - Credit account to partially liquidate.
    * @param optimalHF - Health factor to aim for, in basis points. Defaults to
    * {@link CreditSuite.optimalHFForPartialLiquidation}.
+   * @param liquidationThresholds - Liquidation thresholds to use instead of
+   * the credit manager's cached ones, for example LTs just set on a fork.
    * @throws If no `tokenOut` can be picked.
    **/
   public getOptimalPartialLiquidation(
     ca: CreditAccountData,
     optimalHF?: bigint,
+    liquidationThresholds?: AddressMap<number>,
   ): OptimalPartialLiquidation {
     return optimalPartialLiquidation({
       suite: this.sdk.marketRegister.findCreditManager(ca.creditManager),
       account: ca,
       optimalHF,
       exclude: token => this.#isWithdrawalPhantom(token),
+      liquidationThresholds,
     });
   }
 

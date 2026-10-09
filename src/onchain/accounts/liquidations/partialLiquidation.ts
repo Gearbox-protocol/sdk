@@ -7,6 +7,7 @@ import {
   type OptimalPartialLiquidationAmounts,
   optimalPartialLiquidationAmounts,
 } from "../../market/math.js";
+import type { AddressMap } from "../../utils/index.js";
 import type { PartialLiquidationParams } from "./types.js";
 
 /**
@@ -30,6 +31,12 @@ export interface OptimalPartialLiquidationProps {
    * Tokens that cannot be seized.
    **/
   exclude?: (token: Address) => boolean;
+  /**
+   * Liquidation thresholds to use instead of the credit manager's cached ones,
+   * for example LTs just set on a fork. Tokens missing here fall back to the
+   * credit manager.
+   **/
+  liquidationThresholds?: AddressMap<number>;
 }
 
 /**
@@ -80,11 +87,18 @@ export function optimalPartialLiquidation({
   account,
   optimalHF = suite.optimalHFForPartialLiquidation(account),
   exclude,
+  liquidationThresholds,
 }: OptimalPartialLiquidationProps): OptimalPartialLiquidation {
   const tokenOut = bestTokenOut(suite, account, exclude);
   return {
     tokenOut,
-    ...optimalAmounts(suite, account, tokenOut, optimalHF),
+    ...optimalAmounts(
+      suite,
+      account,
+      tokenOut,
+      optimalHF,
+      liquidationThresholds,
+    ),
   };
 }
 
@@ -135,11 +149,14 @@ function optimalAmounts(
   account: CreditAccountData,
   tokenOut: Address,
   optimalHF: bigint,
+  liquidationThresholds?: AddressMap<number>,
 ): OptimalPartialLiquidationAmounts {
   const { creditManager: cm, market } = suite;
   const { feeLiquidation, liquidationDiscount } = suite.liquidationFees();
 
-  const ltTokenOut = cm.liquidationThresholds.get(tokenOut);
+  const ltTokenOut =
+    liquidationThresholds?.get(tokenOut) ??
+    cm.liquidationThresholds.get(tokenOut);
   if (ltTokenOut === undefined) {
     throw new Error(
       `token ${suite.register.labelAddress(tokenOut)} is not a collateral token in credit manager ${suite.register.labelAddress(cm.address)}`,
