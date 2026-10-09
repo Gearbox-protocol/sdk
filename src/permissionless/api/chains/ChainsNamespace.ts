@@ -52,6 +52,8 @@ import type {
  **/
 export class ChainsNamespace extends AbstractOffchainNamespace {
   readonly #clients = new Map<number, PublicClient<Transport, Chain>>();
+  /** Transports the caller supplied, by chain id. See {@link #client}. */
+  readonly #transports: Record<number, Transport>;
 
   #chains?: PermissionlessChain[];
   #attaching?: Promise<void>;
@@ -62,6 +64,7 @@ export class ChainsNamespace extends AbstractOffchainNamespace {
     // The chains are what this namespace is about to read, so there is
     // nothing to scope its own reads by.
     super("ChainsNamespace", { ...options, chainIds: [] });
+    this.#transports = options.transports ?? {};
   }
 
   /**
@@ -189,14 +192,17 @@ export class ChainsNamespace extends AbstractOffchainNamespace {
   }
 
   /**
-   * A client over the chain's own public endpoints, or nothing when this SDK
-   * has no definition for it.
+   * A client over the transport the caller gave for the chain, or over the
+   * chain's own public endpoints, or nothing when this SDK has no definition
+   * for it.
    *
    * The backend will not hand over its endpoints — they carry provider keys —
-   * so the chain definition is all there is to go on. A chain the SDK does
-   * not know stays in {@link list}, because the backend serves it and its
-   * rows are readable through the backend; only the calls that have to reach
-   * it directly fail, and they say which chain they could not reach.
+   * so without `transports` the chain definition is all there is to go on,
+   * and its public endpoints rate limit anything past a glance. A caller that
+   * reads in earnest supplies its own. A chain the SDK does not know stays in
+   * {@link list}, because the backend serves it and its rows are readable
+   * through the backend; only the calls that have to reach it directly fail,
+   * and they say which chain they could not reach.
    **/
   #client(chainId: number): PublicClient<Transport, Chain> | undefined {
     let chain: Chain;
@@ -207,6 +213,11 @@ export class ChainsNamespace extends AbstractOffchainNamespace {
         `no chain definition for ${chainId}: it will be listed, but nothing can be read off it directly`,
       );
       return undefined;
+    }
+
+    const supplied = this.#transports[chainId];
+    if (supplied) {
+      return createPublicClient({ chain, transport: supplied });
     }
 
     const urls = chain.rpcUrls.default.http;
