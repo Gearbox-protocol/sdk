@@ -131,9 +131,7 @@ export class InstanceOwnerTransactions {
     // Both maps are keyed lowercase: the caller names feeds in whatever
     // casing it holds, and a checksummed address must not silently miss.
     const inStore = new Map(
-      store.priceFeeds
-        .filter(feed => feed.isInStore)
-        .map(feed => [lower(feed.address), feed]),
+      store.priceFeeds.map(feed => [lower(feed.address), feed]),
     );
 
     const txs: RawTx[] = [];

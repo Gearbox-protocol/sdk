@@ -16,18 +16,9 @@ export const priceFeedSchema = z.looseObject({
   contractType: z.string(),
   version: z.number(),
   deployedBy: addressSchema,
-  isInStore: z.boolean(),
   stalenessPeriod: z.number(),
   name: z.string(),
 });
-
-/** {@link PermissionlessPriceFeedStatus} */
-export const priceFeedStatusSchema = z.enum([
-  "private",
-  "inStore",
-  "pendingForbidden",
-  "forbidden",
-]);
 
 /** {@link PermissionlessAsset} */
 export const assetSchema = z.looseObject({
@@ -35,14 +26,8 @@ export const assetSchema = z.looseObject({
   symbol: z.string(),
   name: z.string(),
   decimals: z.number(),
-  isInStore: z.boolean(),
   owner: addressSchema,
-  priceFeeds: z.array(
-    z.looseObject({
-      pricefeed: priceFeedSchema,
-      status: priceFeedStatusSchema,
-    }),
-  ),
+  priceFeeds: z.array(priceFeedSchema),
 });
 
 /** {@link PermissionlessPriceFeedStore} */

@@ -92,7 +92,6 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
       deployedBy: this.address,
       stalenessPeriod: info.stalenessPeriod,
       name: info.name,
-      isInStore: true,
       parameters: {},
     }));
   }
@@ -459,7 +458,6 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
         deployedBy: this.address,
         stalenessPeriod: Number(info.stalenessPeriod),
         name: info.name,
-        isInStore: true,
         parameters: {},
       };
     });

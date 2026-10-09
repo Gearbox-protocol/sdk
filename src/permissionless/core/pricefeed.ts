@@ -5,7 +5,6 @@ export interface PriceFeed {
   contractType: string;
   version: number;
   deployedBy: Address;
-  isInStore: boolean;
   stalenessPeriod: number;
   name: string;
 }
