@@ -13,7 +13,6 @@ import type {
 } from "../base/index.js";
 import type {
   CreditSuite,
-  PartialLiquidationParams,
   PrepareUpdateQuotasProps,
   PriceUpdate,
 } from "../market/index.js";
@@ -23,6 +22,7 @@ import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 import type { AccountBotsService } from "./bots/index.js";
 import type { GetCreditAccountsOptions } from "./credit-account-compressor/index.js";
+import type { PartialLiquidationParams } from "./liquidations/index.js";
 import type {
   ClaimableWithdrawal,
   RequestableWithdrawal,

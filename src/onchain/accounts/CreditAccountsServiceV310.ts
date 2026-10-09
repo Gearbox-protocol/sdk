@@ -237,7 +237,7 @@ export class CreditAccountsServiceV310
     const { account, to } = props;
     const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
     const { tokenOut, repaidAmount, minSeizedAmount } =
-      cm.partialLiquidationParams(account, props);
+      this.sdk.liquidations.getPartialLiquidationParams(account, props);
 
     const updates = await this.getOnDemandPriceUpdates(account, true);
     return cm.creditFacade.partiallyLiquidateCreditAccount(

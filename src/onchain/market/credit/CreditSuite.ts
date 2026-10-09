@@ -24,17 +24,12 @@ import type {
 import { AddressMap } from "../../utils/index.js";
 import type { MarketConfiguratorContract } from "../MarketConfiguratorContract.js";
 import type { MarketSuite } from "../MarketSuite.js";
-import {
-  minSeizedAmount,
-  optimalHFForPartialLiquidation,
-  optimalRepaidAmount,
-} from "../math.js";
+import { optimalHFForPartialLiquidation } from "../math.js";
 import { createDegenNFT } from "../rwa/createDegenNFT.js";
 import type { IDegenNFT, IRWAFactory } from "../rwa/types.js";
 import { strategyName as formatStrategyName } from "../strategyName.js";
 import { CreditSuiteStrategy } from "./CreditSuiteStrategy.js";
 import {
-  dominantCollateral,
   isStrategyCollateral,
   pickStrategyTargetCollateral,
   type StrategyCollateralProps,
@@ -48,7 +43,6 @@ import type {
   ICreditManagerContract,
   LiquidationFees,
   MaxBorrowAmount,
-  PartialLiquidationParams,
 } from "./types.js";
 
 /**
@@ -454,53 +448,12 @@ export class CreditSuite extends SDKConstruct {
   }
 
   /**
-   * Everything a partial liquidation of credit account needs, with any parameter the
-   * caller pinned down taken as given and the rest derived from current state.
-   *
-   * @param ca - Credit account to partially liquidate.
-   * @param overrides - Parameters to use instead of the derived defaults.
-   * @throws If a derived `tokenOut` cannot be picked, or if the seized token is
-   * not a collateral token of this credit manager.
-   */
-  public partialLiquidationParams(
-    ca: CreditAccountData,
-    overrides: PartialLiquidationParams = {},
-  ): Required<PartialLiquidationParams> {
-    const tokenOut = overrides.tokenOut ?? this.#bestTokenOut(ca);
-    const optimalHF =
-      overrides.optimalHF ?? this.optimalHFForPartialLiquidation(ca);
-    const repaidAmount =
-      overrides.repaidAmount ??
-      this.#optimalRepaidAmount(ca, tokenOut, optimalHF);
-    const minSeizedAmount =
-      overrides.minSeizedAmount ??
-      this.#minSeizedAmount(tokenOut, repaidAmount);
-    return { tokenOut, optimalHF, repaidAmount, minSeizedAmount };
-  }
-
-  /**
    * Health factor a partial liquidation of `ca` should target, in basis points.
    *
    * @param ca - Credit account to partially liquidate.
    */
   public optimalHFForPartialLiquidation(ca: CreditAccountData): bigint {
     return optimalHFForPartialLiquidation(this.#borrowRate(ca));
-  }
-
-  /**
-   * Collateral token a partial liquidation seizes by default.
-   *
-   * Ported from solidity:
-   * https://github.com/Gearbox-protocol/router-v3/blob/main/contracts/liquidation/AbstractLiquidator.sol#L270
-   */
-  #bestTokenOut(ca: CreditAccountData): Address {
-    const collateral = dominantCollateral(ca, this.market);
-    if (!collateral) {
-      throw new Error(
-        `cannot determine tokenOut for partial liquidation of ${this.labelAddress(ca.creditAccount)}: no enabled non-underlying collateral with value`,
-      );
-    }
-    return collateral;
   }
 
   /**
@@ -522,57 +475,6 @@ export class CreditSuite extends SDKConstruct {
       mainPrice: this.market.priceOracle.mainPrices.get(token)?.price,
       hasActiveQuota: this.market.pool.pqk.hasActiveQuota(token),
     };
-  }
-
-  /**
-   * Minimum amount of `token` that must be seized when repaying `repaidAmount`
-   * of underlying.
-   */
-  #minSeizedAmount(token: Address, repaidAmount: bigint): bigint {
-    const { market } = this;
-    const tokenAmount = market.priceOracle.convert(
-      market.underlying,
-      token,
-      repaidAmount,
-    );
-    return minSeizedAmount(
-      tokenAmount,
-      this.liquidationFees().liquidationDiscount,
-    );
-  }
-
-  /**
-   * Amount of underlying to repay to bring `ca`'s health factor close to
-   * `optimalHF` by seizing `token`.
-   *
-   * @throws If `token` is not a collateral token of this credit manager.
-   */
-  #optimalRepaidAmount(
-    ca: CreditAccountData,
-    token: Address,
-    optimalHF: bigint,
-  ): bigint {
-    const { creditManager: cm, market } = this;
-    const { feeLiquidation, liquidationDiscount } = this.liquidationFees();
-
-    const ltTokenOut = cm.liquidationThresholds.get(token);
-    if (ltTokenOut === undefined) {
-      throw new Error(
-        `token ${this.labelAddress(token)} is not a collateral token in credit manager ${this.labelAddress(cm.address)}`,
-      );
-    }
-
-    return optimalRepaidAmount({
-      totalDebt: ca.debt + ca.accruedInterest + ca.accruedFees,
-      twvUnderlying: market.priceOracle.convertFromUSD(
-        market.underlying,
-        ca.twvUSD,
-      ),
-      minDebt: this.creditFacade.minDebt,
-      optimalHF,
-      discount: BigInt(liquidationDiscount) - BigInt(feeLiquidation),
-      ltTokenOut: BigInt(ltTokenOut),
-    });
   }
 
   /**

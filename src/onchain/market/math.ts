@@ -375,10 +375,10 @@ export function minSeizedAmount(
 }
 
 /**
- * Inputs of {@link optimalRepaidAmount}, all resolved against the account's
- * market and credit manager by the caller.
+ * Inputs of {@link optimalPartialLiquidationAmounts}, all resolved against the
+ * account's market and credit manager by the caller.
  **/
-export interface OptimalRepaidAmountProps {
+export interface OptimalPartialLiquidationAmountsProps {
   /** Debt principal plus accrued interest and fees, in underlying. */
   totalDebt: bigint;
   /** Threshold-weighted value of the account, converted to underlying. */
@@ -387,6 +387,8 @@ export interface OptimalRepaidAmountProps {
   minDebt: bigint;
   /** Health factor to aim for, in basis points. */
   optimalHF: bigint;
+  /** Liquidation discount in effect for this account, in basis points. */
+  liquidationDiscount: bigint;
   /** `liquidationDiscount - feeLiquidation`, in basis points. */
   discount: bigint;
   /** Liquidation threshold of the seized token, in basis points. */
@@ -394,26 +396,45 @@ export interface OptimalRepaidAmountProps {
 }
 
 /**
- * Amount of underlying whose repayment brings the account's health factor close
- * to `optimalHF`, capped so the account keeps at least `minDebt` of debt.
+ * Amounts of a partial liquidation that brings the account's health factor
+ * close to `optimalHF`, all in underlying.
+ **/
+export interface OptimalPartialLiquidationAmounts {
+  /** Underlying the liquidator pays for the seized collateral. */
+  optimalAmount: bigint;
+  /** Underlying that repays the account's debt. */
+  repaidAmount: bigint;
+  /** {@link optimalAmount} plus a 0.1% buffer, to borrow by flash loan. */
+  flashLoanAmount: bigint;
+  /**
+   * Whether the amounts reach `optimalHF`; `false` when the minimum debt
+   * capped them.
+   **/
+  isOptimalRepayable: boolean;
+}
+
+/**
+ * Amounts of a partial liquidation that brings the account's health factor
+ * close to `optimalHF`, capped so the account keeps at least `minDebt` of debt.
  *
  * Ported from solidity:
- * https://github.com/Gearbox-protocol/router-v3/blob/56e2d515ec6d9bb1e324e71c3708e59710779b24/contracts/liquidation/AbstractLiquidator.sol#L292
+ * https://github.com/Gearbox-protocol/router-v3/blob/56e2d515ec6d9bb1e324e71c3708e59710779b24/contracts/liquidation/AbstractLiquidator.sol#L252
  *
- * @returns The repaid amount, or `0n` when the account is already healthy
- * enough or carries less than the minimum debt.
+ * @returns Zero amounts when the account is already healthy enough or
+ * carries less than the minimum debt.
  * @throws If the discounted target health factor does not exceed the seized
  * token's liquidation threshold, in which case no repayment improves the
  * account.
  **/
-export function optimalRepaidAmount({
+export function optimalPartialLiquidationAmounts({
   totalDebt,
   twvUnderlying,
   minDebt,
   optimalHF,
+  liquidationDiscount,
   discount,
   ltTokenOut,
-}: OptimalRepaidAmountProps): bigint {
+}: OptimalPartialLiquidationAmountsProps): OptimalPartialLiquidationAmounts {
   const denominator = (discount * optimalHF) / PERCENTAGE_FACTOR - ltTokenOut;
   if (denominator <= 0n) {
     throw new Error(
@@ -423,20 +444,43 @@ export function optimalRepaidAmount({
   const numerator = totalDebt * optimalHF - twvUnderlying * PERCENTAGE_FACTOR;
   if (numerator <= 0n) {
     // Account is already healthy enough; nothing to repay.
-    return 0n;
+    return {
+      optimalAmount: 0n,
+      repaidAmount: 0n,
+      flashLoanAmount: 0n,
+      isOptimalRepayable: true,
+    };
+  }
+  if (totalDebt < minDebt) {
+    return {
+      optimalAmount: 0n,
+      repaidAmount: 0n,
+      flashLoanAmount: 0n,
+      isOptimalRepayable: false,
+    };
   }
   const optimalValueSeized = numerator / denominator;
 
-  const repaidAmount = (optimalValueSeized * discount) / PERCENTAGE_FACTOR;
+  let optimalAmount =
+    (optimalValueSeized * liquidationDiscount) / PERCENTAGE_FACTOR;
+  let repaidAmount = (optimalValueSeized * discount) / PERCENTAGE_FACTOR;
+  let isOptimalRepayable = true;
 
-  if (totalDebt < minDebt) {
-    return 0n;
-  }
   const surplusDebt = totalDebt - minDebt;
   if (repaidAmount > surplusDebt) {
-    return (surplusDebt * PARTIAL_LIQUIDATION_BUFFER_BPS) / PERCENTAGE_FACTOR;
+    optimalAmount =
+      (optimalAmount * surplusDebt * PARTIAL_LIQUIDATION_BUFFER_BPS) /
+      (repaidAmount * PERCENTAGE_FACTOR);
+    repaidAmount =
+      (surplusDebt * PARTIAL_LIQUIDATION_BUFFER_BPS) / PERCENTAGE_FACTOR;
+    isOptimalRepayable = false;
   }
-  return repaidAmount;
+  return {
+    optimalAmount,
+    repaidAmount,
+    flashLoanAmount: (optimalAmount * 1001n) / 1000n,
+    isOptimalRepayable,
+  };
 }
 
 /**

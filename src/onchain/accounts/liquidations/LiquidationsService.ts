@@ -40,6 +40,11 @@ import {
   LIQUIDATION_APPROVAL_BUFFER,
   LIQUIDATION_COMPRESSOR_V313_ADDRESS,
 } from "./constants.js";
+import {
+  type OptimalPartialLiquidation,
+  optimalPartialLiquidation,
+  partialLiquidationParams,
+} from "./partialLiquidation.js";
 import { skipLiquidatableAccount } from "./skipLiquidatableAccount.js";
 import type {
   BuildLiquidationTxProps,
@@ -49,6 +54,7 @@ import type {
   LoadRWALiquidatorsProps,
   OnchainLiquidationData,
   OnchainLiquidationOutput,
+  PartialLiquidationParams,
   RWALiquidatorInfo,
 } from "./types.js";
 
@@ -162,6 +168,52 @@ export class LiquidationsService extends SDKConstruct {
     // facade or a dedicated liquidator contract with its own function
     // signature, so the calldata is passed through as-is
     return { to: liquidationCall.target, callData: liquidationCall.callData };
+  }
+
+  /**
+   * Optimal partial liquidation of a credit account: the collateral to seize
+   * and the amounts that bring its health factor close to `optimalHF`.
+   *
+   * Prices come from the last synced oracle state and `ca`, not from fresh
+   * price updates. Withdrawal phantom tokens are never seized.
+   *
+   * @param ca - Credit account to partially liquidate.
+   * @param optimalHF - Health factor to aim for, in basis points. Defaults to
+   * {@link CreditSuite.optimalHFForPartialLiquidation}.
+   * @throws If no `tokenOut` can be picked.
+   **/
+  public getOptimalPartialLiquidation(
+    ca: CreditAccountData,
+    optimalHF?: bigint,
+  ): OptimalPartialLiquidation {
+    return optimalPartialLiquidation({
+      suite: this.sdk.marketRegister.findCreditManager(ca.creditManager),
+      account: ca,
+      optimalHF,
+      exclude: token => this.#isWithdrawalPhantom(token),
+    });
+  }
+
+  /**
+   * Everything a partial liquidation of a credit account needs, with any
+   * parameter the caller pinned down taken as given and the rest derived from
+   * current state. A derived `tokenOut` is never a withdrawal phantom token.
+   *
+   * @param ca - Credit account to partially liquidate.
+   * @param overrides - Parameters to use instead of the derived defaults.
+   * @throws If a derived `tokenOut` cannot be picked, or if the seized token is
+   * not a collateral token of the credit manager.
+   **/
+  public getPartialLiquidationParams(
+    ca: CreditAccountData,
+    overrides?: PartialLiquidationParams,
+  ): Required<PartialLiquidationParams> {
+    return partialLiquidationParams({
+      suite: this.sdk.marketRegister.findCreditManager(ca.creditManager),
+      account: ca,
+      overrides,
+      exclude: token => this.#isWithdrawalPhantom(token),
+    });
   }
 
   /**
@@ -494,13 +546,17 @@ export class LiquidationsService extends SDKConstruct {
         valueUsd: usd(estimatedProfit),
       },
       isDelayed: ca.tokens.some(
-        t =>
-          t.balance > DUST_THRESHOLD &&
-          !!this.sdk.withdrawalCompressor?.getWithdrawalSourceToken(t.token),
+        t => t.balance > DUST_THRESHOLD && this.#isWithdrawalPhantom(t.token),
       ),
       paused: suite.creditFacade.isPaused,
       rwa: market.rwa,
     };
+  }
+
+  // requires the compressor's withdrawable assets cache to be loaded
+  // (by attach/hydrate); an SDK without a withdrawal compressor has none
+  #isWithdrawalPhantom(token: Address): boolean {
+    return !!this.sdk.withdrawalCompressor?.getWithdrawalSourceToken(token);
   }
 
   // the account's dominant collateral, reported as its source asset for
