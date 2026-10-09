@@ -255,7 +255,8 @@ export class InstanceOwnerTransactions {
    **/
   async #batchContext(chainId: number): Promise<BatchContext> {
     const client = this.#chains.client(chainId);
-    const instanceManager = new InstanceManagerContract(Addresses.INSTANCE_MANAGER,
+    const instanceManager = new InstanceManagerContract(
+      Addresses.INSTANCE_MANAGER,
       new ChainContractsRegister(client),
     );
 
