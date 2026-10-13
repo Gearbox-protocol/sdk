@@ -6,6 +6,7 @@ import {
   onchainOnly,
   tolerance,
 } from "./compare.schema.js";
+import { curatorSchema } from "./curators.schema.js";
 import { isFilterSet } from "./filters.js";
 import {
   booleanParamSchema,
@@ -102,6 +103,7 @@ export const positionCollateralSchema = z.object({
 export const poolPositionSchema = z.object({
   kind: z.literal("pool"),
   name: z.string(),
+  curator: curatorSchema,
   chainId: chainIdSchema,
   pool: ZodAddress(),
   underlyingToken: underlyingTokenSchema,
@@ -135,6 +137,7 @@ export const borrowRateBreakdownSchema = z.object({
 export const strategyPositionSchema = z.object({
   kind: z.literal("strategy"),
   name: backendPreferred(z.string()),
+  curator: curatorSchema,
   chainId: chainIdSchema,
   creditManager: ZodAddress(),
   creditAccount: ZodAddress(),

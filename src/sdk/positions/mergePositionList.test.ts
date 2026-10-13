@@ -30,6 +30,7 @@ const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
 const WSTETH = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0" as Address;
 const TBTC = "0x18084fbA666a33d37592fA2633fD49a74DD93a88" as Address;
 const REDEEMER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Address;
+const CURATOR = { address: REDEEMER, name: "Re7", url: null } as const;
 
 type PositionListResponse = DataResponse<Position[]> | undefined;
 type Freshness = "fresh" | "stale";
@@ -80,6 +81,7 @@ function strategy(overrides: Partial<StrategyPosition> = {}): StrategyPosition {
   return {
     kind: "strategy",
     name: "wstETH / USDC",
+    curator: CURATOR,
     chainId: MAINNET,
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
@@ -99,6 +101,7 @@ function pool(overrides: Partial<PoolPosition> = {}): PoolPosition {
   return {
     kind: "pool",
     name: "USDC Pool",
+    curator: CURATOR,
     chainId: MAINNET,
     pool: POOL,
     underlyingToken: { ...token(USDC, "USDC"), wrappedAddress: null },
@@ -202,7 +205,9 @@ function runMergeCase({
 }
 
 const ONCHAIN_STRATEGY = onchainStrategy();
-const OFFCHAIN_STRATEGY = offchainStrategy();
+const OFFCHAIN_STRATEGY = offchainStrategy({
+  curator: { ...CURATOR, url: "https://re7.capital" },
+});
 const UNSEEN_ONCHAIN_STRATEGY = onchainStrategy({
   creditAccount: OTHER_ACCOUNT,
 });
@@ -215,7 +220,10 @@ const OFFCHAIN_NULL_COLLATERAL = offchainStrategy({
   targetCollateral: null,
 });
 const ONCHAIN_POOL = pool({ name: "onchain pool" });
-const OFFCHAIN_POOL = pool({ name: "offchain pool" });
+const OFFCHAIN_POOL = pool({
+  name: "offchain pool",
+  curator: { ...CURATOR, url: "https://re7.capital" },
+});
 const ONCHAIN_MIXED_CASE = strategy({
   creditAccount: MIXED_CASE_ACCOUNT,
   name: "tBTC / USDC",

@@ -59,54 +59,36 @@ const contractFilterSchema = z.union([
   analyticsContractRefSchema,
   z.array(analyticsContractRefSchema).readonly(),
 ]);
-const contractFilterParamSchema = z
-  .string()
-  .regex(
-    /^$|^[1-9]\d*:0x[\da-fA-F]{40}(,[1-9]\d*:0x[\da-fA-F]{40})*$/,
-    "expected comma-separated chainId:address references",
-  );
-const curatorValuesParamSchema = z
-  .string()
-  .refine(
-    value =>
-      value === "" ||
-      value.split(",").every(name => curatorNameSchema.safeParse(name).success),
-    "invalid curator list",
-  );
+// chain IDs and addresses are checked by `analyticsContractRefSchema`, which
+// the codec applies to the decoded result
+const contractFilterParamSchema = z.string().regex(/^$|^\d+:\w+(,\d+:\w+)*$/);
 
 /** Decode comma-separated choices, preserving scalar reads and empty lists. */
-function decodeFilterValues<T extends string>(param: string): T | readonly T[] {
-  const values = (param === "" ? [] : param.split(",")) as T[];
-  return values.length === 1 ? values[0] : values;
-}
-
-function encodeFilterValues(
-  values: string | readonly string[] | undefined,
-): string | undefined {
-  return typeof values === "string" ? values : values?.join(",");
-}
-
-function decodeContractFilter(
+function decodeChoices<T>(
   param: string,
-): AnalyticsContractRef | readonly AnalyticsContractRef[] {
-  const refs =
-    param === ""
-      ? []
-      : param.split(",").map(value => {
-          const [chainId, address] = value.split(":");
-          return { chainId: Number(chainId), address: address as Address };
-        });
-  return refs.length === 1 ? refs[0] : refs;
+  decode: (choice: string) => T,
+): T | readonly T[] {
+  const choices = param === "" ? [] : param.split(",").map(decode);
+  return choices.length === 1 ? choices[0] : choices;
 }
 
-function encodeContractFilter(
-  value: AnalyticsContractRef | readonly AnalyticsContractRef[] | undefined,
+function encodeChoices<T>(
+  choices: T | readonly T[] | undefined,
+  encode: (choice: T) => string,
 ): string | undefined {
-  if (value === undefined) {
+  if (choices === undefined) {
     return undefined;
   }
-  const refs = "chainId" in value ? [value] : value;
-  return refs.map(ref => `${ref.chainId}:${ref.address}`).join(",");
+  return ([] as T[]).concat(choices).map(encode).join(",");
+}
+
+function decodeContractRef(param: string): AnalyticsContractRef {
+  const [chainId, address] = param.split(":");
+  return { chainId: Number(chainId), address: address as Address };
+}
+
+function encodeContractRef(ref: AnalyticsContractRef): string {
+  return `${ref.chainId}:${ref.address}`;
 }
 
 /** {@link AnalyticsPosition} */
@@ -151,7 +133,9 @@ export const analyticsPositionListQueryParamsSchema = z.object({
   pool: contractFilterParamSchema.optional(),
   creditManager: contractFilterParamSchema.optional(),
   asset: contractFilterParamSchema.optional(),
-  curator: curatorValuesParamSchema.optional(),
+  // members are checked by `analyticsPositionListOptionsSchema`, which the
+  // codec applies to the decoded result
+  curator: z.string().optional(),
   kind: positionKindSchema.optional(),
   isZeroDebt: z.enum(["true", "false"]).optional(),
   chainIds: z
@@ -182,16 +166,23 @@ export const analyticsPositionListQuerySchema = z.codec(
         : { borrower: params.borrower as Address }),
       ...(params.pool === undefined
         ? {}
-        : { pool: decodeContractFilter(params.pool) }),
+        : { pool: decodeChoices(params.pool, decodeContractRef) }),
       ...(params.creditManager === undefined
         ? {}
-        : { creditManager: decodeContractFilter(params.creditManager) }),
+        : {
+            creditManager: decodeChoices(
+              params.creditManager,
+              decodeContractRef,
+            ),
+          }),
       ...(params.asset === undefined
         ? {}
-        : { asset: decodeContractFilter(params.asset) }),
+        : { asset: decodeChoices(params.asset, decodeContractRef) }),
       ...(params.curator === undefined
         ? {}
-        : { curator: decodeFilterValues<CuratorName>(params.curator) }),
+        : {
+            curator: decodeChoices(params.curator, name => name as CuratorName),
+          }),
       ...(params.kind === undefined ? {} : { kind: params.kind }),
       ...(params.isZeroDebt === undefined
         ? {}
@@ -216,11 +207,11 @@ export const analyticsPositionListQuerySchema = z.codec(
     }),
     encode: options => ({
       borrower: options.borrower,
-      pool: encodeContractFilter(options.pool),
-      creditManager: encodeContractFilter(options.creditManager),
-      asset: encodeContractFilter(options.asset),
+      pool: encodeChoices(options.pool, encodeContractRef),
+      creditManager: encodeChoices(options.creditManager, encodeContractRef),
+      asset: encodeChoices(options.asset, encodeContractRef),
       curator: isFilterSet(options.curator)
-        ? encodeFilterValues(options.curator)
+        ? encodeChoices(options.curator, name => name)
         : undefined,
       kind: isFilterSet(options.kind) ? options.kind : undefined,
       isZeroDebt: encodeFlag(options.isZeroDebt),

@@ -19,6 +19,11 @@ const OTHER_CREDIT_MANAGER =
   "0x5555555555555555555555555555555555555555" as Address;
 const ASSET = "0x6666666666666666666666666666666666666666" as Address;
 const OTHER_ASSET = "0x7777777777777777777777777777777777777777" as Address;
+const CURATOR = {
+  address: "0x8888888888888888888888888888888888888888",
+  name: "Re7",
+  url: "https://re7.capital",
+} as const;
 
 let fetchMock: MockInstance<typeof fetch>;
 
@@ -48,6 +53,10 @@ function positions(): OffchainAnalyticsPositions {
 function requested(): URL {
   expect(fetchMock).toHaveBeenCalledOnce();
   return new URL(String(fetchMock.mock.calls[0]?.[0]));
+}
+
+function requestedParams(): Record<string, string> {
+  return Object.fromEntries(requested().searchParams);
 }
 
 describe("protocol-wide analytics positions", () => {
@@ -103,7 +112,7 @@ describe("protocol-wide analytics positions", () => {
     };
     await positions().list(options);
 
-    const params = Object.fromEntries(requested().searchParams);
+    const params = requestedParams();
     expect(params).toEqual({
       borrower: BORROWER,
       pool: `${PLASMA}:${POOL}`,
@@ -140,7 +149,7 @@ describe("protocol-wide analytics positions", () => {
     } as const;
     await positions().list(options);
 
-    const params = Object.fromEntries(requested().searchParams);
+    const params = requestedParams();
     expect(params).toEqual({
       pool: `${MAINNET}:${POOL},${PLASMA}:${OTHER_POOL}`,
       creditManager: `${MAINNET}:${CREDIT_MANAGER},${PLASMA}:${OTHER_CREDIT_MANAGER}`,
@@ -162,7 +171,7 @@ describe("protocol-wide analytics positions", () => {
       curator: ["Re7"],
     });
 
-    const params = Object.fromEntries(requested().searchParams);
+    const params = requestedParams();
     expect(params).toEqual({
       pool: `${MAINNET}:${POOL}`,
       creditManager: `${MAINNET}:${CREDIT_MANAGER}`,
@@ -188,7 +197,7 @@ describe("protocol-wide analytics positions", () => {
       ];
       await positions().list({ [field]: refs });
 
-      const params = Object.fromEntries(requested().searchParams);
+      const params = requestedParams();
       expect(params).toEqual({
         [field]: `${MAINNET}:${POOL},${PLASMA}:${POOL}`,
         chainIds: `${MAINNET},${PLASMA}`,
@@ -235,7 +244,7 @@ describe("protocol-wide analytics positions", () => {
     async field => {
       await positions().list({ [field]: [] });
 
-      const params = Object.fromEntries(requested().searchParams);
+      const params = requestedParams();
       expect(params).toEqual({
         [field]: "",
         chainIds: `${MAINNET},${PLASMA}`,
@@ -250,7 +259,7 @@ describe("protocol-wide analytics positions", () => {
   it("omits an unrestricted curator filter", async () => {
     await positions().list({ curator: "all" });
 
-    expect(Object.fromEntries(requested().searchParams)).toEqual({
+    expect(requestedParams()).toEqual({
       chainIds: `${MAINNET},${PLASMA}`,
     });
   });
@@ -310,7 +319,7 @@ describe("protocol-wide analytics positions", () => {
         chainIds: [PLASMA, 424_242],
       });
 
-      const params = Object.fromEntries(requested().searchParams);
+      const params = requestedParams();
       expect(params).toEqual({
         [field]: `${MAINNET}:${POOL},${PLASMA}:${POOL},424242:${POOL}`,
         chainIds: `${PLASMA}`,
@@ -328,6 +337,7 @@ describe("protocol-wide analytics positions", () => {
                 kind: "pool",
                 borrower: BORROWER,
                 name: "USDC Pool",
+                curator: CURATOR,
                 chainId: MAINNET,
                 pool: "0x2222222222222222222222222222222222222222",
                 underlyingToken: {
@@ -367,6 +377,7 @@ describe("protocol-wide analytics positions", () => {
     const { data } = await positions().list({ offset: 20, limit: 20 });
 
     expect(data).toMatchObject({ total: 41, offset: 20, limit: 20 });
+    expect(data.items[0]).toMatchObject({ kind: "pool", curator: CURATOR });
     expect(data.items[0]?.kind === "pool" && data.items[0].netValue.value).toBe(
       1_000_000n,
     );
