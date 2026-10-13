@@ -24,6 +24,12 @@ export const LEVERAGE_DECIMALS = 100n;
 export const SLIPPAGE_DECIMALS = 100n;
 
 /**
+ * The facade's `maxQuotaMultiplier`: a token's quota may not exceed this many
+ * times `maxDebt`. A constant on-chain, so it is not read.
+ **/
+export const MAX_QUOTA_MULTIPLIER = 2n;
+
+/**
  * Token balances at or below this threshold are treated as dust and ignored.
  **/
 export const DUST_THRESHOLD = 10n;

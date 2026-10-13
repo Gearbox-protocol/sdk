@@ -390,6 +390,72 @@ export function quotaCountExceeded(
 }
 
 /**
+ * The quota keeper charges no rate for this token, so its quota cannot be
+ * changed.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
+ **/
+export interface QuotaInactiveError extends IGearboxError {
+  code: "quotaInactive";
+  token: Token;
+}
+
+/** {@inheritDoc QuotaInactiveError} */
+export function quotaInactive(token: Token): QuotaInactiveError {
+  return {
+    code: "quotaInactive",
+    message: `${token.symbol} has no active quota in this market.`,
+    token,
+  };
+}
+
+/**
+ * The requested quota rounds to the one the account already has, so there is
+ * nothing to send.
+ **/
+export interface QuotaUnchangedError extends IGearboxError {
+  code: "quotaUnchanged";
+  token: Token;
+  /** Both in the market's underlying. */
+  current: TokenAmount;
+  requested: TokenAmount;
+}
+
+/** {@inheritDoc QuotaUnchangedError} */
+export function quotaUnchanged(
+  args: Omit<QuotaUnchangedError, "code" | "message">,
+): QuotaUnchangedError {
+  return {
+    code: "quotaUnchanged",
+    message: `${args.token.symbol} quota of ${args.requested.value} rounds to the current ${args.current.value}.`,
+    ...args,
+  };
+}
+
+/**
+ * The requested quota exceeds the facade's per-token `maxQuota`
+ * (`maxQuotaMultiplier × maxDebt`).
+ **/
+export interface QuotaAboveMaxError extends IGearboxError {
+  code: "quotaAboveMax";
+  token: Token;
+  /** Both in the market's underlying. */
+  requested: TokenAmount;
+  maxQuota: TokenAmount;
+}
+
+/** {@inheritDoc QuotaAboveMaxError} */
+export function quotaAboveMax(
+  args: Omit<QuotaAboveMaxError, "code" | "message">,
+): QuotaAboveMaxError {
+  return {
+    code: "quotaAboveMax",
+    message: `${args.token.symbol} quota of ${args.requested.value} exceeds maxQuota ${args.maxQuota.value}.`,
+    ...args,
+  };
+}
+
+/**
  * A balance is too small to fund the operation's step.
  *
  * One error for both sides of the question, since both state the same fact —
