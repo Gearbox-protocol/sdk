@@ -7,6 +7,7 @@ import type {
   InsufficientCollateralError,
   InsufficientPoolLiquidityError,
   OpenStrategyPositionPreview,
+  QuotaAboveMaxError,
   QuotaCountExceededError,
   QuotaLimitReachedError,
   RWAOpenRequirementsError,
@@ -23,6 +24,7 @@ import { checkIncreaseQuota } from "./checkIncreaseQuota.js";
 import type { MarketStateError } from "./checkMarket.js";
 import { checkMarket } from "./checkMarket.js";
 import { checkObtained } from "./checkObtained.js";
+import { checkQuotaUpdates } from "./checkQuotaUpdates.js";
 import { checkRWAOpening } from "./checkRWAOpening.js";
 import type { WalletFundingError } from "./checkWallet.js";
 
@@ -33,6 +35,7 @@ export type CreditOperationError =
   | InsufficientPoolLiquidityError
   | ForbiddenTokenError
   | QuotaCountExceededError
+  | QuotaAboveMaxError
   | QuotaLimitReachedError
   | InsufficientCollateralError
   | WalletFundingError
@@ -90,6 +93,7 @@ export async function checkCreditOperation(
     ...checkIncreaseDebt(suite, preview, underlying),
     ...checkObtained(suite, preview),
     ...checkAccountQuotas(suite, preview),
+    ...checkQuotaUpdates(suite, preview, underlying),
     ...checkIncreaseQuota(market, preview, underlying),
     // The floor branch, since that is the only one a parsed transaction carries.
     ...checkHealthFactors(

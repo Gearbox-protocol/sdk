@@ -224,11 +224,11 @@ describe("replayInnerOperations on zero-seeded state", () => {
 
   it("updateQuota folds changes into the account quotas, clamped at zero", async () => {
     const { state } = apply([
-      { operation: "UpdateQuota", token: WETH, change: 100n },
-      { operation: "UpdateQuota", token: WETH, change: 25n },
-      { operation: "UpdateQuota", token: USDC, change: -50n },
+      { operation: "UpdateQuota", token: WETH, change: 1_000_000n },
+      { operation: "UpdateQuota", token: WETH, change: 250_000n },
+      { operation: "UpdateQuota", token: USDC, change: -500_000n },
     ]);
-    expect(state.account.quotas.get(WETH)).toBe(125n);
+    expect(state.account.quotas.get(WETH)).toBe(1_250_000n);
     // negative change on an unquoted token clamps at zero
     expect(state.account.quotas.get(USDC)).toBe(0n);
   });

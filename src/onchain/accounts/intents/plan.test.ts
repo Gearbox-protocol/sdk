@@ -7,6 +7,7 @@ import {
   planAdjustLeverage,
   planDeposit,
   planRepay,
+  planUpdateQuota,
   planWithdraw,
   planWithdrawAsset,
   planWithdrawDelayed,
@@ -286,6 +287,51 @@ describe("planRepay — funding in, debt down, position untouched", () => {
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
       expect.objectContaining({
         error: expect.objectContaining({ code: "debtOutOfRange" }),
+      }),
+    );
+  });
+});
+
+describe("planUpdateQuota — one quota, nothing else", () => {
+  it("passes the target through, and an omitted one as undefined", () => {
+    expect(planUpdateQuota({ token: T, quota: 0n }, twoX)).toEqual([
+      { kind: "updateQuota", token: T, quota: 0n },
+    ]);
+    expect(planUpdateQuota({ token: T }, twoX)).toEqual([
+      { kind: "updateQuota", token: T, quota: undefined },
+    ]);
+  });
+
+  it("refuses the underlying, which takes no quota", () => {
+    const v = view({ debt: 1_000n, balances: { [T]: 2_000n, [U]: 500n } });
+    expect(() => planUpdateQuota({ token: U, quota: 100n }, v)).toThrowError(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "unsupportedCollateralToken" }),
+      }),
+    );
+  });
+
+  it("refuses a token the account holds only dust of, or none", () => {
+    const v = view({ debt: 1_000n, balances: { [T]: 2_000n, [T2]: 10n } });
+    for (const token of [T2, RWA]) {
+      expect(() => planUpdateQuota({ token, quota: 100n }, v)).toThrowError(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            code: "unsupportedCollateralToken",
+          }),
+        }),
+      );
+    }
+  });
+
+  it("refuses an account with zero debt", () => {
+    const v = view({ debt: 0n, balances: { [T]: 2_000n } });
+    expect(() => planUpdateQuota({ token: T }, v)).toThrowError(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          code: "debtOutOfRange",
+          requested: expect.objectContaining({ value: 0n }),
+        }),
       }),
     );
   });

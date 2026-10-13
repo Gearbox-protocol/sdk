@@ -279,28 +279,34 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     ]);
   });
 
-  /** Each refusal carries the numbers a form would otherwise re-derive. */
+  /**
+   * Each refusal carries the numbers a form would otherwise re-derive.
+   *
+   * The limits are 1 UND rather than a few wei: a quota is bought in steps of
+   * 10_000 units, and a position smaller than one step gets none, so the
+   * endpoints would open into a position whose collateral counts for nothing.
+   */
   it("returns exact collateral bounds in a size refusal and accepts both endpoints", async () => {
     const sdk = buildOpenStrategySdk({
-      minDebt: 100n,
-      availableLiquidity: 100n,
+      minDebt: 100_000_000n,
+      availableLiquidity: 100_000_000n,
     });
     const scenario = {
       ...case_underlying_3x,
       leverage: 130n,
-      collateral: [{ token: UND, balance: 1000n }],
+      collateral: [{ token: UND, balance: 1_000_000_000n }],
     };
     const refusal = await run(scenario, sdk).result;
     expect(refusal).toMatchObject({
       ok: false,
       error: {
         collateralLimits: {
-          min: { value: 334n, token: { address: UND } },
-          max: { value: 336n, token: { address: UND } },
+          min: { value: 333333334n, token: { address: UND } },
+          max: { value: 333333336n, token: { address: UND } },
         },
       },
     });
-    for (const balance of [334n, 336n]) {
+    for (const balance of [333333334n, 333333336n]) {
       const outcome = await run(
         { ...scenario, collateral: [{ token: UND, balance }] },
         sdk,
@@ -338,8 +344,8 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
     "returns converted-token bounds using forward oracle prices (reserve fallback %s)",
     async reserve => {
       const sdk = buildOpenStrategySdk({
-        minDebt: 100n,
-        availableLiquidity: 100n,
+        minDebt: 100_000_000n,
+        availableLiquidity: 100_000_000n,
         reservePrices: reserve
           ? { [ANY]: 300000000n, [UND]: 200000000n, [POS]: 200000000n }
           : undefined,
@@ -359,7 +365,7 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
         collateral: [{ token: ANY, balance: 1n }],
       };
       // Start below minDebt with a small, priceable collateral amount.
-      scenario.collateral[0].balance = 20000000000n;
+      scenario.collateral[0].balance = 20000000000000000n;
       const refusal = await run(scenario, sdk).result;
       if (
         refusal.ok ||
@@ -369,8 +375,12 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
         throw new Error("expected debt bounds");
       const { min, max } = refusal.error.collateralLimits;
       expect(min.token.address).toBe(ANY);
-      expect(min.value).toBe(reserve ? 2220000000001n : 6660000000001n);
-      expect(max.value).toBe(reserve ? 2240000000000n : 6720000000000n);
+      expect(min.value).toBe(
+        reserve ? 2222222220000000001n : 6666666660000000001n,
+      );
+      expect(max.value).toBe(
+        reserve ? 2222222240000000000n : 6666666720000000000n,
+      );
       for (const balance of [min.value, max.value]) {
         expect(
           (
@@ -397,15 +407,15 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
   it("uses native/WETH mapping for refusal bounds and repeated opening", async () => {
     const weth = MockTokens.WETH.toLowerCase() as typeof UND;
     const sdk = buildOpenStrategySdk({
-      minDebt: 100n,
-      availableLiquidity: 100n,
+      minDebt: 100_000_000n,
+      availableLiquidity: 100_000_000n,
       extraPrices: { [weth]: 100000000n },
       extraDecimals: { [weth]: 18, [NATIVE_ADDRESS]: 18 },
     });
     const scenario = {
       ...case_underlying_3x,
       leverage: 130n,
-      collateral: [{ token: NATIVE_ADDRESS, balance: 20000000000n }],
+      collateral: [{ token: NATIVE_ADDRESS, balance: 20000000000000000n }],
     };
     const refusal = await run(scenario, sdk).result;
     if (
@@ -416,8 +426,8 @@ describe("openStrategy — leverage on wallet collateral, no account yet", () =>
       throw new Error("expected native debt bounds");
     const { min, max } = refusal.error.collateralLimits;
     expect(min.token.address).toBe(NATIVE_ADDRESS);
-    expect(min.value).toBe(6660000000001n);
-    expect(max.value).toBe(6720000000000n);
+    expect(min.value).toBe(6666666660000000001n);
+    expect(max.value).toBe(6666666720000000000n);
     for (const balance of [min.value, max.value]) {
       expect(
         (

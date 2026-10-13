@@ -11,6 +11,9 @@ import type {
   MarketExpiredError,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  QuotaAboveMaxError,
+  QuotaInactiveError,
+  QuotaUnchangedError,
   SDKError,
   SDKReturn,
   StrategyPosition,
@@ -95,6 +98,7 @@ import type {
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
+  UpdateQuotaParams,
   WithdrawalInProgressError,
   WithdrawCollateralParams,
   WithdrawStrategyParams,
@@ -766,6 +770,39 @@ export class PrepareApi
       token: params.token,
       amount: params.amount,
       to: params.to,
+    });
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesPrepare.updateQuota}
+   **/
+  public async updateQuota(
+    position: PositionInput,
+    params: UpdateQuotaParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | QuotaInactiveError
+        | QuotaUnchangedError
+        | QuotaAboveMaxError
+      ) &
+        WithPartialState<OperationState>
+    >
+  > {
+    return this.#startIntent<
+      | DebtOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | QuotaInactiveError
+      | QuotaUnchangedError
+      | QuotaAboveMaxError
+    >(position, params, {
+      type: "UPDATE_QUOTA",
+      token: params.token,
+      quota: params.quota,
     });
   }
 

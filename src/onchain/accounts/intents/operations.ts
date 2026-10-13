@@ -226,11 +226,20 @@ export interface QuotaUpdateOperation {
 
 export type QuotaUpdateState = ReturnType<typeof calcQuotaUpdate>;
 
-export function buildQuotaUpdateOperation(input: {
+export interface QuotaUpdateOperationInput {
   update: QuotaUpdateState;
   creditAccount: CreditAccountSlice;
   sdk: OnchainSDK;
-}): QuotaUpdateOperation {
+  /**
+   * The quota each token must end at or above, or the call reverts. Defaults
+   * to the change itself.
+   */
+  minQuota?: Asset[];
+}
+
+export function buildQuotaUpdateOperation(
+  input: QuotaUpdateOperationInput,
+): QuotaUpdateOperation {
   const { update, creditAccount, sdk } = input;
   const quotaAssets = [...update.quotaIncrease, ...update.quotaDecrease];
   const calls: MultiCall[] =
@@ -238,7 +247,7 @@ export function buildQuotaUpdateOperation(input: {
       ? []
       : sdk.accounts.prepareUpdateQuotas(creditAccount.creditFacade, {
           averageQuota: quotaAssets,
-          minQuota: quotaAssets,
+          minQuota: input.minQuota ?? quotaAssets,
         });
   return {
     type: "changeQuota",
