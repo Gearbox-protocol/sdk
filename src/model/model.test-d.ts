@@ -1,15 +1,20 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type { z } from "zod/v4";
 import type {
+  AnalyticsContractOption,
   AnalyticsContractRef,
   AnalyticsPosition,
+  AnalyticsPositionFilterOptions,
   AnalyticsPositionListOptions,
   AnalyticsPositionPage,
   AnalyticsPositionSortField,
   AnalyticsSortDirection,
 } from "./analytics.js";
 import type {
+  analyticsContractOptionSchema,
   analyticsContractRefSchema,
+  analyticsPositionFilterOptionsQuerySchema,
+  analyticsPositionFilterOptionsSchema,
   analyticsPositionListOptionsSchema,
   analyticsPositionListQuerySchema,
   analyticsPositionPageSchema,
@@ -52,6 +57,7 @@ import type { Curator, CuratorName } from "./curators.js";
 import type { curatorNameSchema, curatorSchema } from "./curators.schema.js";
 import type { delayedIntentSchema } from "./delayed-intent.schema.js";
 import type { DelayedIntent } from "./delayed-intents.js";
+import type { ChainScopedFilter } from "./filters.js";
 import type {
   DelayedReceivedAsset,
   InstantReceivedAsset,
@@ -222,6 +228,15 @@ import type {
 
 describe("model schemas match model types", () => {
   it("analytics", () => {
+    expectTypeOf<
+      z.infer<typeof analyticsContractOptionSchema>
+    >().toEqualTypeOf<AnalyticsContractOption>();
+    expectTypeOf<
+      z.infer<typeof analyticsPositionFilterOptionsSchema>
+    >().toEqualTypeOf<AnalyticsPositionFilterOptions>();
+    expectTypeOf<
+      z.infer<typeof analyticsPositionFilterOptionsQuerySchema>
+    >().toEqualTypeOf<ChainScopedFilter>();
     expectTypeOf<
       z.infer<typeof analyticsContractRefSchema>
     >().toEqualTypeOf<AnalyticsContractRef>();

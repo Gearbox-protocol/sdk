@@ -17,6 +17,7 @@ const mockSDK = {
   attach: notImplemented,
   analytics: {
     positions: {
+      filterOptions: notImplemented,
       list: notImplemented,
     },
     charts: notImplemented,

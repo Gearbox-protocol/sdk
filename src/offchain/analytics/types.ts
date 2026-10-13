@@ -1,4 +1,5 @@
 import type {
+  AnalyticsPositionFilterOptions,
   AnalyticsPositionListOptions,
   AnalyticsPositionPage,
 } from "../../model/analytics.js";
@@ -12,6 +13,22 @@ import type { DataResponse } from "../../model/response.js";
 
 /** Protocol-wide position reads served by the backend. */
 export interface IOffchainAnalyticsPositions {
+  /**
+   * Complete dropdown choices across current positions on this client's
+   * chains, narrowed by `filter`. The backend collects these before pagination
+   * and independently of position filters or sorting.
+   *
+   * ```ts
+   * const { data } = await sdk.analytics.positions.filterOptions({
+   *   chainIds: [1],
+   * });
+   * // data: { pools, creditManagers, assets, curators }
+   * ```
+   */
+  filterOptions(
+    filter?: ChainScopedFilter,
+  ): Promise<DataResponse<AnalyticsPositionFilterOptions>>;
+
   /**
    * Every current position in the protocol, with its owning borrower, after
    * applying the requested filter, ordering and pagination.

@@ -10,7 +10,7 @@ import type {
   PositionFilter,
   StrategyPosition,
 } from "./positions.js";
-import type { ChainId } from "./primitives.js";
+import type { ChainId, Token } from "./primitives.js";
 
 /**
  * A protocol-wide position row together with the wallet that owns it.
@@ -59,6 +59,12 @@ export interface AnalyticsContractRef {
   chainId: ChainId;
   /** Address of the pool, credit manager or token contract. */
   address: Address;
+}
+
+/** A pool or credit manager choice with a display name for a filter UI. */
+export interface AnalyticsContractOption extends AnalyticsContractRef {
+  /** Human-readable pool or credit manager name. */
+  name: string;
 }
 
 /**
@@ -115,6 +121,26 @@ export interface AnalyticsPositionPage {
   offset: number;
   /** Effective maximum number of rows returned. */
   limit: number;
+}
+
+/**
+ * Every selectable filter value across current positions on the requested
+ * chains, collected before pagination. Contract and token choices are distinct
+ * by chain and address; curator names are distinct across the selected chains.
+ **/
+export interface AnalyticsPositionFilterOptions {
+  /** Pools associated with positions, including pools their accounts borrow from. */
+  pools: AnalyticsContractOption[];
+  /** Credit managers associated with current credit-account positions. */
+  creditManagers: AnalyticsContractOption[];
+  /**
+   * Tokens held with a positive balance, using the same rule as the `asset`
+   * filter. Includes underlying balances and phantom tokens at their own
+   * reported addresses, with metadata to display each choice.
+   */
+  assets: Token[];
+  /** Known names of the curators of the positions' markets. */
+  curators: CuratorName[];
 }
 
 /**

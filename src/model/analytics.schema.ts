@@ -22,7 +22,11 @@ import {
   positionKindSchema,
   strategyPositionSchema,
 } from "./positions.schema.js";
-import { assetTypeSchema, chainIdSchema } from "./primitives.schema.js";
+import {
+  assetTypeSchema,
+  chainIdSchema,
+  tokenSchema,
+} from "./primitives.schema.js";
 
 /** Default page size of the protocol-wide positions list. */
 export const ANALYTICS_POSITIONS_DEFAULT_LIMIT = 25;
@@ -234,6 +238,39 @@ export const analyticsPositionPageSchema = z.object({
   offset: z.number().int().nonnegative(),
   limit: z.number().int().positive().max(ANALYTICS_POSITIONS_MAX_LIMIT),
 });
+
+/** {@link AnalyticsContractOption} */
+export const analyticsContractOptionSchema = z.object({
+  chainId: chainIdSchema,
+  address: ZodAddress(),
+  name: z.string(),
+});
+
+/** {@link AnalyticsPositionFilterOptions} */
+export const analyticsPositionFilterOptionsSchema = z.object({
+  pools: z.array(analyticsContractOptionSchema),
+  creditManagers: z.array(analyticsContractOptionSchema),
+  assets: z.array(tokenSchema),
+  curators: z.array(curatorNameSchema),
+});
+
+/** Chain scope of a filter-options read, shared by the client and backend. */
+export const analyticsPositionFilterOptionsQuerySchema = z.codec(
+  analyticsPositionListQueryParamsSchema.pick({ chainIds: true }),
+  analyticsPositionListOptionsSchema.pick({ chainIds: true }),
+  {
+    decode: params =>
+      params.chainIds === undefined
+        ? {}
+        : {
+            chainIds:
+              params.chainIds === ""
+                ? []
+                : params.chainIds.split(",").map(Number),
+          },
+    encode: filter => ({ chainIds: filter.chainIds?.join(",") }),
+  },
+);
 
 /**
  * {@link AnalyticsChartQuery}
