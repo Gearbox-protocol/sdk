@@ -27,7 +27,11 @@ import { resizedQuota } from "./utils/quotas-for-update.js";
 
 export interface ResolveQuotaUpdateProps {
   sdk: OnchainSDK;
-  creditAccount: CreditAccountSlice;
+  creditAccount: Pick<CreditAccountSlice, "creditManager"> & {
+    tokens: ReadonlyArray<
+      Pick<CreditAccountSlice["tokens"][number], "token" | "balance" | "quota">
+    >;
+  };
   token: Address;
   /** Target in underlying units; `undefined` sizes it to the balance. */
   quota: bigint | undefined;
@@ -51,6 +55,9 @@ interface QuotaChange {
 }
 
 /**
+ * Synchronous calculation from the SDK's loaded market state; no RPC reads.
+ * @throws IntentPreviewError when quota validation rejects the change.
+ *
  * The single `updateQuota` an `UPDATE_QUOTA` intent sends, checked against
  * what the facade and the quota keeper would revert on.
  *

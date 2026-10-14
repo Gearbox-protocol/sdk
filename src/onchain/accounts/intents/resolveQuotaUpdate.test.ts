@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MIN_INT96 } from "../../constants/math.js";
+import { IntentPreviewError } from "../../validation/raise.js";
 import { resolveQuotaUpdate } from "./resolveQuotaUpdate.js";
 import {
   ANY,
@@ -233,5 +234,62 @@ describe("resolveQuotaUpdate — refused", () => {
         available: expect.objectContaining({ value: 50_000_000_000n }),
       }),
     );
+  });
+});
+
+describe("synchronous quota resolver", () => {
+  it("accepts only CM and token balances/quotas and matches the full account", () => {
+    const sdk = buildMarketSdk();
+    const account = buildFixtureCreditAccount({
+      totalDebt: DEBT,
+      tokens: [caToken(ANY, BALANCE, SIZED)],
+    });
+    const params = { sdk, token: ANY, quota: undefined, quotaReserve: 500 };
+    const minimal = {
+      creditManager: account.creditManager,
+      tokens: account.tokens.map(({ token, balance, quota }) => ({
+        token,
+        balance,
+        quota,
+      })),
+    };
+    expect(resolveQuotaUpdate({ ...params, creditAccount: minimal })).toEqual(
+      resolveQuotaUpdate({ ...params, creditAccount: account }),
+    );
+  });
+  it("counts a zero-balance reserved quota against the available account limit", () => {
+    const current = MAX_DEBT * 2n - 10_000n;
+    const params = {
+      sdk: buildMarketSdk(),
+      token: ANY,
+      quota: undefined,
+      quotaReserve: 500,
+    };
+    const full = buildFixtureCreditAccount({
+      totalDebt: DEBT,
+      tokens: [
+        caToken(ANY, BALANCE * 1_000n, current),
+        caToken(ANY2, 0n, 10_000n),
+      ],
+    });
+    const minimal = {
+      creditManager: full.creditManager,
+      tokens: full.tokens.map(({ token, balance, quota }) => ({
+        token,
+        balance,
+        quota,
+      })),
+    };
+    expect(() =>
+      resolveQuotaUpdate({ ...params, creditAccount: minimal }),
+    ).toThrowError(IntentPreviewError);
+    const withoutReservation = {
+      ...minimal,
+      tokens: minimal.tokens.filter(t => t.token !== ANY2),
+    };
+    expect(
+      resolveQuotaUpdate({ ...params, creditAccount: withoutReservation })
+        .update.quotaIncrease,
+    ).toEqual([{ token: ANY, balance: 10_000n }]);
   });
 });
