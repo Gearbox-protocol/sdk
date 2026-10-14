@@ -17,6 +17,7 @@ import type {
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
   PoolOpportunityKey,
+  Position,
   PositionClaimableWithdrawal,
   PositionCollateral,
   QuotaAboveMaxError,
@@ -52,6 +53,19 @@ import type {
   WithdrawCeilings,
   WithPartialState,
 } from "../../onchain/index.js";
+
+/** Recoverable target-token quota, computed from loaded market state. */
+export interface QuotaBufferState {
+  /** Validated strategy context, with a known target collateral. */
+  position: StrategyPosition & {
+    targetCollateral: NonNullable<StrategyPosition["targetCollateral"]>;
+  };
+  /** Target value times LT, before reserve and protocol-step rounding. */
+  baseQuota: bigint;
+  currentQuota: bigint;
+  /** Positive increase available under the pool and account limits. */
+  quotaIncrease: bigint;
+}
 
 export interface MaxWithdrawCollateralOptions {
   /** Main-price HF threshold, in basis points; defaults to 10101. */
@@ -670,6 +684,15 @@ export interface FinalizeParams extends PrepareOptions {
  * with `undefined`, an empty list or `0n`.
  **/
 export interface IOpportunitiesPrepare {
+  /** Synchronous quota-buffer state from loaded chain data. No freshness refresh
+   * or account RPC read. Ineligible positions return undefined; unexpected
+   * failures are thrown. extraQuotas includes reservations absent from the position.
+   */
+  getQuotaBufferState(
+    position: Position,
+    extraQuotas?: readonly (Pick<Asset, "token"> & { quota: bigint })[],
+  ): QuotaBufferState | undefined;
+
   /**
    * Depositing into a pool: underlying in, shares out.
    *

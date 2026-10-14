@@ -34,6 +34,7 @@ const mockSDK = {
     totals: notImplemented,
     charts: notImplemented,
     prepare: {
+      getQuotaBufferState: notImplemented,
       deposit: notImplemented,
       withdraw: notImplemented,
       redeem: notImplemented,

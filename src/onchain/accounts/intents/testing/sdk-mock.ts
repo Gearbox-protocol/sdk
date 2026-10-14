@@ -642,6 +642,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       },
     },
     marketRegister: {
+      creditManagers: [creditManagerSuite],
       findByCreditManager: vi.fn(() => market),
       findCreditManager: vi.fn(() => creditManagerSuite),
     },
