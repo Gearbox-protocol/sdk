@@ -1,10 +1,11 @@
-import type {
-  Address,
-  Chain,
-  Hex,
-  MulticallResponse,
-  PublicClient,
-  Transport,
+import {
+  type Address,
+  type Chain,
+  decodeAbiParameters,
+  type Hex,
+  type MulticallResponse,
+  type PublicClient,
+  type Transport,
 } from "viem";
 import { iExpirableAbi } from "../../abi/iExpirable.js";
 import { iStateSerializerAbi } from "../../abi/iStateSerializer.js";
@@ -161,6 +162,30 @@ export class TokensMeta extends AddressMap<TokenMetaData> {
       );
     }
     return !!t.contractType?.startsWith("PHANTOM_TOKEN::");
+  }
+
+  /**
+   * Returns underlying token of a phantom token, or the token itself if it is not a phantom token.
+   *
+   * @param token - Token address.
+   * @throws If extended token data is not loaded, or a phantom token has no
+   * serialized params.
+   */
+  public depositedToken(token: Address): Address {
+    const meta = this.mustGet(token);
+    if (!this.isPhantomToken(meta)) {
+      return token;
+    }
+    if (!meta.serializedParams) {
+      throw new Error(
+        `phantom token ${meta.symbol} (${token}) has no serialized params`,
+      );
+    }
+    const [, deposited] = decodeAbiParameters(
+      [{ type: "address" }, { type: "address" }],
+      meta.serializedParams,
+    );
+    return deposited;
   }
 
   /**

@@ -14,9 +14,9 @@ import { calcLiquidatableLTs } from "../../dev/calcLiquidatableLTs.js";
 import type { AnvilClient } from "../../dev/createAnvilClient.js";
 import { setLTs } from "../../dev/ltUtils.js";
 import {
+  checkLiquidation,
   MAX_UINT256,
   OnchainSDK,
-  sendRawTx,
   TypedObjectUtils,
   WAD,
 } from "../../onchain/index.js";
@@ -76,7 +76,32 @@ describe("partially liquidate credit account", () => {
     }
     expect(lowered.healthFactor).toBeLessThan(WAD);
 
-    // Fund liquidator with underlying and approve credit manager to pull repay.
+    const details = await sdk.liquidations.getPartialLiquidationDetails({
+      creditAccount: CREDIT_ACCOUNT,
+    });
+    expect(details).toMatchObject({
+      isPartiallyLiquidatable: true,
+      approve: {
+        spender: cm.creditManager.address,
+        token: { address: cm.underlying },
+      },
+      receivedAssets: [{ isDelayed: false, value: expect.any(BigInt) }],
+    });
+    const approval = details.approve;
+    if (!approval) {
+      throw new Error(`no approval for ${CREDIT_ACCOUNT}`);
+    }
+    expect(approval.value).toBeGreaterThanOrEqual(
+      details.repaymentAmount.value,
+    );
+    const seizedEstimate = details.receivedAssets[0]?.value ?? 0n;
+
+    expect(await checkLiquidation(sdk, { details, liquidator })).toMatchObject([
+      { code: "insufficientBalance" },
+      { code: "insufficientAllowance" },
+    ]);
+
+    // Fund liquidator with underlying and approve what the details ask for.
     await anvil.deal({
       erc20: cm.underlying,
       account: liquidator,
@@ -86,18 +111,23 @@ describe("partially liquidate credit account", () => {
       address: cm.underlying,
       abi: erc20Abi,
       functionName: "approve",
-      args: [cm.creditManager.address, MAX_UINT256],
+      args: [approval.spender, approval.value],
     });
     await sdk.client.waitForTransactionReceipt({
       hash: approveHash,
       pollingInterval: 100,
     });
+    expect(await checkLiquidation(sdk, { details, liquidator })).toEqual([]);
 
-    const tx = await sdk.accounts.partiallyLiquidate({
-      account: lowered,
-      to: liquidator,
+    const { to, callData } = await sdk.liquidations.buildPartialLiquidationTx({
+      creditAccount: CREDIT_ACCOUNT,
+      liquidator,
     });
-    const hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
+    const hash = await wallet.sendTransaction({
+      to,
+      data: callData,
+      gas: GAS_LIMIT,
+    });
     const receipt = await sdk.client.waitForTransactionReceipt({
       hash,
       pollingInterval: 100,
@@ -117,6 +147,9 @@ describe("partially liquidate credit account", () => {
         },
       },
     ]);
+    // the estimate comes from synced prices, the tx applies fresh updates
+    const seizedAmount = logs[0]?.args.seizedCollateral ?? 0n;
+    expect(seizedAmount).toBeWithinBps(seizedEstimate);
 
     const after = await sdk.accounts.getCreditAccountData(CREDIT_ACCOUNT);
     if (!after) {

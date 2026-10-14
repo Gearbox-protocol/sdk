@@ -13,7 +13,8 @@ export interface CheckLiquidationFundingInput {
 }
 
 /**
- * What the liquidator wallet must hold and have approved.
+ * What the liquidator wallet must hold and have approved, for a full or
+ * partial liquidation alike.
  */
 export async function checkLiquidationFunding(
   input: CheckLiquidationFundingInput,

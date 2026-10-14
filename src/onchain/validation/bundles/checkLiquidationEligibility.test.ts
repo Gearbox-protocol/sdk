@@ -65,6 +65,28 @@ describe("checkLiquidationEligibility", () => {
     ).toEqual(["creditAccountFrozen"]);
   });
 
+  it("refuses a partial liquidation that cannot reach the target health factor", () => {
+    expect(
+      codesOf({
+        sdk: sdk(),
+        details: details({ isPartiallyLiquidatable: false }),
+        liquidator: STRANGER,
+      }),
+    ).toEqual(["partialLiquidationImpossible"]);
+  });
+
+  it("leaves full liquidations and possible partial ones alone", () => {
+    for (const isPartiallyLiquidatable of [true, undefined]) {
+      expect(
+        codesOf({
+          sdk: sdk(),
+          details: details({ isPartiallyLiquidatable }),
+          liquidator: STRANGER,
+        }),
+      ).toEqual([]);
+    }
+  });
+
   it("refuses a paused market to anyone but its emergency liquidators", () => {
     expect(
       codesOf({
@@ -129,12 +151,13 @@ describe("checkLiquidationEligibility", () => {
    * Order is the answer: a caller with room for one verdict reports the first,
    * and a frozen account is the fact furthest from anything the wallet can fix.
    */
-  it("weighs frozen before paused before KYC", () => {
+  it("weighs frozen before impossible partial before paused before KYC", () => {
     expect(
       codesOf({
         sdk: sdk(),
         details: details({
           isCreditAccountFrozen: true,
+          isPartiallyLiquidatable: false,
           paused: true,
           isLiquidatorEligible: false,
         }),
@@ -142,6 +165,7 @@ describe("checkLiquidationEligibility", () => {
       }),
     ).toEqual([
       "creditAccountFrozen",
+      "partialLiquidationImpossible",
       "notEmergencyLiquidator",
       "liquidatorNotEligible",
     ]);

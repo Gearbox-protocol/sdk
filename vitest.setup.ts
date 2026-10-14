@@ -82,22 +82,21 @@ expect.extend({
 });
 
 declare module "vitest" {
-  // biome-ignore lint/suspicious/noExplicitAny: must match vitest's own `Matchers<T = any>` declaration to merge
-  interface Matchers<T = any> {
+  interface Matchers<R, T> {
     /**
      * Asserts that the received bigint deviates from the oracle-estimated
      * `predicted` value by at most `bps` basis points (default 100).
      */
-    toBeWithinBps(predicted: bigint, bps?: bigint): T;
+    toBeWithinBps(predicted: bigint, bps?: bigint): R;
     /**
      * Asserts that the received bigint is at most `actual` and within `bps`
      * basis points (default 100) below it: a min guarantee of `actual`.
      */
-    toBeWithinBpsBelow(actual: bigint, bps?: bigint): T;
+    toBeWithinBpsBelow(actual: bigint, bps?: bigint): R;
     /**
      * Asserts that the received array has exactly the expected elements,
      * regardless of order. Elements may contain asymmetric matchers.
      */
-    toEqualUnordered(expected: unknown[]): T;
+    toEqualUnordered(expected: unknown[]): R;
   }
 }

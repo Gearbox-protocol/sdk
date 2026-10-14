@@ -6,6 +6,6 @@ export const LIQUIDATION_COMPRESSOR_V313_ADDRESS: Address =
 /**
  * Headroom (in bps) added on top of the amount the liquidation pulls when
  * building the liquidator's approval, so that the transaction does not revert
- * when prices move between the preview and the execution.
+ * when prices move or interest accrues between the preview and the execution.
  **/
 export const LIQUIDATION_APPROVAL_BUFFER = 50n;

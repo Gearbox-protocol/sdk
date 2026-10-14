@@ -24,10 +24,15 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           lfs: true
           fetch-depth: 0
+
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
 
       - name: Read Foundry version
         id: foundry
@@ -38,25 +43,16 @@ jobs:
         with:
           version: ${{ steps.foundry.outputs.version }}
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-
-      - uses: pnpm/action-setup@v5
-        with:
-          cache: true
-
       - name: Test and build
         env:
           ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
-          pnpm install --frozen-lockfile
           pnpm typecheck:ci
           pnpm test:all
           pnpm build
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

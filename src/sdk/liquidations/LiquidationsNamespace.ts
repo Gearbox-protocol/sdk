@@ -7,11 +7,13 @@ import type {
 } from "../../model/index.js";
 import type {
   BuildLiquidationTxProps,
+  BuildPartialLiquidationTxProps,
   CheckLiquidationInput,
   CheckLiquidationOptions,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  GetPartialLiquidationDetailsProps,
   LiquidationValidationError,
   MultichainSDK,
 } from "../../onchain/index.js";
@@ -59,6 +61,26 @@ export class LiquidationsNamespace implements ILiquidations {
   ): Promise<DataResponse<TxCall>> {
     await this.#ensureFresh?.(toChainIds([props.network]));
     return this.#onchain.liquidations.buildLiquidationTx(props);
+  }
+
+  /**
+   * {@inheritDoc ILiquidations.getPartialLiquidationDetails}
+   **/
+  public async getPartialLiquidationDetails(
+    props: GetPartialLiquidationDetailsProps<true>,
+  ): Promise<DataResponse<LiquidationDetails>> {
+    await this.#ensureFresh?.(toChainIds([props.network]));
+    return this.#onchain.liquidations.getPartialLiquidationDetails(props);
+  }
+
+  /**
+   * {@inheritDoc ILiquidations.buildPartialLiquidationTx}
+   **/
+  public async buildPartialLiquidationTx(
+    props: BuildPartialLiquidationTxProps<true>,
+  ): Promise<DataResponse<TxCall>> {
+    await this.#ensureFresh?.(toChainIds([props.network]));
+    return this.#onchain.liquidations.buildPartialLiquidationTx(props);
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type {
   LiquidatableAccount,
@@ -49,9 +49,13 @@ import {
 import { skipLiquidatableAccount } from "./skipLiquidatableAccount.js";
 import type {
   BuildLiquidationTxProps,
+  BuildPartialLiquidationTxProps,
+  FullyLiquidateProps,
+  FullyLiquidateResult,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  GetPartialLiquidationDetailsProps,
   LoadRWALiquidatorsProps,
   OnchainLiquidationData,
   OnchainLiquidationOutput,
@@ -172,6 +176,161 @@ export class LiquidationsService extends SDKConstruct {
   }
 
   /**
+   * Builds the transaction that fully liquidates a credit account, repaying
+   * the debt by swapping the account's own collateral through the router.
+   * The underlying left after the swaps is sent to `to`.
+   **/
+  public async fullyLiquidate(
+    props: FullyLiquidateProps,
+  ): Promise<FullyLiquidateResult> {
+    const {
+      account,
+      to,
+      slippage = 50n,
+      keepAssets,
+      ignoreReservePrices,
+      applyLossPolicy,
+      debtOnly,
+    } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
+    const routerCloseResult = await this.sdk
+      .routerFor(account)
+      .findBestClosePath({
+        creditAccount: account,
+        creditManager: cm.creditManager,
+        slippage,
+        keepAssets,
+        debtOnly,
+      });
+    const calls = await this.sdk.accounts.prependPriceUpdates(
+      account.creditManager,
+      routerCloseResult.calls,
+      account,
+      { ignoreReservePrices },
+    );
+
+    let lossPolicyData: Hex | undefined;
+    if (applyLossPolicy) {
+      lossPolicyData = await cm.market.lossPolicy.getLiquidationData(
+        account.creditAccount,
+      );
+      this.logger?.debug({ lossPolicyData }, "loss policy data");
+    }
+
+    const tx = cm.creditFacade.liquidateCreditAccount(
+      account.creditAccount,
+      to,
+      calls,
+      lossPolicyData,
+    );
+    return { tx, calls, routerCloseResult };
+  }
+
+  /**
+   * Details of a partial liquidation of a credit account, in the shape of a
+   * full one: what the liquidator pays, what it receives and what it must
+   * approve, plus {@link LiquidationDetails.isPartiallyLiquidatable}.
+   *
+   * A local estimate from the synced oracle state, without fresh price
+   * updates. Parameters left out of `props` are derived from current state.
+   *
+   * @throws For RWA markets, for a withdrawal phantom `tokenOut`, and when no
+   * `tokenOut` can be picked.
+   **/
+  public async getPartialLiquidationDetails(
+    props: GetPartialLiquidationDetailsProps,
+  ): Promise<LiquidationDetails> {
+    const { creditAccount, blockNumber } = props;
+    const ca = await this.#getCreditAccountData(creditAccount, blockNumber);
+    const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    const { priceOracle } = suite.market;
+    const { underlying } = suite;
+    const { tokenOut, repaidAmount, isPartiallyLiquidatable } =
+      this.#getPartialLiquidationParams(ca, suite, props);
+
+    const { liquidationDiscount } = suite.liquidationFees();
+    // the seized collateral is priced off everything the liquidator pays, fee included
+    const seizedValue =
+      (repaidAmount * PERCENTAGE_FACTOR) / BigInt(liquidationDiscount);
+    const seizedAmount =
+      (priceOracle.convert(underlying, tokenOut, repaidAmount) *
+        PERCENTAGE_FACTOR) /
+      BigInt(liquidationDiscount);
+
+    return {
+      ...this.#buildAccount(ca, suite),
+      repaymentAmount: priceOracle.toTokenAmount(underlying, repaidAmount),
+      estimatedProfit: priceOracle.toTokenAmount(
+        underlying,
+        seizedValue - repaidAmount,
+      ),
+      isDelayed: false,
+      receivedAssets: [
+        {
+          isDelayed: false,
+          ...priceOracle.toTokenAmount(tokenOut, seizedAmount),
+          token: this.sdk.tokensMeta.mustGetToken(
+            this.sdk.tokensMeta.depositedToken(tokenOut),
+          ),
+        },
+      ],
+      isLiquidatorEligible: true,
+      isCreditAccountFrozen: false,
+      approve:
+        repaidAmount === 0n
+          ? undefined
+          : {
+              spender: suite.creditManager.address,
+              // debt accrues interest until the tx is built, raising repaidAmount
+              ...priceOracle.toTokenAmount(
+                underlying,
+                (repaidAmount *
+                  (PERCENTAGE_FACTOR + LIQUIDATION_APPROVAL_BUFFER)) /
+                  PERCENTAGE_FACTOR,
+              ),
+            },
+      isPartiallyLiquidatable,
+    };
+  }
+
+  /**
+   * Builds the transaction that partially liquidates a credit account,
+   * repaying part of its debt from the liquidator's funds in exchange for
+   * discounted collateral sent to the liquidator. Parameters left out of
+   * `props` are derived from current state.
+   *
+   * @throws For RWA markets, for a withdrawal phantom `tokenOut`, when no
+   * `tokenOut` can be picked, and when the account cannot be partially
+   * liquidated, see {@link LiquidationDetails.isPartiallyLiquidatable}.
+   **/
+  public async buildPartialLiquidationTx(
+    props: BuildPartialLiquidationTxProps,
+  ): Promise<TxCall> {
+    const { creditAccount, liquidator, blockNumber } = props;
+    const ca = await this.#getCreditAccountData(creditAccount, blockNumber);
+    const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
+    const params = this.#getPartialLiquidationParams(ca, suite, props);
+    if (!params.isPartiallyLiquidatable) {
+      throw new Error(
+        `credit account ${this.labelAddress(creditAccount)} cannot be partially liquidated`,
+      );
+    }
+    const updates = await this.sdk.accounts.getOnDemandPriceUpdates(ca, true);
+    const tx = suite.creditFacade.partiallyLiquidateCreditAccount(
+      ca.creditAccount,
+      params.tokenOut,
+      params.repaidAmount,
+      params.minSeizedAmount,
+      liquidator,
+      updates,
+    );
+    this.logger?.debug(
+      `built tx to partially liquidate credit account ${this.labelAddress(creditAccount)} to ${this.labelAddress(liquidator)}`,
+    );
+    return { to: tx.to, callData: tx.callData };
+  }
+
+  /**
    * Optimal partial liquidation of a credit account: the collateral to seize
    * and the amounts that bring its health factor close to `optimalHF`.
    *
@@ -196,28 +355,6 @@ export class LiquidationsService extends SDKConstruct {
       optimalHF,
       exclude: token => this.#isWithdrawalPhantom(token),
       liquidationThresholds,
-    });
-  }
-
-  /**
-   * Everything a partial liquidation of a credit account needs, with any
-   * parameter the caller pinned down taken as given and the rest derived from
-   * current state. A derived `tokenOut` is never a withdrawal phantom token.
-   *
-   * @param ca - Credit account to partially liquidate.
-   * @param overrides - Parameters to use instead of the derived defaults.
-   * @throws If a derived `tokenOut` cannot be picked, or if the seized token is
-   * not a collateral token of the credit manager.
-   **/
-  public getPartialLiquidationParams(
-    ca: CreditAccountData,
-    overrides?: PartialLiquidationParams,
-  ): Required<PartialLiquidationParams> {
-    return partialLiquidationParams({
-      suite: this.sdk.marketRegister.findCreditManager(ca.creditManager),
-      account: ca,
-      overrides,
-      exclude: token => this.#isWithdrawalPhantom(token),
     });
   }
 
@@ -409,14 +546,48 @@ export class LiquidationsService extends SDKConstruct {
     const spender = hexEq(liquidationCall.target, suite.creditFacade.address)
       ? suite.creditManager.address
       : liquidationCall.target;
+    // the compressor's amount is an estimate, so the approval is buffered
+    const bufferedAmount =
+      (requiredAmount * (PERCENTAGE_FACTOR + LIQUIDATION_APPROVAL_BUFFER)) /
+      PERCENTAGE_FACTOR;
     return {
       spender,
-      ...priceOracle.toTokenAmount(
-        requiredToken,
-        (requiredAmount * (PERCENTAGE_FACTOR + LIQUIDATION_APPROVAL_BUFFER)) /
-          PERCENTAGE_FACTOR,
-      ),
+      ...priceOracle.toTokenAmount(requiredToken, bufferedAmount),
     };
+  }
+
+  /**
+   * Everything a partial liquidation of a credit account needs, with any
+   * parameter the caller pinned down taken as given and the rest derived from
+   * current state. A derived `tokenOut` is never a withdrawal phantom token.
+   *
+   * @throws For RWA markets, whose wrapped underlying and KYC-gated collateral
+   * the bare facade call cannot handle, for a withdrawal phantom `tokenOut`,
+   * which does not redeem instantly, if a derived `tokenOut` cannot be picked,
+   * and if the seized token is not a collateral token of the credit manager.
+   **/
+  #getPartialLiquidationParams(
+    ca: CreditAccountData,
+    suite: CreditSuite,
+    overrides: Partial<PartialLiquidationParams>,
+  ): PartialLiquidationParams {
+    const label = this.labelAddress(ca.creditAccount);
+    if (suite.market.rwa) {
+      throw new Error(
+        `cannot partially liquidate ${label}: RWA markets are not supported`,
+      );
+    }
+    if (overrides.tokenOut && this.#isWithdrawalPhantom(overrides.tokenOut)) {
+      throw new Error(
+        `cannot partially liquidate ${label}: ${this.labelAddress(overrides.tokenOut)} is a withdrawal phantom token`,
+      );
+    }
+    return partialLiquidationParams({
+      suite,
+      account: ca,
+      overrides,
+      exclude: token => this.#isWithdrawalPhantom(token),
+    });
   }
 
   async #getCreditAccountData(

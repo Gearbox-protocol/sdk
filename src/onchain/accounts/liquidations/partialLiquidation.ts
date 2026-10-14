@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type { CreditAccountData } from "../../base/index.js";
+import { WAD } from "../../constants/index.js";
 import type { CreditSuite } from "../../market/index.js";
 import { dominantCollateral } from "../../market/index.js";
 import {
@@ -66,7 +67,7 @@ export interface PartialLiquidationParamsProps {
   /**
    * Parameters to use instead of the derived defaults.
    **/
-  overrides?: PartialLiquidationParams;
+  overrides?: Partial<PartialLiquidationParams>;
   /**
    * Tokens that cannot be picked as the default `tokenOut`.
    **/
@@ -114,17 +115,35 @@ export function partialLiquidationParams({
   account,
   overrides = {},
   exclude,
-}: PartialLiquidationParamsProps): Required<PartialLiquidationParams> {
+}: PartialLiquidationParamsProps): PartialLiquidationParams {
   const tokenOut = overrides.tokenOut ?? bestTokenOut(suite, account, exclude);
   const optimalHF =
     overrides.optimalHF ?? suite.optimalHFForPartialLiquidation(account);
-  const repaidAmount =
-    overrides.repaidAmount ??
-    optimalAmounts(suite, account, tokenOut, optimalHF).repaidAmount;
-  const minSeized =
-    overrides.minSeizedAmount ??
-    minSeizedAmountOf(suite, tokenOut, repaidAmount);
-  return { tokenOut, optimalHF, repaidAmount, minSeizedAmount: minSeized };
+  const { market } = suite;
+  const { optimalAmount, isOptimalRepayable } = optimalAmounts(
+    suite,
+    account,
+    tokenOut,
+    optimalHF,
+  );
+  // the liquidator pays this whole amount; the liquidation fee comes out of it on-chain
+  const repaidAmount = overrides.repaidAmount ?? optimalAmount;
+  return {
+    tokenOut,
+    optimalHF,
+    repaidAmount,
+    minSeizedAmount:
+      overrides.minSeizedAmount ??
+      minSeizedAmount(
+        market.priceOracle.convert(market.underlying, tokenOut, repaidAmount),
+        suite.liquidationFees().liquidationDiscount,
+      ),
+    // the facade only partially liquidates unhealthy or expired accounts
+    isPartiallyLiquidatable:
+      (account.healthFactor < WAD || suite.isExpired) &&
+      isOptimalRepayable &&
+      optimalAmount > 0n,
+  };
 }
 
 function bestTokenOut(
@@ -175,25 +194,4 @@ function optimalAmounts(
     discount: BigInt(liquidationDiscount) - BigInt(feeLiquidation),
     ltTokenOut: BigInt(ltTokenOut),
   });
-}
-
-/**
- * Minimum amount of `token` that must be seized when repaying `repaidAmount`
- * of underlying.
- **/
-function minSeizedAmountOf(
-  suite: CreditSuite,
-  token: Address,
-  repaidAmount: bigint,
-): bigint {
-  const { market } = suite;
-  const tokenAmount = market.priceOracle.convert(
-    market.underlying,
-    token,
-    repaidAmount,
-  );
-  return minSeizedAmount(
-    tokenAmount,
-    suite.liquidationFees().liquidationDiscount,
-  );
 }

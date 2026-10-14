@@ -9,6 +9,7 @@ export * from "./checkLeverage.js";
 export * from "./checkLiquidatorEligible.js";
 export * from "./checkMarketExpired.js";
 export * from "./checkMaxQuota.js";
+export * from "./checkPartiallyLiquidatable.js";
 export * from "./checkPoolLiquidity.js";
 export * from "./checkPoolPaused.js";
 export * from "./checkPoolSunset.js";

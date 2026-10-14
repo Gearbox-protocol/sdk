@@ -99,6 +99,8 @@ const mockSDK = {
     getLiquidatableAccounts: notImplemented,
     getLiquidationDetails: notImplemented,
     buildLiquidationTx: notImplemented,
+    getPartialLiquidationDetails: notImplemented,
+    buildPartialLiquidationTx: notImplemented,
     getLiquidationPositions: notImplemented,
     checkLiquidation: notImplemented,
     isEmergencyLiquidator: notImplemented,
