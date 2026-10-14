@@ -1,5 +1,10 @@
 import type { Address } from "viem";
-import { createPublicClient, custom, getAddress } from "viem";
+import {
+  createPublicClient,
+  custom,
+  encodeAbiParameters,
+  getAddress,
+} from "viem";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 import { chains } from "../chain/chains.js";
@@ -188,6 +193,66 @@ describe("TokensMeta", () => {
       );
 
       expect(() => tokens.unwrapRWA(DC_USDC)).toThrow(SdkRWADataNotLoadedError);
+    });
+  });
+
+  describe("depositedToken", () => {
+    const POOL = getAddress("0x0000000000000000000000000000000000000001");
+    const CURVE_LP = getAddress("0x0000000000000000000000000000000000000002");
+
+    function loaded(...entries: TokenMetaData[]): TokensMeta {
+      const tokens = tokensMeta(chains.Mainnet);
+      tokens.hydrate({
+        tokens: entries,
+        extendedLoaded: entries.map(e => e.addr),
+      });
+      return tokens;
+    }
+
+    it("returns the token itself when it is not a phantom token", () => {
+      const tokens = loaded(meta(TARGET, "USDC"));
+
+      expect(tokens.depositedToken(TARGET)).toBe(TARGET);
+    });
+
+    it("returns the deposited token of a phantom token", () => {
+      const tokens = loaded(
+        meta(PHANTOM, "stkUSDC", {
+          contractType: "PHANTOM_TOKEN::STAKING_REWARDS",
+          serializedParams: encodeAbiParameters(
+            [{ type: "address" }, { type: "address" }],
+            [POOL, TARGET],
+          ),
+        }),
+      );
+
+      expect(tokens.depositedToken(PHANTOM)).toBe(TARGET);
+    });
+
+    it("ignores serialized fields after the deposited token", () => {
+      const tokens = loaded(
+        meta(PHANTOM, "stkcvxLP", {
+          contractType: "PHANTOM_TOKEN::CONVEX",
+          serializedParams: encodeAbiParameters(
+            [{ type: "address" }, { type: "address" }, { type: "address" }],
+            [POOL, TARGET, CURVE_LP],
+          ),
+        }),
+      );
+
+      expect(tokens.depositedToken(PHANTOM)).toBe(TARGET);
+    });
+
+    it("throws when a phantom token has no serialized params", () => {
+      const tokens = loaded(
+        meta(PHANTOM, "stkUSDC", {
+          contractType: "PHANTOM_TOKEN::STAKING_REWARDS",
+        }),
+      );
+
+      expect(() => tokens.depositedToken(PHANTOM)).toThrow(
+        "has no serialized params",
+      );
     });
   });
 });

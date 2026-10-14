@@ -9,11 +9,13 @@ import type {
 } from "../../model/index.js";
 import type {
   BuildLiquidationTxProps,
+  BuildPartialLiquidationTxProps,
   CheckLiquidationInput,
   CheckLiquidationOptions,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  GetPartialLiquidationDetailsProps,
   LiquidationValidationError,
 } from "../../onchain/index.js";
 
@@ -37,11 +39,29 @@ export interface ILiquidations {
     props: GetLiquidationDetailsProps<true>,
   ): Promise<DataResponse<LiquidationDetails>>;
   /**
+   * Partial liquidation of one credit account, in the shape of a full one:
+   * what the liquidator pays, receives and must approve. A local estimate from
+   * the synced oracle state. Parameters left out are derived from current
+   * state. Throws for RWA markets and withdrawal phantom collateral.
+   **/
+  getPartialLiquidationDetails(
+    props: GetPartialLiquidationDetailsProps<true>,
+  ): Promise<DataResponse<LiquidationDetails>>;
+  /**
    * Transaction that fully liquidates a credit account. The reported block is
    * the one the transaction was built against.
    **/
   buildLiquidationTx(
     props: BuildLiquidationTxProps<true>,
+  ): Promise<DataResponse<TxCall>>;
+  /**
+   * Transaction that partially liquidates a credit account, sending the
+   * seized collateral to the liquidator. The reported block is the one the
+   * transaction was built against. Throws when the account cannot be
+   * partially liquidated.
+   **/
+  buildPartialLiquidationTx(
+    props: BuildPartialLiquidationTxProps<true>,
   ): Promise<DataResponse<TxCall>>;
   /**
    * Delayed-withdrawal positions (redemption receipts) owned by a liquidator
@@ -51,10 +71,12 @@ export interface ILiquidations {
     props: GetLiquidationPositionsProps<true>,
   ): Promise<DataResponse<LiquidationPosition[]>>;
   /**
-   * Whether `liquidator` may send a full liquidation of this account.
+   * Whether `liquidator` may send a full or partial liquidation of this
+   * account.
    *
-   * `details` must come from {@link ILiquidations.getLiquidationDetails} called
-   * with the same `liquidator`.
+   * `details` must come from {@link ILiquidations.getLiquidationDetails}
+   * called with the same `liquidator`, or from
+   * {@link ILiquidations.getPartialLiquidationDetails}.
    **/
   checkLiquidation(
     props: CheckLiquidationInput,

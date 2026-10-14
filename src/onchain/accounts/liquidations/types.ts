@@ -125,6 +125,68 @@ export type BuildLiquidationTxProps<Multichain extends boolean = false> =
     WithMultichain<Multichain, MultichainNetworkProps>;
 
 /**
+ * Chain-independent part of {@link GetPartialLiquidationDetailsProps}.
+ *
+ * Parameters left out are derived from current state, see
+ * {@link PartialLiquidationParams}.
+ **/
+export interface GetPartialLiquidationDetailsPropsBase
+  extends Partial<PartialLiquidationParams> {
+  /**
+   * Credit account to partially liquidate.
+   **/
+  creditAccount: Address;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
+ * Props for {@link LiquidationsService.getPartialLiquidationDetails}.
+ *
+ * {@link BlockNumberProps.blockNumber} is kept on the multichain form because
+ * the method already targets a single {@link MultichainNetworkProps.network}.
+ **/
+export type GetPartialLiquidationDetailsProps<
+  Multichain extends boolean = false,
+> = GetPartialLiquidationDetailsPropsBase &
+  WithMultichain<Multichain, MultichainNetworkProps>;
+
+/**
+ * Chain-independent part of {@link BuildPartialLiquidationTxProps}.
+ *
+ * Parameters left out are derived from current state, see
+ * {@link PartialLiquidationParams}.
+ **/
+export interface BuildPartialLiquidationTxPropsBase
+  extends Partial<PartialLiquidationParams> {
+  /**
+   * Credit account to partially liquidate.
+   **/
+  creditAccount: Address;
+  /**
+   * Liquidator wallet address. Required: it is encoded into the transaction
+   * as the receiver of the seized collateral.
+   **/
+  liquidator: Address;
+  /**
+   * Block to read at. Defaults to the latest block.
+   **/
+  blockNumber?: bigint;
+}
+
+/**
+ * Props for {@link LiquidationsService.buildPartialLiquidationTx}.
+ *
+ * {@link BlockNumberProps.blockNumber} is kept on the multichain form because
+ * the method already targets a single {@link MultichainNetworkProps.network}.
+ **/
+export type BuildPartialLiquidationTxProps<Multichain extends boolean = false> =
+  BuildPartialLiquidationTxPropsBase &
+    WithMultichain<Multichain, MultichainNetworkProps>;
+
+/**
  * Chain-independent part of {@link GetLiquidationPositionsProps}.
  **/
 export interface GetLiquidationPositionsPropsBase {
@@ -147,8 +209,10 @@ export type GetLiquidationPositionsProps<Multichain extends boolean = false> =
     WithMultichain<Multichain, MultichainChainIdsProps>;
 
 /**
- * Partial liquidation parameters a caller wants to pin down instead of letting
- * {@link LiquidationsService.getPartialLiquidationParams} derive them.
+ * Partial liquidation parameters used by
+ * {@link LiquidationsService.getPartialLiquidationDetails} and
+ * {@link LiquidationsService.buildPartialLiquidationTx}. A caller can pin
+ * down any of them instead of letting them be derived from current state.
  *
  * @remarks
  * The defaults are derived in order - `optimalHF` feeds `repaidAmount`, which
@@ -158,28 +222,36 @@ export type GetLiquidationPositionsProps<Multichain extends boolean = false> =
 export interface PartialLiquidationParams {
   /**
    * Collateral token to seize.
-   * If omitted, the most valuable enabled non-underlying collateral token
+   * Defaults to the most valuable enabled non-underlying collateral token
    * (by oracle), excluding withdrawal phantom tokens
    */
-  tokenOut?: Address;
+  tokenOut: Address;
   /**
-   * Amount of underlying token to repay.
-   * If omitted, computed internally
+   * Amount of underlying the liquidator pays; the credit manager transfers it
+   * from the wallet.
+   *
+   * Defaults to the amount that brings the account close to `optimalHF`.
    */
-  repaidAmount?: bigint;
+  repaidAmount: bigint;
   /**
    * Minimum amount of `token` to seize from `creditAccount`.
    * If `token` is a phantom token, it's withdrawn first, and its `depositedToken` is then sent to the liquidator.
    * In this case, `minSeizedAmount` is denominated in `depositedToken`.
-   * If omitted, computed internally.
+   * Computed internally by default.
    */
-  minSeizedAmount?: bigint;
+  minSeizedAmount: bigint;
   /**
    * Target health factor for partial liquidation (4 digits precision, 10000 = 100%).
-   * If omitted, defaults to {@link CreditSuite.optimalHFForPartialLiquidation}.
-   * Only used when `repaidAmount` is not explicitly provided.
+   * Defaults to {@link CreditSuite.optimalHFForPartialLiquidation}.
    */
-  optimalHF?: bigint;
+  optimalHF: bigint;
+  /**
+   * `false` when the account is neither unhealthy nor expired, when no
+   * repayment reaches `optimalHF` without leaving less than the minimum debt
+   * on the account, or when the account is already there. Computed for the
+   * resolved `tokenOut` even when `repaidAmount` was overridden.
+   **/
+  isPartiallyLiquidatable: boolean;
 }
 
 /**

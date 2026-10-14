@@ -25,6 +25,29 @@ export function creditAccountFrozen(
 }
 
 /**
+ * This credit account is neither unhealthy nor expired, no partial liquidation
+ * brings it to the target health factor without leaving it with less than the
+ * minimum debt, or it is already at that health factor.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
+ **/
+export interface PartialLiquidationImpossibleError extends IGearboxError {
+  code: "partialLiquidationImpossible";
+  creditAccount: Address;
+}
+
+/** {@inheritDoc PartialLiquidationImpossibleError} */
+export function partialLiquidationImpossible(
+  creditAccount: Address,
+): PartialLiquidationImpossibleError {
+  return {
+    code: "partialLiquidationImpossible",
+    message: `Credit account ${creditAccount} cannot be partially liquidated.`,
+    creditAccount,
+  };
+}
+
+/**
  * The market is paused and `liquidator` is not one of its emergency liquidators,
  * so a liquidation would revert.
  *

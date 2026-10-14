@@ -22,7 +22,6 @@ import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 import type { AccountBotsService } from "./bots/index.js";
 import type { GetCreditAccountsOptions } from "./credit-account-compressor/index.js";
-import type { PartialLiquidationParams } from "./liquidations/index.js";
 import type {
   ClaimableWithdrawal,
   RequestableWithdrawal,
@@ -291,17 +290,6 @@ export interface FullyLiquidateProps {
   debtOnly?: boolean;
 }
 
-export interface PartiallyLiquidateProps extends PartialLiquidationParams {
-  /**
-   * Credit account to liquidate
-   */
-  account: CreditAccountData;
-  /**
-   * Address to transfer underlying left after liquidation
-   */
-  to: Address;
-}
-
 /**
  * Claimable reward tokens associated with a single staking adapter and phantom token pair.
  **/
@@ -445,19 +433,6 @@ export interface ICreditAccountsService extends Construct {
    * @returns Transaction data and optional loss policy data
    */
   fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
-
-  /**
-   * Generates transaction to partially liquidate credit account;
-   *
-   * Transaction partially liquidates credit account's debt in exchange for discounted collateral
-   * by transferring underlying from the caller (requires approval to the credit manager) and uses it to repay
-   * account's debt and pay fees to the treasury
-   * Transfers chosen collateral token at discounted oracle price to the liquidator
-   *
-   * @param props - {@link PartiallyLiquidateProps}
-   * @returns Raw transaction ready to be signed and sent
-   */
-  partiallyLiquidate(props: PartiallyLiquidateProps): Promise<RawTx>;
 
   /**
    * Builds close multicall calls without price feed updates: close path swaps,

@@ -108,4 +108,5 @@ export const liquidationDetailsSchema = z.object({
   kycProtocol: z.string().optional(),
   kycToken: tokenSchema.optional(),
   approve: liquidationApprovalSchema.optional(),
+  isPartiallyLiquidatable: z.boolean().optional(),
 });

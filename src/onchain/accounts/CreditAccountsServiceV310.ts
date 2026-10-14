@@ -49,7 +49,6 @@ import type {
   GetApprovalAddressProps,
   ICreditAccountsService,
   OpenCAProps,
-  PartiallyLiquidateProps,
   PreviewDelayedWithdrawalProps,
   Rewards,
 } from "./types.js";
@@ -226,28 +225,6 @@ export class CreditAccountsServiceV310
       lossPolicyData,
       creditFacade: cm.creditFacade,
     };
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.partiallyLiquidate}
-   */
-  public async partiallyLiquidate(
-    props: PartiallyLiquidateProps,
-  ): Promise<RawTx> {
-    const { account, to } = props;
-    const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const { tokenOut, repaidAmount, minSeizedAmount } =
-      this.sdk.liquidations.getPartialLiquidationParams(account, props);
-
-    const updates = await this.getOnDemandPriceUpdates(account, true);
-    return cm.creditFacade.partiallyLiquidateCreditAccount(
-      account.creditAccount,
-      tokenOut,
-      repaidAmount,
-      minSeizedAmount,
-      to,
-      updates,
-    );
   }
 
   /**
