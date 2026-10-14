@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type {
   LiquidatableAccount,
@@ -50,6 +50,8 @@ import { skipLiquidatableAccount } from "./skipLiquidatableAccount.js";
 import type {
   BuildLiquidationTxProps,
   BuildPartialLiquidationTxProps,
+  FullyLiquidateProps,
+  FullyLiquidateResult,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
@@ -171,6 +173,57 @@ export class LiquidationsService extends SDKConstruct {
     // facade or a dedicated liquidator contract with its own function
     // signature, so the calldata is passed through as-is
     return { to: liquidationCall.target, callData: liquidationCall.callData };
+  }
+
+  /**
+   * Builds the transaction that fully liquidates a credit account, repaying
+   * the debt by swapping the account's own collateral through the router.
+   * The underlying left after the swaps is sent to `to`.
+   **/
+  public async fullyLiquidate(
+    props: FullyLiquidateProps,
+  ): Promise<FullyLiquidateResult> {
+    const {
+      account,
+      to,
+      slippage = 50n,
+      keepAssets,
+      ignoreReservePrices,
+      applyLossPolicy,
+      debtOnly,
+    } = props;
+    const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
+    const routerCloseResult = await this.sdk
+      .routerFor(account)
+      .findBestClosePath({
+        creditAccount: account,
+        creditManager: cm.creditManager,
+        slippage,
+        keepAssets,
+        debtOnly,
+      });
+    const calls = await this.sdk.accounts.prependPriceUpdates(
+      account.creditManager,
+      routerCloseResult.calls,
+      account,
+      { ignoreReservePrices },
+    );
+
+    let lossPolicyData: Hex | undefined;
+    if (applyLossPolicy) {
+      lossPolicyData = await cm.market.lossPolicy.getLiquidationData(
+        account.creditAccount,
+      );
+      this.logger?.debug({ lossPolicyData }, "loss policy data");
+    }
+
+    const tx = cm.creditFacade.liquidateCreditAccount(
+      account.creditAccount,
+      to,
+      calls,
+      lossPolicyData,
+    );
+    return { tx, calls, routerCloseResult };
   }
 
   /**

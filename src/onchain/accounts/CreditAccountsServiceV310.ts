@@ -44,8 +44,6 @@ import type {
   AssembleRepayCreditAccountCallsProps,
   AssembleStartDelayedWithdrawalCallsProps,
   ClaimFarmRewardsProps,
-  FullyLiquidateProps,
-  FullyLiquidateResult,
   GetApprovalAddressProps,
   ICreditAccountsService,
   OpenCAProps,
@@ -167,64 +165,6 @@ export class CreditAccountsServiceV310
     }, {});
 
     return Object.values(r);
-  }
-
-  /**
-   * {@inheritDoc ICreditAccountsService.fullyLiquidate}
-   **/
-  public async fullyLiquidate(
-    props: FullyLiquidateProps,
-  ): Promise<FullyLiquidateResult> {
-    const {
-      account,
-      to,
-      slippage = 50n,
-      keepAssets,
-      ignoreReservePrices,
-      applyLossPolicy,
-      debtOnly,
-    } = props;
-    const cm = this.sdk.marketRegister.findCreditManager(account.creditManager);
-    const routerCloseResult = await this.sdk
-      .routerFor(account)
-      .findBestClosePath({
-        creditAccount: account,
-        creditManager: cm.creditManager,
-        slippage,
-        keepAssets,
-        debtOnly,
-      });
-    const calls = await this.prependPriceUpdates(
-      account.creditManager,
-      routerCloseResult.calls,
-      account,
-      { ignoreReservePrices },
-    );
-
-    let lossPolicyData: Hex | undefined;
-    if (applyLossPolicy) {
-      const market = this.sdk.marketRegister.findByCreditManager(
-        account.creditManager,
-      );
-      lossPolicyData = await market.lossPolicy.getLiquidationData(
-        account.creditAccount,
-      );
-      this.logger?.debug({ lossPolicyData }, "loss policy data");
-    }
-
-    const tx = cm.creditFacade.liquidateCreditAccount(
-      account.creditAccount,
-      to,
-      calls,
-      lossPolicyData,
-    );
-    return {
-      tx,
-      calls,
-      routerCloseResult,
-      lossPolicyData,
-      creditFacade: cm.creditFacade,
-    };
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Address } from "viem";
 import type {
   DelayedIntent,
   RWAOpenAccountRequirements,
@@ -18,7 +18,7 @@ import type {
 } from "../market/index.js";
 import type { GetOpenAccountRequirementsProps } from "../market/rwa/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
-import type { RouterCASlice, RouterCloseResult } from "../router/index.js";
+import type { RouterCASlice } from "../router/index.js";
 import type { MultiCall, RawTx } from "../types/index.js";
 import type { AccountBotsService } from "./bots/index.js";
 import type { GetCreditAccountsOptions } from "./credit-account-compressor/index.js";
@@ -26,26 +26,6 @@ import type {
   ClaimableWithdrawal,
   RequestableWithdrawal,
 } from "./withdrawal-compressor/index.js";
-
-/**
- * Result of closing or liquidating a credit account, including the router's optimal close path.
- **/
-export interface CloseCreditAccountResult extends CreditAccountOperationResult {
-  /**
-   * Router result describing the swap path used to convert account tokens into the underlying.
-   **/
-  routerCloseResult: RouterCloseResult;
-}
-
-/**
- * Result of a full liquidation, extending the close result with optional loss policy data.
- **/
-export interface FullyLiquidateResult extends CloseCreditAccountResult {
-  /**
-   * Encoded loss policy data submitted with the liquidation, if a loss policy was applied.
-   **/
-  lossPolicyData?: Hex;
-}
 
 /**
  * Result of a credit account operation, containing everything needed to execute the transaction.
@@ -259,37 +239,6 @@ export interface OpenCAProps extends PrepareUpdateQuotasProps {
   rwaOptions?: RWAOperationArgs;
 }
 
-export interface FullyLiquidateProps {
-  /**
-   * Credit account to liquidate
-   */
-  account: RouterCASlice;
-  /**
-   * Address to transfer underlying left after liquidation
-   */
-  to: Address;
-  /**
-   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
-   */
-  slippage?: bigint;
-  /**
-   * List of assets to keep on account after liquidation
-   */
-  keepAssets?: Address[];
-  /**
-   * If true, will ignore reserve prices
-   */
-  ignoreReservePrices?: boolean;
-  /**
-   * If true, will try to apply loss policy
-   */
-  applyLossPolicy?: boolean;
-  /**
-   * Debt only mode — will try to sell just enough of the most valuable token to cover debt.
-   */
-  debtOnly?: boolean;
-}
-
 /**
  * Claimable reward tokens associated with a single staking adapter and phantom token pair.
  **/
@@ -426,13 +375,6 @@ export interface ICreditAccountsService extends Construct {
    * @returns {Array<Rewards>} list of {@link Rewards} that can be claimed
    */
   getRewards(creditAccount: Address): Promise<Array<Rewards>>;
-
-  /**
-   * Generates transaction to liquidate credit account
-   * @param props - {@link FullyLiquidateProps}
-   * @returns Transaction data and optional loss policy data
-   */
-  fullyLiquidate(props: FullyLiquidateProps): Promise<FullyLiquidateResult>;
 
   /**
    * Builds close multicall calls without price feed updates: close path swaps,

@@ -1,10 +1,13 @@
 import type { Address, ContractFunctionReturnType } from "viem";
 import type { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type { LiquidatableAccountFilter } from "../../../model/index.js";
+import type { RouterCASlice, RouterCloseResult } from "../../router/index.js";
 import type {
   BlockNumberProps,
+  MultiCall,
   MultichainChainIdsProps,
   MultichainNetworkProps,
+  RawTx,
   WithBlock,
   WithMultichain,
 } from "../../types/index.js";
@@ -123,6 +126,58 @@ export interface BuildLiquidationTxPropsBase {
 export type BuildLiquidationTxProps<Multichain extends boolean = false> =
   BuildLiquidationTxPropsBase &
     WithMultichain<Multichain, MultichainNetworkProps>;
+
+/**
+ * Props for {@link LiquidationsService.fullyLiquidate}.
+ **/
+export interface FullyLiquidateProps {
+  /**
+   * Credit account to liquidate
+   */
+  account: RouterCASlice;
+  /**
+   * Address to transfer underlying left after liquidation
+   */
+  to: Address;
+  /**
+   * Slippage in PERCENTAGE_FORMAT (100% = 10_000) per operation
+   */
+  slippage?: bigint;
+  /**
+   * List of assets to keep on account after liquidation
+   */
+  keepAssets?: Address[];
+  /**
+   * If true, will ignore reserve prices
+   */
+  ignoreReservePrices?: boolean;
+  /**
+   * If true, will try to apply loss policy
+   */
+  applyLossPolicy?: boolean;
+  /**
+   * Debt only mode — will try to sell just enough of the most valuable token to cover debt.
+   */
+  debtOnly?: boolean;
+}
+
+/**
+ * Result of {@link LiquidationsService.fullyLiquidate}.
+ **/
+export interface FullyLiquidateResult {
+  /**
+   * Raw transaction data ready to be signed and submitted.
+   **/
+  tx: RawTx;
+  /**
+   * Multicall entries passed to the credit facade, price updates included.
+   **/
+  calls: Array<MultiCall>;
+  /**
+   * Router result describing the swap path used to convert account tokens into the underlying.
+   **/
+  routerCloseResult: RouterCloseResult;
+}
 
 /**
  * Chain-independent part of {@link GetPartialLiquidationDetailsProps}.
