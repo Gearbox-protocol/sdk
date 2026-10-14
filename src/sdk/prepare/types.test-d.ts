@@ -21,8 +21,11 @@ import type {
   PoolPausedError,
   PoolSunsetError,
   PositionCollateral,
+  QuotaAboveMaxError,
   QuotaCountExceededError,
+  QuotaInactiveError,
   QuotaLimitReachedError,
+  QuotaUnchangedError,
   ReservePriceLimitedError,
   SDKReturn,
   UnexpectedFailureError,
@@ -210,6 +213,31 @@ describe("every prepare method names exactly its own errors", () => {
     >();
   });
 
+  it("updateQuota: the account-flow guards plus the quota update's own codes", () => {
+    expectTypeOf<Awaited<ReturnType<P["updateQuota"]>>>().toEqualTypeOf<
+      SDKReturn<
+        StrategyResult,
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | ReservePriceLimitedError
+          | InsufficientBalanceError
+          | CreditAccountNotFoundError
+          | UnexpectedFailureError
+          | DebtOutOfRangeError
+          | UnsupportedCollateralTokenError
+          | QuotaInactiveError
+          | QuotaUnchangedError
+          | QuotaAboveMaxError
+        ) &
+          WithPartialState<OperationState>
+      >
+    >();
+  });
+
   it("withdrawStrategy: the two-route flow, every error carrying `errors`", () => {
     expectTypeOf<Awaited<ReturnType<P["withdrawStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
@@ -302,6 +330,7 @@ describe("the preview-only codes appear in no prepare union", () => {
     | ErrorOf<Awaited<ReturnType<P["repayStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["addCollateral"]>>>
     | ErrorOf<Awaited<ReturnType<P["withdrawCollateral"]>>>
+    | ErrorOf<Awaited<ReturnType<P["updateQuota"]>>>
     | ErrorOf<Awaited<ReturnType<P["withdrawStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["adjustLeverage"]>>>
     | ErrorOf<Awaited<ReturnType<P["finalize"]>>>;

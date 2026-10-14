@@ -19,7 +19,10 @@ import type {
   PoolOpportunityKey,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  QuotaAboveMaxError,
+  QuotaInactiveError,
   QuotaLimitReachedError,
+  QuotaUnchangedError,
   ReservePriceLimitedError,
   SDKReturn,
   StrategyOpportunityKey,
@@ -472,6 +475,16 @@ export interface WithdrawCollateralParams extends PrepareOptions {
   amount: bigint;
   /** Wallet receiving the tokens. */
   to: Address;
+}
+
+export interface UpdateQuotaParams extends PrepareOptions {
+  /** Collateral token on the account, other than the underlying. */
+  token: Address;
+  /**
+   * Target quota in underlying units; 0 disables it. Omit to size it to the
+   * balance: its value in underlying × LT, raised by `quotaReserve`.
+   **/
+  quota?: bigint;
 }
 
 export interface OpenStrategyParams extends PrepareOptions {
@@ -1007,6 +1020,34 @@ export interface IOpportunitiesPrepare {
     SDKReturn<
       StrategyResult,
       AccountFlowError & WithPartialState<OperationState>
+    >
+  >;
+
+  /**
+   * Changing the quota of one token the account already holds, at fixed debt
+   * and balances: how much of it counts as collateral, and the quota fee paid
+   * for it.
+   *
+   * A target is sent strictly, so the transaction reverts rather than end
+   * below it. An omitted target is sized to the balance and capped at the
+   * pool's available quota; the call then accepts a partial fill that keeps the
+   * token enabled.
+   **/
+  updateQuota(
+    position: PositionInput,
+    params: UpdateQuotaParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | QuotaInactiveError
+        | QuotaUnchangedError
+        | QuotaAboveMaxError
+      ) &
+        WithPartialState<OperationState>
     >
   >;
 

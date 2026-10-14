@@ -33,12 +33,17 @@ const DEFAULT_ASSETS: Asset[] = [
 ];
 const DEFAULT_DEBT = toBN("156552", 18);
 const WETH_QUOTA: Asset = { balance: toBN(String(1750 * 10), 18), token: WETH };
+/** Above anything the WETH balances below are worth, so it never caps them. */
+const UNCAPPED_WETH_QUOTA: Asset = {
+  balance: toBN("1000000", 18),
+  token: WETH,
+};
 
 function snapshot(partial: Partial<AccountSnapshot> = {}): AccountSnapshot {
   return {
     creditManager: DAI,
     assets: DEFAULT_ASSETS,
-    quotas: [],
+    quotas: [UNCAPPED_WETH_QUOTA],
     totalDebt: DEFAULT_DEBT,
     totalValue: DEFAULT_DEBT,
     ...partial,
@@ -124,6 +129,14 @@ describe("calcHealthFactor", () => {
 
   it("health factor with disabled quota matches legacy", () => {
     expect(hf({ quotas: [WETH_QUOTA] }, { activeQuotas: {} })).toBe(9300);
+  });
+
+  it("values a quoted token the account holds no quota for at nothing", () => {
+    expect(hf({ quotas: [] })).toBe(9300);
+  });
+
+  it("values a token the market takes no quota for at its LT alone", () => {
+    expect(hf({ quotas: [] }, { activeQuotas: {} })).toBe(10244);
   });
 
   it("ignores leftover token balances at or below the dust threshold", () => {

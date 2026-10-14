@@ -46,6 +46,7 @@ import {
   planAdjustLeverageDelayed,
   planDeposit,
   planRepay,
+  planUpdateQuota,
   planWithdraw,
   planWithdrawAsset,
   planWithdrawDelayed,
@@ -101,6 +102,7 @@ export type {
   ResumableIntent,
   RouteErrors,
   StartIntent,
+  UpdateQuotaIntent,
   WithdrawAssetIntent,
   WithdrawCeilings,
   WithdrawStrategyIntent,
@@ -202,6 +204,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
               return planRepay(intent, view);
             case "WITHDRAW":
               return planWithdraw(intent, view);
+            case "UPDATE_QUOTA":
+              return planUpdateQuota(intent, view);
             default: {
               // disposition(D1-S6): kept — unreachable invariant behind the
               // typed StartIntent union; no caller input reaches it.

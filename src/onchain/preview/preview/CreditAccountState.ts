@@ -1,4 +1,5 @@
 import { type Address, zeroAddress } from "viem";
+import { roundUpQuota } from "../../accounts/quota-utils.js";
 import { DUST_THRESHOLD, MIN_INT96 } from "../../constants/math.js";
 import type { CreditAccountData } from "../../index.js";
 import type { AccountSnapshot } from "../../positions/types.js";
@@ -163,7 +164,8 @@ export class CreditAccountState {
   /**
    * Applies a relative `updateQuota` change to the token's quota:
    * `MIN_INT96` is the facade "disable quota" sentinel and zeroes it, other
-   * changes are added with the result clamped at zero (quotas cannot go
+   * changes are rounded toward zero to a `PERCENTAGE_FACTOR` step, as the
+   * facade does, and added with the result clamped at zero (quotas cannot go
    * negative on-chain).
    */
   public updateQuota(token: Address, change: bigint): void {
@@ -171,7 +173,7 @@ export class CreditAccountState {
       this.quotas.upsert(token, 0n);
       return;
     }
-    const next = this.quotas.getOrZero(token) + change;
+    const next = this.quotas.getOrZero(token) + roundUpQuota(change);
     this.quotas.upsert(token, next > 0n ? next : 0n);
   }
 }

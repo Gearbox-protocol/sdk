@@ -887,6 +887,37 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(shrunk.state.totalValue.value).toBe(TVL - 10000000000n);
   });
 
+  it("updateQuota moves one quota and nothing else", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const result = await api.updateQuota(position, {
+      token: POS,
+      quota: 60000000000n,
+    });
+    const prepared = plan(result);
+
+    expect(prepared.operations).toMatchObject([
+      {
+        type: "changeQuota",
+        quotaIncrease: [],
+        quotaDecrease: [{ token: POS, balance: 60000000000n - QUOTA }],
+      },
+    ]);
+    expect(prepared.state.totalDebt.value).toBe(DEBT);
+    expect(prepared.state.totalValue.value).toBe(TVL);
+    expect(prepared.state.quotas).toMatchObject([{ value: 60000000000n }]);
+  });
+
+  it("updateQuota with the quota omitted refuses one already sized", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const result = await api.updateQuota(position, { token: POS });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("quotaUnchanged");
+  });
+
   it("reports a market with no target collateral rather than throwing", async () => {
     const { api, sdk, strategy } = buildStrategyApi();
     vi.spyOn(sdk.marketRegister, "findCreditManager").mockReturnValue({
