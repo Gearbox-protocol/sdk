@@ -48,7 +48,7 @@ export const MERKL_API_KEY_HEADER = "X-API-Key";
  * Merkl has no timeout of its own, and a hung connection would otherwise stall
  * its leg of a fan-out for as long as the socket lives.
  */
-const TIMEOUT = 10_000;
+const TIMEOUT = 30_000;
 
 export interface FetchMerklUserRewardsProps {
   chainId: ChainId;
