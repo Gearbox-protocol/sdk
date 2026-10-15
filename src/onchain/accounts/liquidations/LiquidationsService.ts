@@ -147,6 +147,7 @@ export class LiquidationsService extends SDKConstruct {
         ? undefined
         : this.sdk.tokensMeta.getToken(data.kycToken),
       approve: this.#liquidationApproval(data, suite, priceOracle),
+      isPartial: false,
     };
   }
 
@@ -290,6 +291,7 @@ export class LiquidationsService extends SDKConstruct {
               ),
             },
       isPartiallyLiquidatable,
+      isPartial: true,
     };
   }
 
@@ -726,7 +728,24 @@ export class LiquidationsService extends SDKConstruct {
       ),
       paused: suite.creditFacade.isPaused,
       rwa: market.rwa,
+      isPartiallyLiquidatable: this.#isPartiallyLiquidatable(ca, suite),
     };
+  }
+
+  #isPartiallyLiquidatable(ca: CreditAccountData, suite: CreditSuite): boolean {
+    if (suite.market.rwa) {
+      return false;
+    }
+    try {
+      return this.#getPartialLiquidationParams(ca, suite, {})
+        .isPartiallyLiquidatable;
+    } catch (e) {
+      this.logger?.debug(
+        e,
+        `credit account ${this.labelAddress(ca.creditAccount)} cannot be partially liquidated`,
+      );
+      return false;
+    }
   }
 
   // requires the compressor's withdrawable assets cache to be loaded

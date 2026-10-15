@@ -3,8 +3,9 @@ import type { PartialLiquidationImpossibleError } from "../../../model/index.js"
 import { partialLiquidationImpossible } from "../../../model/index.js";
 
 export interface PartiallyLiquidatableArgs {
-  /** `undefined` for full liquidations, which this check does not concern. */
-  partiallyLiquidatable?: boolean;
+  /** `false` for full liquidations, which this check does not concern. */
+  isPartial: boolean;
+  partiallyLiquidatable: boolean;
   creditAccount: Address;
 }
 
@@ -15,7 +16,7 @@ export interface PartiallyLiquidatableArgs {
 export function checkPartiallyLiquidatable(
   args: PartiallyLiquidatableArgs,
 ): PartialLiquidationImpossibleError[] {
-  return args.partiallyLiquidatable === false
+  return args.isPartial && !args.partiallyLiquidatable
     ? [partialLiquidationImpossible(args.creditAccount)]
     : [];
 }

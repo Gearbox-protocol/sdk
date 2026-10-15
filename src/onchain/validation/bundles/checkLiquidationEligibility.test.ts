@@ -40,6 +40,8 @@ function details(over: Partial<LiquidationDetails> = {}): LiquidationDetails {
     paused: false,
     isCreditAccountFrozen: false,
     isLiquidatorEligible: true,
+    isPartial: false,
+    isPartiallyLiquidatable: true,
     ...over,
   } as unknown as LiquidationDetails;
 }
@@ -69,22 +71,32 @@ describe("checkLiquidationEligibility", () => {
     expect(
       codesOf({
         sdk: sdk(),
-        details: details({ isPartiallyLiquidatable: false }),
+        details: details({ isPartial: true, isPartiallyLiquidatable: false }),
         liquidator: STRANGER,
       }),
     ).toEqual(["partialLiquidationImpossible"]);
   });
 
-  it("leaves full liquidations and possible partial ones alone", () => {
-    for (const isPartiallyLiquidatable of [true, undefined]) {
+  it("leaves full liquidations alone whether or not a partial one is possible", () => {
+    for (const isPartiallyLiquidatable of [true, false]) {
       expect(
         codesOf({
           sdk: sdk(),
-          details: details({ isPartiallyLiquidatable }),
+          details: details({ isPartial: false, isPartiallyLiquidatable }),
           liquidator: STRANGER,
         }),
       ).toEqual([]);
     }
+  });
+
+  it("leaves possible partial liquidations alone", () => {
+    expect(
+      codesOf({
+        sdk: sdk(),
+        details: details({ isPartial: true, isPartiallyLiquidatable: true }),
+        liquidator: STRANGER,
+      }),
+    ).toEqual([]);
   });
 
   it("refuses a paused market to anyone but its emergency liquidators", () => {
@@ -157,6 +169,7 @@ describe("checkLiquidationEligibility", () => {
         sdk: sdk(),
         details: details({
           isCreditAccountFrozen: true,
+          isPartial: true,
           isPartiallyLiquidatable: false,
           paused: true,
           isLiquidatorEligible: false,

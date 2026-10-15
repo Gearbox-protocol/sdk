@@ -102,6 +102,16 @@ export interface LiquidatableAccount extends CreditOperationMarket {
    * from a hardcoded per-chain list rather than from the chain.
    **/
   rwa: boolean;
+  /**
+   * Whether the account can be partially liquidated with default parameters.
+   * `false` for RWA markets, for accounts without seizable non-underlying
+   * collateral, for accounts that are neither unhealthy nor expired, and when
+   * no partial liquidation brings the account to the target health factor
+   * without leaving it with less than the minimum debt.
+   *
+   * A local estimate, not onchain read.
+   **/
+  isPartiallyLiquidatable: boolean;
 }
 
 /**
@@ -287,10 +297,9 @@ export interface LiquidationDetails extends LiquidatableAccount {
    **/
   approve?: LiquidationApproval;
   /**
-   * Partial liquidations only: `false` when the account is neither unhealthy
-   * nor expired, when no partial liquidation brings it to the target health
-   * factor without leaving it with less than the minimum debt, or when it is
-   * already there. `undefined` for full liquidations.
+   * `true` for the details of a partial liquidation, whose
+   * {@link LiquidatableAccount.isPartiallyLiquidatable} reflects the
+   * parameters it was requested with.
    **/
-  isPartiallyLiquidatable?: boolean;
+  isPartial: boolean;
 }

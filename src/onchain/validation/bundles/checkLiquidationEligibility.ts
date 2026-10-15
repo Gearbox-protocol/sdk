@@ -43,6 +43,7 @@ export function checkLiquidationEligibility(
       creditAccount: details.creditAccount,
     }),
     ...checkPartiallyLiquidatable({
+      isPartial: details.isPartial,
       partiallyLiquidatable: details.isPartiallyLiquidatable,
       creditAccount: details.creditAccount,
     }),

@@ -80,6 +80,7 @@ describe("partially liquidate credit account", () => {
       creditAccount: CREDIT_ACCOUNT,
     });
     expect(details).toMatchObject({
+      isPartial: true,
       isPartiallyLiquidatable: true,
       approve: {
         spender: cm.creditManager.address,
