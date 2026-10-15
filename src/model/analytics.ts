@@ -47,7 +47,6 @@ export type AnalyticsPositionSortField =
   | "totalValueUsd"
   | "totalDebtUsd"
   | "pnlUsd"
-  | "apy"
   | "healthFactor";
 
 /** Direction of one analytics list ordering. */

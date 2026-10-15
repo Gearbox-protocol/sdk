@@ -40,7 +40,6 @@ export const analyticsPositionSortFieldSchema = z.enum([
   "totalValueUsd",
   "totalDebtUsd",
   "pnlUsd",
-  "apy",
   "healthFactor",
 ]);
 
