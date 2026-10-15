@@ -65,16 +65,15 @@ export interface GetLiquidationDetailsPropsBase {
    **/
   creditAccount: Address;
   /**
-   * Liquidator wallet address, used by the liquidation compressor to check
-   * KYC eligibility. When omitted, the zero address is used: amounts and
-   * received assets are unaffected, but {@link LiquidationDetails.isLiquidatorEligible}
-   * then only tells whether the liquidation is KYC-gated at all
-   * (see {@link LiquidationDetails.kycProtocol}).
+   * Liquidator wallet address, used to check KYC eligibility. Amounts and
+   * received assets are unaffected. When omitted,
+   * {@link LiquidationDetails.isLiquidatorEligible} only tells whether the
+   * liquidation is KYC-gated at all (see {@link LiquidationDetails.kycProtocol}).
    **/
   liquidator?: Address;
   /**
    * If true, reserve price feed updates are excluded from the price updates
-   * applied by the compressor before computing amounts.
+   * applied before computing amounts.
    **/
   ignoreReservePrices?: boolean;
   /**
@@ -108,7 +107,7 @@ export interface BuildLiquidationTxPropsBase {
   liquidator: Address;
   /**
    * If true, reserve price feed updates are excluded from the price updates
-   * applied by the compressor before building the transaction.
+   * applied before building the transaction.
    **/
   ignoreReservePrices?: boolean;
   /**
@@ -186,16 +185,8 @@ export interface FullyLiquidateResult {
  * {@link PartialLiquidationParams}.
  **/
 export interface GetPartialLiquidationDetailsPropsBase
-  extends Partial<PartialLiquidationParams> {
-  /**
-   * Credit account to partially liquidate.
-   **/
-  creditAccount: Address;
-  /**
-   * Block to read at. Defaults to the latest block.
-   **/
-  blockNumber?: bigint;
-}
+  extends GetLiquidationDetailsPropsBase,
+    Partial<PartialLiquidationParams> {}
 
 /**
  * Props for {@link LiquidationsService.getPartialLiquidationDetails}.
@@ -215,21 +206,8 @@ export type GetPartialLiquidationDetailsProps<
  * {@link PartialLiquidationParams}.
  **/
 export interface BuildPartialLiquidationTxPropsBase
-  extends Partial<PartialLiquidationParams> {
-  /**
-   * Credit account to partially liquidate.
-   **/
-  creditAccount: Address;
-  /**
-   * Liquidator wallet address. Required: it is encoded into the transaction
-   * as the receiver of the seized collateral.
-   **/
-  liquidator: Address;
-  /**
-   * Block to read at. Defaults to the latest block.
-   **/
-  blockNumber?: bigint;
-}
+  extends BuildLiquidationTxPropsBase,
+    Partial<PartialLiquidationParams> {}
 
 /**
  * Props for {@link LiquidationsService.buildPartialLiquidationTx}.
@@ -278,7 +256,8 @@ export interface PartialLiquidationParams {
   /**
    * Collateral token to seize.
    * Defaults to the most valuable enabled non-underlying collateral token
-   * (by oracle), excluding withdrawal phantom tokens
+   * (by oracle), excluding withdrawal phantom tokens and phantom tokens that
+   * unwrap to the underlying
    */
   tokenOut: Address;
   /**

@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import { type Address, type Hex, isAddressEqual } from "viem";
 import { iLiquidationCompressorV313Abi } from "../../../abi/ILiquidationCompressorV313.js";
 import type {
   LiquidatableAccount,
@@ -232,16 +232,17 @@ export class LiquidationsService extends SDKConstruct {
    * full one: what the liquidator pays, what it receives and what it must
    * approve, plus {@link LiquidationDetails.isPartiallyLiquidatable}.
    *
-   * A local estimate from the synced oracle state, without fresh price
-   * updates. Parameters left out of `props` are derived from current state.
+   * A local estimate, not onchain read: no price feed updates are applied, so
+   * `ignoreReservePrices` has no effect here.
+   * Parameters left out of `props` are derived from current state.
    *
-   * @throws For RWA markets, for a withdrawal phantom `tokenOut`, and when no
-   * `tokenOut` can be picked.
+   * @throws For markets with a wrapped RWA underlying (Securitize), for a
+   * `tokenOut` that cannot be seized, and when no `tokenOut` can be picked.
    **/
   public async getPartialLiquidationDetails(
     props: GetPartialLiquidationDetailsProps,
   ): Promise<LiquidationDetails> {
-    const { creditAccount, blockNumber } = props;
+    const { creditAccount, liquidator, blockNumber } = props;
     const ca = await this.#getCreditAccountData(creditAccount, blockNumber);
     const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const { priceOracle } = suite.market;
@@ -257,6 +258,19 @@ export class LiquidationsService extends SDKConstruct {
       (priceOracle.convert(underlying, tokenOut, repaidAmount) *
         PERCENTAGE_FACTOR) /
       BigInt(liquidationDiscount);
+
+    // the facade sends the seized token to the liquidator, and a Midas mToken
+    // behind a degen NFT moves only between greenlisted holders
+    const nft = await suite.degenNFT();
+    let isLiquidatorEligible = !nft;
+    if (nft && liquidator) {
+      const requirements = await nft.getOpenAccountRequirements(liquidator, {
+        tokenOutAddress: tokenOut,
+      });
+      isLiquidatorEligible = nft.isRegistered(requirements);
+    }
+    const [kycToken] =
+      nft && !isLiquidatorEligible ? await nft.getTokens() : [];
 
     return {
       ...this.#buildAccount(ca, suite),
@@ -275,7 +289,9 @@ export class LiquidationsService extends SDKConstruct {
           ),
         },
       ],
-      isLiquidatorEligible: true,
+      isLiquidatorEligible,
+      kycProtocol: isLiquidatorEligible ? undefined : nft?.protocol,
+      kycToken: kycToken ? this.sdk.tokensMeta.getToken(kycToken) : undefined,
       isCreditAccountFrozen: false,
       approve:
         repaidAmount === 0n
@@ -301,14 +317,16 @@ export class LiquidationsService extends SDKConstruct {
    * discounted collateral sent to the liquidator. Parameters left out of
    * `props` are derived from current state.
    *
-   * @throws For RWA markets, for a withdrawal phantom `tokenOut`, when no
-   * `tokenOut` can be picked, and when the account cannot be partially
-   * liquidated, see {@link LiquidationDetails.isPartiallyLiquidatable}.
+   * @throws For markets with a wrapped RWA underlying (Securitize), for a
+   * `tokenOut` that cannot be seized, when no `tokenOut` can be picked, and
+   * when the account cannot be partially liquidated, see
+   * {@link LiquidationDetails.isPartiallyLiquidatable}.
    **/
   public async buildPartialLiquidationTx(
     props: BuildPartialLiquidationTxProps,
   ): Promise<TxCall> {
-    const { creditAccount, liquidator, blockNumber } = props;
+    const { creditAccount, liquidator, ignoreReservePrices, blockNumber } =
+      props;
     const ca = await this.#getCreditAccountData(creditAccount, blockNumber);
     const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     const params = this.#getPartialLiquidationParams(ca, suite, props);
@@ -317,7 +335,10 @@ export class LiquidationsService extends SDKConstruct {
         `credit account ${this.labelAddress(creditAccount)} cannot be partially liquidated`,
       );
     }
-    const updates = await this.sdk.accounts.getOnDemandPriceUpdates(ca, true);
+    const updates = await this.sdk.accounts.getOnDemandPriceUpdates(
+      ca,
+      ignoreReservePrices,
+    );
     const tx = suite.creditFacade.partiallyLiquidateCreditAccount(
       ca.creditAccount,
       params.tokenOut,
@@ -336,9 +357,6 @@ export class LiquidationsService extends SDKConstruct {
    * Optimal partial liquidation of a credit account: the collateral to seize
    * and the amounts that bring its health factor close to `optimalHF`.
    *
-   * Prices come from the last synced oracle state and `ca`, not from fresh
-   * price updates. Withdrawal phantom tokens are never seized.
-   *
    * @param ca - Credit account to partially liquidate.
    * @param optimalHF - Health factor to aim for, in basis points. Defaults to
    * {@link CreditSuite.optimalHFForPartialLiquidation}.
@@ -351,11 +369,12 @@ export class LiquidationsService extends SDKConstruct {
     optimalHF?: bigint,
     liquidationThresholds?: AddressMap<number>,
   ): OptimalPartialLiquidation {
+    const suite = this.sdk.marketRegister.findCreditManager(ca.creditManager);
     return optimalPartialLiquidation({
-      suite: this.sdk.marketRegister.findCreditManager(ca.creditManager),
+      suite,
       account: ca,
       optimalHF,
-      exclude: token => this.#isWithdrawalPhantom(token),
+      exclude: token => this.#isUnseizable(suite, token),
       liquidationThresholds,
     });
   }
@@ -561,12 +580,14 @@ export class LiquidationsService extends SDKConstruct {
   /**
    * Everything a partial liquidation of a credit account needs, with any
    * parameter the caller pinned down taken as given and the rest derived from
-   * current state. A derived `tokenOut` is never a withdrawal phantom token.
+   * current state. A derived `tokenOut` is never a token that cannot be seized.
    *
-   * @throws For RWA markets, whose wrapped underlying and KYC-gated collateral
-   * the bare facade call cannot handle, for a withdrawal phantom `tokenOut`,
-   * which does not redeem instantly, if a derived `tokenOut` cannot be picked,
-   * and if the seized token is not a collateral token of the credit manager.
+   * @throws For markets with a wrapped RWA underlying (Securitize), whose
+   * repayment the liquidator cannot fund, for a `tokenOut` that cannot be
+   * seized (a withdrawal phantom token, which does not redeem instantly, or a
+   * phantom token that unwraps to the underlying), if a derived `tokenOut`
+   * cannot be picked, and if the seized token is not a collateral token of the
+   * credit manager.
    **/
   #getPartialLiquidationParams(
     ca: CreditAccountData,
@@ -574,22 +595,41 @@ export class LiquidationsService extends SDKConstruct {
     overrides: Partial<PartialLiquidationParams>,
   ): PartialLiquidationParams {
     const label = this.labelAddress(ca.creditAccount);
-    if (suite.market.rwa) {
+    // the facade pulls repayment in the pool underlying, which a liquidator
+    // cannot hold when it is an RWA wrapper (e.g. dcUSDC)
+    if (
+      this.sdk.tokensMeta.isRWAUnderlying(
+        this.sdk.tokensMeta.mustGet(suite.underlying),
+      )
+    ) {
       throw new Error(
-        `cannot partially liquidate ${label}: RWA markets are not supported`,
+        `cannot partially liquidate ${label}: markets with a wrapped RWA underlying are not supported`,
       );
     }
-    if (overrides.tokenOut && this.#isWithdrawalPhantom(overrides.tokenOut)) {
+    if (overrides.tokenOut && this.#isUnseizable(suite, overrides.tokenOut)) {
       throw new Error(
-        `cannot partially liquidate ${label}: ${this.labelAddress(overrides.tokenOut)} is a withdrawal phantom token`,
+        `cannot partially liquidate ${label}: ${this.labelAddress(overrides.tokenOut)} cannot be seized`,
       );
     }
     return partialLiquidationParams({
       suite,
       account: ca,
       overrides,
-      exclude: token => this.#isWithdrawalPhantom(token),
+      exclude: token => this.#isUnseizable(suite, token),
     });
+  }
+
+  /**
+   * The facade reverts when a phantom tokenOut unwraps to the underlying
+   **/
+  #isUnseizable(suite: CreditSuite, token: Address): boolean {
+    return (
+      this.#isWithdrawalPhantom(token) ||
+      isAddressEqual(
+        this.sdk.tokensMeta.depositedToken(token),
+        suite.underlying,
+      )
+    );
   }
 
   async #getCreditAccountData(
@@ -733,9 +773,6 @@ export class LiquidationsService extends SDKConstruct {
   }
 
   #isPartiallyLiquidatable(ca: CreditAccountData, suite: CreditSuite): boolean {
-    if (suite.market.rwa) {
-      return false;
-    }
     try {
       return this.#getPartialLiquidationParams(ca, suite, {})
         .isPartiallyLiquidatable;

@@ -104,10 +104,9 @@ export interface LiquidatableAccount extends CreditOperationMarket {
   rwa: boolean;
   /**
    * Whether the account can be partially liquidated with default parameters.
-   * `false` for RWA markets, for accounts without seizable non-underlying
-   * collateral, for accounts that are neither unhealthy nor expired, and when
-   * no partial liquidation brings the account to the target health factor
-   * without leaving it with less than the minimum debt.
+   *
+   * Independent of the liquidator: a KYC gate (e.g. Midas greenlist) is
+   * reported by {@link LiquidationDetails.isLiquidatorEligible}, not here.
    *
    * A local estimate, not onchain read.
    **/
