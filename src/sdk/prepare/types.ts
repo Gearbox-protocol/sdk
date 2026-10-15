@@ -17,9 +17,13 @@ import type {
   NoRecordedIntentError,
   NoStrategyTargetCollateralError,
   PoolOpportunityKey,
+  Position,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  QuotaAboveMaxError,
+  QuotaInactiveError,
   QuotaLimitReachedError,
+  QuotaUnchangedError,
   ReservePriceLimitedError,
   SDKReturn,
   StrategyOpportunityKey,
@@ -49,6 +53,19 @@ import type {
   WithdrawCeilings,
   WithPartialState,
 } from "../../onchain/index.js";
+
+/** Recoverable target-token quota, computed from loaded market state. */
+export interface QuotaBufferState {
+  /** Validated strategy context, with a known target collateral. */
+  position: StrategyPosition & {
+    targetCollateral: NonNullable<StrategyPosition["targetCollateral"]>;
+  };
+  /** Target value times LT, before reserve and protocol-step rounding. */
+  baseQuota: bigint;
+  currentQuota: bigint;
+  /** Positive increase available under the pool and account limits. */
+  quotaIncrease: bigint;
+}
 
 export interface MaxWithdrawCollateralOptions {
   /** Main-price HF threshold, in basis points; defaults to 10101. */
@@ -474,6 +491,16 @@ export interface WithdrawCollateralParams extends PrepareOptions {
   to: Address;
 }
 
+export interface UpdateQuotaParams extends PrepareOptions {
+  /** Collateral token on the account, other than the underlying. */
+  token: Address;
+  /**
+   * Target quota in underlying units; 0 disables it. Omit to size it to the
+   * balance: its value in underlying × LT, raised by `quotaReserve`.
+   **/
+  quota?: bigint;
+}
+
 export interface OpenStrategyParams extends PrepareOptions {
   /** Collateral coming from the wallet, in their own tokens. */
   collateral: Asset[];
@@ -657,6 +684,15 @@ export interface FinalizeParams extends PrepareOptions {
  * with `undefined`, an empty list or `0n`.
  **/
 export interface IOpportunitiesPrepare {
+  /** Synchronous quota-buffer state from loaded chain data. No freshness refresh
+   * or account RPC read. Ineligible positions return undefined; unexpected
+   * failures are thrown. extraQuotas includes reservations absent from the position.
+   */
+  getQuotaBufferState(
+    position: Position,
+    extraQuotas?: readonly (Pick<Asset, "token"> & { quota: bigint })[],
+  ): QuotaBufferState | undefined;
+
   /**
    * Depositing into a pool: underlying in, shares out.
    *
@@ -1011,6 +1047,34 @@ export interface IOpportunitiesPrepare {
   >;
 
   /**
+   * Changing the quota of one token the account already holds, at fixed debt
+   * and balances: how much of it counts as collateral, and the quota fee paid
+   * for it.
+   *
+   * A target is sent strictly, so the transaction reverts rather than end
+   * below it. An omitted target is sized to the balance and capped at the
+   * pool's available quota; the call then accepts a partial fill that keeps the
+   * token enabled.
+   **/
+  updateQuota(
+    position: PositionInput,
+    params: UpdateQuotaParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | QuotaInactiveError
+        | QuotaUnchangedError
+        | QuotaAboveMaxError
+      ) &
+        WithPartialState<OperationState>
+    >
+  >;
+
+  /**
    * The leverages a deposit of a given size can reach in this market: the
    * range a leverage slider should mark as available.
    *
@@ -1022,9 +1086,8 @@ export interface IOpportunitiesPrepare {
    *
    * Synchronous, unlike the ceilings above it: those read the account from the
    * chain, this one only needs loaded market state, so a form can ask on every
-   * keystroke. Hand over the collateral as it stands and the SDK values it —
-   * opening takes the tokens being deposited, adjusting the position's own net
-   * value in the underlying.
+   * keystroke. Opening values `collateral`; passing `position` selects adjust
+   * mode, which derives own funds, debt and quota state from that position.
    *
    * Nothing at all when the market has no range to offer: a deposit too small
    * to carry `minDebt` at any leverage the threshold allows, or a manager with
@@ -1035,6 +1098,7 @@ export interface IOpportunitiesPrepare {
     strategy: StrategyInput,
     collateral: readonly Asset[],
     targetHF?: Bps,
+    position?: StrategyPosition,
   ): LeverageBand | undefined;
 
   /**

@@ -239,21 +239,19 @@ describe("the probe basket", () => {
       [A]: { price: 1 },
     });
 
-    // A dollar of a five-dollar position is barely marginal, and the reference
-    // implementation quotes it anyway. Refusing here would report nothing
-    // where the old client reported a number.
+    // Keep measuring small baskets; the fixed probe can exceed their value.
     expect(started).toBeDefined();
   });
 
-  it("probes a basket that leaves room for a unit of it", async () => {
+  it("quotes a hundred-dollar probe", async () => {
     const { started, seen } = await scaled(
       [{ token: A, balance: 100n * WAD }],
       { [A]: { price: 1 } },
     );
 
-    // One dollar out of a hundred: the reference implementation's own anchor.
-    expect(started?.probeWad).toBe(WAD);
-    expect(seen?.[0]?.balance).toBe(WAD);
+    // Both the quote and its valuation use the larger probe.
+    expect(started?.probeWad).toBe(100n * WAD);
+    expect(seen?.[0]?.balance).toBe(100n * WAD);
   });
 
   it("leaves an unpriceable component out of the total, but still sells it", async () => {
@@ -288,9 +286,9 @@ describe("the probe basket", () => {
 });
 
 describe("price impact on a market with no depth", () => {
-  it("reads zero where a dollar of the basket is a few base units", async () => {
-    // $60k a unit at 8 decimals: a dollar is 1666.67 base units, so the probe
-    // rounds down and is worth a little less than the dollar it stands for.
+  it("reads zero when scaling rounds the probe input down", async () => {
+    // $60k a unit at 8 decimals: scaling the input down loses a fraction
+    // of a base unit, so use the actual probe value for extrapolation.
     const BTC = "0x00000000000000000000000000000000000000b7" as Address;
     const oracle = new TestPriceOracle({
       [BTC]: { decimals: 8, price: 60_000 },
@@ -314,5 +312,161 @@ describe("price impact on a market with no depth", () => {
     );
 
     expect(rate?.pathPriceImpact).toBe(0n);
+  });
+});
+
+describe("output rounding", () => {
+  const STAC: Address = "0x00000000000000000000000000000000000057ac";
+  const USDC = MockTokens.USDC;
+  const oracle = new TestPriceOracle({
+    [USDC]: { price: 1 },
+    [STAC]: { decimals: 6, price: "1035.459296", symbol: "STAC" },
+  });
+  const usdcAmount = (value: bigint): TokenAmount => ({
+    token: {
+      chainId: 1,
+      address: USDC,
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+    },
+    value,
+    valueUsd: null,
+  });
+
+  async function stacImpact(retained: bigint) {
+    // $100k collateral and $400k debt: the reported STAC opening case.
+    const balance = 500_000n * 10n ** 6n;
+    const started = startProbe({
+      basket: [{ token: USDC, balance }],
+      tokenOut: STAC,
+      oracle,
+      // Contract outputs truncate; safeConvert rounds up and hides the bug.
+      route: async ([only]) =>
+        only && oracle.convert(only.token, STAC, only.balance),
+    });
+    if (!started) throw new Error("expected a probe");
+    const realAmount =
+      (oracle.convert(USDC, STAC, balance) * retained) / 1_000_000n;
+    return collectPriceImpact([{ ...started, realAmount }], {
+      totalValue: balance,
+      netValue: 100_000n * 10n ** 6n,
+      toUnderlying: (from, amount) =>
+        oracle.safeConvert(from, USDC, amount).value,
+      toUnderlyingAmount: usdcAmount,
+    });
+  }
+
+  it("retains a STAC loss larger than the probe's rounding error", async () => {
+    const rate = await stacImpact(999_900n);
+    expect(rate?.pathPriceImpact).toBeLessThan(0n);
+  });
+
+  it.each([1_000_000n, 999_999n])(
+    "zeros a STAC gain that rounding can explain (%s retained)",
+    async retained => {
+      expect(await stacImpact(retained)).toEqual({
+        pathPriceImpact: 0n,
+        netValuePriceImpact: 0n,
+        totalValuePriceImpact: 0n,
+        absolutePriceImpact: usdcAmount(0n),
+      });
+    },
+  );
+
+  it("retains a STAC gain outside the rounding interval", async () => {
+    const rate = await stacImpact(1_000_100n);
+    expect(rate?.pathPriceImpact).toBeGreaterThan(0n);
+    expect(rate?.absolutePriceImpact.value).toBeGreaterThan(0n);
+  });
+
+  const ctx = {
+    totalValue: 1_000n,
+    netValue: 100n,
+    toUnderlying: same,
+    toUnderlyingAmount,
+  };
+
+  it.each([999n, 1_000n, 1_010n])(
+    "zeros an impact whose interval touches zero (%s real output)",
+    async realAmount => {
+      const rate = await collectPriceImpact(
+        [
+          probe({
+            basketWad: 1_000n * WAD,
+            probeWad: 100n * WAD,
+            probe: Promise.resolve(100n),
+            realAmount,
+          }),
+        ],
+        ctx,
+      );
+      expect(rate).toEqual({
+        pathPriceImpact: 0n,
+        netValuePriceImpact: 0n,
+        totalValuePriceImpact: 0n,
+        absolutePriceImpact: toUnderlyingAmount(0n),
+      });
+    },
+  );
+
+  it.each([990n, 1_020n])(
+    "keeps a certain sign (%s real output)",
+    async realAmount => {
+      const rate = await collectPriceImpact(
+        [
+          probe({
+            basketWad: 1_000n * WAD,
+            probeWad: 100n * WAD,
+            probe: Promise.resolve(100n),
+            realAmount,
+          }),
+        ],
+        ctx,
+      );
+      expect(rate?.absolutePriceImpact.value).toBe(realAmount - 1_000n);
+    },
+  );
+
+  it("checks the aggregate interval after converting different tokens", async () => {
+    const rate = await collectPriceImpact(
+      [
+        probe({
+          tokenOut: A,
+          basketWad: 1_000n * WAD,
+          probeWad: 100n * WAD,
+          probe: Promise.resolve(100n),
+          realAmount: 980n,
+        }),
+        probe({
+          tokenOut: B,
+          basketWad: 1_000n * WAD,
+          probeWad: 100n * WAD,
+          probe: Promise.resolve(100n),
+          realAmount: 1_003n,
+        }),
+      ],
+      {
+        ...ctx,
+        toUnderlying: (from, amount) => (from === B ? amount * 10n : amount),
+      },
+    );
+    // A loses 20 underlying, B appears to gain 30; B's rounding can reverse the sum.
+    expect(rate?.absolutePriceImpact.value).toBe(0n);
+  });
+
+  it("includes rounding outward when converting to the underlying", async () => {
+    const rate = await collectPriceImpact(
+      [
+        probe({
+          basketWad: 1_000n * WAD,
+          probeWad: 100n * WAD,
+          probe: Promise.resolve(100n),
+          realAmount: 998n,
+        }),
+      ],
+      { ...ctx, toUnderlying: (_from, amount) => (amount + 9n) / 10n },
+    );
+    expect(rate?.absolutePriceImpact.value).toBe(0n);
   });
 });

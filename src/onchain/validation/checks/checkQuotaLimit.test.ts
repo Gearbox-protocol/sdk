@@ -35,3 +35,18 @@ describe("checkQuotaLimit", () => {
     ]);
   });
 });
+
+it("passes prepared quota and input bounds into the refusal", () => {
+  const quotaLimits = { leverageMax: 250n };
+  const leverageLimits = { min: 110n, max: 300n };
+  const [error] = checkQuotaLimit({
+    token: TOK,
+    requested: 501n,
+    available: 500n,
+    underlying: UND,
+    quotaLimits,
+    leverageLimits,
+  });
+  expect(error?.quotaLimits).toBe(quotaLimits);
+  expect(error?.leverageLimits).toBe(leverageLimits);
+});

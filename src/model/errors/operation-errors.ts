@@ -8,6 +8,30 @@ import type {
 } from "../rwa.js";
 import type { IGearboxError } from "./base.js";
 
+/** Input amounts bounded by debt and borrowing capacity; quota is separate. */
+export interface CollateralLimits {
+  min: TokenAmount;
+  max: TokenAmount;
+}
+
+/** Target leverage in LEVERAGE_DECIMALS units. */
+export interface LeverageLimits {
+  min: bigint;
+  max: bigint;
+}
+
+/** Independent operation inputs imposed by the quota keeper. */
+export type QuotaInputLimits =
+  | { collateralMax: TokenAmount; leverageMax?: bigint }
+  | { collateralMax?: TokenAmount; leverageMax: bigint };
+
+/** Prepared operation-specific bounds passed to validation errors. */
+export interface OperationLimitOptions {
+  collateralLimits?: CollateralLimits;
+  leverageLimits?: LeverageLimits;
+  quotaLimits?: QuotaInputLimits;
+}
+
 /**
  * Which limit stopped a borrow.
  *
@@ -117,13 +141,10 @@ export function poolSunset(pool: Address): PoolSunsetError {
 /**
  * The pool cannot lend what the operation wants to borrow.
  **/
-export interface InsufficientPoolLiquidityError extends IGearboxError {
+export interface InsufficientPoolLiquidityError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "insufficientPoolLiquidity";
-  /** Single-token Open amounts whose projected debt fits the current debt limits. */
-  collateralLimits?: {
-    min: TokenAmount;
-    max: TokenAmount;
-  };
   /** Both in the market's underlying. */
   requested: TokenAmount;
   available: TokenAmount;
@@ -153,13 +174,10 @@ export function insufficientPoolLiquidity(
  * The debt the operation implies falls outside the facade's `debtLimits`
  * (`minDebt`/`maxDebt`).
  **/
-export interface DebtOutOfRangeError extends IGearboxError {
+export interface DebtOutOfRangeError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "debtOutOfRange";
-  /** Single-token Open amounts whose projected debt fits the current debt limits. */
-  collateralLimits?: {
-    min: TokenAmount;
-    max: TokenAmount;
-  };
   /** All three in the market's underlying. */
   requested: TokenAmount;
   minDebt: TokenAmount;
@@ -316,7 +334,9 @@ export function forbiddenToken(token: Token): ForbiddenTokenError {
 /**
  * The market takes no more quota for a token the operation wants to hold.
  **/
-export interface QuotaLimitReachedError extends IGearboxError {
+export interface QuotaLimitReachedError
+  extends IGearboxError,
+    OperationLimitOptions {
   code: "quotaLimitReached";
   /** The token whose quota is increased. */
   token: Token;
@@ -366,6 +386,72 @@ export function quotaCountExceeded(
     message: `The account would hold ${count} quoted tokens, and the facade enables ${max} at once.`,
     count,
     max,
+  };
+}
+
+/**
+ * The quota keeper charges no rate for this token, so its quota cannot be
+ * changed.
+ *
+ * @remarks Not solvable by changing this operation's parameters.
+ **/
+export interface QuotaInactiveError extends IGearboxError {
+  code: "quotaInactive";
+  token: Token;
+}
+
+/** {@inheritDoc QuotaInactiveError} */
+export function quotaInactive(token: Token): QuotaInactiveError {
+  return {
+    code: "quotaInactive",
+    message: `${token.symbol} has no active quota in this market.`,
+    token,
+  };
+}
+
+/**
+ * The requested quota rounds to the one the account already has, so there is
+ * nothing to send.
+ **/
+export interface QuotaUnchangedError extends IGearboxError {
+  code: "quotaUnchanged";
+  token: Token;
+  /** Both in the market's underlying. */
+  current: TokenAmount;
+  requested: TokenAmount;
+}
+
+/** {@inheritDoc QuotaUnchangedError} */
+export function quotaUnchanged(
+  args: Omit<QuotaUnchangedError, "code" | "message">,
+): QuotaUnchangedError {
+  return {
+    code: "quotaUnchanged",
+    message: `${args.token.symbol} quota of ${args.requested.value} rounds to the current ${args.current.value}.`,
+    ...args,
+  };
+}
+
+/**
+ * The requested quota exceeds the facade's per-token `maxQuota`
+ * (`maxQuotaMultiplier × maxDebt`).
+ **/
+export interface QuotaAboveMaxError extends IGearboxError {
+  code: "quotaAboveMax";
+  token: Token;
+  /** Both in the market's underlying. */
+  requested: TokenAmount;
+  maxQuota: TokenAmount;
+}
+
+/** {@inheritDoc QuotaAboveMaxError} */
+export function quotaAboveMax(
+  args: Omit<QuotaAboveMaxError, "code" | "message">,
+): QuotaAboveMaxError {
+  return {
+    code: "quotaAboveMax",
+    message: `${args.token.symbol} quota of ${args.requested.value} exceeds maxQuota ${args.maxQuota.value}.`,
+    ...args,
   };
 }
 

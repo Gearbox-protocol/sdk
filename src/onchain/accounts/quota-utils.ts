@@ -17,6 +17,15 @@ export interface CalcRecommendedQuotaProps {
   quotaReserve: bigint;
 }
 
+export interface MaxAmountForQuotaProps {
+  available: bigint;
+  initialQuota: bigint;
+  totalInitialQuota: bigint;
+  maxDebt: bigint;
+  lt: bigint;
+  quotaReserve: bigint;
+}
+
 export interface CalcQuotaUpdateProps {
   quotas: Record<Address, QuotaSlice | undefined>;
   initialQuotas: Record<
@@ -113,6 +122,32 @@ export function calcDefaultQuota({
     PERCENTAGE_FACTOR;
 
   return roundUpQuota(recommendedQuota);
+}
+
+/** Inverse of default quota rounding, including the account-wide increase cap. */
+export function maxAmountForQuota({
+  available,
+  initialQuota,
+  totalInitialQuota,
+  maxDebt,
+  lt,
+  quotaReserve,
+}: MaxAmountForQuotaProps): bigint | undefined {
+  const increaseCap = roundUpQuota(
+    BigIntMath.max(roundUpQuota(maxDebt * 2n) - totalInitialQuota, 0n),
+  );
+  if (lt === 0n || increaseCap <= available) return undefined;
+  const desired =
+    roundUpQuota(initialQuota) +
+    roundUpQuota(available) +
+    PERCENTAGE_FACTOR -
+    1n;
+  const base =
+    BigIntMath.ceilDiv(
+      (desired + 1n) * PERCENTAGE_FACTOR,
+      PERCENTAGE_FACTOR + quotaReserve,
+    ) - 1n;
+  return BigIntMath.ceilDiv((base + 1n) * PERCENTAGE_FACTOR, lt) - 1n;
 }
 
 /**

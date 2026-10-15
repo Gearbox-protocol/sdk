@@ -58,6 +58,17 @@ describe("checkCollateralised", () => {
     ).toEqual([]);
   });
 
+  it("refuses an improving account that still ends below the facade floor", () => {
+    expect(
+      checkCollateralised({
+        healthFactor: 9_999,
+        healthFactorThreshold: MIN_HEALTH_FACTOR_FORM,
+        safePrices: false,
+        improvesFrom: 9_900,
+      })[0]?.code,
+    ).toBe("insufficientCollateral");
+  });
+
   it("still refuses when the operation does not raise it", () => {
     const at = (improvesFrom: number) =>
       checkCollateralised({

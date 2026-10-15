@@ -8,10 +8,11 @@ import {
   WAD,
 } from "../../../constants/math.js";
 import type { Asset, IPriceOracleContract } from "../../../index.js";
+import { BigIntMath } from "../../../utils/bigint-math.js";
 import type { PathLossRate } from "../types.js";
 
-/** `b1 = b0 / V0`: a dollar of the basket, the reference implementation's anchor. */
-const PROBE_UNIT_USD_WAD = WAD;
+/** A $100 reference basket limits output-token quantisation in small quotes. */
+const PROBE_UNIT_USD_WAD = 100n * WAD;
 
 interface ProbeBasket {
   /** The basket, scaled down to `probeWad`. */
@@ -37,7 +38,7 @@ export interface LegProbe {
 }
 
 /**
- * `V0 = Σ b0ᵢ·pᵢ`, then `b1 = b0 / V0`, proportions kept.
+ * `V0 = Σ b0ᵢ·pᵢ`, then scale the basket to $100, proportions kept.
  *
  * Refuses only what the reference refuses — a basket worth nothing, or one that
  * rounds away entirely. Stricter guards here would report nothing where the old
@@ -71,7 +72,7 @@ function probeBasket(
     token: asset.token,
     balance: (asset.balance * PROBE_UNIT_USD_WAD) / basketWad,
   }));
-  // Rounded down, the probe is worth less than the dollar it aims at.
+  // Rounded down, the probe is worth less than the $100 it aims at.
   const probeWad = scaled.reduce(
     (sum, a) =>
       sum +
@@ -158,6 +159,7 @@ export async function collectPriceImpact(
   ctx: {
     totalValue: bigint;
     netValue: bigint;
+    /** Oracle conversion rounded up, as in safeConvert. */
     toUnderlying: (from: Address, amount: bigint) => bigint;
     toUnderlyingAmount: (value: bigint) => TokenAmount;
   },
@@ -172,6 +174,8 @@ export async function collectPriceImpact(
 
   let expectedUnd = 0n;
   let lossUnd = 0n;
+  let lowerLossUnd = 0n;
+  let upperLossUnd = 0n;
 
   for (const [index, leg] of probes.entries()) {
     const unit = quotes[index];
@@ -195,12 +199,36 @@ export async function collectPriceImpact(
     if (loss === undefined) {
       return undefined;
     }
+    // Each routed output truncates less than one base unit. Bound the loss
+    // before percentages: final output rounding is amplified only on the probe.
+    // These bounds do not cover intermediate rounding inside a multi-hop route.
+    const lower = expected - leg.realAmount - 1n;
+    const upper =
+      BigIntMath.ceilDiv((unit + 1n) * leg.basketWad, leg.probeWad) -
+      leg.realAmount;
+    const lowerInUnd = toUnderlyingSigned(
+      ctx.toUnderlying,
+      leg.tokenOut,
+      lower,
+    );
+    const upperInUnd = toUnderlyingSigned(
+      ctx.toUnderlying,
+      leg.tokenOut,
+      upper,
+    );
+    if (lowerInUnd === undefined || upperInUnd === undefined) {
+      return undefined;
+    }
+    // safeConvert rounds positive magnitudes up. Widen the opposite endpoint
+    // by one underlying base unit rather than letting conversion decide a sign.
+    lowerLossUnd += lowerInUnd - (lower > 0n ? 1n : 0n);
+    upperLossUnd += upperInUnd + (upper < 0n ? 1n : 0n);
     expectedUnd += expectedInUnd;
     lossUnd += loss;
   }
 
-  if (expectedUnd <= 0n) {
-    return undefined;
+  if (lowerLossUnd <= 0n && upperLossUnd >= 0n) {
+    lossUnd = 0n;
   }
 
   return {

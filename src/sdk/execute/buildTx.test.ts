@@ -694,6 +694,38 @@ describe("buildTx — account", () => {
     );
   });
 
+  it("sends a quota-only preparation with no native value", async () => {
+    const { execute, sdk, account } = mockChain();
+
+    await execute.buildTx({
+      kind: "account",
+      chainId: CHAIN_ID,
+      creditAccount: CREDIT_ACCOUNT,
+      wallet: WALLET,
+      sim: {
+        ...sim,
+        data: {
+          ...sim.data,
+          operations: [
+            {
+              type: "changeQuota",
+              desiredQuota: {},
+              quotaIncrease: [{ token: POOL, balance: 10_000n }],
+              quotaDecrease: [],
+              calls: [CALL],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(sdk.accounts.executeCaUpdate).toHaveBeenCalledWith(
+      account,
+      sim.data.calls,
+      { ethAmount: 0n },
+    );
+  });
+
   it("throws when the account is gone", async () => {
     const { execute } = mockChain({ account: undefined });
 

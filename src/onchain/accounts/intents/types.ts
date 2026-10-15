@@ -56,7 +56,8 @@ export interface ExecutionCost {
 export interface SimulationPrices {
   /**
    * What the routed legs lost to market depth. `undefined` where nothing was
-   * routed or nothing could be measured — never a manufactured zero.
+   * routed or nothing could be measured. Zero also represents a sign that
+   * cannot be distinguished within the routed outputs' rounding precision.
    */
   priceImpact: PathLossRate | undefined;
   /**
@@ -296,6 +297,7 @@ export type IntentRoutesResult =
  * | `DEPOSIT`          | `prepare.depositStrategy`    | grows   |
  * | `WITHDRAW`         | `prepare.withdrawStrategy`   | shrinks |
  * | `REPAY`            | `prepare.repayStrategy`      | shrinks |
+ * | `UPDATE_QUOTA`     | `prepare.updateQuota`        | fixed   |
  */
 
 /** Shared inputs for every start intent. */
@@ -500,6 +502,23 @@ export interface WithdrawStrategyIntent {
 }
 
 /**
+ * Change the quota of one token the account already holds.
+ *
+ * No balance moves and debt is untouched; only how much of the token counts
+ * as collateral changes, and with it the quota fee the account pays.
+ */
+export interface UpdateQuotaIntent {
+  type: "UPDATE_QUOTA";
+  /** Collateral token on the account, other than the underlying. */
+  token: Address;
+  /**
+   * Target quota in underlying units; 0 disables it. Omit to size it to the
+   * balance: its value in underlying × LT, raised by `quotaReserve`.
+   */
+  quota?: bigint;
+}
+
+/**
  * Where a withdraw form's scale ends, in underlying units — and it ends twice.
  *
  * A withdrawal is not one continuous range. Holding leverage flat costs a
@@ -562,7 +581,8 @@ export type StartIntent =
   | AdjustLeverageIntent
   | DepositStrategyIntent
   | RepayStrategyIntent
-  | WithdrawStrategyIntent;
+  | WithdrawStrategyIntent
+  | UpdateQuotaIntent;
 
 /**
  * The intents that can be started as a redemption rather than a swap: the two

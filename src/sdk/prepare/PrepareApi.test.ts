@@ -1,5 +1,10 @@
 import type { Address } from "viem";
+import { decodeFunctionData } from "viem";
 import { describe, expect, it, vi } from "vitest";
+import {
+  iCreditFacadeMulticallV310Abi,
+  iCreditFacadeV310Abi,
+} from "../../abi/310/generated.js";
 import type {
   DelayedIntent,
   IGearboxError,
@@ -15,8 +20,10 @@ import {
   CREDIT_FACADE,
   CREDIT_MANAGER,
   caToken,
+  MAX_DEBT,
   POS,
   POS2,
+  QUOTAS,
   UND,
   valueInUnd,
 } from "../../onchain/accounts/intents/testing/market.js";
@@ -25,7 +32,12 @@ import {
   MAX_UINT256,
 } from "../../onchain/constants/math.js";
 import type { MultichainSDK } from "../../onchain/index.js";
+import {
+  makeTestFacade,
+  TEST_FACADE_ADDRESS,
+} from "../../onchain/market/credit/CreditFacadeV310Contract.mock.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
+import { ExecuteApi } from "../execute/ExecuteApi.js";
 import { PrepareApi } from "./PrepareApi.js";
 
 /**
@@ -887,6 +899,37 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(shrunk.state.totalValue.value).toBe(TVL - 10000000000n);
   });
 
+  it("updateQuota moves one quota and nothing else", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const result = await api.updateQuota(position, {
+      token: POS,
+      quota: 60000000000n,
+    });
+    const prepared = plan(result);
+
+    expect(prepared.operations).toMatchObject([
+      {
+        type: "changeQuota",
+        quotaIncrease: [],
+        quotaDecrease: [{ token: POS, balance: 60000000000n - QUOTA }],
+      },
+    ]);
+    expect(prepared.state.totalDebt.value).toBe(DEBT);
+    expect(prepared.state.totalValue.value).toBe(TVL);
+    expect(prepared.state.quotas).toMatchObject([{ value: 60000000000n }]);
+  });
+
+  it("updateQuota with the quota omitted refuses one already sized", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const result = await api.updateQuota(position, { token: POS });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("quotaUnchanged");
+  });
+
   it("reports a market with no target collateral rather than throwing", async () => {
     const { api, sdk, strategy } = buildStrategyApi();
     vi.spyOn(sdk.marketRegister, "findCreditManager").mockReturnValue({
@@ -1319,4 +1362,109 @@ describe("PrepareApi.redeem", () => {
 
     expect(prepared.state.netValue.value).toBe(HELD_SHARES - 100n);
   });
+});
+
+describe("updateQuota preserves a zero-balance USDC reservation", () => {
+  const mglobal: Address = "0x7433806912eae67919e66aea853d46fa0aef98a8";
+  const usdc: Address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+  const current = 92_000_000_000n;
+  const fullIncrease = 4_600_000_000n;
+  it.each([
+    { poolAvailable: fullIncrease, accountAvailable: fullIncrease },
+    { poolAvailable: fullIncrease, accountAvailable: 10_000n },
+    { poolAvailable: 10_000n, accountAvailable: fullIncrease },
+  ])(
+    "preserves USDC with pool $poolAvailable and account $accountAvailable",
+    async ({ poolAvailable, accountAvailable }) => {
+      const reserved = MAX_DEBT * 2n - current - accountAvailable;
+      const { api, sdk, position } = buildStrategyApi({
+        extraPrices: { [mglobal]: 200_000_000n, [usdc]: 100_000_000n },
+        extraDecimals: { [mglobal]: 18, [usdc]: 6 },
+        extraLiquidationThresholds: { [mglobal]: 9_200, [usdc]: 0 },
+        quotas: {
+          ...QUOTAS,
+          [mglobal]: {
+            token: mglobal,
+            rate: 500n,
+            isActive: true,
+            totalQuoted: current,
+            limit: current + poolAvailable,
+          },
+          [usdc]: {
+            token: usdc,
+            rate: 500n,
+            isActive: true,
+            totalQuoted: reserved,
+            limit: reserved,
+          },
+        },
+        creditAccounts: [
+          {
+            ...buildFixtureCreditAccount({
+              totalDebt: DEBT,
+              tokens: [
+                caToken(mglobal, 1_000n * 10n ** 18n, current),
+                caToken(usdc, 0n, reserved),
+              ],
+            }),
+            creditFacade: TEST_FACADE_ADDRESS,
+          },
+        ],
+      });
+      // Replace only the offline fixture's placeholder calls with the real facade encoder.
+      const facade = makeTestFacade();
+      vi.mocked(sdk.accounts.prepareUpdateQuotas).mockImplementation(
+        (_address, props) => facade.prepareUpdateQuotas(props),
+      );
+      sdk.accounts.executeCaUpdate = vi.fn(async (account, calls) =>
+        facade.multicall(account.creditAccount, calls),
+      );
+      const sim = await api.updateQuota(position, {
+        token: mglobal,
+        quota: undefined,
+        quotaReserve: 500,
+      });
+      if (!sim.ok) throw new Error(`prepare refused: ${sim.error.code}`);
+      const prepared = plan(sim);
+      expect(
+        prepared.state.quotas.find(q => q.token.address === usdc)?.value,
+      ).toBe(reserved);
+      const increase =
+        poolAvailable < accountAvailable ? poolAvailable : accountAvailable;
+      expect(prepared.operations).toMatchObject([
+        {
+          type: "changeQuota",
+          quotaIncrease: [{ token: mglobal, balance: increase }],
+          quotaDecrease: [],
+        },
+      ]);
+      const tx = await new ExecuteApi(() => sdk).buildTx({
+        kind: "account",
+        ...position,
+        wallet: WALLET,
+        sim,
+      });
+      const outer = decodeFunctionData({
+        abi: iCreditFacadeV310Abi,
+        data: tx.callData,
+      });
+      if (outer.functionName !== "multicall")
+        throw new Error("expected multicall");
+      expect(outer.args[0].toLowerCase()).toBe(
+        position.creditAccount.toLowerCase(),
+      );
+      expect(outer.args[1]).toHaveLength(1);
+      const update = decodeFunctionData({
+        abi: iCreditFacadeMulticallV310Abi,
+        data: outer.args[1][0].callData,
+      });
+      if (update.functionName !== "updateQuota")
+        throw new Error("expected updateQuota");
+      expect(update.args[0].toLowerCase()).toBe(mglobal);
+      expect(update.args[1]).toBe(increase);
+      expect(
+        prepared.state.quotas.find(q => q.token.address === mglobal)?.value,
+      ).toBe(current + increase);
+    },
+  );
 });

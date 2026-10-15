@@ -1,14 +1,17 @@
-import type { DebtOutOfRangeError, Token } from "../../../model/index.js";
+import type {
+  DebtOutOfRangeError,
+  OperationLimitOptions,
+  Token,
+} from "../../../model/index.js";
 import { debtOutOfRange } from "../../../model/index.js";
 import type { MaxBorrowAmount } from "../../market/index.js";
 import { amountOf } from "../helpers/index.js";
 
-export interface DebtLimitsArgs {
+export interface DebtLimitsArgs extends OperationLimitOptions {
   debt: bigint;
   minDebt: bigint;
   maxDebt: bigint;
   underlying: Token;
-  getCollateralLimits?: () => DebtOutOfRangeError["collateralLimits"];
   /**
    * Whether ending with no loan at all is acceptable. The one place the two
    * callers genuinely disagree: an account being adjusted may end owing
@@ -22,8 +25,7 @@ export interface DebtLimitsArgs {
 
 /** A debt the facade would revert on. */
 export function checkDebtLimits(args: DebtLimitsArgs): DebtOutOfRangeError[] {
-  const { debt, minDebt, maxDebt, underlying, allowZero, maxBorrowAmount } =
-    args;
+  const { debt, minDebt, maxDebt, underlying, allowZero, ...rest } = args;
   const outOfRange =
     debt > maxDebt || (debt < minDebt && !(allowZero && debt === 0n));
   if (!outOfRange) {
@@ -31,11 +33,10 @@ export function checkDebtLimits(args: DebtLimitsArgs): DebtOutOfRangeError[] {
   }
   return [
     debtOutOfRange({
-      collateralLimits: args.getCollateralLimits?.(),
+      ...rest,
       requested: amountOf(underlying, debt),
       minDebt: amountOf(underlying, minDebt),
       maxDebt: amountOf(underlying, maxDebt),
-      maxBorrowAmount,
     }),
   ];
 }

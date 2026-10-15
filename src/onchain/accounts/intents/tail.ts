@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { OperationLimitOptions } from "../../../model/index.js";
 import { insufficientBalance, noRecordedIntent } from "../../../model/index.js";
 import type { OnchainSDK } from "../../index.js";
 import { toTokenAmount } from "../../validation/helpers/token.js";
@@ -209,6 +210,17 @@ function part(amount: bigint, share: { got: bigint; of: bigint }): bigint {
   return share.of > 0n ? (amount * share.got) / share.of : 0n;
 }
 
+interface ProjectTailProps {
+  /** The request as realised: the source spent, the phantom it produced. */
+  request: StartDelayedWithdrawalOperation;
+  delayed: DelayedStart;
+  /** The account the request was previewed against, for masks and market. */
+  creditAccount: CreditAccountSlice;
+  sdk: OnchainSDK;
+  quotaReserve: number | undefined;
+  limits?: OperationLimitOptions;
+}
+
 /**
  * Where a delayed intent ends up, worked out at the moment it is started.
  *
@@ -227,15 +239,7 @@ function part(amount: bigint, share: { got: bigint; of: bigint }): bigint {
  * that would strand the account is refused before it is sent rather than
  * discovered days later.
  */
-export async function projectTail(args: {
-  /** The request as realised: the source spent, the phantom it produced. */
-  request: StartDelayedWithdrawalOperation;
-  delayed: DelayedStart;
-  /** The account the request was previewed against, for masks and market. */
-  creditAccount: CreditAccountSlice;
-  sdk: OnchainSDK;
-  quotaReserve: number | undefined;
-}): Promise<{
+export async function projectTail(args: ProjectTailProps): Promise<{
   state: OperationState;
   operations: AccountCalculatorOperation[];
 }> {
@@ -260,7 +264,7 @@ export async function projectTail(args: {
   const { steps } = planTail({
     intent: delayed.record,
     claimable: projectedClaimable(request, queued.token, queued.amount, claim),
-    view: accountView(next, sdk),
+    view: { ...accountView(next, sdk), limits: args.limits },
   });
 
   const { state, operations } = await realize(steps, {
@@ -268,6 +272,7 @@ export async function projectTail(args: {
     sdk,
     slippage: 0,
     quotaReserve,
+    limits: args.limits,
     paths: createOraclePaths({ sdk, creditAccount: next }),
   });
   return { state, operations };

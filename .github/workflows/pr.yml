@@ -13,9 +13,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           lfs: true
+
+      - uses: pnpm/setup@v3
+        with:
+          cache: true
+          require-lockfile: true
 
       - name: Read Foundry version
         id: foundry
@@ -26,20 +31,11 @@ jobs:
         with:
           version: ${{ steps.foundry.outputs.version }}
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-
-      - uses: pnpm/action-setup@v5
-        with:
-          cache: true
-
       - name: Perform checks
         env:
           ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
-          pnpm install --frozen-lockfile
           pnpm typecheck:ci
           pnpm check:ci
           pnpm test:all

@@ -99,11 +99,12 @@ const claimedUnderlying: TailCase = {
   postClaimTotalValue: 5000000000000n,
   postClaimDebt: 4000000000000n,
   // 98000 ANY @ $1 vs UND @ $2 = 49000e8 UND; + claimed 1000e8 = 50000e8 TV.
+  // Quoted at 49000e8 × 92%, so the collateral the debt stands on counts.
   baseAssets: [
     {
       token: ANY,
       balance: 98000000000000000000000n,
-      quota: 0n,
+      quota: 4508000000000n,
       mask: 0n,
       success: true,
     },

@@ -9,9 +9,11 @@ import { MultichainConstruct } from "../../base/index.js";
 import type { PluginsMap } from "../../plugins/index.js";
 import type {
   BuildLiquidationTxProps,
+  BuildPartialLiquidationTxProps,
   GetLiquidatableAccountsProps,
   GetLiquidationDetailsProps,
   GetLiquidationPositionsProps,
+  GetPartialLiquidationDetailsProps,
   LoadRWALiquidatorsProps,
 } from "./types.js";
 
@@ -75,6 +77,42 @@ export class MultichainLiquidationsService<
       block: props.blockNumber ?? "latest",
       run: (sdk, block) =>
         sdk.liquidations.buildLiquidationTx({
+          ...props,
+          blockNumber: block.blockNumber,
+        }),
+    });
+  }
+
+  /**
+   * {@inheritDoc LiquidationsService.getPartialLiquidationDetails}
+   **/
+  public async getPartialLiquidationDetails(
+    props: GetPartialLiquidationDetailsProps<true>,
+  ): Promise<DataResponse<LiquidationDetails>> {
+    return this.queryChain({
+      network: props.network,
+      block: props.blockNumber ?? "latest",
+      run: (sdk, block) =>
+        sdk.liquidations.getPartialLiquidationDetails({
+          ...props,
+          blockNumber: block.blockNumber,
+        }),
+    });
+  }
+
+  /**
+   * {@inheritDoc LiquidationsService.buildPartialLiquidationTx}
+   *
+   * The reported block is the one the transaction was built against.
+   **/
+  public async buildPartialLiquidationTx(
+    props: BuildPartialLiquidationTxProps<true>,
+  ): Promise<DataResponse<TxCall>> {
+    return this.queryChain({
+      network: props.network,
+      block: props.blockNumber ?? "latest",
+      run: (sdk, block) =>
+        sdk.liquidations.buildPartialLiquidationTx({
           ...props,
           blockNumber: block.blockNumber,
         }),

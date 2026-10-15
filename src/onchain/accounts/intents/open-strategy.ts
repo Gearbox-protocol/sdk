@@ -19,8 +19,8 @@ import {
   assertDebtLimits,
   assertLeverageAtLeastOne,
   debtForLeverage,
-  openCollateralForDebtLimits,
 } from "./math.js";
+import { strategyLimits } from "./strategyLimits.js";
 import type { CreditAccountSlice, SimulationPrices } from "./types.js";
 import {
   collectPriceImpact,
@@ -170,14 +170,23 @@ export async function buildOpenStrategyState(
   // An opening carries a real loan: the update validation refuses a zero-debt
   // one, and the intent has to agree with it (empty openings go through
   // openEmptyAccount instead).
-  const getCollateralLimits = () =>
-    openCollateralForDebtLimits({ suite, collateral, leverage });
+  const options =
+    leftoverBalances.length || existing?.tokens.some(t => t.balance > 0n)
+      ? undefined
+      : strategyLimits({
+          type: "OPEN",
+          suite,
+          collateral,
+          leverage,
+          targetToken,
+          quotaReserve,
+        });
   assertDebtLimits(sdk, debt, suite.creditFacade, underlying, {
+    ...options,
     allowZero: false,
     maxBorrowAmount: suite.maxBorrowAmount(),
-    getCollateralLimits,
   });
-  assertCanBorrow(sdk, suite, debt, { getCollateralLimits });
+  assertCanBorrow(sdk, suite, debt, options);
 
   const paths = createRouterPaths({ sdk, creditAccount: account, slippage });
   const expectedBalances = mergeExpectedBalances(collateral, underlying, debt);
@@ -268,8 +277,15 @@ export async function buildOpenStrategyState(
 
   // The expected branch is the one the account is opened on, so it is the one
   // the market has to have room for.
-  assertGrowthAllowed({ sdk, suite, market, before: [], after: averageAssets });
-  assertQuotaAvailable(sdk, market, averageQuota);
+  assertGrowthAllowed({
+    sdk,
+    suite,
+    market,
+    before: [],
+    after: averageAssets,
+    limits: options,
+  });
+  assertQuotaAvailable(sdk, market, averageQuota, options);
 
   const projection = reached ?? settle();
   assertCollateralised(projection.healthFactor, false);

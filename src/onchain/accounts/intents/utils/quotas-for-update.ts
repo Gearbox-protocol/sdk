@@ -1,12 +1,21 @@
 import type { Address } from "viem";
+import type {
+  SafeValue,
+  UnpriceableTokenError,
+} from "../../../../model/index.js";
+import { MAX_UINT256 } from "../../../constants/index.js";
 import { MIN_INT96 } from "../../../constants/math.js";
 import type { AddressMap, Asset } from "../../../index.js";
+import type { CreditSuite } from "../../../market/credit/CreditSuite.js";
 import type { ConvertFn } from "../../../market/oracle/types.js";
+import { BigIntMath } from "../../../utils/bigint-math.js";
 import { TypedObjectUtils } from "../../../utils/mappers.js";
 import {
   type CalcQuotaUpdateProps,
   calcQuotaUpdate,
   DIRECT_TRANSFERS_QUOTA,
+  maxAmountForQuota,
+  roundUpQuota,
 } from "../../quota-utils.js";
 import type { QuotaUpdateState } from "../operations.js";
 
@@ -25,9 +34,8 @@ interface Quota {
   isActive: boolean;
 }
 
-interface GetQuotasForUpdateProps {
-  assetsBefore: Asset[] | readonly Asset[];
-  assetsAfter: Asset[];
+/** The market inputs every quota sizing reads. */
+interface QuotaSizingProps {
   initialQuotas: Array<InitialQuota> | readonly InitialQuota[];
   quotaReserve: number | undefined;
 
@@ -38,26 +46,69 @@ interface GetQuotasForUpdateProps {
   convert: ConvertFn;
 }
 
-export function getQuotasForUpdate({
-  assetsBefore,
-  assetsAfter,
-  initialQuotas,
-  quotaReserve = 0,
-  liquidationThresholds: liquidationThresholdsMap,
-  quotas: quotasMap,
-  maxDebt,
-  underlyingToken,
-  convert,
-}: GetQuotasForUpdateProps): QuotaUpdateState {
-  const underlyingTokenLc = underlyingToken.toLowerCase() as Address;
-  const assetsBeforeLc = assetsBefore.map(
-    (a): Asset => ({ ...a, token: a.token.toLowerCase() as Address }),
-  );
-  const assetsAfterLc = assetsAfter.map(
-    (a): Asset => ({ ...a, token: a.token.toLowerCase() as Address }),
-  );
-  const { spend, obtain } = collectQuotaChange(assetsBeforeLc, assetsAfterLc);
+interface GetQuotasForUpdateProps extends QuotaSizingProps {
+  assetsBefore: Asset[] | readonly Asset[];
+  assetsAfter: Asset[];
+}
 
+export interface ResizedQuotaProps extends QuotaSizingProps {
+  /** The one token whose quota is sized. */
+  token: Address;
+  /** What the account holds; `token`'s balance is what the quota is sized to. */
+  assets: Asset[] | readonly Asset[];
+}
+
+interface QuotaIncreaseLimitProps {
+  suite: CreditSuite;
+  token: Address;
+  balance: bigint;
+  initialQuotas: readonly InitialQuota[];
+  quotaReserve?: number;
+  rwaAsset?: Address;
+}
+
+export function getQuotasForUpdate(
+  props: GetQuotasForUpdateProps,
+): QuotaUpdateState {
+  const assetsAfterLc = lowercased(props.assetsAfter);
+  const { spend, obtain } = collectQuotaChange(
+    lowercased(props.assetsBefore),
+    assetsAfterLc,
+  );
+  return sizeQuotas(assetsAfterLc, spend, obtain, props);
+}
+
+/**
+ * The update that sizes one token's quota to the balance the account holds of
+ * it, whatever moved.
+ *
+ * Sits beside {@link getQuotasForUpdate} because that one only resizes what an
+ * operation spent or obtained, and an operation that changes a quota alone
+ * moves no balance at all.
+ */
+export function resizedQuota(props: ResizedQuotaProps): QuotaUpdateState {
+  // Only the token is read from these: the size comes from `assets`.
+  const entry: Asset[] = [
+    { token: props.token.toLowerCase() as Address, balance: 0n },
+  ];
+  return sizeQuotas(lowercased(props.assets), entry, entry, props);
+}
+
+function sizeQuotas(
+  assetsAfterLc: Asset[],
+  spend: Asset[],
+  obtain: Asset[],
+  {
+    initialQuotas,
+    quotaReserve = 0,
+    liquidationThresholds: liquidationThresholdsMap,
+    quotas: quotasMap,
+    maxDebt,
+    underlyingToken,
+    convert,
+  }: QuotaSizingProps,
+): QuotaUpdateState {
+  const underlyingTokenLc = underlyingToken.toLowerCase() as Address;
   const initialQuotasLc = initialQuotas.map((a): [Address, InitialQuota] => {
     const tokenLc = a.token.toLowerCase() as Address;
     return [tokenLc, { ...a, token: tokenLc }];
@@ -243,6 +294,10 @@ export function quotasAfterUpdate(
   return after;
 }
 
+function lowercased(assets: Asset[] | readonly Asset[]): Asset[] {
+  return assets.map(a => ({ ...a, token: a.token.toLowerCase() as Address }));
+}
+
 function collectQuotaChange(
   assetsBefore: Asset[],
   assetsAfter: Asset[],
@@ -330,4 +385,98 @@ function constructAssetRecord<A extends Asset>(a: Array<A>) {
     return acc;
   }, {});
   return record;
+}
+
+/** Largest additional underlying amount whose purchase fits this token's quota. */
+export function quotaIncreaseLimit({
+  suite,
+  token,
+  balance,
+  initialQuotas,
+  quotaReserve = 0,
+  rwaAsset,
+}: QuotaIncreaseLimitProps): SafeValue<
+  bigint | undefined,
+  UnpriceableTokenError
+> {
+  const { market } = suite;
+  if (market.isUnderlyingLike(token)) return { value: undefined };
+  const oracle = market.priceOracle;
+  const purchaseResult = oracle.safeConvert(
+    market.pool.underlying,
+    token,
+    MAX_UINT256,
+  );
+  if (purchaseResult.error) return purchaseResult;
+
+  const valuationResult = oracle.safeConvert(
+    token,
+    market.pool.underlying,
+    MAX_UINT256,
+  );
+  if (valuationResult.error) return valuationResult;
+
+  if (purchaseResult.value === 0n || valuationResult.value === 0n)
+    return { value: undefined };
+  const maxQuotaValue = maxAmountForQuota({
+    available: market.pool.pqk.quotaAvailable(token),
+    initialQuota:
+      initialQuotas.find(q => q.token.toLowerCase() === token.toLowerCase())
+        ?.quota ?? 0n,
+    totalInitialQuota: initialQuotas.reduce(
+      (sum, q) => sum + roundUpQuota(q.quota),
+      0n,
+    ),
+    maxDebt: suite.creditFacade.maxDebt,
+    lt: BigInt(suite.creditManager.liquidationThresholds.get(token) ?? 0),
+    quotaReserve: BigInt(quotaReserve),
+  });
+  if (maxQuotaValue === undefined) return { value: undefined };
+
+  const quotaBalanceResult = oracle.safeConvert(
+    market.pool.underlying,
+    token,
+    maxQuotaValue,
+  );
+  if (quotaBalanceResult.error) return quotaBalanceResult;
+  const quotaValueResult = oracle.safeConvert(
+    token,
+    market.pool.underlying,
+    quotaBalanceResult.value,
+  );
+  if (quotaValueResult.error) return quotaValueResult;
+  const quotaBalance =
+    quotaBalanceResult.value -
+    (quotaValueResult.value > maxQuotaValue ? 1n : 0n);
+
+  const availableTokenIncrease = quotaBalance - balance;
+  const excessTokenIncrease = BigIntMath.max(availableTokenIncrease, 0n) + 1n;
+  if (rwaAsset?.toLowerCase() === token.toLowerCase()) {
+    const underlyingScale =
+      10n ** BigInt(suite.sdk.tokensMeta.decimals(market.pool.underlying));
+    const tokenScale = 10n ** BigInt(suite.sdk.tokensMeta.decimals(token));
+    return {
+      value:
+        BigIntMath.ceilDiv(excessTokenIncrease * underlyingScale, tokenScale) -
+        1n,
+    };
+  }
+
+  const increaseResult = oracle.safeConvert(
+    token,
+    market.pool.underlying,
+    excessTokenIncrease - 1n,
+  );
+  if (increaseResult.error) return increaseResult;
+  const purchaseValue = oracle.safeConvert(
+    market.pool.underlying,
+    token,
+    increaseResult.value,
+  );
+  if (purchaseValue.error) return purchaseValue;
+  return {
+    value:
+      increaseResult.value -
+      (purchaseValue.value >= excessTokenIncrease ? 1n : 0n),
+  };
 }

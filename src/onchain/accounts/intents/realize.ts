@@ -3,6 +3,7 @@ import {
   insufficientBalance,
   multipleDelayedWithdrawals,
   noDelayedRoute,
+  type OperationLimitOptions,
   withdrawalInProgress,
 } from "../../../model/index.js";
 import { getDirectTransferToken } from "../../chain/chains.js";
@@ -36,6 +37,7 @@ import {
   type QuotaUpdateState,
 } from "./operations.js";
 import type { Amount, Step } from "./plan.js";
+import { resolveQuotaUpdate } from "./resolveQuotaUpdate.js";
 import type {
   CreditAccountSlice,
   DelayedStart,
@@ -55,6 +57,7 @@ import { createRouterPaths, type RouterPaths } from "./utils/router-path.js";
 import { withdrawLimits } from "./withdraw-limits.js";
 
 export interface RealizeProps {
+  limits?: OperationLimitOptions;
   creditAccount: CreditAccountSlice;
   sdk: OnchainSDK;
   /** Router slippage in PERCENTAGE_FORMAT (100% = 10_000). */
@@ -178,10 +181,11 @@ export async function realize(
     traded.returnedUnd += underlyingValue(returned);
   };
   /**
-   * Set by a `clearQuotas` step, which settles the quotas mid-walk instead of
-   * at the end — and settles them at none, whatever the balances turn out to be.
+   * Set by a step that settles the quotas itself, mid-walk instead of at the
+   * end, whatever the balances turn out to be: `clearQuotas` at none,
+   * `updateQuota` at the one the intent names.
    */
-  let cleared: QuotaUpdateState | undefined;
+  let plannedQuotas: QuotaUpdateState | undefined;
   /**
    * Whether anything leaves the account, which is what makes the credit manager
    * judge the closing collateral check at safe prices.
@@ -221,7 +225,7 @@ export async function realize(
         break;
 
       case "borrow":
-        assertCanBorrow(sdk, suite, step.amount);
+        assertCanBorrow(sdk, suite, step.amount, props.limits);
         push(
           buildIncreaseDebtOperation({
             amount: step.amount,
@@ -255,12 +259,29 @@ export async function realize(
       }
 
       case "clearQuotas": {
-        cleared = clearedQuotas(creditAccount.tokens);
+        const cleared = clearedQuotas(creditAccount.tokens);
+        plannedQuotas = cleared;
         if (cleared.quotaDecrease.length > 0) {
           push(
             buildQuotaUpdateOperation({ update: cleared, creditAccount, sdk }),
           );
         }
+        break;
+      }
+
+      case "updateQuota": {
+        const { update, minQuota } = resolveQuotaUpdate({
+          sdk,
+          creditAccount,
+          token: step.token,
+          quota: step.quota,
+          quotaReserve,
+          limits: props.limits,
+        });
+        plannedQuotas = update;
+        push(
+          buildQuotaUpdateOperation({ update, creditAccount, sdk, minQuota }),
+        );
         break;
       }
 
@@ -487,6 +508,8 @@ export async function realize(
           push(
             await buildUnwrapRwaCollateralOperation({
               tokenIn: underlying,
+              // Full repayment consumes the live debt, not the quoted debt.
+              all: true,
               amountIn: wrapped,
               tokenOut: rwaAsset,
               amountOut: toTargetDecimals(wrapped, underlying, rwaAsset, sdk),
@@ -533,10 +556,10 @@ export async function realize(
   // Sized off the floor, like every other amount a call names: a quota bought
   // for a balance the route only expects to raise is a fee paid on collateral
   // that may not arrive. Quotas the plan already settled are not sized again —
-  // it dropped them because the loan ends here, and the balances left behind do
-  // not argue.
+  // it dropped them because the loan ends here, or set the one quota the
+  // intent names, and the balances left behind do not argue.
   const quotas =
-    cleared ??
+    plannedQuotas ??
     withDirectTransferQuota(
       getQuotasForUpdate({
         assetsBefore: creditAccount.tokens,
@@ -632,12 +655,13 @@ export async function realize(
     market,
     before: creditAccount.tokens,
     after: projected.assets,
+    limits: props.limits,
   });
   if (
-    !cleared &&
+    !plannedQuotas &&
     quotas.quotaIncrease.length + quotas.quotaDecrease.length > 0
   ) {
-    assertQuotaAvailable(sdk, market, quotas.quotaIncrease);
+    assertQuotaAvailable(sdk, market, quotas.quotaIncrease, props.limits);
     push(buildQuotaUpdateOperation({ update: quotas, creditAccount, sdk }));
   }
 

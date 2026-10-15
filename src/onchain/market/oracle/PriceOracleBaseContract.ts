@@ -222,6 +222,16 @@ export abstract class PriceOracleBaseContract<
     amount: bigint,
     reserve = false,
   ): bigint {
+    return this.#convert(from, to, amount, reserve, false);
+  }
+
+  #convert(
+    from: Address,
+    to: Address,
+    amount: bigint,
+    reserve: boolean,
+    roundUp: boolean,
+  ): bigint {
     if (isAddressEqual(from, to)) {
       return amount;
     }
@@ -236,7 +246,11 @@ export abstract class PriceOracleBaseContract<
       : this.mainPrice(toToken);
     const toScale = 10n ** BigInt(this.tokensMeta.decimals(toToken));
 
-    return (amount * fromPrice * toScale) / (toPrice * fromScale);
+    const numerator = amount * fromPrice * toScale;
+    const denominator = toPrice * fromScale;
+    return roundUp
+      ? BigIntMath.ceilDiv(numerator, denominator)
+      : numerator / denominator;
   }
 
   /**
@@ -265,19 +279,16 @@ export abstract class PriceOracleBaseContract<
     return (amount * scale) / price;
   }
 
-  /**
-   * {@inheritDoc IPriceOracleContract.safeConvert}
-   **/
   public safeConvert(
     from: Address,
     to: Address,
     amount: bigint,
   ): SafeValue<bigint, UnpriceableTokenError> {
     try {
-      return { value: this.convert(from, to, amount) };
+      return { value: this.#convert(from, to, amount, false, true) };
     } catch {
       try {
-        return { value: this.convert(from, to, amount, true) };
+        return { value: this.#convert(from, to, amount, true, true) };
       } catch {
         return safeValue(0n, unpriceableTokenError(from));
       }

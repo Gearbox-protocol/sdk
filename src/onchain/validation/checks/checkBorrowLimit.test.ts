@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { UND } from "../testing/tokens.js";
 import { checkBorrowLimit } from "./checkBorrowLimit.js";
 
@@ -42,21 +42,18 @@ describe("checkBorrowLimit", () => {
   });
 });
 
-it("builds collateral bounds lazily into the refusal", () => {
+it("passes prepared collateral bounds into the refusal", () => {
   const bounds = {
     min: { token: UND, value: 334n, valueUsd: null },
     max: { token: UND, value: 336n, valueUsd: null },
   };
-  const getCollateralLimits = vi.fn(() => bounds);
   const args = {
     available: 100n,
     limit: "poolAvailableLiquidity" as const,
     underlying: UND,
-    getCollateralLimits,
+    collateralLimits: bounds,
   };
-  checkBorrowLimit({ ...args, requested: 100n });
-  expect(getCollateralLimits).not.toHaveBeenCalled();
+  expect(checkBorrowLimit({ ...args, requested: 100n })).toEqual([]);
   const [error] = checkBorrowLimit({ ...args, requested: 101n });
-  expect(getCollateralLimits).toHaveBeenCalledTimes(1);
   expect(error?.collateralLimits).toBe(bounds);
 });

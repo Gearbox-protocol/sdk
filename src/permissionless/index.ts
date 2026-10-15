@@ -1,3 +1,4 @@
+export * from "./api/index.js";
 export * from "./bindings/index.js";
 export * from "./chains/archive-transport.js";
 export * from "./chains/chunked-log-transport.js";

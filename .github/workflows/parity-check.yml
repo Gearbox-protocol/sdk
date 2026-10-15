@@ -21,18 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/setup@v3
         with:
           cache: true
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
+          require-lockfile: true
 
       - name: Compare opportunities
         env:
@@ -43,7 +37,7 @@ jobs:
 
       - name: Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: opportunities-compare
           path: tmp/opportunities-compare/*.json
@@ -53,18 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/setup@v3
         with:
           cache: true
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
+          require-lockfile: true
 
       - name: Compare positions
         env:
@@ -75,7 +63,7 @@ jobs:
 
       - name: Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: positions-compare
           path: tmp/positions-compare/*.json

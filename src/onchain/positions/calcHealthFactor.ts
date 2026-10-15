@@ -127,10 +127,12 @@ export function calcHealthFactor(props: CalcHealthFactorProps): Bps {
     const quotaWeighted =
       (convertToUSD(underlying, quotaBalance) ?? 0n) * PERCENTAGE_FACTOR;
 
-    // a token with no quota entry at all is not a quoted token
-    const value = quota
-      ? BigIntMath.min(quotaWeighted, tokenLtWeighted)
-      : tokenLtWeighted;
+    // A token the market quotes counts only up to its quota, so none without
+    // one, as on-chain; only a token it does not quote counts at its LT alone.
+    const value =
+      quota || active.get(token)
+        ? BigIntMath.min(quotaWeighted, tokenLtWeighted)
+        : tokenLtWeighted;
 
     return acc + value;
   }, 0n);

@@ -1,17 +1,17 @@
 import type {
   BorrowLimitCause,
   InsufficientPoolLiquidityError,
+  OperationLimitOptions,
   Token,
 } from "../../../model/index.js";
 import { insufficientPoolLiquidity } from "../../../model/index.js";
 import { amountOf } from "../helpers/index.js";
 
-export interface BorrowLimitArgs {
+export interface BorrowLimitArgs extends OperationLimitOptions {
   requested: bigint;
   available: bigint;
   limit: BorrowLimitCause;
   underlying: Token;
-  getCollateralLimits?: () => InsufficientPoolLiquidityError["collateralLimits"];
   maxBorrowAmount?: bigint;
 }
 
@@ -25,16 +25,15 @@ export interface BorrowLimitArgs {
 export function checkBorrowLimit(
   args: BorrowLimitArgs,
 ): InsufficientPoolLiquidityError[] {
-  const { requested, available, limit, underlying, maxBorrowAmount } = args;
+  const { requested, available, underlying, maxBorrowAmount, ...rest } = args;
   if (requested <= available) {
     return [];
   }
   return [
     insufficientPoolLiquidity({
-      collateralLimits: args.getCollateralLimits?.(),
+      ...rest,
       requested: amountOf(underlying, requested),
       available: amountOf(underlying, available),
-      limit,
       ...(maxBorrowAmount === undefined
         ? {}
         : { maxBorrowAmount: amountOf(underlying, maxBorrowAmount) }),

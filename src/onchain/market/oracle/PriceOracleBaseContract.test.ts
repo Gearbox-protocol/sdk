@@ -41,6 +41,17 @@ describe("PriceOracleBaseContract.convert", () => {
 });
 
 describe("PriceOracleBaseContract.safeConvert", () => {
+  it("rounds a fractional target unit up while contract conversion stays down", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 2 },
+      [WETH]: { price: 3 },
+    });
+    expect(oracle.convert(WETH, USDC, 1000000000000n)).toBe(1n);
+    expect(oracle.safeConvert(WETH, USDC, 1000000000000n)).toEqual({
+      value: 2n,
+    });
+  });
+
   it("passes through when from equals to, even with no feeds", () => {
     expect(new TestPriceOracle().safeConvert(USDC, USDC, 100n)).toEqual({
       value: 100n,
@@ -293,6 +304,43 @@ describe("PriceOracleBaseContract native through WETH", () => {
       },
       value: parseEther("1"),
       valueUsd: 2000,
+    });
+  });
+});
+
+describe("PriceOracleBaseContract.safeConvert rounding", () => {
+  it.each([false, true])(
+    "rounds up in both decimal directions (reserve %s)",
+    reserve => {
+      const oracle = new TestPriceOracle({
+        [USDC]: reserve ? { reservePrice: 2 } : { price: 2 },
+        [WETH]: reserve ? { reservePrice: 3 } : { price: 3 },
+      });
+      expect(oracle.safeConvert(WETH, USDC, 666666666667n)).toEqual({
+        value: 2n,
+      });
+      expect(oracle.safeConvert(USDC, WETH, 2n)).toEqual({
+        value: 1333333333334n,
+      });
+      expect(oracle.safeConvert(WETH, USDC, 0n)).toEqual({ value: 0n });
+    },
+  );
+
+  it("does not use reserve after a successful zero main source conversion", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 0, reservePrice: 1 },
+      [WETH]: { price: 2000, reservePrice: 2000 },
+    });
+    expect(oracle.safeConvert(USDC, WETH, ONE_USDC)).toEqual({ value: 0n });
+  });
+
+  it("uses reserve when the main target price is zero", () => {
+    const oracle = new TestPriceOracle({
+      [USDC]: { price: 1, reservePrice: 1 },
+      [WETH]: { price: 0, reservePrice: 2000 },
+    });
+    expect(oracle.safeConvert(USDC, WETH, ONE_USDC)).toEqual({
+      value: 500000000000000n,
     });
   });
 });

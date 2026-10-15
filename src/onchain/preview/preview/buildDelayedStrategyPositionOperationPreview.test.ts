@@ -537,8 +537,8 @@ describe("buildDelayedStrategyPositionOperationPreview WITHDRAW_COLLATERAL", () 
       expect(preview.estAssets).toEqual(
         expect.arrayContaining([amt(UNDERLYING, 400n), amt(WETH, 20n)]),
       );
-      // remaining WETH is 20 wei, which converts to 0 underlying at 18 decimals
-      expect(preview.estTotalValue.value).toBe(400n);
+      // Rounded-up valuation counts the remaining 20 WETH wei as one underlying unit.
+      expect(preview.estTotalValue.value).toBe(401n);
     }
   });
 

@@ -9,8 +9,12 @@ import type {
   InsufficientPoolLiquidityError,
   LeverageOutOfRangeError,
   MarketExpiredError,
+  Position,
   PositionClaimableWithdrawal,
   PositionCollateral,
+  QuotaAboveMaxError,
+  QuotaInactiveError,
+  QuotaUnchangedError,
   SDKError,
   SDKReturn,
   StrategyPosition,
@@ -26,6 +30,9 @@ import {
   unexpectedFailure,
   unsupportedTokenPair,
 } from "../../model/index.js";
+import { resolveQuotaUpdate } from "../../onchain/accounts/intents/resolveQuotaUpdate.js";
+import { isPhantomToken } from "../../onchain/accounts/intents/utils/pick-token.js";
+import { PERCENTAGE_FACTOR } from "../../onchain/constants/math.js";
 import type {
   Asset,
   BorrowPreviewResult,
@@ -58,6 +65,8 @@ import {
   toCreditAccountSlice,
   toToken,
 } from "../../onchain/index.js";
+import { DEFAULT_QUOTA_BUFFER_BPS } from "../../onchain/market/math.js";
+import { IntentPreviewError } from "../../onchain/validation/raise.js";
 import type { EnsureFreshChains } from "../types.js";
 import type {
   AccountFlowError,
@@ -88,6 +97,7 @@ import type {
   PoolInput,
   PositionInput,
   PrepareOptions,
+  QuotaBufferState,
   RepayStrategyParams,
   StrategyInput,
   StrategyResult,
@@ -95,6 +105,7 @@ import type {
   UnexpectedFailureError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
+  UpdateQuotaParams,
   WithdrawalInProgressError,
   WithdrawCollateralParams,
   WithdrawStrategyParams,
@@ -770,12 +781,46 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc IOpportunitiesPrepare.updateQuota}
+   **/
+  public async updateQuota(
+    position: PositionInput,
+    params: UpdateQuotaParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | QuotaInactiveError
+        | QuotaUnchangedError
+        | QuotaAboveMaxError
+      ) &
+        WithPartialState<OperationState>
+    >
+  > {
+    return this.#startIntent<
+      | DebtOutOfRangeError
+      | UnsupportedCollateralTokenError
+      | QuotaInactiveError
+      | QuotaUnchangedError
+      | QuotaAboveMaxError
+    >(position, params, {
+      type: "UPDATE_QUOTA",
+      token: params.token,
+      quota: params.quota,
+    });
+  }
+
+  /**
    * {@inheritDoc IOpportunitiesPrepare.leverageBand}
    **/
   public leverageBand(
     strategy: StrategyInput,
     collateral: readonly Asset[],
     targetHF?: Bps,
+    position?: StrategyPosition,
   ): LeverageBand | undefined {
     // Bare: there is nothing to read and nothing to await, and wrapping
     // arithmetic in an envelope would cost the caller the very immediacy this
@@ -786,6 +831,7 @@ export class PrepareApi
       creditManager: strategy.creditManager,
       collateral,
       targetHF,
+      position,
     });
   }
 
@@ -952,6 +998,89 @@ export class PrepareApi
       );
     } catch (e) {
       return refused(unexpectedFailure(e), state);
+    }
+  }
+
+  /** {@inheritDoc IOpportunitiesPrepare.getQuotaBufferState} */
+  public getQuotaBufferState(
+    position: Position,
+    extraQuotas: readonly (Pick<Asset, "token"> & { quota: bigint })[] = [],
+  ): QuotaBufferState | undefined {
+    const sdk = [...this.sdk.chains.values()].find(
+      chain => chain.chainId === position.chainId,
+    );
+    if (!sdk) return undefined;
+    if (
+      position.kind !== "strategy" ||
+      position.chainId !== sdk.chainId ||
+      !position.targetCollateral ||
+      position.error ||
+      position.totalDebt.value <= 0n
+    )
+      return undefined;
+    const target = position.targetCollateral;
+    if (isPhantomToken(sdk, target.address)) return undefined;
+    const suite = sdk.marketRegister.creditManagers.find(
+      s =>
+        s.creditManager.address.toLowerCase() ===
+        position.creditManager.toLowerCase(),
+    );
+    if (!suite) return undefined;
+    const collateral = position.collaterals.find(
+      c =>
+        c.collateral.token.address.toLowerCase() ===
+        target.address.toLowerCase(),
+    );
+    if (
+      !collateral ||
+      collateral.collateral.value <= 0n ||
+      collateral.quota.value <= 0n
+    )
+      return undefined;
+    const lt = BigInt(
+      suite.creditManager.liquidationThresholds.get(target.address) ?? 0,
+    );
+    if (lt <= 0n) return undefined;
+    const value = suite.market.priceOracle.safeConvert(
+      target.address,
+      suite.market.pool.underlying,
+      collateral.collateral.value,
+    );
+    if (value.error) return undefined;
+    const tokens = position.collaterals.map(c => ({
+      token: c.collateral.token.address,
+      balance: c.collateral.value,
+      quota: c.quota.value,
+    }));
+    tokens.push(
+      ...extraQuotas.map(({ token, quota }) => ({
+        token,
+        quota,
+        balance: 0n,
+      })),
+    );
+    try {
+      const { update } = resolveQuotaUpdate({
+        sdk,
+        creditAccount: { creditManager: position.creditManager, tokens },
+        token: target.address,
+        quota: undefined,
+        quotaReserve: DEFAULT_QUOTA_BUFFER_BPS,
+      });
+      const quotaIncrease =
+        update.quotaIncrease.find(
+          q => q.token.toLowerCase() === target.address.toLowerCase(),
+        )?.balance ?? 0n;
+      if (quotaIncrease <= 0n) return undefined;
+      return {
+        position: { ...position, targetCollateral: target },
+        baseQuota: (value.value * lt) / PERCENTAGE_FACTOR,
+        currentQuota: collateral.quota.value,
+        quotaIncrease,
+      };
+    } catch (error) {
+      if (error instanceof IntentPreviewError) return undefined;
+      throw error;
     }
   }
 }

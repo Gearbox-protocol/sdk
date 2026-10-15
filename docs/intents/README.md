@@ -19,6 +19,7 @@ surface: `sdk.opportunities.prepare` (see
 | `ADJUST_LEVERAGE` | `prepare.adjustLeverage`      | `planAdjustLeverage`     | changes | [adjust-leverage.md](./adjust-leverage.md) |
 | `ADD_COLLATERAL`  | `prepare.addCollateral`       | `planAddCollateral`      | fixed   | [add-collateral.md](./add-collateral.md)   |
 | `WITHDRAW_ASSET`  | `prepare.withdrawCollateral`  | `planWithdrawAsset`      | fixed   | [withdraw-asset.md](./withdraw-asset.md)   |
+| `UPDATE_QUOTA`    | `prepare.updateQuota`         | `planUpdateQuota`        | fixed   | [update-quota.md](./update-quota.md)       |
 | delayed halves    | the `delayed` branch of the two above, then `prepare.finalize` | `plan*Delayed`, `planFinish*` | varies | [delayed.md](./delayed.md) |
 
 ## The pipeline every intent walks
@@ -85,6 +86,7 @@ calldata that performs it.
 | `withdraw`    | `withdrawCollateral`                   | `withdrawCollateral(token, amount, to)`                | `all` flag encodes `MAX_UINT256`, i.e. "whatever the balance turns out to be" |
 | `sweep`       | `withdrawCollateral` per balance       | same, with the `all` flag                              | RWA wrapper is unwrapped first — it cannot leave the account              |
 | `clearQuotas` | `changeQuota`                          | `updateQuota(token, MIN_INT96)` per quoted token        | drops every quota; used by plans that end the loan                        |
+| `updateQuota` | `changeQuota`                          | `updateQuota(token, change, minQuota)`                  | one token's quota, to a target or sized to its balance; the closing update is skipped |
 | `request`     | `startDelayedWithdrawal`               | compressor-provided request calls                      | the phantom token stands in for the claim until it matures               |
 | `claim`       | `claimDelayedWithdrawal`               | compressor-provided claim calls                        | burns the phantom, credits the outputs                                    |
 
@@ -211,7 +213,10 @@ account while it explains why the operation was turned down.
 | `creditManagerPaused` / `marketExpired` | the facade takes no multicall at all                             | `creditManager`, plus `expirationDate` |
 | `insufficientPoolLiquidity` | the pool cannot lend what the plan borrows in this block                    | `requested`, `available`, `limit`, in underlying |
 | `quotaLimitReached`         | no quota left for a token the plan wants to hold, or the token takes none    | `token`, plus `requested`/`available` **in underlying** — a quota is measured there, not in the token it is held against |
-| `forbiddenToken`            | the plan would grow the balance of a forbidden token                        | `token` |
+| `forbiddenToken`            | the plan would grow the balance, or the quota, of a forbidden token         | `token` |
+| `quotaInactive`             | a quota update on a token the keeper charges no rate for                    | `token` |
+| `quotaUnchanged`            | a quota update that rounds to the quota the account already has             | `token`, `current`, `requested`, in underlying |
+| `quotaAboveMax`             | a target quota above the facade's per-token `maxQuota` (`2 · maxDebt`)       | `token`, `requested`, `maxQuota`, in underlying |
 | `insufficientCollateral`    | the projected health factor lands below 1.0                                 | `healthFactor`, `healthFactorThreshold`, `safePrices` |
 
 `insufficientCollateral`'s `healthFactor` is the factor the check compared: safe

@@ -1,5 +1,6 @@
 import type { Bps, InsufficientCollateralError } from "../../../model/index.js";
 import { insufficientCollateral } from "../../../model/index.js";
+import { MIN_HEALTH_FACTOR_FACADE } from "../helpers/index.js";
 
 export interface CollateralisedArgs {
   healthFactor: Bps | undefined;
@@ -36,7 +37,9 @@ export function checkCollateralised(
   }
   if (
     healthFactor >= healthFactorThreshold ||
-    (improvesFrom !== undefined && healthFactor > improvesFrom)
+    (improvesFrom !== undefined &&
+      healthFactor >= MIN_HEALTH_FACTOR_FACADE &&
+      healthFactor > improvesFrom)
   ) {
     return [];
   }
