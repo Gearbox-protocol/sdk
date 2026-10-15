@@ -708,6 +708,7 @@ export class PoolService extends SDKConstruct implements IPoolsService {
       // the pool contract's ERC20 name, not the synthesized `"USDC Pool"`
       // opportunities use. Backend positions read the same token-table name.
       name: this.sdk.tokensMeta.mustGetToken(pool.address).name,
+      curator: market.curator,
       chainId: this.chainId,
       pool: pool.address,
       underlyingToken: market.underlyingToken,

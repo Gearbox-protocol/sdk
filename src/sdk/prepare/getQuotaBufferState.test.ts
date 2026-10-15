@@ -42,6 +42,8 @@ function position(sdk: OnchainSDK, current = CURRENT): StrategyPosition {
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
     name: "Test",
+    curator:
+      sdk.marketRegister.findCreditManager(CREDIT_MANAGER).market.curator,
     underlyingToken,
     targetCollateral: target,
     leverage: 2,
@@ -162,6 +164,7 @@ describe("prepare.getQuotaBufferState", () => {
       prepare(sdk).getQuotaBufferState({
         kind: "pool",
         name: "Pool",
+        curator: p.curator,
         chainId: 1,
         pool: UND,
         underlyingToken: p.underlyingToken,

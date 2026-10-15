@@ -27,6 +27,7 @@ const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as Address;
 const WSTETH = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0" as Address;
 const TBTC = "0x18084fbA666a33d37592fA2633fD49a74DD93a88" as Address;
 const REDEEMER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Address;
+const CURATOR = { address: REDEEMER, name: "Re7", url: null } as const;
 const NOW = 1_700_000_000 as Timestamp;
 
 function token(address: Address, symbol: string): Token {
@@ -82,6 +83,7 @@ function pool(overrides: Partial<PoolPosition> = {}): PoolPosition {
   return {
     kind: "pool",
     name: "USDC Pool",
+    curator: CURATOR,
     chainId: MAINNET,
     pool: POOL,
     underlyingToken: { ...token(USDC, "USDC"), wrappedAddress: null },
@@ -95,6 +97,7 @@ function strategy(overrides: Partial<StrategyPosition> = {}): StrategyPosition {
   return {
     kind: "strategy",
     name: "wstETH / USDC",
+    curator: CURATOR,
     chainId: MAINNET,
     creditManager: CREDIT_MANAGER,
     creditAccount: CREDIT_ACCOUNT,
@@ -283,6 +286,23 @@ describe("matched rows", () => {
 });
 
 describe("expected diffs", () => {
+  it.each([
+    { kind: "pool", create: pool },
+    { kind: "strategy", create: strategy },
+  ])("treats $kind curator URLs as mode-scoped", ({ create }) => {
+    const report = compare(
+      [create()],
+      [create({ curator: { ...CURATOR, url: "https://re7.capital" } })],
+    );
+    const match = walletOf(report)?.matched[0];
+
+    expect(diffAt(match?.diffs ?? [], "curator.url")).toMatchObject({
+      expected: true,
+      reason: "mode-scoped",
+    });
+    expect(match?.similar).toBe(true);
+  });
+
   it("marks offchain-only pnl as expected, still similar", () => {
     const report = compare([pool()], [pool({ pnl: pnl(10n, 12n) })]);
     const match = walletOf(report)?.matched[0];

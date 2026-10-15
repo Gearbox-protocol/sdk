@@ -11,7 +11,7 @@ export class OffchainStatusError extends OffchainTransportError {
   /**
    * Status the backend answered with.
    **/
-  public declare readonly status: number;
+  declare public readonly status: number;
 
   constructor(url: string, status: number, body?: string) {
     super(`The Gearbox backend answered ${status}.`, {

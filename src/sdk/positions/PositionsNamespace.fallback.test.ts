@@ -104,6 +104,7 @@ function poolPosition(chainId: number): PoolPositionBody {
   return {
     kind: "pool",
     name: `USDC Pool ${chainId}`,
+    curator: { address: WALLET, name: "Re7", url: null },
     chainId,
     pool: POOL,
     underlyingToken: {
