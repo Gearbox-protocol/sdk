@@ -2,7 +2,10 @@ import { type Address, getAddress } from "viem";
 import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
-import type { AnalyticsPositionFilterOptions } from "../../model/analytics.js";
+import type {
+  AnalyticsContractOption,
+  AnalyticsPositionFilterOptions,
+} from "../../model/analytics.js";
 import { analyticsPositionFilterOptionsQuerySchema } from "../../model/analytics.schema.js";
 import { chains } from "../../onchain/index.js";
 import { GearboxSDK } from "../../sdk/GearboxSDK.js";
@@ -15,6 +18,24 @@ const PLASMA = chains.Plasma.id;
 const POOL = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as Address;
 const CREDIT_MANAGER = "0x2222222222222222222222222222222222222222" as Address;
 const TOKEN = "0x3333333333333333333333333333333333333333" as Address;
+const WRAPPER = "0x4444444444444444444444444444444444444444" as Address;
+const RE7 = "0x5555555555555555555555555555555555555555" as Address;
+const CHAOS = "0x6666666666666666666666666666666666666666" as Address;
+
+const USDC = {
+  chainId: MAINNET,
+  address: TOKEN,
+  name: "USD Coin",
+  symbol: "USDC",
+  decimals: 6,
+  assetType: "Stable",
+} as const;
+const UNDERLYING = { ...USDC, wrappedAddress: null };
+const CURATOR = {
+  address: RE7,
+  name: "Re7",
+  url: "https://re7.capital",
+} as const;
 
 const EMPTY: AnalyticsPositionFilterOptions = {
   pools: [],
@@ -25,23 +46,39 @@ const EMPTY: AnalyticsPositionFilterOptions = {
 
 const OPTIONS: AnalyticsPositionFilterOptions = {
   pools: [
-    { chainId: MAINNET, address: POOL, name: "Mainnet USDC Pool" },
-    { chainId: PLASMA, address: POOL, name: "Plasma USDC Pool" },
-  ],
-  creditManagers: [
-    { chainId: MAINNET, address: CREDIT_MANAGER, name: "wstETH / USDC" },
-  ],
-  assets: [
     {
       chainId: MAINNET,
-      address: TOKEN,
-      name: "USD Coin",
-      symbol: "USDC",
-      decimals: 6,
-      assetType: "Stable",
+      address: POOL,
+      name: "Mainnet USDC Pool",
+      underlyingToken: UNDERLYING,
+      curator: CURATOR,
+    },
+    {
+      chainId: PLASMA,
+      address: POOL,
+      name: "Plasma USDC Pool",
+      underlyingToken: {
+        ...UNDERLYING,
+        chainId: PLASMA,
+        wrappedAddress: WRAPPER,
+      },
+      curator: { address: CHAOS, url: null },
     },
   ],
-  curators: ["Re7", "Chaos Labs"],
+  creditManagers: [
+    {
+      chainId: MAINNET,
+      address: CREDIT_MANAGER,
+      name: "wstETH / USDC",
+      underlyingToken: UNDERLYING,
+      curator: CURATOR,
+    },
+  ],
+  assets: [USDC],
+  curators: [
+    { name: "Chaos Labs", url: null },
+    { name: "Re7", url: "https://re7.capital" },
+  ],
 };
 
 let fetchMock: MockInstance<typeof fetch>;
@@ -129,7 +166,7 @@ describe("analytics position filter options", () => {
     );
   });
 
-  it("returns named choices, token metadata and curator names with chain identities", async () => {
+  it("returns named choices with market details, token metadata and curators", async () => {
     respondWith(OPTIONS, [
       {
         chainId: MAINNET,
@@ -141,12 +178,29 @@ describe("analytics position filter options", () => {
 
     const { data, meta } = await positions().filterOptions();
 
+    const contract = (option: AnalyticsContractOption) => ({
+      ...option,
+      address: getAddress(option.address),
+      underlyingToken: {
+        ...option.underlyingToken,
+        address: getAddress(option.underlyingToken.address),
+        wrappedAddress:
+          option.underlyingToken.wrappedAddress &&
+          getAddress(option.underlyingToken.wrappedAddress),
+      },
+      curator: {
+        ...option.curator,
+        address: getAddress(option.curator.address),
+      },
+    });
     expect(data).toEqual({
-      ...OPTIONS,
-      pools: OPTIONS.pools.map(pool => ({
-        ...pool,
-        address: getAddress(pool.address),
+      pools: OPTIONS.pools.map(contract),
+      creditManagers: OPTIONS.creditManagers.map(contract),
+      assets: OPTIONS.assets.map(asset => ({
+        ...asset,
+        address: getAddress(asset.address),
       })),
+      curators: OPTIONS.curators,
     });
     expect(data.pools.map(pool => pool.chainId)).toEqual([MAINNET, PLASMA]);
     expect(meta.chains[0]).toMatchObject({
@@ -159,14 +213,35 @@ describe("analytics position filter options", () => {
   it.each([
     {
       field: "pools",
-      value: [{ chainId: MAINNET, address: "invalid", name: "USDC Pool" }],
+      value: [{ ...OPTIONS.pools[0], address: "invalid" }],
+    },
+    {
+      field: "pools",
+      value: [{ ...OPTIONS.pools[0], underlyingToken: USDC }],
     },
     {
       field: "creditManagers",
-      value: [{ chainId: 0, address: CREDIT_MANAGER, name: "USDC Strategy" }],
+      value: [{ ...OPTIONS.creditManagers[0], chainId: 0 }],
+    },
+    {
+      field: "creditManagers",
+      value: [
+        {
+          ...OPTIONS.creditManagers[0],
+          curator: { ...CURATOR, name: "Unknown curator" },
+        },
+      ],
     },
     { field: "assets", value: [{ ...OPTIONS.assets[0], decimals: -1 }] },
-    { field: "curators", value: ["Unknown curator"] },
+    { field: "curators", value: ["Re7"] },
+    {
+      field: "curators",
+      value: [{ ...OPTIONS.curators[0], name: "Unknown curator" }],
+    },
+    {
+      field: "curators",
+      value: [{ ...OPTIONS.curators[0], url: undefined }],
+    },
   ])("rejects invalid $field choices", async ({ field, value }) => {
     respondWith({ ...OPTIONS, [field]: value });
 

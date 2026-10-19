@@ -1,8 +1,9 @@
 import type { Address } from "viem";
 import type { ChartRange, ProtocolChartMetric } from "./charts.js";
-import type { CuratorName } from "./curators.js";
+import type { Curator, CuratorName } from "./curators.js";
 import type { ChainScopedFilter, Filterable } from "./filters.js";
 import type { LiquidationPosition } from "./liquidations.js";
+import type { OpportunityBase } from "./opportunities.js";
 import type {
   PoolPosition,
   Position,
@@ -10,7 +11,7 @@ import type {
   PositionFilter,
   StrategyPosition,
 } from "./positions.js";
-import type { ChainId, Token } from "./primitives.js";
+import type { ChainId, Token, UnderlyingToken } from "./primitives.js";
 
 /**
  * A protocol-wide position row together with the wallet that owns it.
@@ -60,10 +61,31 @@ export interface AnalyticsContractRef {
   address: Address;
 }
 
-/** A pool or credit manager choice with a display name for a filter UI. */
+/**
+ * A pool or credit manager choice for a filter UI: a display name plus the
+ * market details an opportunity reports for the same contract.
+ **/
 export interface AnalyticsContractOption extends AnalyticsContractRef {
   /** Human-readable pool or credit manager name. */
   name: string;
+  /**
+   * Underlying of the market the pool or credit manager belongs to, the same
+   * value as {@link OpportunityBase.underlyingToken}.
+   */
+  underlyingToken: UnderlyingToken;
+  /**
+   * Curator of the market the pool or credit manager belongs to, the same
+   * value as {@link OpportunityBase.curator}.
+   */
+  curator: Curator;
+}
+
+/** A curator choice for a filter UI. */
+export interface AnalyticsCuratorOption {
+  /** Canonical curator name, the value the `curator` filter matches. */
+  name: CuratorName;
+  /** Link to the curator's page, or `null` when unknown. */
+  url: string | null;
 }
 
 /**
@@ -138,8 +160,8 @@ export interface AnalyticsPositionFilterOptions {
    * reported addresses, with metadata to display each choice.
    */
   assets: Token[];
-  /** Known names of the curators of the positions' markets. */
-  curators: CuratorName[];
+  /** Curators of the positions' markets that have a known name. */
+  curators: AnalyticsCuratorOption[];
 }
 
 /**
