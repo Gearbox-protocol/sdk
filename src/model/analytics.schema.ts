@@ -13,7 +13,7 @@ import {
   protocolChartMetricSchema,
 } from "./charts.schema.js";
 import type { CuratorName } from "./curators.js";
-import { curatorNameSchema } from "./curators.schema.js";
+import { curatorNameSchema, curatorSchema } from "./curators.schema.js";
 import { isFilterSet } from "./filters.js";
 import { encodeFlag, filterable } from "./filters.schema.js";
 import { liquidationPositionSchema } from "./liquidations.schema.js";
@@ -26,6 +26,7 @@ import {
   assetTypeSchema,
   chainIdSchema,
   tokenSchema,
+  underlyingTokenSchema,
 } from "./primitives.schema.js";
 
 /** Default page size of the protocol-wide positions list. */
@@ -243,6 +244,14 @@ export const analyticsContractOptionSchema = z.object({
   chainId: chainIdSchema,
   address: ZodAddress(),
   name: z.string(),
+  underlyingToken: underlyingTokenSchema,
+  curator: curatorSchema,
+});
+
+/** {@link AnalyticsCuratorOption} */
+export const analyticsCuratorOptionSchema = z.object({
+  name: curatorNameSchema,
+  url: z.string().nullable(),
 });
 
 /** {@link AnalyticsPositionFilterOptions} */
@@ -250,7 +259,7 @@ export const analyticsPositionFilterOptionsSchema = z.object({
   pools: z.array(analyticsContractOptionSchema),
   creditManagers: z.array(analyticsContractOptionSchema),
   assets: z.array(tokenSchema),
-  curators: z.array(curatorNameSchema),
+  curators: z.array(analyticsCuratorOptionSchema),
 });
 
 /** Chain scope of a filter-options read, shared by the client and backend. */

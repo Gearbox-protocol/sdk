@@ -3,6 +3,7 @@ import type { z } from "zod/v4";
 import type {
   AnalyticsContractOption,
   AnalyticsContractRef,
+  AnalyticsCuratorOption,
   AnalyticsPosition,
   AnalyticsPositionFilterOptions,
   AnalyticsPositionListOptions,
@@ -13,6 +14,7 @@ import type {
 import type {
   analyticsContractOptionSchema,
   analyticsContractRefSchema,
+  analyticsCuratorOptionSchema,
   analyticsPositionFilterOptionsQuerySchema,
   analyticsPositionFilterOptionsSchema,
   analyticsPositionListOptionsSchema,
@@ -232,6 +234,9 @@ describe("model schemas match model types", () => {
     expectTypeOf<
       z.infer<typeof analyticsContractOptionSchema>
     >().toEqualTypeOf<AnalyticsContractOption>();
+    expectTypeOf<
+      z.infer<typeof analyticsCuratorOptionSchema>
+    >().toEqualTypeOf<AnalyticsCuratorOption>();
     expectTypeOf<
       z.infer<typeof analyticsPositionFilterOptionsSchema>
     >().toEqualTypeOf<AnalyticsPositionFilterOptions>();
