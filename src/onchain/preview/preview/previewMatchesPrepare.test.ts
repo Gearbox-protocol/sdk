@@ -129,6 +129,42 @@ function underlyingOnly(): CreditAccountData {
   };
 }
 
+/** cbETH's collateral mask on this credit manager. */
+const CBETH_MASK = 128n;
+
+/** The quota {@link withCbEth} gives its cbETH, well under what 10 of it would size to. */
+const CBETH_QUOTA = parseEther("5");
+
+/**
+ * {@link underlyingOnly} with 10 cbETH beside the WETH, quoted at
+ * {@link CBETH_QUOTA}. The WETH alone backs the debt, so the cbETH quota can
+ * move anywhere, down to nothing, without the account failing its guard.
+ */
+function withCbEth(): CreditAccountData {
+  const base = underlyingOnly();
+  return {
+    ...base,
+    enabledTokensMask: WETH_MASK | CBETH_MASK,
+    tokens: [
+      ...base.tokens,
+      {
+        token: CBETH,
+        mask: CBETH_MASK,
+        balance: parseEther("10"),
+        quota: CBETH_QUOTA,
+        success: true,
+      },
+    ],
+  };
+}
+
+/** The quota change on cbETH, as the preview read it back. */
+function cbEthQuotaChange(changes: TokenAmount[]): bigint | undefined {
+  return changes.find(
+    q => q.token.address.toLowerCase() === CBETH.toLowerCase(),
+  )?.value;
+}
+
 /**
  * Runs an intent through the engine, then the calls it produced back through
  * the preview: the round trip whose two ends the assertions compare.
@@ -708,6 +744,53 @@ describe("the preview of what prepare built agrees with what prepare projected",
       parseEther("40") - before.totalDebt,
     );
     expectAgreement(preview, projected, NO_DUST);
+  });
+
+  it("raising a quota to a target: the quota grows by the difference and nothing else moves", async () => {
+    const target = parseEther("8");
+    const { projected, preview } = await roundTrip(
+      { type: "UPDATE_QUOTA", token: CBETH, quota: target },
+      { account: withCbEth() },
+    );
+    if (preview.operation !== "AdjustCreditAccount") {
+      throw new Error(`expected an adjustment, got ${preview.operation}`);
+    }
+
+    expectAgreement(preview, projected, NO_DUST);
+    expect(cbEthQuotaChange(preview.quotasChange)).toBe(target - CBETH_QUOTA);
+    expect(byToken(preview.quotas)).toEqual({ [CBETH.toLowerCase()]: target });
+    expect(preview.collateralAdded).toEqual([]);
+    expect(preview.assetsChange).toEqual([]);
+    expect(preview.totalDebtChange.value).toBe(0n);
+  });
+
+  it("setting a quota to 0: the token's quota is disabled on both sides", async () => {
+    const { projected, preview } = await roundTrip(
+      { type: "UPDATE_QUOTA", token: CBETH, quota: 0n },
+      { account: withCbEth() },
+    );
+    if (preview.operation !== "AdjustCreditAccount") {
+      throw new Error(`expected an adjustment, got ${preview.operation}`);
+    }
+
+    expectAgreement(preview, projected, NO_DUST);
+    expect(cbEthQuotaChange(preview.quotasChange)).toBe(-CBETH_QUOTA);
+    expect(byToken(preview.quotas)).toEqual({});
+    expect(preview.assetsChange).toEqual([]);
+  });
+
+  it("resizing a quota automatically: the preview replays the increase the engine sized", async () => {
+    const { projected, preview } = await roundTrip(
+      { type: "UPDATE_QUOTA", token: CBETH },
+      { account: withCbEth() },
+    );
+    if (preview.operation !== "AdjustCreditAccount") {
+      throw new Error(`expected an adjustment, got ${preview.operation}`);
+    }
+
+    expectAgreement(preview, projected, NO_DUST);
+    expect(cbEthQuotaChange(preview.quotasChange)).toBeGreaterThan(0n);
+    expect(preview.assetsChange).toEqual([]);
   });
 
   it("opening: the debt, the position and the metrics are the same on both sides", async () => {

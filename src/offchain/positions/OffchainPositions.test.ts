@@ -13,6 +13,11 @@ const POOL = "0x2222222222222222222222222222222222222222" as Address;
 const USDC = "0x3333333333333333333333333333333333333333" as Address;
 const CREDIT_MANAGER = "0x4444444444444444444444444444444444444444" as Address;
 const CREDIT_ACCOUNT = "0x5555555555555555555555555555555555555555" as Address;
+const CURATOR = {
+  address: "0x6666666666666666666666666666666666666666",
+  name: "Re7",
+  url: "https://re7.capital",
+} as const;
 
 let fetchMock: MockInstance<typeof fetch>;
 
@@ -123,6 +128,7 @@ describe("decoding what the backend answered", () => {
         {
           kind: "pool",
           name: "USDC Pool",
+          curator: CURATOR,
           chainId: MAINNET,
           pool: POOL,
           underlyingToken: { ...underlying, wrappedAddress: null },
@@ -133,6 +139,7 @@ describe("decoding what the backend answered", () => {
         {
           kind: "strategy",
           name: "USDC Strategy",
+          curator: CURATOR,
           chainId: MAINNET,
           creditManager: CREDIT_MANAGER,
           creditAccount: CREDIT_ACCOUNT,
@@ -173,6 +180,7 @@ describe("decoding what the backend answered", () => {
     expect(pool).toMatchObject({
       kind: "pool",
       name: "USDC Pool",
+      curator: CURATOR,
       apyAvg7D: { organicApy: 475 },
     });
     expect(pool?.kind === "pool" && pool.netValue.value).toBe(1_000_000n);
@@ -180,6 +188,7 @@ describe("decoding what the backend answered", () => {
       7_000_000n,
     );
     expect(strategy).toMatchObject({
+      curator: CURATOR,
       borrowApyAvg7D: 500,
       netApyAvg7D: { organicApy: 650 },
       borrowRateAvg7D: {

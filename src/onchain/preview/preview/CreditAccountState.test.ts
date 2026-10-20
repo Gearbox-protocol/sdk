@@ -129,23 +129,38 @@ describe("CreditAccountState.repay", () => {
 describe("CreditAccountState.updateQuota", () => {
   it("creates a quota on an unquoted token", () => {
     const state = makeState();
-    state.updateQuota(WETH, 100n);
-    expect(state.quotas.toAssets()).toEqual([{ token: WETH, balance: 100n }]);
+    state.updateQuota(WETH, 1_000_000n);
+    expect(state.quotas.toAssets()).toEqual([
+      { token: WETH, balance: 1_000_000n },
+    ]);
   });
 
   it("adds a positive change to an existing quota", () => {
     const state = makeState({
-      quotas: new AssetsMap([{ token: WETH, balance: 100n }]),
+      quotas: new AssetsMap([{ token: WETH, balance: 1_000_000n }]),
     });
-    state.updateQuota(WETH, 50n);
-    expect(state.quotas.get(WETH)).toBe(150n);
+    state.updateQuota(WETH, 500_000n);
+    expect(state.quotas.get(WETH)).toBe(1_500_000n);
+  });
+
+  it("rounds a change toward zero to a PERCENTAGE_FACTOR step", () => {
+    const state = makeState({
+      quotas: new AssetsMap([
+        { token: WETH, balance: 1_000_000n },
+        { token: USDC, balance: 1_000_000n },
+      ]),
+    });
+    state.updateQuota(WETH, 19_999n);
+    state.updateQuota(USDC, -19_999n);
+    expect(state.quotas.get(WETH)).toBe(1_010_000n);
+    expect(state.quotas.get(USDC)).toBe(990_000n);
   });
 
   it("clamps at zero when the negative change exceeds the current quota", () => {
     const state = makeState({
-      quotas: new AssetsMap([{ token: WETH, balance: 100n }]),
+      quotas: new AssetsMap([{ token: WETH, balance: 1_000_000n }]),
     });
-    state.updateQuota(WETH, -1000n);
+    state.updateQuota(WETH, -10_000_000n);
     expect(state.quotas.get(WETH)).toBe(0n);
   });
 
@@ -164,25 +179,25 @@ describe("CreditAccountState.updateQuota", () => {
   it("folded quota diff equals post-clamp final minus initial", () => {
     const before = makeState({
       quotas: new AssetsMap([
-        { token: WETH, balance: 100n },
-        { token: USDC, balance: 200n },
+        { token: WETH, balance: 1_000_000n },
+        { token: USDC, balance: 2_000_000n },
       ]),
     });
     const after = before.clone();
-    after.updateQuota(WETH, -300n);
-    after.updateQuota(WSTETH, 40n);
+    after.updateQuota(WETH, -3_000_000n);
+    after.updateQuota(WSTETH, 400_000n);
     expect(after.quotas.toAssets(0n)).toEqual(
       expect.arrayContaining([
-        { token: USDC, balance: 200n },
-        { token: WSTETH, balance: 40n },
+        { token: USDC, balance: 2_000_000n },
+        { token: WSTETH, balance: 400_000n },
       ]),
     );
     expect(after.quotas.toAssets(0n)).toHaveLength(2);
     const change = after.quotas.difference(before.quotas).toAssets();
     expect(change).toEqual(
       expect.arrayContaining([
-        { token: WETH, balance: -100n },
-        { token: WSTETH, balance: 40n },
+        { token: WETH, balance: -1_000_000n },
+        { token: WSTETH, balance: 400_000n },
       ]),
     );
     expect(change).toHaveLength(2);

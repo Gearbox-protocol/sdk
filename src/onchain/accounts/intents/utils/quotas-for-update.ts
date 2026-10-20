@@ -34,9 +34,8 @@ interface Quota {
   isActive: boolean;
 }
 
-interface GetQuotasForUpdateProps {
-  assetsBefore: Asset[] | readonly Asset[];
-  assetsAfter: Asset[];
+/** The market inputs every quota sizing reads. */
+interface QuotaSizingProps {
   initialQuotas: Array<InitialQuota> | readonly InitialQuota[];
   quotaReserve: number | undefined;
 
@@ -45,6 +44,18 @@ interface GetQuotasForUpdateProps {
   quotas: AddressMap<Quota>;
   maxDebt: bigint;
   convert: ConvertFn;
+}
+
+interface GetQuotasForUpdateProps extends QuotaSizingProps {
+  assetsBefore: Asset[] | readonly Asset[];
+  assetsAfter: Asset[];
+}
+
+export interface ResizedQuotaProps extends QuotaSizingProps {
+  /** The one token whose quota is sized. */
+  token: Address;
+  /** What the account holds; `token`'s balance is what the quota is sized to. */
+  assets: Asset[] | readonly Asset[];
 }
 
 interface QuotaIncreaseLimitProps {
@@ -56,26 +67,48 @@ interface QuotaIncreaseLimitProps {
   rwaAsset?: Address;
 }
 
-export function getQuotasForUpdate({
-  assetsBefore,
-  assetsAfter,
-  initialQuotas,
-  quotaReserve = 0,
-  liquidationThresholds: liquidationThresholdsMap,
-  quotas: quotasMap,
-  maxDebt,
-  underlyingToken,
-  convert,
-}: GetQuotasForUpdateProps): QuotaUpdateState {
-  const underlyingTokenLc = underlyingToken.toLowerCase() as Address;
-  const assetsBeforeLc = assetsBefore.map(
-    (a): Asset => ({ ...a, token: a.token.toLowerCase() as Address }),
+export function getQuotasForUpdate(
+  props: GetQuotasForUpdateProps,
+): QuotaUpdateState {
+  const assetsAfterLc = lowercased(props.assetsAfter);
+  const { spend, obtain } = collectQuotaChange(
+    lowercased(props.assetsBefore),
+    assetsAfterLc,
   );
-  const assetsAfterLc = assetsAfter.map(
-    (a): Asset => ({ ...a, token: a.token.toLowerCase() as Address }),
-  );
-  const { spend, obtain } = collectQuotaChange(assetsBeforeLc, assetsAfterLc);
+  return sizeQuotas(assetsAfterLc, spend, obtain, props);
+}
 
+/**
+ * The update that sizes one token's quota to the balance the account holds of
+ * it, whatever moved.
+ *
+ * Sits beside {@link getQuotasForUpdate} because that one only resizes what an
+ * operation spent or obtained, and an operation that changes a quota alone
+ * moves no balance at all.
+ */
+export function resizedQuota(props: ResizedQuotaProps): QuotaUpdateState {
+  // Only the token is read from these: the size comes from `assets`.
+  const entry: Asset[] = [
+    { token: props.token.toLowerCase() as Address, balance: 0n },
+  ];
+  return sizeQuotas(lowercased(props.assets), entry, entry, props);
+}
+
+function sizeQuotas(
+  assetsAfterLc: Asset[],
+  spend: Asset[],
+  obtain: Asset[],
+  {
+    initialQuotas,
+    quotaReserve = 0,
+    liquidationThresholds: liquidationThresholdsMap,
+    quotas: quotasMap,
+    maxDebt,
+    underlyingToken,
+    convert,
+  }: QuotaSizingProps,
+): QuotaUpdateState {
+  const underlyingTokenLc = underlyingToken.toLowerCase() as Address;
   const initialQuotasLc = initialQuotas.map((a): [Address, InitialQuota] => {
     const tokenLc = a.token.toLowerCase() as Address;
     return [tokenLc, { ...a, token: tokenLc }];
@@ -259,6 +292,10 @@ export function quotasAfterUpdate(
     }
   }
   return after;
+}
+
+function lowercased(assets: Asset[] | readonly Asset[]): Asset[] {
+  return assets.map(a => ({ ...a, token: a.token.toLowerCase() as Address }));
 }
 
 function collectQuotaChange(

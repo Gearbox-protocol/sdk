@@ -11,6 +11,7 @@ export * from "./checkMidasAccountGreenlist.js";
 export * from "./checkObtained.js";
 export * from "./checkPoolFunding.js";
 export * from "./checkPoolOperation.js";
+export * from "./checkQuotaUpdates.js";
 export * from "./checkRWAOpening.js";
 export * from "./checkRWAOpenRequirements.js";
 export * from "./checkWallet.js";

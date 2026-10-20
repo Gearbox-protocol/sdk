@@ -17,6 +17,7 @@ const mockSDK = {
   attach: notImplemented,
   analytics: {
     positions: {
+      filterOptions: notImplemented,
       list: notImplemented,
     },
     charts: notImplemented,
@@ -34,6 +35,7 @@ const mockSDK = {
     totals: notImplemented,
     charts: notImplemented,
     prepare: {
+      getQuotaBufferState: notImplemented,
       deposit: notImplemented,
       withdraw: notImplemented,
       redeem: notImplemented,
@@ -48,6 +50,7 @@ const mockSDK = {
       adjustLeverage: notImplemented,
       addCollateral: notImplemented,
       withdrawCollateral: notImplemented,
+      updateQuota: notImplemented,
       leverageBand: notImplemented,
       withdrawableCollaterals: notImplemented,
       maxWithdrawCollateral: notImplemented,
@@ -97,6 +100,8 @@ const mockSDK = {
     getLiquidatableAccounts: notImplemented,
     getLiquidationDetails: notImplemented,
     buildLiquidationTx: notImplemented,
+    getPartialLiquidationDetails: notImplemented,
+    buildPartialLiquidationTx: notImplemented,
     getLiquidationPositions: notImplemented,
     checkLiquidation: notImplemented,
     isEmergencyLiquidator: notImplemented,

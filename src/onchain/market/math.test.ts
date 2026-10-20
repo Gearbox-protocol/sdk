@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PoolOpportunity } from "../../model/index.js";
-import type { OptimalRepaidAmountProps } from "./math.js";
+import type { OptimalPartialLiquidationAmountsProps } from "./math.js";
 import {
   bpsToRay,
   calcBorrowApy,
@@ -13,7 +13,7 @@ import {
   calcUtilizationRaw,
   minSeizedAmount,
   optimalHFForPartialLiquidation,
-  optimalRepaidAmount,
+  optimalPartialLiquidationAmounts,
   rayToBps,
   usdToNumber,
 } from "./math.js";
@@ -219,40 +219,71 @@ describe("minSeizedAmount", () => {
   });
 });
 
-describe("optimalRepaidAmount", () => {
+describe("optimalPartialLiquidationAmounts", () => {
   // Underwater account: 1e6 of debt against 990k of threshold-weighted value.
-  const props: OptimalRepaidAmountProps = {
+  const props: OptimalPartialLiquidationAmountsProps = {
     totalDebt: 1_000_000n,
     twvUnderlying: 990_000n,
     minDebt: 100_000n,
     optimalHF: 10_100n,
+    liquidationDiscount: 9600n,
     discount: 9500n,
     ltTokenOut: 8000n,
   };
 
   it("repays enough to lift the account to the target health factor", () => {
-    expect(optimalRepaidAmount(props)).toBe(119_121n);
+    // value seized: (1e6 × 1.01 − 990k) / (0.95 × 1.01 − 0.8) = 125_391
+    expect(optimalPartialLiquidationAmounts(props)).toEqual({
+      optimalAmount: 120_375n,
+      repaidAmount: 119_121n,
+      flashLoanAmount: 120_495n,
+      isOptimalRepayable: true,
+    });
   });
 
   it("throws when seizing the token cannot improve the account", () => {
     expect(() =>
-      optimalRepaidAmount({ ...props, discount: 9000n, ltTokenOut: 9500n }),
+      optimalPartialLiquidationAmounts({
+        ...props,
+        discount: 9000n,
+        ltTokenOut: 9500n,
+      }),
     ).toThrow("cannot compute optimal repaid amount");
   });
 
   it("repays nothing when the account is already healthy enough", () => {
-    expect(optimalRepaidAmount({ ...props, twvUnderlying: 2_000_000n })).toBe(
-      0n,
-    );
+    expect(
+      optimalPartialLiquidationAmounts({ ...props, twvUnderlying: 2_000_000n }),
+    ).toEqual({
+      optimalAmount: 0n,
+      repaidAmount: 0n,
+      flashLoanAmount: 0n,
+      isOptimalRepayable: true,
+    });
   });
 
   it("repays nothing when the account carries less than the minimum debt", () => {
-    expect(optimalRepaidAmount({ ...props, minDebt: 2_000_000n })).toBe(0n);
+    expect(
+      optimalPartialLiquidationAmounts({ ...props, minDebt: 2_000_000n }),
+    ).toEqual({
+      optimalAmount: 0n,
+      repaidAmount: 0n,
+      flashLoanAmount: 0n,
+      isOptimalRepayable: false,
+    });
   });
 
   it("leaves the minimum debt in place, since repaying past it would revert", () => {
-    // surplus over minDebt is 1000, well under the 119_121 the target asks for
-    expect(optimalRepaidAmount({ ...props, minDebt: 999_000n })).toBe(999n);
+    // surplus over minDebt is 1000, well under the 119_121 the target asks for;
+    // the paid amount shrinks in proportion: 120_375 × 999 / 119_121 = 1009
+    expect(
+      optimalPartialLiquidationAmounts({ ...props, minDebt: 999_000n }),
+    ).toEqual({
+      optimalAmount: 1009n,
+      repaidAmount: 999n,
+      flashLoanAmount: 1010n,
+      isOptimalRepayable: false,
+    });
   });
 });
 

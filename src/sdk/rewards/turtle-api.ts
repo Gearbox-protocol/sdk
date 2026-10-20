@@ -38,7 +38,7 @@ export interface TurtleWalletRewards {
 
 const TURTLE_API_URL = "https://earn.turtle.xyz";
 const GEARBOX_ORG_ID = "d171ba3d-ff89-4e6c-8f13-d94840b06edd";
-const TIMEOUT = 10_000;
+const TIMEOUT = 30_000;
 
 export const turtleStreamAbi = [
   {

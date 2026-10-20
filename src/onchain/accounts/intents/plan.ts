@@ -8,7 +8,11 @@ import {
   type OperationLimitOptions,
   unsupportedCollateralToken,
 } from "../../../model/index.js";
-import { MAX_UINT256, PERCENTAGE_FACTOR } from "../../constants/index.js";
+import {
+  isZeroBalance,
+  MAX_UINT256,
+  PERCENTAGE_FACTOR,
+} from "../../constants/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
@@ -25,6 +29,7 @@ import type {
   AdjustLeverageIntent,
   DepositStrategyIntent,
   RepayStrategyIntent,
+  UpdateQuotaIntent,
   WithdrawAssetIntent,
   WithdrawStrategyIntent,
 } from "./types.js";
@@ -94,7 +99,13 @@ export type Step =
    * quota fees accrue on the quota, not on the loan, so a quota outliving the
    * debt it backed would keep charging an account that owes nothing.
    */
-  | { kind: "clearQuotas" };
+  | { kind: "clearQuotas" }
+  /**
+   * Sets one token's quota, and only that one: the walk's closing quota update
+   * is skipped. `quota` is the target in underlying units; `undefined` sizes
+   * it to the balance.
+   */
+  | { kind: "updateQuota"; token: Address; quota: bigint | undefined };
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
@@ -283,6 +294,36 @@ export function planRepay(
     ...(repaid === view.debt ? [clearQuotas()] : []),
     repay(repaid),
   ];
+}
+
+/**
+ * One token's quota changes; no balance moves and debt is untouched.
+ *
+ * Only a token the account holds can be quoted here, and only on an account
+ * that owes something: the facade refuses any quota change at zero debt.
+ */
+export function planUpdateQuota(
+  intent: Omit<UpdateQuotaIntent, "type">,
+  view: AccountView,
+): Step[] {
+  const U = view.underlying;
+  if (eq(intent.token, U) || isZeroBalance(view.balanceOf(intent.token))) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
+      `updateQuota: ${intent.token} is the underlying or not held by the account`,
+    );
+  }
+  if (view.debt <= 0n) {
+    throw new IntentPreviewError(
+      debtOutOfRange({
+        requested: toTokenAmount(view.sdk, U, 0n),
+        minDebt: toTokenAmount(view.sdk, U, view.debtLimits.minDebt),
+        maxDebt: toTokenAmount(view.sdk, U, view.debtLimits.maxDebt),
+      }),
+      "updateQuota: the account has zero debt",
+    );
+  }
+  return [{ kind: "updateQuota", token: intent.token, quota: intent.quota }];
 }
 
 /**

@@ -47,6 +47,7 @@ export const liquidatableAccountSchema = z.object({
   isDelayed: z.boolean(),
   paused: z.boolean(),
   rwa: z.boolean(),
+  isPartiallyLiquidatable: z.boolean(),
 });
 
 /**
@@ -108,4 +109,5 @@ export const liquidationDetailsSchema = z.object({
   kycProtocol: z.string().optional(),
   kycToken: tokenSchema.optional(),
   approve: liquidationApprovalSchema.optional(),
+  isPartial: z.boolean(),
 });

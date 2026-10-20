@@ -152,12 +152,14 @@ export function pickStrategyTargetCollateral(
  *
  * @param account - Account to inspect.
  * @param market - Market of the account, whose oracle prices the candidates.
+ * @param exclude - Tokens that cannot be the dominant collateral.
  * @returns The dominant collateral, or `undefined` when the account holds
  * nothing but its underlying, or nothing the oracle can price.
  **/
 export function dominantCollateral(
   account: CreditAccountData,
   market: MarketSuite,
+  exclude?: (token: Address) => boolean,
 ): Address | undefined {
   let bestValue = 0n;
   let dominant: Address | undefined;
@@ -165,7 +167,8 @@ export function dominantCollateral(
     if (
       isAddressEqual(t.token, account.underlying) ||
       (t.mask & account.enabledTokensMask) === 0n ||
-      t.balance <= DUST_THRESHOLD
+      t.balance <= DUST_THRESHOLD ||
+      exclude?.(t.token)
     ) {
       continue;
     }

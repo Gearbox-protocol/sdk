@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { Curator } from "./curators.js";
 import type { ChainScopedFilter, Filterable } from "./filters.js";
 import { isFilterSet } from "./filters.js";
 import type {
@@ -125,6 +126,8 @@ export interface PoolPosition {
    * @example `"USDC Pool"`
    **/
   name: string;
+  /** Curator of the market this pool belongs to. */
+  curator: Curator;
   /**
    * Chain the pool lives on.
    **/
@@ -230,6 +233,8 @@ export interface StrategyPosition {
    * source disagreement is expected.
    **/
   name: string;
+  /** Curator of the market this credit account belongs to. */
+  curator: Curator;
   /**
    * Chain the account lives on.
    **/

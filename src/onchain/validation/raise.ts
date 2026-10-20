@@ -10,7 +10,10 @@ import type {
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
+  QuotaAboveMaxError,
+  QuotaInactiveError,
   QuotaLimitReachedError,
+  QuotaUnchangedError,
   ReservePriceLimitedError,
   UnsupportedCollateralTokenError,
   UnsupportedTokenPairError,
@@ -34,6 +37,9 @@ export type IntentValidationError =
   | ReservePriceLimitedError
   | ForbiddenTokenError
   | QuotaLimitReachedError
+  | QuotaInactiveError
+  | QuotaUnchangedError
+  | QuotaAboveMaxError
   | InsufficientBalanceError
   | UnsupportedCollateralTokenError
   | UnsupportedTokenPairError

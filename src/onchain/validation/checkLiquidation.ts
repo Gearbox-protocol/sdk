@@ -22,7 +22,8 @@ export type LiquidationValidationError =
   | WalletFundingError;
 
 /**
- * Whether `liquidator` may send a full liquidation of this account
+ * Whether `liquidator` may send the full or partial liquidation `details`
+ * describe
  */
 export async function checkLiquidation(
   sdk: OnchainSDK,

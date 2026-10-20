@@ -102,6 +102,15 @@ export interface LiquidatableAccount extends CreditOperationMarket {
    * from a hardcoded per-chain list rather than from the chain.
    **/
   rwa: boolean;
+  /**
+   * Whether the account can be partially liquidated with default parameters.
+   *
+   * Independent of the liquidator: a KYC gate (e.g. Midas greenlist) is
+   * reported by {@link LiquidationDetails.isLiquidatorEligible}, not here.
+   *
+   * A local estimate, not onchain read.
+   **/
+  isPartiallyLiquidatable: boolean;
 }
 
 /**
@@ -171,7 +180,7 @@ export interface DelayedReceivedAsset extends TokenAmount {
 }
 
 /**
- * A single asset the liquidator receives when fully liquidating an account.
+ * A single asset the liquidator receives when liquidating an account.
  **/
 export type ReceivedAsset = InstantReceivedAsset | DelayedReceivedAsset;
 
@@ -179,10 +188,11 @@ export type ReceivedAsset = InstantReceivedAsset | DelayedReceivedAsset;
  * ERC-20 approval the liquidator must grant before sending the liquidation
  * transaction.
  *
- * The token is the one the compressor reports for the liquidation path it
- * selected: the credit manager underlying for standard liquidations, the
- * unwrapped stablecoin (e.g. USDC) for RWA ones. The value is what the
- * transaction pulls plus 0.5% of headroom.
+ * The token is the one the liquidator pays in: the credit manager underlying
+ * for standard and partial liquidations, the unwrapped stablecoin (e.g. USDC)
+ * for RWA ones. The value is what the liquidator pays plus a 0.5% buffer: the
+ * full liquidation amount is an estimate, and the partial one grows with the
+ * interest accrued before the transaction is built.
  **/
 export interface LiquidationApproval extends TokenAmount {
   /**
@@ -236,6 +246,10 @@ export interface LiquidationPosition {
 /**
  * Detailed information about a liquidatable credit account, including
  * the full breakdown of assets the liquidator receives.
+ *
+ * Describes either a full liquidation, with exact amounts reported by the
+ * liquidation compressor, or a partial one, whose amounts are a local estimate
+ * from the synced oracle state.
  **/
 export interface LiquidationDetails extends LiquidatableAccount {
   /**
@@ -247,9 +261,9 @@ export interface LiquidationDetails extends LiquidatableAccount {
    **/
   repaymentAmount: TokenAmount;
   /**
-   * Assets the liquidator receives upon full liquidation: direct credit
+   * Assets the liquidator receives: for a full liquidation, direct credit
    * account balances plus outputs of delayed withdrawals (claimable and
-   * pending).
+   * pending); for a partial one, the single seized collateral token.
    **/
   receivedAssets: ReceivedAsset[];
   /**
@@ -281,4 +295,10 @@ export interface LiquidationDetails extends LiquidatableAccount {
    * liquidator, i.e. {@link repaymentAmount} is zero.
    **/
   approve?: LiquidationApproval;
+  /**
+   * `true` for the details of a partial liquidation, whose
+   * {@link LiquidatableAccount.isPartiallyLiquidatable} reflects the
+   * parameters it was requested with.
+   **/
+  isPartial: boolean;
 }

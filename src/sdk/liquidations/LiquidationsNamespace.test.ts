@@ -34,6 +34,8 @@ const positions = response([] as LiquidationPosition[]);
 const getLiquidatableAccounts = vi.fn();
 const getLiquidationDetails = vi.fn();
 const buildLiquidationTx = vi.fn();
+const getPartialLiquidationDetails = vi.fn();
+const buildPartialLiquidationTx = vi.fn();
 const getLiquidationPositions = vi.fn();
 
 const chainSdk = {} as OnchainSDK;
@@ -44,6 +46,8 @@ const onchain = {
     getLiquidatableAccounts,
     getLiquidationDetails,
     buildLiquidationTx,
+    getPartialLiquidationDetails,
+    buildPartialLiquidationTx,
     getLiquidationPositions,
   },
 } as unknown as MultichainSDK;
@@ -54,6 +58,8 @@ beforeEach(() => {
   getLiquidatableAccounts.mockResolvedValue(accounts);
   getLiquidationDetails.mockResolvedValue(details);
   buildLiquidationTx.mockResolvedValue(tx);
+  getPartialLiquidationDetails.mockResolvedValue(details);
+  buildPartialLiquidationTx.mockResolvedValue(tx);
   getLiquidationPositions.mockResolvedValue(positions);
   checkLiquidationMock.mockResolvedValue([]);
 });
@@ -116,6 +122,58 @@ describe("LiquidationsNamespace", () => {
     expect(result).toBe(tx);
     expect(ensureFresh).toHaveBeenCalledWith(toChainIds(["Mainnet"]));
     expect(buildLiquidationTx).toHaveBeenCalledWith(props);
+  });
+
+  it("getPartialLiquidationDetails awaits ensureFresh for the named network, then delegates", async () => {
+    const order: string[] = [];
+    const ensureFresh = vi.fn(async () => {
+      order.push("fresh");
+    });
+    getPartialLiquidationDetails.mockImplementation(async () => {
+      order.push("read");
+      return details;
+    });
+    const ns = new LiquidationsNamespace(onchain, {
+      maxOffchainLagSeconds: 0,
+      ensureFresh,
+    });
+    const props = {
+      network: "Mainnet" as const,
+      creditAccount: CREDIT_ACCOUNT,
+      repaidAmount: 1n,
+    };
+    const result = await ns.getPartialLiquidationDetails(props);
+
+    expect(result).toBe(details);
+    expect(ensureFresh).toHaveBeenCalledWith(toChainIds(["Mainnet"]));
+    expect(getPartialLiquidationDetails).toHaveBeenCalledWith(props);
+    expect(order).toEqual(["fresh", "read"]);
+  });
+
+  it("buildPartialLiquidationTx awaits ensureFresh for the named network, then delegates", async () => {
+    const order: string[] = [];
+    const ensureFresh = vi.fn(async () => {
+      order.push("fresh");
+    });
+    buildPartialLiquidationTx.mockImplementation(async () => {
+      order.push("read");
+      return tx;
+    });
+    const ns = new LiquidationsNamespace(onchain, {
+      maxOffchainLagSeconds: 0,
+      ensureFresh,
+    });
+    const props = {
+      network: "Mainnet" as const,
+      creditAccount: CREDIT_ACCOUNT,
+      liquidator: LIQUIDATOR,
+    };
+    const result = await ns.buildPartialLiquidationTx(props);
+
+    expect(result).toBe(tx);
+    expect(ensureFresh).toHaveBeenCalledWith(toChainIds(["Mainnet"]));
+    expect(buildPartialLiquidationTx).toHaveBeenCalledWith(props);
+    expect(order).toEqual(["fresh", "read"]);
   });
 
   it("getLiquidationPositions awaits ensureFresh for the named chains, then delegates", async () => {

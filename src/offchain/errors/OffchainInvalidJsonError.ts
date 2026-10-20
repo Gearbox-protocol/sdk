@@ -10,7 +10,7 @@ export class OffchainInvalidJsonError extends OffchainTransportError {
   /**
    * Status the backend answered with.
    **/
-  public declare readonly status: number;
+  declare public readonly status: number;
 
   constructor(url: string, status: number, cause: unknown) {
     super("The Gearbox backend answered with a body that is not JSON.", {

@@ -40,6 +40,8 @@ function details(over: Partial<LiquidationDetails> = {}): LiquidationDetails {
     paused: false,
     isCreditAccountFrozen: false,
     isLiquidatorEligible: true,
+    isPartial: false,
+    isPartiallyLiquidatable: true,
     ...over,
   } as unknown as LiquidationDetails;
 }
@@ -63,6 +65,38 @@ describe("checkLiquidationEligibility", () => {
         liquidator: STRANGER,
       }),
     ).toEqual(["creditAccountFrozen"]);
+  });
+
+  it("refuses a partial liquidation that cannot reach the target health factor", () => {
+    expect(
+      codesOf({
+        sdk: sdk(),
+        details: details({ isPartial: true, isPartiallyLiquidatable: false }),
+        liquidator: STRANGER,
+      }),
+    ).toEqual(["partialLiquidationImpossible"]);
+  });
+
+  it("leaves full liquidations alone whether or not a partial one is possible", () => {
+    for (const isPartiallyLiquidatable of [true, false]) {
+      expect(
+        codesOf({
+          sdk: sdk(),
+          details: details({ isPartial: false, isPartiallyLiquidatable }),
+          liquidator: STRANGER,
+        }),
+      ).toEqual([]);
+    }
+  });
+
+  it("leaves possible partial liquidations alone", () => {
+    expect(
+      codesOf({
+        sdk: sdk(),
+        details: details({ isPartial: true, isPartiallyLiquidatable: true }),
+        liquidator: STRANGER,
+      }),
+    ).toEqual([]);
   });
 
   it("refuses a paused market to anyone but its emergency liquidators", () => {
@@ -129,12 +163,14 @@ describe("checkLiquidationEligibility", () => {
    * Order is the answer: a caller with room for one verdict reports the first,
    * and a frozen account is the fact furthest from anything the wallet can fix.
    */
-  it("weighs frozen before paused before KYC", () => {
+  it("weighs frozen before impossible partial before paused before KYC", () => {
     expect(
       codesOf({
         sdk: sdk(),
         details: details({
           isCreditAccountFrozen: true,
+          isPartial: true,
+          isPartiallyLiquidatable: false,
           paused: true,
           isLiquidatorEligible: false,
         }),
@@ -142,6 +178,7 @@ describe("checkLiquidationEligibility", () => {
       }),
     ).toEqual([
       "creditAccountFrozen",
+      "partialLiquidationImpossible",
       "notEmergencyLiquidator",
       "liquidatorNotEligible",
     ]);

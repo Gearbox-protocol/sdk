@@ -23,13 +23,14 @@ export async function setLTs(
 ): Promise<void> {
   const configuratorAddr = await impresonateCCOwner(anvil, cm);
   for (const [t, lt] of Object.entries(newLTs)) {
-    await anvil.writeContract({
+    await anvil.writeContractSync({
       chain: anvil.chain,
       address: cm.creditConfigurator.baseParams.addr,
       account: configuratorAddr,
       abi: iCreditConfiguratorV310Abi,
       functionName: "setLiquidationThreshold",
       args: [t as Address, lt],
+      throwOnReceiptRevert: true,
     });
   }
   await anvil.stopImpersonatingAccount({

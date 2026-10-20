@@ -41,6 +41,7 @@ function positionOf(
   return {
     kind: "strategy",
     name: "test strategy",
+    curator: suite.market.curator,
     chainId: sdk.chainId,
     creditManager: CREDIT_MANAGER,
     creditAccount: creditAccount.creditAccount,

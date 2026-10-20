@@ -101,7 +101,7 @@ export interface OpenEmptyPrepareRequest {
 }
 
 /**
- * Any of the five operations on an existing account, from a viable
+ * Any operation on an existing account, from a viable
  * {@link StrategyResult}: the facade multicall is the result's `calls`.
  **/
 export interface AccountPrepareRequest {

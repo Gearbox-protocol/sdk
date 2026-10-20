@@ -513,6 +513,7 @@ export class PositionsService extends SDKConstruct {
       creditAccount: ca.creditAccount,
       underlyingToken: token,
       name: suite.accountStrategyName(ca.creditAccount),
+      curator: market.curator,
       targetCollateral: suite.accountTargetCollateral(ca.creditAccount),
       leverage: calcPositionLeverage(totalValue, totalDebtValue),
       borrowApy: calcBorrowApy(
