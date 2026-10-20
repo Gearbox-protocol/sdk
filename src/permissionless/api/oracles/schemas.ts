@@ -47,3 +47,29 @@ export const pricesSchema = z.looseObject({
   marketCaps: addressRecord(addressRecord(z.string().nullable())),
   time: z.number(),
 });
+
+/** {@link PermissionlessPriceFeedAsset} */
+export const priceFeedAssetSchema = z.looseObject({
+  address: addressSchema,
+  symbol: z.string(),
+  name: z.string(),
+  decimals: z.number(),
+});
+
+/** {@link PermissionlessPriceFeedMarket} */
+export const priceFeedMarketSchema = z.looseObject({
+  market: addressSchema,
+  marketConfigurator: addressSchema,
+  token: addressSchema,
+  tokenSymbol: z.string().nullable(),
+  reserve: z.boolean(),
+  isUnderlying: z.boolean(),
+});
+
+/** {@link PermissionlessPriceFeedDetails} */
+export const priceFeedDetailsSchema = z.looseObject({
+  chainId: z.number(),
+  priceFeed: priceFeedSchema,
+  assets: z.array(priceFeedAssetSchema),
+  markets: z.array(priceFeedMarketSchema),
+});

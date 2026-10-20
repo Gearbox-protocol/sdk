@@ -1,13 +1,21 @@
 import type { Address } from "viem";
+import type { PriceFeedData } from "../../../model/opportunities.js";
+import { priceFeedDataSchema } from "../../../model/opportunities.schema.js";
 import { AbstractOffchainNamespace } from "../../../offchain/AbstractOffchainNamespace.js";
 import { getPrices } from "../../utils/price-update/get-prices.js";
 import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
-import { priceFeedStoreSchema, pricesSchema } from "./schemas.js";
+import {
+  priceFeedDetailsSchema,
+  priceFeedStoreSchema,
+  pricesSchema,
+} from "./schemas.js";
 import type {
   GetPricesArgs,
+  PermissionlessPriceFeedDetails,
   PermissionlessPriceFeedStore,
   PermissionlessPrices,
+  PriceFeedArgs,
 } from "./types.js";
 
 export const GET_PRICES_GAS_LIMIT_BY_CHAIN_ID: Record<number, bigint> = {
@@ -50,6 +58,58 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
     return this.getData({
       path: `/pfs/${chainId}`,
       schema: priceFeedStoreSchema,
+    });
+  }
+
+  /**
+   * One feed of the store: what it is, which assets it may price, and which
+   * market slots it currently fills.
+   *
+   * Singular where {@link store} is plural, and not a filter over it: the
+   * store answers what a list renders, while this answers what a feed is used
+   * for, which the store does not carry at all.
+   *
+   * ```ts
+   * const { priceFeed, markets } = await permissionless.oracles.feed({
+   *   chainId: 1,
+   *   address: feed,
+   * });
+   * ```
+   *
+   * @throws When the store does not carry the feed. A private draft is not
+   * here — it lives in whichever app wrote it.
+   **/
+  public async feed({
+    chainId,
+    address,
+  }: PriceFeedArgs): Promise<PermissionlessPriceFeedDetails> {
+    return this.getData({
+      path: `/pfs/${chainId}/price-feed/${address}`,
+      schema: priceFeedDetailsSchema,
+    });
+  }
+
+  /**
+   * The feeds one feed reads from, recursively.
+   *
+   * Answers for any feed the chain has indexed, store member or not: a
+   * composite feed's children are rarely in the store themselves, and a tree
+   * that stopped at the first of them would not be one.
+   *
+   * ```ts
+   * const tree = await permissionless.oracles.dependencies({
+   *   chainId: 1,
+   *   address: feed,
+   * });
+   * ```
+   **/
+  public async dependencies({
+    chainId,
+    address,
+  }: PriceFeedArgs): Promise<PriceFeedData> {
+    return this.getData({
+      path: `/pfs/${chainId}/price-feed/${address}/graph`,
+      schema: priceFeedDataSchema,
     });
   }
 
