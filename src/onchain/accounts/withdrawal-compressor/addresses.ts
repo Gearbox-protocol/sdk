@@ -25,6 +25,10 @@ const WITHDRAWAL_COMPRESSORS: Partial<
     address: "0x36F3d0Bb73CBC2E94fE24dF0f26a689409cF9023",
     version: 310,
   },
+  Etherlink: {
+    address: "0x6FA0c5404C31D0161bb39Cc1311aac998A38ecD5",
+    version: 313,
+  },
 };
 
 /**
