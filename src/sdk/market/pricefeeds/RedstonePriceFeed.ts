@@ -26,6 +26,8 @@ export class RedstonePriceFeedContract
   constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
     super(options, {
       ...args,
+      // RedStone updates are no longer pushed by the SDK.
+      updatable: false,
       name: "RedstonePriceFeed",
       abi: redstonePriceFeedAbi,
     });
