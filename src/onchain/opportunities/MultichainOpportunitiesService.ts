@@ -9,12 +9,13 @@ import type {
   StrategyOpportunityKey,
 } from "../../model/index.js";
 import { MultichainConstruct } from "../base/index.js";
+import { iMidasIssuanceVaultV310Abi } from "../market/adapters/abi/targetContractAbi.js";
 import type { PluginsMap } from "../plugins/index.js";
 import type { IMultichainOpportunitiesService } from "./types.js";
 
 /**
- * Cross-chain counterpart of {@link OpportunitiesService}. Every read walks
- * loaded market state, so the block it reports is the SDK's snapshot.
+ * Cross-chain counterpart of {@link OpportunitiesService}. List and detail
+ * reads walk loaded market state; the mGLOBAL window reads live vault state.
  *
  * @typeParam Plugins - Map of attached plugin types.
  **/
@@ -24,6 +25,15 @@ export class MultichainOpportunitiesService<
   extends MultichainConstruct<Plugins>
   implements IMultichainOpportunitiesService
 {
+  /** {@inheritDoc IMultichainOpportunitiesService.isMGLOBALInvestmentWindowOpen} */
+  public async isMGLOBALInvestmentWindowOpen(): Promise<boolean> {
+    return !(await this.sdk.chain("Mainnet").client.readContract({
+      address: "0xCe29c36c6D4556f2d01d79414C1354B968dDDEf1",
+      abi: iMidasIssuanceVaultV310Abi,
+      functionName: "paused",
+    }));
+  }
+
   /**
    * Opportunities of all queried chains, see {@link OpportunitiesService.list}.
    * A filter that names chains narrows the fan-out itself, so a chain whose

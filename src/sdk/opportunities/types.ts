@@ -99,6 +99,12 @@ export interface IOpportunitiesOffchainOnly {
  **/
 export interface IOpportunitiesOnchainOnly {
   /**
+   * Whether the Mainnet mGLOBAL investment window is open: returns the
+   * issuance vault's `!paused()`. Chain-only; RPC and chain-resolution errors propagate.
+   */
+  isMGLOBALInvestmentWindowOpen(): Promise<boolean>;
+
+  /**
    * What a deposit, withdrawal or leverage change would do, and the calldata
    * that does it.
    *

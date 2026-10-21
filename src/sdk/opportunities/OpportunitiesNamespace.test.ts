@@ -33,6 +33,7 @@ const onchainSource = {
   getPool: vi.fn(),
   getStrategy: vi.fn(),
   isEligibleForStrategy: vi.fn(),
+  isMGLOBALInvestmentWindowOpen: vi.fn(),
 };
 const offchainSource = {
   list: vi.fn(),
@@ -413,5 +414,48 @@ describe("merge.strategy keeps freshness but takes on-chain fields from the chai
 
     expect(namespace().merge.strategy(failed, offchain)).toBe(offchain);
     expect(namespace().merge.strategy(undefined, offchain)).toBe(offchain);
+  });
+});
+
+describe("isMGLOBALInvestmentWindowOpen", () => {
+  it.each([true, false])(
+    "delegates the open-window verdict %s to the onchain source",
+    async paused => {
+      onchainSource.isMGLOBALInvestmentWindowOpen.mockResolvedValue(paused);
+      await expect(namespace().isMGLOBALInvestmentWindowOpen()).resolves.toBe(
+        paused,
+      );
+      expect(
+        onchainSource.isMGLOBALInvestmentWindowOpen,
+      ).toHaveBeenCalledWith();
+    },
+  );
+  it("propagates RPC failures", async () => {
+    const error = new Error("RPC unavailable");
+    onchainSource.isMGLOBALInvestmentWindowOpen.mockRejectedValue(error);
+    await expect(namespace().isMGLOBALInvestmentWindowOpen()).rejects.toBe(
+      error,
+    );
+  });
+  it("is unavailable in offchain mode", async () => {
+    const ns = new OpportunitiesNamespace(undefined, undefined, {
+      maxOffchainLagSeconds: 120,
+    });
+    await expect(ns.isMGLOBALInvestmentWindowOpen()).rejects.toBeInstanceOf(
+      SourceUnavailableError,
+    );
+  });
+  it("observes the SDK loading policy before reading", async () => {
+    const ensureFresh = vi.fn().mockResolvedValue(undefined);
+    const ns = new OpportunitiesNamespace(
+      { opportunities: onchainSource } as unknown as MultichainSDK,
+      undefined,
+      { maxOffchainLagSeconds: 120, ensureFresh },
+    );
+    onchainSource.isMGLOBALInvestmentWindowOpen.mockResolvedValue(true);
+    await expect(ns.isMGLOBALInvestmentWindowOpen()).resolves.toBe(true);
+    expect(ensureFresh.mock.invocationCallOrder[0]).toBeLessThan(
+      onchainSource.isMGLOBALInvestmentWindowOpen.mock.invocationCallOrder[0],
+    );
   });
 });

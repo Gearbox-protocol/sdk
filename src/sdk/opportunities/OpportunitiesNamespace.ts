@@ -159,6 +159,11 @@ export class OpportunitiesNamespace
     });
   }
 
+  /** {@inheritDoc IOpportunitiesOnchainOnly.isMGLOBALInvestmentWindowOpen} */
+  public async isMGLOBALInvestmentWindowOpen(): Promise<boolean> {
+    return this.onchain.isMGLOBALInvestmentWindowOpen();
+  }
+
   /**
    * {@inheritDoc IOpportunitiesOnchainOnly.isEligibleForStrategy}
    **/
