@@ -61,10 +61,6 @@
   },
   "dependencies": {
     "@gearbox-protocol/integrations-v3": "1.54.2",
-    "@redstone-finance/evm-connector": "^0.9.0",
-    "@redstone-finance/protocol": "^0.9.0",
-    "@redstone-finance/sdk": "^0.9.0",
-    "@redstone-finance/utils": "^0.9.0",
     "@types/bn.js": "^5.2.0",
     "abitype": "^1.2.3",
     "bn.js": "^5.2.3",
@@ -105,5 +101,5 @@
       "biome check --no-errors-on-unmatched --write"
     ]
   },
-  "packageManager": "yarn@4.9.2"
+  "packageManager": "pnpm@12.3.1"
 }

@@ -37,15 +37,15 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          cache: "yarn"
+          cache: "pnpm"
           node-version-file: ".nvmrc"
 
       # No lint or prettier here since they were supposed to run on PR action
       - name: Build
         run: |
-          yarn install --immutable
-          yarn typecheck:ci
-          yarn build
+          pnpm install --frozen-lockfile
+          pnpm typecheck:ci
+          pnpm build
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v6

@@ -41,7 +41,7 @@ export const SDKOptions = z.object({
    */
   logger: z.any(),
   /**
-   * Options related to redstone price feeds
+   * @deprecated RedStone options are accepted for compatibility and ignored.
    */
   redstone: RedstoneOptions.optional(),
   /**

@@ -311,11 +311,6 @@ export class GearboxSDK<
       },
       `${re}attaching gearbox sdk`,
     );
-    if (!!blockNumber && !opts.redstone?.historicTimestamp) {
-      this.logger?.warn(
-        `${re}attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail`,
-      );
-    }
     this.#attachConfig = opts;
     const time = Date.now();
     const block = await this.client.getBlock(
@@ -515,11 +510,6 @@ export class GearboxSDK<
       timestamp,
       ignoreUpdateablePrices = this.#attachConfig?.ignoreUpdateablePrices,
     } = opts ?? {};
-    if (this.#attachConfig?.redstone?.historicTimestamp) {
-      throw new Error(
-        "syncState is not supported with redstone historicTimestamp",
-      );
-    }
     if (!blockNumber || !timestamp) {
       const block = await this.client.getBlock({
         blockTag: "latest",

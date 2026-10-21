@@ -24,7 +24,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          cache: "yarn"
+          cache: "pnpm"
           node-version-file: ".nvmrc"
 
       - name: Configure access to private npm packages
@@ -34,7 +34,7 @@ jobs:
         env:
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
-          yarn install --immutable
-          yarn typecheck:ci
-          yarn check:ci
-          yarn test
+          pnpm install --frozen-lockfile
+          pnpm typecheck:ci
+          pnpm check:ci
+          pnpm exec vitest run

@@ -43,7 +43,6 @@ import type {
   IPriceUpdateTask,
   RedstoneOptions,
 } from "./updates/index.js";
-import { RedstoneUpdater } from "./updates/index.js";
 import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
 import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
@@ -78,9 +77,9 @@ export class PriceFeedRegister
   #latestUpdate: LatestUpdate | undefined;
   public readonly updaters: IPriceUpdater[];
 
-  constructor(sdk: GearboxSDK, opts: PriceFeedRegisterOptions = {}) {
+  constructor(sdk: GearboxSDK, _opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
-    this.updaters = [new RedstoneUpdater(sdk, opts?.redstone)];
+    this.updaters = [];
   }
 
   public addHook = this.#hooks.addHook.bind(this.#hooks);
@@ -198,6 +197,9 @@ export class PriceFeedRegister
     feeds: Address[],
     block?: { blockNumber: bigint } | { blockTag: BlockTag },
   ): Promise<UpdatePriceFeedsResult> {
+    if (this.updaters.length === 0) {
+      return this.generatePriceFeedsUpdateTxs([]);
+    }
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,
@@ -267,6 +269,9 @@ export class PriceFeedRegister
     configurators: Address[],
     pools?: Address[],
   ): Promise<IPriceFeedContract[]> {
+    if (this.updaters.length === 0) {
+      return [];
+    }
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,
