@@ -60,10 +60,13 @@ export const priceFeedAssetSchema = z.looseObject({
 export const priceFeedMarketSchema = z.looseObject({
   market: addressSchema,
   marketConfigurator: addressSchema,
+  curatorName: z.string().nullable(),
   token: addressSchema,
   tokenSymbol: z.string().nullable(),
+  underlyingSymbol: z.string().nullable(),
   reserve: z.boolean(),
   isUnderlying: z.boolean(),
+  quotaLimit: z.number().nullable(),
 });
 
 /** {@link PermissionlessPriceFeedDetails} */
@@ -72,4 +75,10 @@ export const priceFeedDetailsSchema = z.looseObject({
   priceFeed: priceFeedSchema,
   assets: z.array(priceFeedAssetSchema),
   markets: z.array(priceFeedMarketSchema),
+});
+
+/** {@link PermissionlessPriceFeedMarketCaps} */
+export const priceFeedMarketCapsSchema = z.looseObject({
+  marketCaps: addressRecord(z.string().nullable()),
+  time: z.number(),
 });
