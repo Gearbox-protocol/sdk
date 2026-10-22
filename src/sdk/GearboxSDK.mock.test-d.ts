@@ -61,11 +61,13 @@ const mockSDK = {
       buildTx: notImplemented,
     },
     isEligibleForStrategy: notImplemented,
+    isMGLOBALInvestmentWindowOpen: notImplemented,
     onchain: {
       list: notImplemented,
       getPool: notImplemented,
       getStrategy: notImplemented,
       isEligibleForStrategy: notImplemented,
+      isMGLOBALInvestmentWindowOpen: notImplemented,
     },
     offchain: {
       list: notImplemented,

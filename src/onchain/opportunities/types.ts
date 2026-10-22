@@ -15,6 +15,12 @@ import type {
  **/
 export interface IMultichainOpportunitiesService {
   /**
+   * Whether the Mainnet mGLOBAL investment window is open: returns the
+   * issuance vault's `!paused()`. Chain-only; RPC and chain-resolution errors propagate.
+   */
+  isMGLOBALInvestmentWindowOpen(): Promise<boolean>;
+
+  /**
    * Opportunities of all queried chains. A filter that names chains narrows
    * the fan-out itself, so a chain whose rows would be discarded is never
    * queried and never appears in the meta.

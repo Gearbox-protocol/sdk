@@ -176,3 +176,20 @@ describe("the opportunity kind gates which charts it has", () => {
     >();
   });
 });
+
+describe("Midas issuance pause read mode", () => {
+  it("is exposed only for modes with an onchain source", () => {
+    expectTypeOf<IOpportunities<"both">>().toHaveProperty(
+      "isMGLOBALInvestmentWindowOpen",
+    );
+    expectTypeOf<IOpportunities<"onchain">>().toHaveProperty(
+      "isMGLOBALInvestmentWindowOpen",
+    );
+    expectTypeOf<IOpportunities<"offchain">>().not.toHaveProperty(
+      "isMGLOBALInvestmentWindowOpen",
+    );
+    expectTypeOf<
+      ReturnType<IOpportunities<"both">["isMGLOBALInvestmentWindowOpen"]>
+    >().toEqualTypeOf<Promise<boolean>>();
+  });
+});

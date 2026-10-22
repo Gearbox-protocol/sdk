@@ -3298,6 +3298,13 @@ export const iMellowWrapperAbi = [
 export const iMidasIssuanceVaultV310Abi = [
   {
     type: "function",
+    name: "paused",
+    inputs: [],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "depositInstant",
     inputs: [
       { name: "tokenIn", type: "address", internalType: "address" },
