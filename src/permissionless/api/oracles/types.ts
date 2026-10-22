@@ -64,6 +64,11 @@ export interface PermissionlessPriceFeedMarket {
   marketConfigurator: Address;
   /** The configurator's own name, as the backend's sync recorded it. */
   curatorName: string | null;
+  /**
+   * The market's own name, which is the name of its pool token — what the rest
+   * of the backend calls a market by as well.
+   */
+  marketName: string | null;
   token: Address;
   /** `null` for a token the backend has no metadata row for. */
   tokenSymbol: string | null;
@@ -99,6 +104,11 @@ export interface PermissionlessPriceFeedDetails {
   chainId: number;
   priceFeed: PriceFeed;
   assets: PermissionlessPriceFeedAsset[];
+  /**
+   * Ordered by curator, then by market, then by role with the main feeds
+   * ahead of the reserve ones — the grouping a reader wants, so a caller
+   * rendering a table does not have to sort it again.
+   */
   markets: PermissionlessPriceFeedMarket[];
 }
 
