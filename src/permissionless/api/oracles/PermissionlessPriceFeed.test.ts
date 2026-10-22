@@ -3,7 +3,7 @@ import type { MockInstance } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GearboxPermissionless } from "../GearboxPermissionless.js";
 
-const BASE_URL = "https://api.gearbox.fi";
+const BASE_URL = "https://api.gear-dev.dev";
 const CHAIN = 1;
 const FEED = "0x0000000000000000000000000000000000000001" as Address;
 const CHILD = "0x0000000000000000000000000000000000000002" as Address;
