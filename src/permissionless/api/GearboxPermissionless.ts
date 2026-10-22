@@ -1,3 +1,4 @@
+import { PermissionlessAnalytics } from "./analytics/PermissionlessAnalytics.js";
 import { ChainsNamespace } from "./chains/ChainsNamespace.js";
 import type { AttachChainsArgs } from "./chains/types.js";
 import { PermissionlessDeploy } from "./deploy/PermissionlessDeploy.js";
@@ -26,11 +27,11 @@ import type { GearboxPermissionlessOptions } from "./types.js";
  * const store = await permissionless.oracles.store({ chainId: chain.chainId });
  * ```
  *
- * Only what needs a server goes to one. {@link chains} and {@link oracles}
- * are the backend's reads; {@link deploy} and {@link transactions} read the
- * target chain directly, because everything they answer is derived from there
- * and a round trip would only move the derivation further from the wallet
- * that has to sign for it.
+ * Only what needs a server goes to one. {@link chains}, {@link oracles} and
+ * {@link analytics} are the backend's reads; {@link deploy} and
+ * {@link transactions} read the target chain directly, because everything
+ * they answer is derived from there and a round trip would only move the
+ * derivation further from the wallet that has to sign for it.
  **/
 export class GearboxPermissionless {
   /**
@@ -42,6 +43,11 @@ export class GearboxPermissionless {
    * Namespace for price feeds: the store and its prices.
    **/
   public readonly oracles: PermissionlessOracles;
+  /**
+   * Namespace for history: what a feed's price did over a window, see
+   * {@link PermissionlessAnalytics}.
+   **/
+  public readonly analytics: PermissionlessAnalytics;
   /**
    * Namespace for the Safe batches an instance owner executes. Backend-free,
    * see {@link InstanceOwnerTransactions}.
@@ -56,6 +62,7 @@ export class GearboxPermissionless {
   constructor(options: GearboxPermissionlessOptions = {}) {
     this.chains = new ChainsNamespace(options);
     this.oracles = new PermissionlessOracles(options, this.chains);
+    this.analytics = new PermissionlessAnalytics(options);
     this.transactions = new InstanceOwnerTransactions(
       this.chains,
       this.oracles,

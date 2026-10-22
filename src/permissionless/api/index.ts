@@ -2,6 +2,7 @@
  * Client for the permissionless backend, plus the deploy flows that need no
  * backend at all. See {@link GearboxPermissionless}.
  **/
+export * from "./analytics/index.js";
 export * from "./chains/index.js";
 export * from "./deploy/index.js";
 export * from "./errors.js";
