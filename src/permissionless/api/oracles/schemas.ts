@@ -61,6 +61,7 @@ export const priceFeedMarketSchema = z.looseObject({
   market: addressSchema,
   marketConfigurator: addressSchema,
   curatorName: z.string().nullable(),
+  marketName: z.string().nullable(),
   token: addressSchema,
   tokenSymbol: z.string().nullable(),
   underlyingSymbol: z.string().nullable(),
