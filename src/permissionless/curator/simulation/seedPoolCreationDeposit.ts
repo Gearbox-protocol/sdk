@@ -3,6 +3,7 @@ import { iVersionAbi } from "../../../abi/iVersion.js";
 import type { AnvilClient } from "../../../dev/createAnvilClient.js";
 import { createMinter } from "../../../dev/mint/factory.js";
 import type { OnchainSDK } from "../../../onchain/index.js";
+import { waitForAnvilReceipt } from "./waitForAnvilReceipt.js";
 
 async function ensureTokenMeta(
   sdk: OnchainSDK,
@@ -91,9 +92,7 @@ export async function seedPoolCreationDeposit({
     args: [underlying, amount],
     chain: anvil.chain,
   });
-  const approveReceipt = await anvil.waitForTransactionReceipt({
-    hash: approveHash,
-  });
+  const approveReceipt = await waitForAnvilReceipt(anvil, approveHash);
   if (approveReceipt.status !== "success") {
     throw new Error(
       `failed to approve ${amount} raw units of ${asset} for RWA underlying ${underlying}`,
@@ -108,9 +107,7 @@ export async function seedPoolCreationDeposit({
     args: [amount, marketConfigurator],
     chain: anvil.chain,
   });
-  const depositReceipt = await anvil.waitForTransactionReceipt({
-    hash: depositHash,
-  });
+  const depositReceipt = await waitForAnvilReceipt(anvil, depositHash);
   if (depositReceipt.status !== "success") {
     throw new Error(
       `failed to deposit ${amount} raw units of ${asset} into RWA underlying ${underlying}`,

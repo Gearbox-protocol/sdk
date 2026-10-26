@@ -40,6 +40,7 @@ import {
   type GipPayloadForkSession,
   simulateGipPayloadOnFork,
 } from "./simulateGipOnFork.js";
+import { waitForAnvilReceipt } from "./waitForAnvilReceipt.js";
 
 /** Gas limit of a payload transaction unless the caller sets one. **/
 const DEFAULT_CALL_GAS = 15_000_000n;
@@ -517,10 +518,7 @@ function createSession(args: {
         value: BigInt(call.value),
         gas: options.gas ?? DEFAULT_CALL_GAS,
       });
-      const receipt = await anvil.waitForTransactionReceipt({
-        hash,
-        retryCount: 15,
-      });
+      const receipt = await waitForAnvilReceipt(anvil, hash, args.timeout);
       const block = await anvil.getBlock({ blockNumber: receipt.blockNumber });
       return {
         hash,
