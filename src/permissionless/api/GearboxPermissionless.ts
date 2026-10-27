@@ -32,7 +32,8 @@ import type { GearboxPermissionlessOptions } from "./types.js";
  * {@link analytics} are the backend's reads; {@link deploy},
  * {@link transactions} and {@link curator} read the target chain directly, because everything
  * they answer is derived from there and a round trip would only move the
- * derivation further from the wallet that has to sign for it.
+ * derivation further from the wallet that has to sign for it. Curator sessions
+ * can also connect directly to an Anvil fork without attaching first.
  **/
 export class GearboxPermissionless {
   /**
@@ -82,8 +83,9 @@ export class GearboxPermissionless {
    * {@link ChainsNamespace.attach}. Idempotent, and joins a call already in
    * flight.
    *
-   * Everything that reads a chain goes through it, so this has to finish
-   * before the first such call.
+   * Calls that use an attached chain client must wait for this to finish.
+   * Curator sessions opened with `fork` connect directly to their Anvil
+   * endpoint and do not require attaching.
    **/
   public async attach(args: AttachChainsArgs = {}): Promise<void> {
     return this.chains.attach(args);

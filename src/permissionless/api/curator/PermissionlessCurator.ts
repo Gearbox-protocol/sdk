@@ -18,10 +18,10 @@ import type { OpenCuratorSessionArgs } from "./types.js";
  *   .build({ author, eta });
  * ```
  *
- * Backend-free: a session reads the chain through the client
- * {@link ChainsNamespace.client} built for it. To work on an Anvil fork
- * instead, create the session with {@link CuratorSession.create} and its
- * `fork` option.
+ * Backend-free: a session reads through the client
+ * {@link ChainsNamespace.client} built for its `chainId`, or through the Anvil
+ * endpoint selected with `fork`. Fork mode does not require attaching the
+ * permissionless client first.
  **/
 export class PermissionlessCurator {
   readonly #chains: ChainsNamespace;
@@ -31,14 +31,27 @@ export class PermissionlessCurator {
   }
 
   /**
-   * Opens a session on the chain's client, pinned to `blockNumber` (the head
-   * by default).
+   * Opens a session on an attached chain's client or an Anvil fork. Chain mode
+   * is pinned to `blockNumber` (the head by default); fork mode uses the node's
+   * current block and detects its chain id.
    *
-   * @throws {@link PermissionlessChainUnreachableError} when the chain is not
-   * served, see {@link ChainsNamespace.client}
+   * @throws when both `chainId` and `fork`, or neither, are supplied
+   * @throws {@link PermissionlessChainUnreachableError} when the selected
+   * `chainId` is not served, see {@link ChainsNamespace.client}
    * @throws when a plugin's adapter or action type is already registered
    **/
   public async open(args: OpenCuratorSessionArgs): Promise<CuratorSession> {
+    if (args.fork !== undefined) {
+      if (args.chainId !== undefined) {
+        throw new Error(
+          "Pass either chainId or fork to curator.open, not both",
+        );
+      }
+      return CuratorSession.create(args);
+    }
+    if (args.chainId === undefined) {
+      throw new Error("curator.open requires chainId or { fork: { rpcUrl } }");
+    }
     const { chainId, ...options } = args;
     return CuratorSession.create({
       ...options,
