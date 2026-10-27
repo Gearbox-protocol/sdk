@@ -68,6 +68,8 @@ export const priceFeedMarketSchema = z.looseObject({
   reserve: z.boolean(),
   isUnderlying: z.boolean(),
   quotaLimit: z.number().nullable(),
+  quotaUsed: z.number().nullable(),
+  marketStalenessPeriod: z.number().nullable(),
 });
 
 /** {@link PermissionlessPriceFeedDetails} */
@@ -80,6 +82,46 @@ export const priceFeedDetailsSchema = z.looseObject({
 
 /** {@link PermissionlessPriceFeedMarketCaps} */
 export const priceFeedMarketCapsSchema = z.looseObject({
+  marketCaps: addressRecord(z.string().nullable()),
+  time: z.number(),
+});
+
+/** {@link PermissionlessAssetMarketFeed} */
+export const assetMarketFeedSchema = z.looseObject({
+  address: addressSchema,
+  name: z.string().nullable(),
+  inStore: z.boolean(),
+});
+
+/** {@link PermissionlessAssetMarket} */
+export const assetMarketSchema = z.looseObject({
+  market: addressSchema,
+  marketConfigurator: addressSchema,
+  curatorName: z.string().nullable(),
+  marketName: z.string().nullable(),
+  underlyingToken: addressSchema,
+  underlyingSymbol: z.string().nullable(),
+  isUnderlying: z.boolean(),
+  isShutdown: z.boolean(),
+  mainFeed: assetMarketFeedSchema.nullable(),
+  reserveFeed: assetMarketFeedSchema.nullable(),
+  quotaLimit: z.number().nullable(),
+  quotaUsed: z.number().nullable(),
+});
+
+/** {@link PermissionlessAssetDetails} */
+export const assetDetailsSchema = z.looseObject({
+  chainId: z.number(),
+  asset: priceFeedAssetSchema,
+  priceFeeds: z.array(priceFeedSchema),
+  markets: z.array(assetMarketSchema),
+  quotaLimitUsd: z.number().nullable(),
+  quotaUsedUsd: z.number().nullable(),
+});
+
+/** {@link PermissionlessAssetPrices} */
+export const assetPricesSchema = z.looseObject({
+  prices: addressRecord(z.string().nullable()),
   marketCaps: addressRecord(z.string().nullable()),
   time: z.number(),
 });

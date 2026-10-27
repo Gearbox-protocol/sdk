@@ -38,6 +38,8 @@ const DETAILS = {
       isUnderlying: true,
       // The market's own underlying, which is never quota-managed.
       quotaLimit: null,
+      quotaUsed: null,
+      marketStalenessPeriod: 7200,
     },
   ],
 };
