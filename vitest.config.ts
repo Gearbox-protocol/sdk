@@ -8,13 +8,32 @@ export default defineConfig(({ mode }) => ({
         test: {
           name: "unit",
           include: ["src/**/*.test.ts"],
-          exclude: ["src/e2e/**/*.test.ts", "src/**/*.e2e.test.ts"],
+          exclude: [
+            "src/e2e/**/*.test.ts",
+            "src/**/*.e2e.test.ts",
+            "src/offchain/**/*.test.ts",
+            "src/permissionless/**/*.test.ts",
+          ],
           setupFiles: ["./vitest.setup.ts"],
           env: loadEnv(mode, process.cwd(), ""),
           typecheck: {
             enabled: true,
             include: ["src/**/*.test-d.ts"],
           },
+        },
+      },
+      {
+        test: {
+          // Backend clients: a release from `next` may target a backend that
+          // is not deployed yet, so release.yml does not gate `next` on these.
+          name: "api",
+          include: [
+            "src/offchain/**/*.test.ts",
+            "src/permissionless/**/*.test.ts",
+          ],
+          exclude: ["src/**/*.e2e.test.ts"],
+          setupFiles: ["./vitest.setup.ts"],
+          env: loadEnv(mode, process.cwd(), ""),
         },
       },
       {

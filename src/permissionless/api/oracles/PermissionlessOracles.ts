@@ -6,13 +6,18 @@ import { getPrices } from "../../utils/price-update/get-prices.js";
 import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
 import {
+  assetDetailsSchema,
+  assetPricesSchema,
   priceFeedDetailsSchema,
   priceFeedMarketCapsSchema,
   priceFeedStoreSchema,
   pricesSchema,
 } from "./schemas.js";
 import type {
+  AssetArgs,
   GetPricesArgs,
+  PermissionlessAssetDetails,
+  PermissionlessAssetPrices,
   PermissionlessPriceFeedDetails,
   PermissionlessPriceFeedMarketCaps,
   PermissionlessPriceFeedStore,
@@ -88,6 +93,61 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
     return this.getData({
       path: `/pfs/${chainId}/price-feed/${address}`,
       schema: priceFeedDetailsSchema,
+    });
+  }
+
+  /**
+   * One asset of the store: the feeds allowed for it, and the markets that
+   * take it as collateral.
+   *
+   * The mirror of {@link feed}, and the call to reach for when the question is
+   * "what prices this token and what is it backing" rather than "where is this
+   * feed used". Both read the same market slots; which end they are indexed
+   * from is the difference.
+   *
+   * ```ts
+   * const { priceFeeds, markets, quotaUsedUsd } =
+   *   await permissionless.oracles.asset({ chainId: 1, address: token });
+   * ```
+   *
+   * @throws When the chain has no metadata for the address. An asset nothing
+   * was indexed for has no symbol or decimals, so there is no row to answer.
+   **/
+  public async asset({
+    chainId,
+    address,
+  }: AssetArgs): Promise<PermissionlessAssetDetails> {
+    return this.getData({
+      path: `/pfs/${chainId}/asset/${address}`,
+      schema: assetDetailsSchema,
+    });
+  }
+
+  /**
+   * What each of one asset's feeds prices it at, and the market cap each of
+   * them implies.
+   *
+   * The asset-side counterpart of {@link feedMarketCaps}, and priced the same
+   * way: one `totalSupply` read for the asset and one price per feed, rather
+   * than the chain-wide pass {@link prices} makes.
+   *
+   * Several feeds for one asset do not have to agree — that is the point of
+   * having a reserve feed — so this answers per feed rather than picking one.
+   *
+   * ```ts
+   * const { prices, marketCaps } = await permissionless.oracles.assetPrices({
+   *   chainId: 1,
+   *   address: token,
+   * });
+   * ```
+   **/
+  public async assetPrices({
+    chainId,
+    address,
+  }: AssetArgs): Promise<PermissionlessAssetPrices> {
+    return this.getData({
+      path: `/pfs/${chainId}/asset/${address}/prices`,
+      schema: assetPricesSchema,
     });
   }
 
