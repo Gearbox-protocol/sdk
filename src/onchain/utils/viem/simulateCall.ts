@@ -102,17 +102,17 @@ export class SimulationError extends BaseError {
     } catch {}
 
     const account = request.account;
+    const contractError = getContractError(cause as BaseError, {
+      abi,
+      address: request.to ?? undefined,
+      args,
+      functionName,
+      sender:
+        typeof account === "string" ? account : (account?.address ?? undefined),
+    });
     super(`simulation of ${functionName} at ${request.to} failed`, {
-      cause: getContractError(cause as BaseError, {
-        abi,
-        address: request.to ?? undefined,
-        args,
-        functionName,
-        sender:
-          typeof account === "string"
-            ? account
-            : (account?.address ?? undefined),
-      }),
+      cause: contractError,
+      metaMessages: contractError.metaMessages,
       name: "SimulationError",
     });
 
