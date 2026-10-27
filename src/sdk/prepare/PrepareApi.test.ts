@@ -1470,6 +1470,27 @@ describe("updateQuota preserves a zero-balance USDC reservation", () => {
 });
 
 describe("PrepareApi.borrowAndWithdraw", () => {
+  it("sizes the payout from the loaded account including interest and fees", async () => {
+    const { api, sdk, position } = buildStrategyApi();
+    const baseline = await api.maxBorrowAndWithdraw(position);
+    expect(baseline).toBeGreaterThan(0n);
+    const data = await sdk.accounts.getCreditAccountData(
+      position.creditAccount,
+    );
+    if (!data) throw new Error("missing account");
+    vi.spyOn(sdk.accounts, "getCreditAccountData").mockResolvedValue({
+      ...data,
+      accruedInterest: 100_000_000n,
+      accruedFees: 100_000_000n,
+    });
+    expect(await api.maxBorrowAndWithdraw(position)).toBe(
+      baseline - 200_000_000n,
+    );
+    expect(
+      await api.maxBorrowAndWithdraw(position, { targetHF: 20_000n }),
+    ).toBeLessThan(baseline);
+  });
+
   it("pays the recipient supplied by the caller", async () => {
     const { api, sdk, position } = buildStrategyApi();
     const data = await sdk.accounts.getCreditAccountData(

@@ -43,6 +43,7 @@ const mockSDK = {
       openNewStrategy: notImplemented,
       borrow: notImplemented,
       borrowAndWithdraw: notImplemented,
+      maxBorrowAndWithdraw: notImplemented,
       depositStrategy: notImplemented,
       withdrawStrategy: notImplemented,
       maxWithdraw: notImplemented,

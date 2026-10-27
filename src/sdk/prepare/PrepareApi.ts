@@ -86,6 +86,7 @@ import type {
   LpRedeemParams,
   LpResult,
   LpState,
+  MaxBorrowAndWithdrawOptions,
   MaxBorrowParams,
   MaxWithdrawCollateralOptions,
   MultipleDelayedWithdrawalsError,
@@ -758,6 +759,20 @@ export class PrepareApi
       token: params.token,
       amount: params.amount,
       value: params.value,
+    });
+  }
+
+  /** {@inheritDoc IOpportunitiesPrepare.maxBorrowAndWithdraw} */
+  public async maxBorrowAndWithdraw(
+    position: PositionInput,
+    options?: MaxBorrowAndWithdrawOptions,
+  ): Promise<bigint> {
+    const sdk = await this.#chain(position.chainId);
+    const creditAccount = await this.#account(sdk, position);
+    return service(sdk).maxBorrowAndWithdraw({
+      sdk,
+      creditAccount,
+      ...options,
     });
   }
 

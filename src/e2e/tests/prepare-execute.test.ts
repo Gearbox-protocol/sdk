@@ -885,7 +885,10 @@ describe("prepare → execute on a mainnet fork", () => {
           args: [borrower],
         });
       const held = await balance();
-      const amount = parseUnits("100", 6);
+      const amount = await prepare().maxBorrowAndWithdraw(
+        position(creditAccount),
+      );
+      expect(amount).toBeGreaterThan(0n);
       const { sim, preview } = adjustPreview(
         await prepare().borrowAndWithdraw(position(creditAccount), {
           amount,
