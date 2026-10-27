@@ -44,6 +44,17 @@ export function actionWarning(
   return { severity: "warning", code, message, ...(path ? { path } : {}) };
 }
 
+/** Code of an {@link incompleteCheck}. **/
+export const CHECK_UNAVAILABLE = "CHECK_UNAVAILABLE";
+
+/** Reported separately as incompleteChecks by the executor. */
+export function incompleteCheck(
+  check: string,
+  reason: string,
+): ActionDiagnostic {
+  return actionWarning(CHECK_UNAVAILABLE, `${check}: ${reason}`);
+}
+
 /** Locates `diagnostics` of the action at `actionIndex`. **/
 export function locateDiagnostics(
   diagnostics: readonly ActionDiagnostic[],

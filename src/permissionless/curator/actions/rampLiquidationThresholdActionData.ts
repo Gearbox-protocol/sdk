@@ -2,12 +2,17 @@ import type { Address } from "viem";
 import { z } from "zod/v4";
 import { convertPercent } from "../../utils/format.js";
 import { MIN_RAMP_DURATION, UINT40_MAX } from "../constants.js";
+import { effectiveLiquidationThreshold } from "../state/market/effectiveLiquidationThreshold.js";
 import {
   addressSchema,
   percentageSchema,
   uintSchema,
 } from "../validationSchemas.js";
-import { actionError, actionWarning } from "./actionDiagnostics.js";
+import {
+  actionError,
+  actionWarning,
+  incompleteCheck,
+} from "./actionDiagnostics.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import {
   type CreditManagerTarget,
@@ -76,6 +81,18 @@ or a particular collateral token during the time.`,
         params.liquidationThresholdFinal,
         ["params", "liquidationThresholdFinal"],
       );
+      if (
+        effectiveLiquidationThreshold(
+          findCollateral(cm, params.token)!,
+          env.timestamp,
+        ) === undefined
+      )
+        diagnostics.push(
+          incompleteCheck(
+            "rampInitialLT",
+            "The supplied active ramp has no initial liquidation threshold",
+          ),
+        );
       if (params.rampDuration < MIN_RAMP_DURATION) {
         diagnostics.push(
           actionError(
@@ -106,15 +123,19 @@ or a particular collateral token during the time.`,
       }
       return diagnostics;
     },
-    apply: ({ state, params }) =>
+    apply: ({ state, params, env }) =>
       updateCollateralToken({
         state,
         creditManager: params.creditManager,
         token: params.token,
         update: token => ({
           ...token,
+          liquidationThresholdInitial: effectiveLiquidationThreshold(
+            token,
+            env.timestamp,
+          ),
           liquidationThresholdFinal: params.liquidationThresholdFinal,
-          rampStart: params.rampStart,
+          rampStart: Math.max(params.rampStart, env.timestamp),
           rampDuration: params.rampDuration,
         }),
       }),

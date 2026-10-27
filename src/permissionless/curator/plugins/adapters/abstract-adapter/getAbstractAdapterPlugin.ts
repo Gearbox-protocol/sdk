@@ -12,11 +12,11 @@ import {
   plainDeployParamsSchema,
   readAddress,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -197,10 +197,10 @@ export const getAbstractAdapterPlugin = (adapterType: AbstractAdapterTypes) => {
     allowGas: info.allowGas,
     ...plainAdapter(adapterType),
     getDeployParams: args => adapterDeployParams(args),
-    validateParams: (
-      args: ValidateAdapterParamsArgs<AbstractAdapterDeployParams>,
+    resolveValidation: (
+      args: ResolveAdapterValidationArgs<AbstractAdapterDeployParams>,
     ) =>
-      validateTargetTokens(args, () =>
+      resolveTargetTokens(args, () =>
         readTargetTokens(args.client, args.params.type, args.params.target),
       ),
     deployParamsSchema:

@@ -16,6 +16,8 @@ export interface GipSimulationTarget {
   /** Canonical hash of the source block. **/
   sourceBlockHash: Hex;
   calls: readonly ForkExecutionCall[];
+  /** Earliest execution time; execution cannot precede the fork head. **/
+  eta?: number;
   expectedMarkets?: ReadonlyArray<{ address: Address; after: MarketState }>;
   expectedConfigurator?: ConfiguratorState;
   /** Adapter plugins the fork's markets are read and diffed with. **/
@@ -24,6 +26,8 @@ export interface GipSimulationTarget {
 
 /** How `simulate()` treats the SDK's Anvil node. **/
 export interface GipSimulationOptions {
+  /** Earliest execution time; defaults to the source block timestamp. **/
+  eta?: number;
   /**
    * `"snapshot"` (default) takes an `evm_snapshot` before any setup and reverts
    * to it once the comparison is done, so the node is left as it was.

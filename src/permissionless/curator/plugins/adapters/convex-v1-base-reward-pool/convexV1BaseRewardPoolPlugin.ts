@@ -4,12 +4,12 @@ import {
   getter,
   plainAdapter,
   readAddresses,
+  resolveTargetTokens,
   stakedTokenDeployParamsSchema,
-  validateTargetTokens,
 } from "../adapterPluginHelpers.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -42,11 +42,11 @@ export const convexV1BaseRewardPoolPlugin = defineAdapterPlugin<
     creditManager: Address;
     params: ConvexV1BaseRewardPoolAdapterDeployParams;
   }) => adapterDeployParams(args, [args.params.stakedToken]),
-  validateParams: (
-    args: ValidateAdapterParamsArgs<ConvexV1BaseRewardPoolAdapterDeployParams>,
+  resolveValidation: (
+    args: ResolveAdapterValidationArgs<ConvexV1BaseRewardPoolAdapterDeployParams>,
   ) => {
     const { target } = args.params;
-    return validateTargetTokens(
+    return resolveTargetTokens(
       args,
       async () => {
         const [stakingToken, rewardToken] = await readAddresses(args.client, [

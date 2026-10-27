@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 import type { RawTx } from "../../../onchain/index.js";
 import { BytecodeRepositoryContract } from "../../bindings/bytecode-repository.js";
 import { BYTECODE_REPOSITORY } from "../../utils/literals.js";
-import { type MarketState, peripheryStatus } from "../state/market/types.js";
 import { isSameAddress, lowerAddress } from "../utils/addressUtils.js";
 import { bytes32IdSchema, nonZeroAddressSchema } from "../validationSchemas.js";
 import { actionError } from "./actionDiagnostics.js";
@@ -188,15 +187,6 @@ export const deployContractActionData: MarketScopedDefinition<
   provides: params => [resource.contract(params.expectedAddress)],
   key: params => params.expectedAddress.toLowerCase(),
 });
-
-/** Periphery contracts of a market that are deployed but not registered. **/
-export function deployedPeriphery(
-  state: Pick<MarketState, "periphery">,
-): Address[] {
-  return (state.periphery ?? [])
-    .filter(entry => peripheryStatus(entry) === "deployed")
-    .map(entry => entry.address);
-}
 
 /**
  * Whether a deployment producing `expectedAddress` is already queued.

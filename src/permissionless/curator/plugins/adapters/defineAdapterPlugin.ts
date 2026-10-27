@@ -13,6 +13,7 @@ import type { z } from "zod/v4";
 import type { AbstractAdapterContract } from "../../../../onchain/index.js";
 import type { MarketActionDefinition } from "../../actions/defineMarketAction.js";
 import type { ObjectNode } from "../../state/diff/schemaNodes.js";
+import type { MarketState } from "../../state/market/types.js";
 import type { DeployParams, MarketStateChanges } from "../../types.js";
 
 /** Deploy params every adapter has: its type, version and target contract. **/
@@ -39,6 +40,18 @@ export interface ValidateAdapterParamsArgs<DeployParams> {
   params: DeployParams;
   marketConfigurator: Address;
 }
+
+/** Read-only inputs used to resolve an adapter's validation dependencies. */
+export type ResolveAdapterValidationArgs<D> = Pick<
+  ValidateAdapterParamsArgs<D>,
+  "client" | "params" | "marketConfigurator"
+>;
+/** Pure validation against the state immediately preceding allowAdapter. */
+export type AdapterValidation = (
+  state: MarketState,
+  creditManager: Address,
+  instance?: ValidateAdapterParamsArgs<unknown>["instance"],
+) => false | string;
 
 /** Actions configuring an adapter, by name: `ADAPTER::<type>::<function>`. **/
 export type AdapterActions = Readonly<Record<string, MarketActionDefinition>>;
@@ -71,6 +84,10 @@ export interface AdapterPluginDefinition<
   getDeployState(params: D): S;
   /** The adapter's state as the Gearbox SDK reads it from chain. **/
   getStateFromSDK(adapter: AbstractAdapterContract<Abi, Abi>): S;
+  /** Source reads run once; the returned check can be replayed against projected state. **/
+  resolveValidation?(
+    args: ResolveAdapterValidationArgs<D>,
+  ): Promise<AdapterValidation>;
   /** UI check of the deploy params against the chain; a string is the error. **/
   validateParams?(args: ValidateAdapterParamsArgs<D>): Promise<false | string>;
 }
@@ -109,7 +126,25 @@ export function defineAdapterPlugin<
         );
       }
     }
-    return definition;
+    const resolve = definition.resolveValidation;
+    return {
+      ...definition,
+      validateParams:
+        definition.validateParams ??
+        (resolve
+          ? async args => {
+              try {
+                return (await resolve(args))(
+                  args.marketChanges.after,
+                  args.creditManager,
+                  args.instance,
+                );
+              } catch {
+                return "Invalid adapter target";
+              }
+            }
+          : undefined),
+    };
   };
 }
 

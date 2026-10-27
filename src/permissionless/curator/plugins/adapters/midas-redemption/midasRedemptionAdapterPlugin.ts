@@ -6,13 +6,13 @@ import {
   adapterDeployParams,
   deployState,
   readAddress,
+  resolveTargetTokens,
   sdkState,
-  validateTargetTokens,
 } from "../adapterPluginHelpers.js";
 import { adapterStateSchema } from "../adapterStateSchema.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 import type { MidasRedemptionTokenStatus } from "./setTokenAllowedStatusBatchActionData.js";
@@ -59,10 +59,10 @@ export const midasRedemptionAdapterPlugin = defineAdapterPlugin<
     allowedTokens: [],
   }),
   getDeployParams: args => adapterDeployParams(args),
-  validateParams: (
-    args: ValidateAdapterParamsArgs<MidasRedemptionAdapterDeployParams>,
+  resolveValidation: (
+    args: ResolveAdapterValidationArgs<MidasRedemptionAdapterDeployParams>,
   ) =>
-    validateTargetTokens(
+    resolveTargetTokens(
       args,
       async () => [
         await readAddress(args.client, args.params.target, "mToken"),

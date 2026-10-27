@@ -2,6 +2,7 @@ import type { Address, Hex } from "viem";
 import type { ParsedCall, RawTx } from "../../onchain/index.js";
 import type { GipActionDiagnostic } from "./actions/actionDiagnostics.js";
 import type { GipMarketAction } from "./actions/types.js";
+import type { IncompleteCheck } from "./session/types.js";
 import type { MarketState } from "./state/market/types.js";
 
 export interface MarketTx {
@@ -33,6 +34,8 @@ export interface MarketStateChanges {
   txs: ParsedMarketTx[];
   /** Warnings the actions' `check` steps reported. **/
   diagnostics?: readonly GipActionDiagnostic[];
+  /** Checks the executor could not complete against the source snapshot. **/
+  incompleteChecks?: readonly IncompleteCheck[];
 }
 
 export interface DeployParams {

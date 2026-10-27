@@ -195,6 +195,7 @@ export class MarketBuilder extends ScopedBuilder<
 
   protected async compile(
     intents: readonly MarketIntent[],
+    eta: number,
   ): Promise<ScopeCompilation<MarketPreview>> {
     const { runtime } = this;
     const recordedActions = intents.flatMap(intent =>
@@ -216,7 +217,7 @@ export class MarketBuilder extends ScopedBuilder<
     );
 
     const executor = new MarketExecutor(runtime.ctx, {
-      timestamp: runtime.source.blockTimestamp,
+      timestamp: this.executionTimestamp(eta),
       resolveCache: runtime.resolveCache,
       registry: runtime.registry,
     });
@@ -261,6 +262,7 @@ export class MarketBuilder extends ScopedBuilder<
     const preview = snapshot<MarketPreview>({
       scope: "market",
       source: runtime.source,
+      eta,
       // For a new market this is the pool address the creation is predicted to
       // deploy to, so a preview always names the market it describes.
       pool: lowerAddress(this.#pool ?? changes.after.address),
@@ -284,6 +286,7 @@ export class MarketBuilder extends ScopedBuilder<
             reason,
           })),
         ),
+        ...changes.incompleteChecks,
         ...incompleteChecks,
       ],
     });

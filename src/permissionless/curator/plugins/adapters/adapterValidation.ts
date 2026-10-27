@@ -1,20 +1,17 @@
 import type { Address, Chain, PublicClient, Transport } from "viem";
-import type { MarketStateChanges } from "../../types.js";
+import type { MarketState } from "../../state/market/types.js";
 import { lowerAddress, uniqueAddresses } from "../../utils/addressUtils.js";
 
-export function validateCollateralTokens(args: {
-  instance: { assets: Array<{ address: Address; symbol: string }> };
-  marketChanges: MarketStateChanges;
-  creditManager: Address;
-  tokens: Address[];
-}): false | string {
-  const { instance, marketChanges, creditManager, tokens } = args;
-
+export function checkCollateralTokens(
+  state: MarketState,
+  creditManager: Address,
+  tokens: Address[],
+  assets: Array<{ address: Address; symbol: string }> = [],
+): false | string {
   const collateralTokens = [
-    marketChanges.after.underlyingAsset,
+    state.underlyingAsset,
     ...Object.keys(
-      marketChanges.after.creditManagers[lowerAddress(creditManager)]
-        .collateralTokens,
+      state.creditManagers[lowerAddress(creditManager)].collateralTokens,
     ),
   ].map(lowerAddress);
 
@@ -22,8 +19,8 @@ export function validateCollateralTokens(args: {
     .filter(token => !collateralTokens.includes(token))
     .map(
       token =>
-        instance.assets.find(asset => asset.address.toLowerCase() === token)
-          ?.symbol ?? token,
+        assets.find(asset => asset.address.toLowerCase() === token)?.symbol ??
+        token,
     );
   const length = nonCollateral.length;
 

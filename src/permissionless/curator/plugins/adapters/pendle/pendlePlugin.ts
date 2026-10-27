@@ -63,7 +63,9 @@ export const pendlePlugin = defineAdapterPlugin<
       }),
     ),
   }),
-  deployParamsSchema:
-    plainDeployParamsSchema<PendleAdapterDeployParams>("PENDLE_ROUTER"),
+  deployParamsSchema: plainDeployParamsSchema<PendleAdapterDeployParams>(
+    "PENDLE_ROUTER",
+    [310, 311],
+  ),
   actions: { setPairStatusBatch: setPairBatchStatusActionData },
 });

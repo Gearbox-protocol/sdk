@@ -11,6 +11,6 @@ export function isCreditManagerExpired(
   return (
     manager.expirable &&
     manager.expirationDate > 0 &&
-    manager.expirationDate < timestamp
+    manager.expirationDate <= timestamp
   );
 }

@@ -17,11 +17,12 @@ import {
   plainAdapter,
   readAddress,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  AdapterValidation,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -92,25 +93,17 @@ export const midasGatewayAdapterPlugin = defineAdapterPlugin<
   allowGas: 2_000_000, // not measured
   ...plainAdapter("MIDAS_GATEWAY"),
   getDeployParams: args => adapterDeployParams(args),
-  validateParams: async (
-    args: ValidateAdapterParamsArgs<MidasGatewayAdapterDeployParams>,
-  ): Promise<false | string> => {
+  resolveValidation: async (
+    args: ResolveAdapterValidationArgs<MidasGatewayAdapterDeployParams>,
+  ): Promise<AdapterValidation> => {
     const { client, params, marketConfigurator } = args;
     const { target } = params;
     const label = "midas gateway";
 
-    if (!isAddress(target)) return `Invalid ${label} address`;
+    if (!isAddress(target)) return () => `Invalid ${label} address`;
 
-    const cmState =
-      args.marketChanges.after.creditManagers[lowerAddress(args.creditManager)];
-    if (!cmState) return "Credit manager not found";
-
-    if (cmState.degenNFT !== zeroAddress) {
-      const policyError = await validateWhitelistPolicy(client, target);
-      if (policyError) return policyError;
-    }
-
-    return validateTargetTokens(
+    const policyError = await validateWhitelistPolicy(client, target);
+    const tokenCheck = await resolveTargetTokens(
       args,
       async () => {
         const [mToken, quoteToken, phantomToken, allowedMarketConfigurator] =
@@ -131,6 +124,13 @@ export const midasGatewayAdapterPlugin = defineAdapterPlugin<
       },
       label,
     );
+    return (state, creditManager, instance) => {
+      const cmState = state.creditManagers[lowerAddress(creditManager)];
+      if (!cmState) return "Credit manager not found";
+      return cmState.degenNFT !== zeroAddress && policyError
+        ? policyError
+        : tokenCheck(state, creditManager, instance);
+    };
   },
   deployParamsSchema: midasGatewayDeployParamsSchema,
   actions: {},

@@ -185,6 +185,21 @@ describe("builder simulation on the SDK's fork", () => {
     expect(result.calls).toHaveLength(2);
     expect(fork.executed).toHaveLength(2);
     expect(fork.closed).toBe(1);
+    expect(fork.runs[0].target.eta).toBe(SOURCE_TIMESTAMP);
+  });
+
+  it("uses the same ETA for preview and the simulation target", async () => {
+    let after!: MarketState;
+    const fork = fakeFork({ marketState: () => structuredClone(after) });
+    const market = marketBuilder(await forkSdk(fork));
+    const preview = await market.preview({ eta: ETA });
+    after = preview.after;
+    const result = await market.simulate({ eta: ETA });
+
+    expect(preview.eta).toBe(ETA);
+    expect(fork.runs[0].target.eta).toBe(ETA);
+    expect(fork.runs[0].target.expectedMarkets?.[0].after).toEqual(after);
+    expect(result.verdict).toBe("match");
   });
 
   it("reports a mismatch when the fork disagrees", async () => {
@@ -233,6 +248,7 @@ describe("builder simulation on the SDK's fork", () => {
     const preview = await config.preview();
     after = preview.after;
     expect(preview.scope).toBe("configurator");
+    expect(preview.eta).toBe(SOURCE_TIMESTAMP);
     expect(after.emergencyAdmin.toLowerCase()).toBe(CM);
 
     const result = await config.simulate();
@@ -551,6 +567,8 @@ describe("anvil simulation lifecycle", () => {
       },
       getCode: async () => "0xfeed",
       setBlockTimestampInterval: async () => log.push("interval"),
+      setNextBlockTimestamp: async ({ timestamp }: { timestamp: bigint }) =>
+        log.push(`timestamp:${timestamp}`),
       removeBlockTimestampInterval: async () => log.push("interval-removed"),
       setCode: async ({ bytecode }: { bytecode: Hex }) =>
         log.push(`setCode:${bytecode}`),
@@ -607,6 +625,30 @@ describe("anvil simulation lifecycle", () => {
     expect(stub.log).toContain("interval-removed");
     expect(stub.log.at(-1)).toBe("revert:0x1");
   });
+
+  it.each([SOURCE_TIMESTAMP - 100, SOURCE_TIMESTAMP + 100])(
+    "pins Anvil execution to the later of ETA %s and the fork head",
+    async eta => {
+      const stub = anvilStub();
+      const { simulateOnAnvil } = await loadRunner(stub);
+      const result = await simulateOnAnvil(
+        { rpcUrl: "http://anvil.invalid" },
+        anvilTarget({
+          chainId: 1,
+          marketConfigurator: CONFIGURATOR,
+          sourceBlockNumber: SOURCE_BLOCK,
+          eta,
+          calls: [{ to: TIMELOCK, callData: "0x12345678", value: "0" }],
+        }),
+      );
+      expect(stub.log).toContain(
+        `timestamp:${Math.max(eta, SOURCE_TIMESTAMP)}`,
+      );
+      // Reaching execution confirms ETA did not fail during setup.
+      expect(result.failures[0].phase).toBe("execute");
+      expect(stub.log.at(-1)).toBe("revert:0x1");
+    },
+  );
 
   it("skips snapshot isolation when it is disabled", async () => {
     const stub = anvilStub();

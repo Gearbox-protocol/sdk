@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { uintSchema } from "../validationSchemas.js";
+import { actionError } from "./actionDiagnostics.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import {
   type CreditManagerTarget,
@@ -17,6 +18,7 @@ import {
 } from "./utils/checkHelpers.js";
 import { configureCreditManager } from "./utils/configureCalls.js";
 import { updateCreditManagerState } from "./utils/creditManagerStateUpdates.js";
+import { MAX_UINT128, rawAmount } from "./utils/rawAmounts.js";
 
 export interface SetMaxDebtPerBlockMultiplierParams {
   creditManager: CreditManagerTarget;
@@ -37,9 +39,21 @@ export const setMaxDebtPerBlockMultiplierActionData: MarketScopedDefinition<SetM
       creditManager: creditManagerTargetSchema,
       maxDebtPerBlockMultiplier: uintSchema(8),
     }),
-    check: ({ state, params }) => {
+    check: ({ state, params, env }) => {
       const cm = findCreditManager(state, params.creditManager);
       if (!cm) return [creditManagerNotFound(params.creditManager)];
+      const raw = rawAmount(env, state, cm.maxDebt);
+      if (
+        raw !== undefined &&
+        raw * BigInt(params.maxDebtPerBlockMultiplier) > MAX_UINT128
+      )
+        return [
+          actionError(
+            "DEBT_PER_BLOCK_OVERFLOW",
+            "maxDebt multiplied by the multiplier exceeds uint128",
+            ["params", "maxDebtPerBlockMultiplier"],
+          ),
+        ];
       return cm.maxDebtPerBlockMultiplier === params.maxDebtPerBlockMultiplier
         ? [
             noOp("The credit manager already has this multiplier", [

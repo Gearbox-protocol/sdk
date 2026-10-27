@@ -71,7 +71,7 @@ function adaptToMarket(
       if (isUnderlying(token)) return undefined;
       const asset = state.assets[token];
       // A larger limit already in place is preserved.
-      return asset && asset.quotaLimit > action.params.limit
+      return asset && asset.quotaLimit > Number(action.params.limit)
         ? {
             type: "POOL::setTokenLimit",
             params: { token: action.params.token, limit: asset.quotaLimit },

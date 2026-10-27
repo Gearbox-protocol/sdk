@@ -13,13 +13,14 @@ import {
   adapterDeployParams,
   getter,
   plainAdapter,
+  resolveTargetTokens,
   sdkState,
-  validateTargetTokens,
 } from "../adapterPluginHelpers.js";
 import { getCurveTargetCoins } from "../adapterValidation.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  AdapterValidation,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -119,13 +120,13 @@ async function getNCoins(
 }
 
 /** A Curve pool is usable when all of its coins are collateral. **/
-export function validateCurveTarget(
-  args: ValidateAdapterParamsArgs<
+export function resolveCurveTarget(
+  args: ResolveAdapterValidationArgs<
     Pick<CurveV1AdapterDeployParams, "type" | "target">
   >,
-): Promise<false | string> {
+): Promise<AdapterValidation> {
   const { client, params } = args;
-  return validateTargetTokens(args, async () =>
+  return resolveTargetTokens(args, async () =>
     // TODO: check metapoolBase coins
     getCurveTargetCoins({
       client,
@@ -170,9 +171,9 @@ export const getCurveV1Plugin = (adapterType: CurveV1AdapterTypes) =>
             ],
       );
     },
-    validateParams: (
-      args: ValidateAdapterParamsArgs<CurveV1AdapterDeployParams>,
-    ) => validateCurveTarget(args),
+    resolveValidation: (
+      args: ResolveAdapterValidationArgs<CurveV1AdapterDeployParams>,
+    ) => resolveCurveTarget(args),
     // @dev the SDK reports the concrete Curve flavour, which is authoritative
     getStateFromSDK: (adapter: AbstractAdapterContract<Abi, Abi>) =>
       sdkState(

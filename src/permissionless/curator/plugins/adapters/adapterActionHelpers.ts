@@ -67,7 +67,7 @@ export function updateActionAdapter<T extends AdapterStateBase>(
  **/
 export function adapterDiagnostics(
   state: MarketState,
-  params: { creditManager: Address; target: Address },
+  params: { creditManager: Address; target: Address; version?: number },
   type: string,
 ): ActionDiagnostic[] {
   const cm = findCreditManager(state, params.creditManager);
@@ -82,6 +82,14 @@ export function adapterDiagnostics(
       ),
     ];
   }
+  if (params.version !== undefined && params.version !== adapter.version)
+    return [
+      actionError(
+        "ADAPTER_VERSION_MISMATCH",
+        `The allowed adapter is v${adapter.version}, but the action encodes v${params.version}`,
+        ["params", "version"],
+      ),
+    ];
   return adapter.type === type
     ? []
     : [

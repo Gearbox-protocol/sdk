@@ -109,6 +109,10 @@ export async function getMarketState(
       marketSuite.priceOracle.mainPriceFeeds.get(
         marketSuite.pool.pool.underlying,
       )?.address || zeroAddress,
+    underlyingReservePriceFeed:
+      marketSuite.priceOracle.reservePriceFeeds.get(
+        marketSuite.pool.pool.underlying,
+      )?.address ?? zeroAddress,
     totalDebtLimit:
       marketSuite.pool.pool.totalDebtLimit === maxUint256
         ? NO_LIMIT
@@ -230,16 +234,17 @@ function buildCreditManagerDebtLimits(
   marketSuite: MarketSuite,
   creditManagerAddresses: Address[],
   underlyingDecimals: number,
-): Record<Address, number> {
-  const debtLimits: Record<Address, number> = {};
+): Record<Address, number | typeof NO_LIMIT> {
+  const debtLimits: Record<Address, number | typeof NO_LIMIT> = {};
 
   for (const creditManager of creditManagerAddresses) {
     const limit =
       marketSuite.pool.pool.creditManagerDebtParams.get(creditManager)?.limit ||
       0n;
-    debtLimits[lowerAddress(creditManager)] = Number(
-      formatUnits(limit, underlyingDecimals),
-    );
+    debtLimits[lowerAddress(creditManager)] =
+      limit === maxUint256
+        ? NO_LIMIT
+        : Number(formatUnits(limit, underlyingDecimals));
   }
 
   return debtLimits;
@@ -280,6 +285,7 @@ async function buildCreditManagersState(
         options?.registry,
       ),
       degenNFT: cm.creditFacade.degenNFT,
+      creditFacade: cm.creditFacade.address,
       minDebt: Number(formatUnits(cm.creditFacade.minDebt, underlyingDecimals)),
       maxDebt: Number(formatUnits(cm.creditFacade.maxDebt, underlyingDecimals)),
       maxDebtPerBlockMultiplier: cm.creditFacade.maxDebtPerBlockMultiplier,
@@ -340,6 +346,10 @@ export async function buildCollateralTokensState(
     }
 
     collateralTokens[normalizedAddress] = {
+      liquidationThresholdInitial: isUnderlying
+        ? manager.liquidationThresholds.mustGet(tokenAddress) /
+          PERCENTAGE_DIVISOR
+        : Number(params![0]) / PERCENTAGE_DIVISOR,
       liquidationThresholdFinal: isUnderlying
         ? manager.liquidationThresholds.mustGet(tokenAddress) /
           PERCENTAGE_DIVISOR
@@ -406,7 +416,7 @@ async function buildPeripheryState(
   );
   const peripheryByDomain = await configurator.getPeripheryContracts();
 
-  const degenNFTAddresses = await selectMarketDegenNfts({
+  const selectedDegenNFTs = await selectMarketDegenNfts({
     read: contractReaderFromClient(client),
     underlying: marketSuite.pool.pool.underlying,
     registered: (peripheryByDomain.DEGEN_NFT ?? []) as Address[],
@@ -414,6 +424,15 @@ async function buildPeripheryState(
       cm => cm.creditFacade.degenNFT,
     ),
   });
+
+  const degenNFTAddresses = [
+    ...new Set([
+      ...selectedDegenNFTs,
+      ...((peripheryByDomain.DEGEN_NFT ?? []) as Address[]).filter(address =>
+        knownDeployments.some(known => isSameAddress(known, address)),
+      ),
+    ]),
+  ];
 
   // Zappers: query pool() for each, keep only those matching the given pool
   const allZapperAddresses = (peripheryByDomain.ZAPPER ?? []) as Address[];

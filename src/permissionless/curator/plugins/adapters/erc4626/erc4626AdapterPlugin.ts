@@ -5,11 +5,12 @@ import {
   adapterDeployParams,
   plainAdapter,
   readAddress,
-  validateTargetTokens,
+  resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  AdapterValidation,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -49,10 +50,10 @@ export const erc4626DeployParamsSchema = z.discriminatedUnion("version", [
  * An ERC-4626 vault is usable when its asset is collateral. Shared by every
  * adapter whose target is such a vault.
  **/
-export function validateErc4626Target(
-  args: ValidateAdapterParamsArgs<{ target: Address }>,
-): Promise<false | string> {
-  return validateTargetTokens(args, async () => [
+export function resolveErc4626Target(
+  args: ResolveAdapterValidationArgs<{ target: Address }>,
+): Promise<AdapterValidation> {
+  return resolveTargetTokens(args, async () => [
     await readAddress(args.client, args.params.target, "asset"),
   ]);
 }
@@ -81,7 +82,7 @@ export const erc4626AdapterPlugin = defineAdapterPlugin<
       args,
       args.params.version === 312 ? [args.params.gateway] : [],
     ),
-  validateParams: validateErc4626Target,
+  resolveValidation: resolveErc4626Target,
   deployParamsSchema: erc4626DeployParamsSchema,
   actions: {},
 });

@@ -4,7 +4,7 @@ import { addressSchema, uintSchema } from "../../../validationSchemas.js";
 import { adapterDeployParams, plainAdapter } from "../adapterPluginHelpers.js";
 import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
-import { validateErc4626Target } from "../erc4626/erc4626AdapterPlugin.js";
+import { resolveErc4626Target } from "../erc4626/erc4626AdapterPlugin.js";
 
 export type Erc4626ReferralAdapterState = AdapterStateBase;
 
@@ -43,7 +43,7 @@ export const erc4626ReferralAdapterPlugin = defineAdapterPlugin<
     creditManager: Address;
     params: Erc4626ReferralAdapterDeployParams;
   }) => adapterDeployParams(args, [args.params.referral]),
-  validateParams: validateErc4626Target,
+  resolveValidation: resolveErc4626Target,
   deployParamsSchema: erc4626ReferralDeployParamsSchema,
   actions: {},
 });

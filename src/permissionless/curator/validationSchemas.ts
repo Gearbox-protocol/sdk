@@ -46,6 +46,15 @@ export const nonNegativeNumberSchema = z
   .finite()
   .min(0, "Must not be negative");
 
+/** A nonnegative decimal written out in full, e.g. `"0.000001"`. **/
+export const DECIMAL_STRING = /^\d+(?:\.\d+)?$/;
+
+/** A token amount: a number, or a decimal string for an exact value. **/
+export const tokenAmountSchema = z.union([
+  nonNegativeNumberSchema,
+  z.string().regex(DECIMAL_STRING),
+]);
+
 /**
  * An integer that fits the Solidity `uint<bits>` it is encoded as.
  *

@@ -164,7 +164,6 @@ const suite = (
     whitelistPolicy: zeroAddress,
     accountFactoryType: "DEFAULT",
     isExpired: false,
-    expirationDate: 0,
     ...params,
   },
 });

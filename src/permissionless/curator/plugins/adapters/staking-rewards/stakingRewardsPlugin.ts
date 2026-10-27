@@ -6,11 +6,11 @@ import {
   getter,
   plainAdapter,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -69,11 +69,11 @@ export const stakingRewardsPlugin = defineAdapterPlugin<
         ? [args.params.stakedToken]
         : [args.params.stakedToken, args.params.referral],
     ),
-  validateParams: (
-    args: ValidateAdapterParamsArgs<StakingRewardsAdapterDeployParams>,
+  resolveValidation: (
+    args: ResolveAdapterValidationArgs<StakingRewardsAdapterDeployParams>,
   ) => {
     const { target } = args.params;
-    return validateTargetTokens(
+    return resolveTargetTokens(
       args,
       () =>
         readAddresses(args.client, [

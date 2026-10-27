@@ -10,7 +10,7 @@ import type { ForkExecutionCall } from "../simulation/simulateGipOnFork.js";
 import type { BatchTxs } from "../types.js";
 import { lowerAddress } from "../utils/addressUtils.js";
 import { buildPlanTransactions } from "./buildPlanTransactions.js";
-import { CompileCache, KeyedCompileCache } from "./CompileCache.js";
+import { KeyedCompileCache } from "./CompileCache.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
 import { requireFork, simulateOnFork } from "./simulateOnFork.js";
 import { snapshot } from "./snapshot.js";
@@ -67,8 +67,8 @@ function toForkCall(tx: RawTx): ForkExecutionCall {
  * Recording is synchronous and chainable; `preview`, `build` and `simulate` are
  * asynchronous. Each of them captures the recorded intent at the moment it is
  * called, so intent recorded while it is still running does not leak into its
- * result. A compilation is cached per revision and shared by all three, and
- * everything handed out is deep-frozen.
+ * result. A compilation is cached per revision and ETA, shared by all three,
+ * and everything handed out is deep-frozen.
  *
  * A scope supplies two things: how recorded intent compiles
  * ({@link ScopedBuilder.compile}) and which preview fields its plan carries
@@ -83,7 +83,7 @@ export abstract class ScopedBuilder<
   readonly #runtime: GipSdkRuntime;
   readonly #intents: TIntent[];
   #revision = 0;
-  readonly #compilations = new CompileCache<ScopeCompilation<TPreview>>();
+  readonly #compilations = new KeyedCompileCache<ScopeCompilation<TPreview>>();
   readonly #plans = new KeyedCompileCache<TPlan>();
 
   protected constructor(
@@ -128,9 +128,9 @@ export abstract class ScopedBuilder<
   }
 
   /** What the recorded intent resolves to, and the state it projects. **/
-  preview(): Promise<TPreview> {
+  preview(options: { eta?: number } = {}): Promise<TPreview> {
     const capture = this.#capture();
-    return this.#compile(capture).then(({ preview }) => preview);
+    return this.#compile(capture, options.eta).then(({ preview }) => preview);
   }
 
   /**
@@ -147,7 +147,8 @@ export abstract class ScopedBuilder<
    * other scope, and compares the result with the projected state.
    *
    * Only an SDK created in fork mode can simulate. The payload is executed
-   * directly, so neither an author nor an eta is needed.
+   * directly, so neither an author nor an ETA is required. An omitted ETA
+   * defaults to the source block time.
    *
    * @throws GipActionError when an action's `check` found an error
    **/
@@ -157,7 +158,11 @@ export abstract class ScopedBuilder<
     const capture = this.#capture();
     // Checked first: a chain SDK is rejected before any projection work.
     const fork = requireFork(this.#runtime);
-    const { payloadCalls, expected, blocked } = await this.#compile(capture);
+    const eta = this.#eta(options.eta);
+    const { payloadCalls, expected, blocked } = await this.#compile(
+      capture,
+      eta,
+    );
     if (blocked) throw blocked;
     const { source } = this.#runtime;
     return simulateOnFork({
@@ -168,6 +173,7 @@ export abstract class ScopedBuilder<
         marketConfigurator: source.marketConfigurator,
         sourceBlockNumber: source.blockNumber,
         sourceBlockHash: source.blockHash,
+        eta,
         calls: payloadCalls.map(toForkCall),
         ...expected,
         registry: this.#runtime.registry,
@@ -186,9 +192,15 @@ export abstract class ScopedBuilder<
     return this;
   }
 
+  /** Clock of time-dependent transitions: `eta`, or the source block if later. **/
+  protected executionTimestamp(eta: number): number {
+    return Math.max(eta, this.source.blockTimestamp);
+  }
+
   /** Resolves, projects and encodes the recorded intent. **/
   protected abstract compile(
     intents: readonly TIntent[],
+    eta: number,
   ): Promise<ScopeCompilation<TPreview>>;
 
   /** The preview fields this scope publishes on its plan, in plan order. **/
@@ -198,9 +210,20 @@ export abstract class ScopedBuilder<
     return { revision: this.#revision, intents: this.recordedActions() };
   }
 
-  #compile(capture: Capture<TIntent>): Promise<ScopeCompilation<TPreview>> {
-    return this.#compilations.run(capture.revision, () =>
-      this.compile(capture.intents),
+  #eta(eta?: number): number {
+    const value = eta ?? this.source.blockTimestamp;
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new Error("eta must be a nonnegative safe integer in Unix seconds");
+    return value;
+  }
+
+  #compile(
+    capture: Capture<TIntent>,
+    requestedEta?: number,
+  ): Promise<ScopeCompilation<TPreview>> {
+    const eta = this.#eta(requestedEta);
+    return this.#compilations.run(capture.revision, String(eta), () =>
+      this.compile(capture.intents, eta),
     );
   }
 
@@ -209,10 +232,10 @@ export abstract class ScopedBuilder<
     args: { author: Address; eta: number },
   ): Promise<TPlan> {
     const author = lowerAddress(args.author);
-    const { eta } = args;
+    const eta = this.#eta(args.eta);
     return this.#plans.run(capture.revision, `${author}:${eta}`, async () => {
       const { preview, payloadCalls, batches, gasModel, blocked } =
-        await this.#compile(capture);
+        await this.#compile(capture, eta);
       if (blocked) throw blocked;
       const transactions = await buildPlanTransactions({
         runtime: this.#runtime,
@@ -223,7 +246,7 @@ export abstract class ScopedBuilder<
         gasModel,
       });
       return snapshot({
-        planVersion: 1,
+        planVersion: 2,
         scope: this.scope,
         source: preview.source,
         ...this.planFields(preview),

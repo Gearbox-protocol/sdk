@@ -2,6 +2,7 @@ import { type Address, encodeAbiParameters, stringToHex, zeroHash } from "viem";
 import { z } from "zod/v4";
 import { TUMBLER_RATE_KEEPER_ABI } from "../../../../plugins/rate-keepers/constructor-params-abi.js";
 import { handleSalt } from "../../../../utils/create2.js";
+import { actionError } from "../../../actions/actionDiagnostics.js";
 import type { ActionOf } from "../../../actions/defineMarketAction.js";
 import {
   address,
@@ -28,9 +29,12 @@ export interface TumblerRateKeeperState extends TumblerRateKeeperParams {
   rates: Record<Address, number>;
 }
 
+/** Longest Tumbler epoch, in seconds. **/
+const MAX_TUMBLER_EPOCH = 28 * 24 * 60 * 60;
+
 export const tumblerDeployParamsSchema = z.object({
   type: z.literal("TUMBLER"),
-  epochSeconds: z.number().int().min(0),
+  epochSeconds: z.number().int().min(0).max(MAX_TUMBLER_EPOCH),
   salt: z.string().optional(),
 });
 
@@ -99,3 +103,19 @@ export const tumblerMarketActionsData = [
   setRateActionData,
   updateRatesActionData,
 ];
+
+export function tumblerDiagnostics(params: {
+  type: string;
+  epochSeconds?: number;
+}) {
+  return params.type === "TUMBLER" &&
+    (params.epochSeconds ?? 0) > MAX_TUMBLER_EPOCH
+    ? [
+        actionError(
+          "TUMBLER_EPOCH_TOO_LONG",
+          "Tumbler epochs cannot exceed 28 days",
+          ["params", "epochSeconds"],
+        ),
+      ]
+    : [];
+}

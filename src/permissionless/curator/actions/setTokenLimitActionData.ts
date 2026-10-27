@@ -1,10 +1,7 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
 import { lowerAddress } from "../utils/addressUtils.js";
-import {
-  addressSchema,
-  nonNegativeNumberSchema,
-} from "../validationSchemas.js";
+import { addressSchema, tokenAmountSchema } from "../validationSchemas.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import { convertUnderlyingAmount } from "./builderContext.js";
 import {
@@ -14,13 +11,14 @@ import {
 import { byToken, requiresAsset } from "./utils/actionKeys.js";
 import { assetNotFound, findAsset, noOp } from "./utils/checkHelpers.js";
 import { configurePool } from "./utils/configureCalls.js";
+import { amountDiagnostics, MAX_QUOTA } from "./utils/rawAmounts.js";
 import { updateMarketAsset } from "./utils/updateMarketAsset.js";
 
 export interface SetTokenLimitContext {
   token: Address;
 }
 export interface SetTokenLimitParams extends SetTokenLimitContext {
-  limit: number;
+  limit: number | string;
 }
 
 export type SetTokenLimitAction = BaseMarketAction<
@@ -40,12 +38,14 @@ export const setTokenLimitActionData: MarketScopedDefinition<SetTokenLimitAction
 The function is used to set max possible amount of a particular token that could be used as collateral across whole market.`,
     schema: z.object({
       token: addressSchema,
-      limit: nonNegativeNumberSchema,
+      limit: tokenAmountSchema,
     }),
-    check: ({ state, params }) => {
+    check: ({ state, params, env }) => {
       const asset = findAsset(state, params.token);
       if (!asset) return [assetNotFound(params.token)];
-      return asset.quotaLimit === params.limit
+      const bounds = amountDiagnostics(env, state, params.limit, MAX_QUOTA);
+      if (bounds.length) return bounds;
+      return asset.quotaLimit === Number(params.limit)
         ? [noOp(`Token limit is already ${params.limit}`, ["params", "limit"])]
         : [];
     },
@@ -53,7 +53,10 @@ The function is used to set max possible amount of a particular token that could
       updateMarketAsset({
         state,
         token: params.token,
-        update: asset => ({ ...asset, quotaLimit: params.limit }),
+        update: asset => ({
+          ...asset,
+          quotaLimit: Number(params.limit),
+        }),
       }),
     requires: requiresAsset,
     key: byToken,

@@ -38,8 +38,8 @@ import {
   plainDeployParamsSchema,
   readAddress,
   readAddresses,
+  resolveTargetTokens,
   sdkState,
-  validateTargetTokens,
 } from "./adapterPluginHelpers.js";
 import {
   adapterStateSchema,
@@ -77,7 +77,7 @@ export const adapterPluginKit = {
   getter,
   readAddress,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 
   // Params schemas
   addressSchema,

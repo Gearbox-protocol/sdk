@@ -481,6 +481,17 @@ function createSession(args: {
       timelockCode = await anvil.getCode({ address: timelock });
       await anvil.setBlockTimestampInterval({ interval: 0 });
       intervalSet = true;
+      if (target.eta !== undefined) {
+        const block = await anvil.getBlock();
+        const timestamp =
+          BigInt(target.eta) > block.timestamp
+            ? BigInt(target.eta)
+            : block.timestamp;
+        await anvil.setNextBlockTimestamp({
+          timestamp,
+        });
+        setupChanges.push(`execution timestamp pinned to ${timestamp}`);
+      }
       setupChanges.push("block timestamp interval pinned to 0");
       await anvil.setCode({ address: timelock, bytecode: "0x" });
       codeOverridden = true;

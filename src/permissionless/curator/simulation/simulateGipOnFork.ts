@@ -4,7 +4,6 @@ import { iCreditConfigureActionsAbi } from "../../../abi/310/configure/iCreditCo
 import { iMarketConfiguratorV310Abi } from "../../../abi/310/generated.js";
 import type { RawTx } from "../../../onchain/index.js";
 import type { TimelockTxs } from "../../utils/governance/types.js";
-import { deployedPeriphery } from "../actions/deployContractActionData.js";
 import type { GipRegistry } from "../GipRegistry.js";
 import {
   type ConfiguratorStateDiff,
@@ -353,7 +352,7 @@ async function compareMarket(
 ): Promise<MarketSimulationComparison> {
   try {
     const observed = await fork.readMarketState(address, {
-      knownDeployments: deployedPeriphery(expected),
+      knownDeployments: (expected.periphery ?? []).map(entry => entry.address),
     });
     const suppress = clampedRampStarts(expected, observed, rampStartRequests);
     const diff = diffMarketStates(expected, observed, { suppress, registry });

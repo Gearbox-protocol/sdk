@@ -93,6 +93,8 @@ export interface IncompleteCheck {
 export type MarketDiagnostic = GipDiagnostic<DiagnosticMarketInput>;
 
 export interface MarketPreview {
+  /** Earliest execution time; defaults to the source block timestamp. **/
+  eta: number;
   scope: "market";
   source: GipSourceSnapshot;
   pool?: Address;
@@ -121,6 +123,8 @@ export interface MarketPreview {
 }
 
 export interface ConfiguratorPreview {
+  /** Earliest execution time; defaults to the source block timestamp. **/
+  eta: number;
   scope: "configurator";
   source: GipSourceSnapshot;
   stateProvenance: StateProvenance;
@@ -161,10 +165,11 @@ export interface GipPlanGas {
 /** Transactions and provenance shared by every plan scope. **/
 export interface GipPlanBase {
   /** Serialization format version of this plan shape. **/
-  readonly planVersion: 1;
+  readonly planVersion: 2;
   scope: ActionScope;
   source: GipSourceSnapshot;
   author: Address;
+  /** Earliest execution time; projections use the later of ETA and source time. **/
   eta: number;
   /**
    * The GIP's own calls, i.e. what the TimeLock will execute.

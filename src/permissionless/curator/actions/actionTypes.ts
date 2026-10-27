@@ -13,6 +13,7 @@ import {
   DEFAULT_RATE_KEEPER_PARAMS,
   type RateKeeperDeployParams,
 } from "../plugins/rate-keepers/rateKeeperPlugins.js";
+import type { GipBuilderContext } from "./builderContext.js";
 
 export type BaseMarketAction<T extends string, P extends object> = {
   type: T;
@@ -23,9 +24,11 @@ export type BaseMarketAction<T extends string, P extends object> = {
 export interface ActionEnv {
   /**
    * Unix time (seconds) time-dependent fields are derived at, e.g. whether a
-   * credit manager is expired. The SDK uses its source block's timestamp.
+   * credit manager is expired. Defaults to the source block timestamp.
    **/
   timestamp: number;
+  /** Exact amount conversion, supplied by the executor. **/
+  tokens?: GipBuilderContext["tokens"];
   /** The action definitions and adapter plugins in use. **/
   registry: GipRegistry;
 }
@@ -80,8 +83,8 @@ export interface DeployCreateSuiteParams extends CreditManagerFees {
   minorVersion: 310; // | 320;
   accountFactoryType: AccountFactoryType;
   isExpired: boolean;
-  /** Defaults to 0: no expiration date. **/
-  expirationDate?: number;
+  /** Creation cannot set expiration; use CREDIT::setExpirationDate. **/
+  expirationDate?: never;
   whitelistPolicy: Address;
 }
 
@@ -103,6 +106,5 @@ export const defaultCreditManagerParams: DeployCreateSuiteParams = {
   minorVersion: 310,
   accountFactoryType: "DEFAULT",
   isExpired: false,
-  expirationDate: 0,
   whitelistPolicy: "0x0000000000000000000000000000000000000000",
 };

@@ -16,6 +16,11 @@ import {
   isUnderlying,
   underlyingNotAllowed,
 } from "./utils/checkHelpers.js";
+import {
+  type PriceFeedResolution,
+  priceFeedDiagnostics,
+  resolvePriceFeed,
+} from "./utils/priceFeedChecks.js";
 
 export interface AddAssetParams {
   token: Address;
@@ -27,48 +32,52 @@ export type AddAssetAction = BaseMarketAction<
   AddAssetParams
 >;
 
-export const addAssetActionData: MarketScopedDefinition<AddAssetAction> =
-  defineMarketAction<AddAssetAction>({
-    type: "MARKET::addAsset",
-    // @dev depends on the price feed tree; got 411,732, 380,720 & 491,321
-    gas: () => 500_000,
-    touchedFeeds: ({ params }) => [params.priceFeed],
-    description: `Add a new asset to the market. Further this asset could be used as collateral in credit managers.`,
-    schema: z.object({
-      token: addressSchema,
-      priceFeed: addressSchema,
-    }),
-    check: ({ state, params }) => {
-      if (isUnderlying(state, params.token)) return [underlyingNotAllowed()];
-      return findAsset(state, params.token)
-        ? [
-            actionError(
-              "ASSET_EXISTS",
-              `Token ${params.token} is already a quoted asset`,
-              ["params", "token"],
-            ),
-          ]
-        : [];
-    },
-    apply: ({ state, params }) => {
-      const tokenAddress = lowerAddress(params.token);
+export const addAssetActionData: MarketScopedDefinition<
+  AddAssetAction,
+  PriceFeedResolution
+> = defineMarketAction<AddAssetAction, PriceFeedResolution>({
+  type: "MARKET::addAsset",
+  // @dev depends on the price feed tree; got 411,732, 380,720 & 491,321
+  gas: () => 500_000,
+  touchedFeeds: ({ params }) => [params.priceFeed],
+  description: `Add a new asset to the market. Further this asset could be used as collateral in credit managers.`,
+  schema: z.object({
+    token: addressSchema,
+    priceFeed: addressSchema,
+  }),
+  resolve: ({ ctx, params }) =>
+    resolvePriceFeed(ctx, params.token, params.priceFeed),
+  check: ({ state, params, resolved }) => {
+    if (isUnderlying(state, params.token)) return [underlyingNotAllowed()];
+    return findAsset(state, params.token)
+      ? [
+          actionError(
+            "ASSET_EXISTS",
+            `Token ${params.token} is already a quoted asset`,
+            ["params", "token"],
+          ),
+        ]
+      : priceFeedDiagnostics(resolved);
+  },
+  apply: ({ state, params }) => {
+    const tokenAddress = lowerAddress(params.token);
 
-      const newAsset: MarketAsset = {
-        address: tokenAddress,
-        mainPriceFeed: lowerAddress(params.priceFeed),
-        reservePriceFeed: zeroAddress,
-        quotaLimit: 0,
-        quotaIncreaseFee: 0,
-      };
+    const newAsset: MarketAsset = {
+      address: tokenAddress,
+      mainPriceFeed: lowerAddress(params.priceFeed),
+      reservePriceFeed: zeroAddress,
+      quotaLimit: 0,
+      quotaIncreaseFee: 0,
+    };
 
-      // A new asset is quoted, so the rate keeper starts tracking a rate for it.
-      return rateKeeperPlugins[state.rateKeeper.type].onNewAsset(
-        { ...state, assets: { ...state.assets, [tokenAddress]: newAsset } },
-        tokenAddress,
-      );
-    },
-    encode: ({ ctx, state, params }) =>
-      ctx.marketConfigurator.addAsset(state.address, params),
-    provides: params => [resource.asset(params.token)],
-    key: byToken,
-  });
+    // A new asset is quoted, so the rate keeper starts tracking a rate for it.
+    return rateKeeperPlugins[state.rateKeeper.type].onNewAsset(
+      { ...state, assets: { ...state.assets, [tokenAddress]: newAsset } },
+      tokenAddress,
+    );
+  },
+  encode: ({ ctx, state, params }) =>
+    ctx.marketConfigurator.addAsset(state.address, params),
+  provides: params => [resource.asset(params.token)],
+  key: byToken,
+});

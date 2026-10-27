@@ -69,7 +69,7 @@ The two builders share one lifecycle, so they behave the same way:
 | `revision` | starts at `0` and grows by one per recorded action or bundle; a rejected action records nothing |
 | `addAction(action)`, `addActions(actions)` | validate, normalize and record |
 | `recordedActions()` | what was recorded, in order, frozen; the market builder lists bundle applications too |
-| `preview()` | resolved actions and projected state |
+| `preview({ eta? })` | resolved actions and projected state at ETA, defaulting to source time |
 | `build({ author, eta })` | the plan, see [Plans](#plans) |
 | `simulate(options?)` | see [Simulation](#simulation) |
 
@@ -77,7 +77,7 @@ The market builder adds `pool` and `applyBundle(...)`.
 
 `preview()`, `build()` and `simulate()` work on the intent recorded **at the
 moment they are called**: recording more while one of them is still running does
-not leak into its result. One compilation is shared by all three per revision,
+not leak into its result. One compilation is shared by all three per revision and ETA,
 and a plan is cached per revision, author and eta, so repeated calls return the
 same frozen object without repeating the RPC work. A failed compilation is not
 cached, so fixing the cause and calling again works.
@@ -206,6 +206,7 @@ const preview = await market.preview();
 preview.stateProvenance;  // "chain-read"
 preview.before;           // state read at session.source.blockNumber
 preview.after;            // projected state
+preview.eta;              // assumed earliest execution time; defaults to source time
 preview.resolvedActions;  // after bundle merges and credit-manager resolution
 preview.diagnostics;      // getGipDiagnostics findings
 preview.incompleteChecks; // checks that could NOT be completed, and why
@@ -483,6 +484,13 @@ await session
   as do `getMarketState(…, { registry })` and `diffMarketStates(…, { registry })`;
   each defaults to `GipRegistry.builtin`.
 
+Adapter plugins can provide `resolveValidation({ client, params, marketConfigurator })`.
+It reads source facts once and returns a pure `(state, creditManager) => false | string`
+check. The builder reruns that check after preceding actions without rereading chain
+metadata. `defineAdapterPlugin` also supplies the UI `validateParams` method from it,
+so both paths share validation. `adapterPluginKit.resolveTargetTokens` covers the
+common case of a target whose tokens must already be collateral.
+
 ## Configurator scope
 
 ```ts
@@ -600,6 +608,7 @@ const plan = await market.build({ author, eta });
 
 plan.scope;               // "market" | "configurator" — plans are discriminated
 plan.source;              // chain, configurator, source block and its timestamp
+plan.eta;                 // earliest execution time, also used for projection
 plan.before / plan.after; // market or configurator states
 plan.resolvedActions;
 
@@ -645,12 +654,18 @@ const json = serializeGipPlan(plan);   // versioned envelope, bigint-safe
 const restored = deserializeGipPlan(json);
 ```
 
+Plans and serialization envelopes use version **2**. Version 1 plans must be rebuilt;
+the deserializer rejects their older transition semantics. Legacy supplied market
+states still load, but missing reserve, ramp-initial-LT and facade fields remain
+unknown and are reported as skipped comparisons rather than assumed zero.
+
 ## Simulation
 
 A simulation executes a scope's payload on the Anvil node the session was
 created with and compares the resulting state with the projection. Each scope
-simulates on its own, and neither `author` nor `eta` is needed: the payload
-calls are executed directly.
+simulates on its own, and neither `author` nor `eta` is required: the payload
+calls are executed directly. Pass `simulate({ eta })` to use the same execution
+time as a plan; omitting ETA uses the source block time.
 
 Only a session created in [fork mode](#anvil-fork-mode) can simulate; a
 chain-backed session rejects `simulate()` before doing any work.
@@ -739,16 +754,34 @@ What a simulation does **not** do:
 
 Other limitations:
 
-- **Human-scale numeric action params.** Action parameters are human-scale
-  numbers (e.g. `limit: 50_000`, `liquidationThreshold: 87`) converted with token
-  decimals at transaction-building time, not raw `bigint` amounts. Decimals are
-  resolved and cached for every token an action or bundle touches, and a token
-  whose decimals cannot be resolved raises instead of defaulting to 18.
-- **Expiration timestamps.** The session passes `session.source.blockTimestamp`
-  into the market reader and into every state transition (`env.timestamp`), so
-  a credit suite created by a GIP derives `isExpired` at the source block too.
-  `getMarketState`, `MarketExecutor` and `ConfigurationExecutor` fall back to
-  the wall clock when no timestamp is given.
+- **Amounts and storage bounds.** Human amounts remain supported. Pool quota
+  and pool/manager debt limits also accept decimal strings, such as
+  `limit: "0.000001"`, for exact boundaries. Debt limits accept `"Unlimited"`.
+  Amount conversion rejects excess fractional units instead of rounding. Checks
+  convert amounts to bigint units for the quota int96 bound, debt uint128 bounds
+  and max-debt-per-block multiplication. State retains the existing human-readable
+  amount fields without duplicate raw amounts.
+- **Execution time.** `preview({ eta })`, `build({ author, eta })` and
+  `simulate({ eta })` use ETA for time-dependent transitions. Preview and simulation
+  default to `session.source.blockTimestamp` when ETA is omitted. An ETA already
+  in the past uses the source block time for projection and execution, while the
+  original ETA remains in the plan and transaction hashes. Compilations are cached
+  by revision and ETA; Anvil uses the same assumed execution time. Actual execution
+  later than this assumption can shift expiration clamping and ramp starts.
+  Chain metadata is read at the source block. Price validity, freshness and
+  restrictions depending on current quota usage are left to Anvil simulation;
+  price answers and quota usage are not stored in market state.
+- **Expirable suites.** Creation deploys an expirable facade with date zero.
+  Creation `expirationDate` inputs are rejected, including zero. Record a separate
+  `CREDIT::setExpirationDate` action targeting `suite:<id>`. Dates closer than
+  fourteen days are clamped using the assumed execution time. Facade upgrades reset
+  pause state and preserve expiration only when both facades are expirable.
+- **Contract preflight.** Feed metadata/allowances, collateral admission, periphery
+  provenance/NFT registration and common adapter restrictions are checked against
+  the state produced by preceding actions. Only source reads are cached. Missing
+  reads appear in `incompleteChecks`; a single `executionState` entry records the
+  remaining execution-time and integration restrictions. Simulate to verify the actual
+  deployments and integration calls.
 - **Pinned reads are best-effort.** `session.readClient` injects `blockNumber`
   into viem's read actions; code that bypasses them with raw `client.request`
   calls is not pinned.
@@ -796,7 +829,7 @@ anything by hand:
 | Say what an action configures and needs | `actions/utils/actionKeys.ts` — `single`, `byToken`, `byCreditManager`, `byCreditManagerAndToken`, `byAdapter`, `paramsKey`, `resource`, `requiresAsset`, `requiresCreditManager`, `requiresCollateral` |
 | Name or move a credit manager target | `actions/creditManagerTargets.ts` — `creditManagerTargetSchema`, `creditSuiteRef`, `BUNDLE_TARGET`, `retargetCreditManager`, `isSameTarget` |
 | Write a configurator action | `configurator-actions/configuratorActionHelpers.ts` — `updateAdminRole`, `resolveTreasurySplitter`, `treasurySplitter` |
-| Write an adapter plugin | `plugins/adapters/adapterPluginHelpers.ts` — `deployState`, `sdkState`, `plainAdapter`, `adapterDeployParams`, `validateTargetTokens`, `readAddress(es)` |
+| Write an adapter plugin | `plugins/adapters/adapterPluginHelpers.ts` — `deployState`, `sdkState`, `plainAdapter`, `adapterDeployParams`, `resolveTargetTokens`, `readAddress(es)` |
 | Write an adapter action | `plugins/adapters/adapterActionHelpers.ts` — `adapterBatch`, `adapterActionKeys`, `adapterDiagnostics`, `updateActionAdapter` |
 | Share one lazy async value | `session/SharedPromise.ts` — `SharedPromise` (a rejection is not cached) |
 | Read an executed fork back | `simulation/forkReads.ts` — `attachForkSdk`, `readFailures` |
@@ -838,6 +871,7 @@ Executing an action has four steps:
    compilation — therefore reads nothing again. An action that resolves names
    the result type: `MarketScopedDefinition<A, R>` and `defineMarketAction<A, R>`.
 2. `check` (optional) — whether the action can run on the state before it.
+   A market-creation action uses `checkCreate` to validate its source facts.
 3. `apply` — the state transition, pure and synchronous. An action that creates
    the market defines `create` instead, which builds the state from nothing.
 4. `encode` — the payload call, pure and synchronous. `deployedContract` names
@@ -899,8 +933,8 @@ export const daiUsdsAdapterPlugin = defineAdapterPlugin<
   ...plainAdapter("DAI_USDS_EXCHANGE"),              // stateSchema, getDeployState, getStateFromSDK
   getDeployParams: (args) => adapterDeployParams(args), // extra constructor args go in a second argument
   deployParamsSchema: plainDeployParamsSchema<DaiUsdsAdapterDeployParams>("DAI_USDS_EXCHANGE"),
-  validateParams: (args) =>
-    validateTargetTokens(args, () =>
+  resolveValidation: (args) =>
+    resolveTargetTokens(args, () =>
       readAddresses(args.client, [
         getter(args.params.target, "dai"),
         getter(args.params.target, "usds"),
@@ -931,10 +965,11 @@ instead; see [External adapter plugins](#external-adapter-plugins).
 ### Adding a scope behaviour
 
 `session/ScopedBuilder.ts` owns recording, revision caching, plan assembly and
-simulation for every scope. A builder only implements `compile(intents)` — what
+simulation for every scope. A builder only implements `compile(intents, eta)` — what
 the recorded intent resolves to — and `planFields(preview)` — which preview
-fields its plan publishes, in plan order. Those hooks and `runtime` / `record` /
-`recorded` are `protected`: they exist for the builders, not for SDK users.
+fields its plan publishes, in plan order. `executionTimestamp(eta)` gives the clock
+its transitions run at. Those hooks and `runtime` / `record` / `recorded` are
+`protected`: they exist for the builders, not for SDK users.
 
 ### Rules
 

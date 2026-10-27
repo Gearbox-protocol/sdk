@@ -68,6 +68,7 @@ export class ConfiguratorBuilder extends ScopedBuilder<
 
   protected async compile(
     recorded: readonly ConfiguratorActions[],
+    eta: number,
   ): Promise<ScopeCompilation<ConfiguratorPreview>> {
     const { runtime } = this;
     // Recorded actions are added the way every caller adds them: a later
@@ -75,7 +76,7 @@ export class ConfiguratorBuilder extends ScopedBuilder<
     const actions = addConfiguratorActions([], recorded, runtime.registry);
     const before = await this.#resolveInitialState();
     const executor = new ConfigurationExecutor(runtime.ctx, {
-      timestamp: runtime.source.blockTimestamp,
+      timestamp: this.executionTimestamp(eta),
       resolveCache: runtime.resolveCache,
       registry: runtime.registry,
     });
@@ -86,6 +87,7 @@ export class ConfiguratorBuilder extends ScopedBuilder<
     const preview = snapshot<ConfiguratorPreview>({
       scope: "configurator",
       source: runtime.source,
+      eta,
       stateProvenance: before.provenance,
       before: changes.before,
       after: changes.after,

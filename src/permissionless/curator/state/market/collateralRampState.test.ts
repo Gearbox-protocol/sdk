@@ -67,24 +67,28 @@ describe("collateral ramp market state", () => {
       suite as unknown as CreditSuite,
     );
     expect(state[underlying]).toEqual({
+      liquidationThresholdInitial: 95,
       liquidationThresholdFinal: 95,
       rampStart: 0,
       rampDuration: 0,
       isForbidden: false,
     });
     expect(state[staticToken]).toEqual({
+      liquidationThresholdInitial: 90,
       liquidationThresholdFinal: 90,
       rampStart: 0,
       rampDuration: 0,
       isForbidden: false,
     });
     expect(state[activeToken]).toEqual({
+      liquidationThresholdInitial: 80,
       liquidationThresholdFinal: 60,
       rampStart: 1_800_000_000,
       rampDuration: 172_800,
       isForbidden: true,
     });
     expect(state[completedToken]).toEqual({
+      liquidationThresholdInitial: 70,
       liquidationThresholdFinal: 50,
       rampStart: 1_600_000_000,
       rampDuration: 172_800,

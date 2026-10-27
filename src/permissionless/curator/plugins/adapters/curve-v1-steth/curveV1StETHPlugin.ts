@@ -2,10 +2,10 @@ import { type Address, zeroAddress } from "viem";
 import { z } from "zod/v4";
 import { addressSchema } from "../../../validationSchemas.js";
 import { adapterDeployParams, plainAdapter } from "../adapterPluginHelpers.js";
-import { validateCurveTarget } from "../curve-v1/getCurveV1Plugin.js";
+import { resolveCurveTarget } from "../curve-v1/getCurveV1Plugin.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -46,10 +46,10 @@ export const curveV1StETHPlugin = defineAdapterPlugin<
     params: CurveV1StETHAdapterDeployParams;
   }) => adapterDeployParams(args, [args.params.lpToken]),
   // The stETH pool is a regular two-coin Curve pool.
-  validateParams: (
-    args: ValidateAdapterParamsArgs<CurveV1StETHAdapterDeployParams>,
+  resolveValidation: (
+    args: ResolveAdapterValidationArgs<CurveV1StETHAdapterDeployParams>,
   ) =>
-    validateCurveTarget({
+    resolveCurveTarget({
       ...args,
       params: { type: "CURVE_V1_2ASSETS", target: args.params.target },
     }),

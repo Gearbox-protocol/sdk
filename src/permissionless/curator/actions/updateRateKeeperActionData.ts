@@ -7,6 +7,7 @@ import {
   rateKeeperDeployParamsSchema,
   rateKeeperPlugins,
 } from "../plugins/rate-keepers/rateKeeperPlugins.js";
+import { tumblerDiagnostics } from "../plugins/rate-keepers/tumbler/tumblerPlugin.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import {
   defineMarketAction,
@@ -50,6 +51,7 @@ export const updateRateKeeperActionData: MarketScopedDefinition<
     });
     return { tx: await mc.updateRateKeeper(market.address, { deployParams }) };
   },
+  check: ({ params }) => tumblerDiagnostics(params),
   apply: ({ state, params }) => {
     // The new keeper starts every already-quoted token at the minimal rate.
     const rates = Object.fromEntries(

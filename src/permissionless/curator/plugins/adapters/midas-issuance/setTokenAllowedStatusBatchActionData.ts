@@ -56,7 +56,7 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
     description: `Set token allowed status batch, which represents tokens credit accounts can deposit into the Midas issuance vault.`,
     schema: z.object({
       creditManager: creditManagerTargetSchema,
-      version: z.literal(310 | 311),
+      version: z.union([z.literal(310), z.literal(311)]),
       target: addressSchema,
       allowedTokens: z.array(
         z.object({

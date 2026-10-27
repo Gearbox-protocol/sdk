@@ -84,9 +84,10 @@ export async function reproduceExecutedGip(
         plan.scope === "market"
           ? `market ${plan.after.address}`
           : "configurator",
-      outcome: await builder.simulate(
-        options.isolation ? { isolation: options.isolation } : {},
-      ),
+      outcome: await builder.simulate({
+        eta: plan.eta,
+        ...(options.isolation ? { isolation: options.isolation } : {}),
+      }),
     });
   }
 

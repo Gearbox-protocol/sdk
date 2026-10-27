@@ -8,7 +8,7 @@ import {
 } from "../adapterPluginHelpers.js";
 import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
-import { validateErc4626Target } from "../erc4626/erc4626AdapterPlugin.js";
+import { resolveErc4626Target } from "../erc4626/erc4626AdapterPlugin.js";
 
 export type MellowErc4626AdapterState = AdapterStateBase;
 
@@ -71,7 +71,7 @@ export const mellowErc4626AdapterPlugin = defineAdapterPlugin<
       args,
       args.params.version === 310 ? [] : [args.params.stakedToken],
     ),
-  validateParams: validateErc4626Target,
+  resolveValidation: resolveErc4626Target,
   deployParamsSchema: mellowErc4626DeployParamsSchema,
   actions: {},
 });

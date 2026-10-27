@@ -13,6 +13,7 @@
  *    such action, so a Degen NFT is registered before the credit suite that
  *    uses it, and a contract is deployed before it is registered.
  **/
+import { isSameTarget, targetOf } from "../actions/creditManagerTargets.js";
 import type { MergePolicy } from "../actions/defineMarketAction.js";
 import type { GipMarketAction } from "../actions/types.js";
 import type { ConfiguratorActions } from "../configurator-actions/types.js";
@@ -57,6 +58,15 @@ function placementIndex<A extends AnyAction>(
   return firstDependent > lastProvider ? firstDependent : actions.length;
 }
 
+/** Whether both actions address the same credit manager. **/
+function sameTarget(a: AnyAction, b: AnyAction): boolean {
+  const target = targetOf(a.params);
+  const other = targetOf(b.params);
+  return (
+    target !== undefined && other !== undefined && isSameTarget(target, other)
+  );
+}
+
 function insertAt<A>(actions: readonly A[], index: number, action: A): A[] {
   return [...actions.slice(0, index), action, ...actions.slice(index)];
 }
@@ -70,7 +80,7 @@ function addAction<A extends AnyAction>(
   const index =
     key === undefined
       ? -1
-      : actions.findIndex(
+      : actions.findLastIndex(
           candidate =>
             candidate.type === action.type && rules.key(candidate) === key,
         );
@@ -79,6 +89,17 @@ function addAction<A extends AnyAction>(
   }
 
   const policy = rules.merge(action) ?? {};
+  if (
+    actions
+      .slice(index + 1)
+      .some(
+        candidate =>
+          policy.barriers?.includes(candidate.type) &&
+          (rules.key(candidate) === key || sameTarget(candidate, action)),
+      )
+  ) {
+    return insertAt(actions, placementIndex(actions, action, rules), action);
+  }
   const earlier = actions[index];
   const merged = {
     ...action,

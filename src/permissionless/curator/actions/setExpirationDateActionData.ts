@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { TWO_WEEKS } from "../constants.js";
+import { isCreditManagerExpired } from "../state/market/isCreditManagerExpired.js";
 import { uintSchema } from "../validationSchemas.js";
 import { actionError, actionWarning } from "./actionDiagnostics.js";
 import type { BaseMarketAction } from "./actionTypes.js";
@@ -45,18 +46,6 @@ paying feeLiquidationExpired and feeLiquidationPremiumExpired.`,
       const cm = findCreditManager(state, params.creditManager);
       if (!cm) return [creditManagerNotFound(params.creditManager)];
       const path = ["params", "expirationDate"];
-      // `NotAllowedWhenNotExpirableException`
-      if (!cm.expirable) {
-        return [
-          actionError("NOT_EXPIRABLE", "The credit facade is not expirable", [
-            "params",
-            "creditManager",
-          ]),
-        ];
-      }
-      if (params.expirationDate === cm.expirationDate) {
-        return [noOp("The credit manager already expires at this date", path)];
-      }
       // `IncorrectExpirationDateException`
       if (params.expirationDate < env.timestamp) {
         return [
@@ -67,13 +56,29 @@ paying feeLiquidationExpired and feeLiquidationPremiumExpired.`,
           ),
         ];
       }
-      if (params.expirationDate < cm.expirationDate) {
+      const effective = Math.max(
+        params.expirationDate,
+        env.timestamp + TWO_WEEKS,
+      );
+      if (effective === cm.expirationDate) {
+        return [noOp("The credit manager already expires at this date", path)];
+      }
+      if (effective < cm.expirationDate) {
         return [
           actionError(
             "EXPIRATION_DECREASED",
             "The expiration date can only be postponed",
             path,
           ),
+        ];
+      }
+      // `NotAllowedWhenNotExpirableException`
+      if (!cm.expirable) {
+        return [
+          actionError("NOT_EXPIRABLE", "The credit facade is not expirable", [
+            "params",
+            "creditManager",
+          ]),
         ];
       }
       return params.expirationDate < env.timestamp + TWO_WEEKS
@@ -86,11 +91,24 @@ paying feeLiquidationExpired and feeLiquidationPremiumExpired.`,
           ]
         : [];
     },
-    apply: ({ state, params }) =>
+    apply: ({ state, params, env }) =>
       updateCreditManagerState({
         state,
         creditManager: params.creditManager,
-        update: cm => ({ ...cm, expirationDate: params.expirationDate }),
+        update: cm => {
+          const expirationDate = Math.max(
+            params.expirationDate,
+            env.timestamp + TWO_WEEKS,
+          );
+          return {
+            ...cm,
+            expirationDate,
+            isExpired: isCreditManagerExpired(
+              { ...cm, expirationDate },
+              env.timestamp,
+            ),
+          };
+        },
       }),
     encode: ({ ctx, params }) =>
       configureCreditManager(ctx, params.creditManager, {
@@ -99,4 +117,5 @@ paying feeLiquidationExpired and feeLiquidationPremiumExpired.`,
       }),
     requires: requiresCreditManager,
     key: byCreditManager,
+    merge: { position: "last", barriers: ["CREDIT::upgradeCreditFacade"] },
   });

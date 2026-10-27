@@ -76,7 +76,7 @@ describe("action registry types", () => {
       Assert<
         Equal<
           Extract<MarketActions, { type: "POOL::setTotalDebtLimit" }>["params"],
-          { limit: number }
+          { limit: number | string }
         >
       >,
     ];

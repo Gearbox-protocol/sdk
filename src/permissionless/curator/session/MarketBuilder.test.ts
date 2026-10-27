@@ -74,7 +74,6 @@ const creditSuiteParams: DeployCreateSuiteParams = {
   minorVersion: 310,
   accountFactoryType: "DEFAULT",
   isExpired: false,
-  expirationDate: 0,
   whitelistPolicy: zeroAddress,
 };
 
@@ -744,7 +743,7 @@ describe("plan output", () => {
       .build({ author: AUTHOR, eta: ETA });
 
     expect(plan.scope).toBe("market");
-    expect(plan.planVersion).toBe(1);
+    expect(plan.planVersion).toBe(2);
     expect(plan.source).toMatchObject({
       chainId: 1,
       marketConfigurator: CONFIGURATOR,

@@ -76,9 +76,9 @@ export const balancerV3Plugin = defineAdapterPlugin<
     ...sdkState("BALANCER_V3_ROUTER", adapter),
     pools: poolsFromSDK(adapter as unknown as BalancerV3RouterAdapterContract),
   }),
-  deployParamsSchema:
-    plainDeployParamsSchema<BalancerV3AdapterDeployParams>(
-      "BALANCER_V3_ROUTER",
-    ),
+  deployParamsSchema: plainDeployParamsSchema<BalancerV3AdapterDeployParams>(
+    "BALANCER_V3_ROUTER",
+    [310, 311],
+  ),
   actions: { setPoolStatusBatch: setPoolBatchStatusActionData },
 });
