@@ -44,6 +44,7 @@ import {
   planAddCollateral,
   planAdjustLeverage,
   planAdjustLeverageDelayed,
+  planBorrowAndWithdraw,
   planDeposit,
   planRepay,
   planUpdateQuota,
@@ -194,6 +195,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
           switch (intent.type) {
             case "ADD_COLLATERAL":
               return planAddCollateral(intent);
+            case "BORROW_AND_WITHDRAW":
+              return planBorrowAndWithdraw(intent, view);
             case "WITHDRAW_ASSET":
               return planWithdrawAsset(intent, view);
             case "ADJUST_LEVERAGE":

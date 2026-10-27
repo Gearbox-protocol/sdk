@@ -483,6 +483,13 @@ export interface AddCollateralParams extends PrepareOptions {
   value?: bigint;
 }
 
+export interface BorrowAndWithdrawParams {
+  /** Wallet receiving the tokens. */
+  to: Address;
+  /** Exact payout in the underlying, or the asset behind an RWA wrapper. */
+  amount: bigint;
+}
+
 export interface WithdrawCollateralParams extends PrepareOptions {
   /** Token to move out; must already sit on the account. */
   token: Address;
@@ -1026,6 +1033,24 @@ export interface IOpportunitiesPrepare {
     SDKReturn<
       StrategyResult,
       AccountFlowError & WithPartialState<OperationState>
+    >
+  >;
+
+  /** Increase existing debt and pay the exact amount to the supplied recipient.
+   * Ordinary markets pay underlying; RWA markets unwrap into its asset.
+   */
+  borrowAndWithdraw(
+    position: PositionInput,
+    params: BorrowAndWithdrawParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | InsufficientPoolLiquidityError
+      ) &
+        WithPartialState<OperationState>
     >
   >;
 

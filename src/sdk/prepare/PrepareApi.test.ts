@@ -1468,3 +1468,29 @@ describe("updateQuota preserves a zero-balance USDC reservation", () => {
     },
   );
 });
+
+describe("PrepareApi.borrowAndWithdraw", () => {
+  it("pays the recipient supplied by the caller", async () => {
+    const { api, sdk, position } = buildStrategyApi();
+    const data = await sdk.accounts.getCreditAccountData(
+      position.creditAccount,
+    );
+    if (!data) throw new Error("missing account");
+    vi.spyOn(sdk.accounts, "getCreditAccountData").mockResolvedValue({
+      ...data,
+      owner: WALLET,
+    });
+    const params = { amount: MIN_DEBT, to: CREDIT_ACCOUNT };
+    const result = await api.borrowAndWithdraw(position, params);
+    const prepared = plan(result);
+    expect(prepared.state.totalDebt.value).toBe(DEBT + MIN_DEBT);
+    const withdraw = prepared.operations.find(
+      o => o.type === "withdrawCollateral",
+    );
+    expect(withdraw).toMatchObject({
+      token: UND,
+      amount: MIN_DEBT,
+      to: CREDIT_ACCOUNT,
+    });
+  });
+});

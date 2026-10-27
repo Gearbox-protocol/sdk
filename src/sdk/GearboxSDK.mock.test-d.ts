@@ -42,6 +42,7 @@ const mockSDK = {
       openEmptyCreditAccount: notImplemented,
       openNewStrategy: notImplemented,
       borrow: notImplemented,
+      borrowAndWithdraw: notImplemented,
       depositStrategy: notImplemented,
       withdrawStrategy: notImplemented,
       maxWithdraw: notImplemented,
