@@ -947,5 +947,46 @@ fields its plan publishes, in plan order. Those hooks and `runtime` / `record` /
 pnpm typecheck:ci  # tsc, including the tests and *.test-d.ts type tests
 pnpm check         # biome
 pnpm test:unit     # vitest unit project
-pnpm test:e2e      # needs anvil; runs simulation/simulateOnAnvil.e2e.test.ts among others
+pnpm test:e2e      # needs anvil and RPC_URL; see below
 ```
+
+### Executed mainnet GIPs
+
+[`src/e2e/tests/curator-executed-gips.test.ts`](../../src/e2e/tests/curator-executed-gips.test.ts)
+assembles GIPs that were executed on mainnet, one module each in
+[`src/e2e/curator/gips`](../../src/e2e/curator/gips): interest rate models and
+price feeds, loss policy aliases across two markets, adapter swaps, a new
+market with its credit suite, a whitelisted strategy with 35 calls
+(`suite:<id>` references, Curve, Fluid, Uniswap V4 and Midas adapters), a
+treasury distribution and a configurator GIP. For each, on a fork of the block
+before its execution:
+
+1. the prices the execution's multicall pushed before `executeBatch` are
+   pushed first, at that block's timestamp — a call that validates a
+   pull-oracle feed (`ORACLE::setReservePriceFeed`,
+   `LOSS_POLICY::ALIAS::setAlias`) reverts on stale prices otherwise;
+2. every built payload call must hash to the TimeLock hash that was executed,
+   in the same order;
+3. each scope's simulation must match its projection. Fields a projection
+   cannot know before execution — the address an adapter is deployed at, the
+   type and version of a registered Degen NFT — are accepted as `incomplete`
+   when nothing else is missing.
+
+Each GIP forks from its own fixture, `src/e2e/fixtures/Mainnet-<block>-rpc-cache.json`
+(Git LFS), so `RPC_URL` only serves Anvil's startup reads. Recording one
+needs an archive `RPC_URL` and the Foundry version pinned in `package.json`:
+
+```sh
+RPC_URL=<archive RPC> tsx dev/scripts/generate-curator-gip-fixtures.ts [id or name…]
+```
+
+The script runs each reproduction as its test does, except that it simulates
+one scope per Anvil run with snapshot isolation off: Anvil drops what it
+fetched after an `evm_snapshot` from its cache when it reverts, so an isolated
+simulation would leave its reads out of the fixture. A GIP that does not
+reproduce gets no fixture.
+
+To add a GIP, write its module next to the others — `timelockTxHashes` and
+`priceUpdates` come from the TimeLock's `ExecuteTransaction` logs and the
+execution transactions — list it in `src/e2e/curator/executedGips.ts`, and
+record its fixture.
