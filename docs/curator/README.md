@@ -84,7 +84,8 @@ cached, so fixing the cause and calling again works.
 
 ## Opening a session
 
-Through the permissionless client, on the client it built for the chain:
+Through `permissionless.curator.open`, select a chain with `chainId` or an
+Anvil node with `fork`. For a chain, attach the permissionless client first:
 
 ```ts
 import { GearboxPermissionless } from "@gearbox-protocol/sdk/permissionless";
@@ -129,7 +130,7 @@ delegating all actions to the caller's existing public client.
 Supplemental market-state reads are explicitly routed through that pinned
 client even when the market snapshot came from a caller-provided OnchainSDK.
 
-Optional inputs, the same for `open` and `create`:
+Optional inputs, the same for `open` and `create` in both connection modes:
 
 ```ts
 const session = await CuratorSession.create({
@@ -146,13 +147,15 @@ const session = await CuratorSession.create({
 
 ### Anvil fork mode
 
-Select the fork when creating the session. It owns a client for that URL and
+Select the fork when opening the session. It owns a client for that URL and
 uses it for all chain reads, address predictions, token metadata and plan
-dependencies. The node must support `anvil_nodeInfo`; passing both `client` and
-`fork` is rejected in TypeScript and at runtime.
+dependencies. Start Anvil with a fork of the target chain first; the SDK
+connects to the running node and detects its chain id. The node must support
+`anvil_nodeInfo`.
 
 ```ts
-const session = await CuratorSession.create({
+const permissionless = new GearboxPermissionless();
+const session = await permissionless.curator.open({
   marketConfigurator: MC,
   fork: { rpcUrl: "http://127.0.0.1:8545", timeoutMs: 180_000 },
 });
@@ -162,6 +165,11 @@ session.fork; // frozen { rpcUrl, timeoutMs }
 const market = session.market({ pool: POOL }).addAction(marketAction);
 const result = await market.simulate(); // same creation-time Anvil node
 ```
+
+Fork mode needs no `attach()` or backend connection. Pass either `chainId` or
+`fork` to `open`; passing both, or neither, is rejected in TypeScript and at
+runtime. `CuratorSession.create({ marketConfigurator: MC, fork: { rpcUrl } })`
+also remains available; `create` accepts either `client` or `fork`.
 
 Fork mode snapshots the node's current block and hash, including blocks mined
 locally after forking. An explicit `blockNumber` must equal that current block.
@@ -648,7 +656,7 @@ Only a session created in [fork mode](#anvil-fork-mode) can simulate; a
 chain-backed session rejects `simulate()` before doing any work.
 
 ```ts
-const session = await CuratorSession.create({
+const session = await permissionless.curator.open({
   marketConfigurator: MC,
   fork: { rpcUrl: "http://127.0.0.1:8545" },
 });

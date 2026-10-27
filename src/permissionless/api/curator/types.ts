@@ -1,9 +1,12 @@
 import type { CuratorSessionOptions } from "../../curator/session/CuratorSession.js";
+import type { GipAnvilForkOptions } from "../../curator/session/forkConnection.js";
 
 /**
- * Args of {@link PermissionlessCurator.open}: the session options, with the
- * chain named instead of a client.
+ * Args of {@link PermissionlessCurator.open}: choose an attached chain or an
+ * Anvil endpoint. Fork mode detects the chain from the node and needs no attach.
  **/
-export interface OpenCuratorSessionArgs extends CuratorSessionOptions {
-  chainId: number;
-}
+export type OpenCuratorSessionArgs = CuratorSessionOptions &
+  (
+    | { chainId: number; fork?: never }
+    | { fork: GipAnvilForkOptions; chainId?: never }
+  );
