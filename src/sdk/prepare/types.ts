@@ -67,6 +67,13 @@ export interface QuotaBufferState {
   quotaIncrease: bigint;
 }
 
+export interface MaxBorrowAndWithdrawOptions {
+  /** Main-price HF threshold, in basis points; defaults to 10101. */
+  targetHF?: bigint;
+  /** Safe-price HF threshold, in basis points; defaults to 10001. */
+  targetSafeHF?: bigint;
+}
+
 export interface MaxWithdrawCollateralOptions {
   /** Main-price HF threshold, in basis points; defaults to 10101. */
   targetHF?: bigint;
@@ -481,6 +488,13 @@ export interface AddCollateralParams extends PrepareOptions {
   amount: bigint;
   /** Native value to attach when paying a wrapped-native market in the coin. */
   value?: bigint;
+}
+
+export interface BorrowAndWithdrawParams {
+  /** Wallet receiving the tokens. */
+  to: Address;
+  /** Exact payout in the underlying, or the asset behind an RWA wrapper. */
+  amount: bigint;
 }
 
 export interface WithdrawCollateralParams extends PrepareOptions {
@@ -1026,6 +1040,32 @@ export interface IOpportunitiesPrepare {
     SDKReturn<
       StrategyResult,
       AccountFlowError & WithPartialState<OperationState>
+    >
+  >;
+
+  /** Maximum additional loan paid out without changing existing balances or quotas.
+   * Returns payout token units; zero when no amount can be borrowed.
+   */
+  maxBorrowAndWithdraw(
+    position: PositionInput,
+    options?: MaxBorrowAndWithdrawOptions,
+  ): Promise<bigint>;
+
+  /** Increase existing debt and pay the exact amount to the supplied recipient.
+   * Ordinary markets pay underlying; RWA markets unwrap into its asset.
+   */
+  borrowAndWithdraw(
+    position: PositionInput,
+    params: BorrowAndWithdrawParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | InsufficientPoolLiquidityError
+      ) &
+        WithPartialState<OperationState>
     >
   >;
 
