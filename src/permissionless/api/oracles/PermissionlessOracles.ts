@@ -8,6 +8,7 @@ import type { GearboxPermissionlessOptions } from "../types.js";
 import {
   assetDetailsSchema,
   assetPricesSchema,
+  assetSummariesSchema,
   priceFeedDetailsSchema,
   priceFeedMarketCapsSchema,
   priceFeedStoreSchema,
@@ -18,6 +19,7 @@ import type {
   GetPricesArgs,
   PermissionlessAssetDetails,
   PermissionlessAssetPrices,
+  PermissionlessAssetSummary,
   PermissionlessPriceFeedDetails,
   PermissionlessPriceFeedMarketCaps,
   PermissionlessPriceFeedStore,
@@ -148,6 +150,37 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
     return this.getData({
       path: `/pfs/${chainId}/asset/${address}/prices`,
       schema: assetPricesSchema,
+    });
+  }
+
+  /**
+   * Every asset the store carries, with what its markets make of it.
+   *
+   * Enough on its own to render a list of assets: the alternative is the
+   * store's whole read for the names plus a call per row for the quotas, and
+   * this is one request either way you scope it.
+   *
+   * Ordered by how central each asset is — the markets it underlies first,
+   * then what is quoted against it, then what it is allowed — so a consumer
+   * renders the rows as they arrive. Omit `chainId` for every chain the
+   * backend serves, ordered the same way across all of them.
+   *
+   * ```ts
+   * const assets = await permissionless.oracles.assets({ chainId: 1 });
+   * const everywhere = await permissionless.oracles.assets();
+   * ```
+   **/
+  public async assets(
+    args: { chainId?: number } = {},
+  ): Promise<PermissionlessAssetSummary[]> {
+    const query =
+      args.chainId === undefined
+        ? ""
+        : `?chainId=${encodeURIComponent(args.chainId)}`;
+
+    return this.getData({
+      path: `/pfs/assets${query}`,
+      schema: assetSummariesSchema,
     });
   }
 

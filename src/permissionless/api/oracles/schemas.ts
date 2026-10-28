@@ -125,3 +125,16 @@ export const assetPricesSchema = z.looseObject({
   marketCaps: addressRecord(z.string().nullable()),
   time: z.number(),
 });
+
+/** {@link PermissionlessAssetSummary} */
+export const assetSummarySchema = z.looseObject({
+  chainId: z.number(),
+  address: addressSchema,
+  symbol: z.string(),
+  underlyingMarketCount: z.number(),
+  quotaLimitUsd: z.number().nullable(),
+  quotaUsedUsd: z.number().nullable(),
+});
+
+/** The list of {@link PermissionlessAssetSummary}, already ordered. */
+export const assetSummariesSchema = z.array(assetSummarySchema);

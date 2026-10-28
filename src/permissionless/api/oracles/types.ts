@@ -271,6 +271,37 @@ export interface PermissionlessAssetPrices {
 }
 
 /**
+ * One asset of the PriceFeedStore, with what its markets make of it.
+ *
+ * Everything a list of assets renders and nothing else: the store's own read
+ * carries each asset's feeds too, which is several times this payload and not
+ * what a reader scanning for the big positions is looking at.
+ *
+ * The two USD figures are the ones {@link PermissionlessAssetDetails} heads an
+ * asset's own page with, under the same rule — limits count only the markets
+ * still running, what is already quoted counts everywhere, and `null` is
+ * nothing to total rather than a zero — so the list and the page a row of it
+ * opens cannot disagree.
+ **/
+export interface PermissionlessAssetSummary {
+  chainId: number;
+  /** Lowercased, as everything addressed in these payloads is. */
+  address: Address;
+  symbol: string;
+  /**
+   * How many markets still running are underlain by this asset.
+   *
+   * What makes an asset central rather than merely listed: a token several
+   * markets borrow against is the one a reader opens the list for. Shut down
+   * markets are left out for the reason their limits are — they are no longer
+   * a place anything happens.
+   */
+  underlyingMarketCount: number;
+  quotaLimitUsd: number | null;
+  quotaUsedUsd: number | null;
+}
+
+/**
  * Market caps of one feed's assets, keyed by the lowercased asset address.
  *
  * Scoped to the feed rather than to the chain, which is what
