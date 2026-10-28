@@ -197,6 +197,52 @@ describe("oracles.feed", () => {
   });
 });
 
+describe("oracles.assets", () => {
+  const SUMMARY = {
+    chainId: CHAIN,
+    address: WETH,
+    symbol: "WETH",
+    underlyingMarketCount: 2,
+    quotaLimitUsd: null,
+    quotaUsedUsd: null,
+    assetType: "ETH",
+  };
+
+  it("keeps the type of an asset the curated tables name", async () => {
+    respond([SUMMARY]);
+
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]?.assetType).toBe("ETH");
+  });
+
+  it("keeps an asset no table names as nothing known", async () => {
+    respond([{ ...SUMMARY, assetType: null }]);
+
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]?.assetType).toBeNull();
+  });
+
+  it("reads a backend older than the field the same way", async () => {
+    // The field is defaulted rather than merely nullable, so a payload built
+    // before the tables were consulted is an asset nothing is known about —
+    // not a payload this client refuses.
+    const { assetType: _, ...before } = SUMMARY;
+    respond([before]);
+
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]?.assetType).toBeNull();
+  });
+
+  it("rejects a type the tables cannot produce", async () => {
+    respond([{ ...SUMMARY, assetType: "RWA" }]);
+
+    await expect(client().oracles.assets()).rejects.toThrow();
+  });
+});
+
 describe("oracles.feedMarketCaps", () => {
   beforeEach(() => respond(MARKET_CAPS));
 

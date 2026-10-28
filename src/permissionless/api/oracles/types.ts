@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { AssetType } from "../../../model/primitives.js";
 import type { PriceFeed } from "../../core/index.js";
 import type { PermissionlessChain } from "../chains/types.js";
 
@@ -288,6 +289,16 @@ export interface PermissionlessAssetSummary {
   underlyingMarketCount: number;
   quotaLimitUsd: number | null;
   quotaUsedUsd: number | null;
+  /**
+   * What the asset is, where the SDK's curated tables say so.
+   *
+   * `null` for anything they do not name, which is most of a store: the
+   * tables classify the tokens markets are built on, and a store carries
+   * everything those markets will take as collateral. A filter over this
+   * sorts the assets worth sorting and leaves the rest in one heap, which is
+   * the honest answer rather than a guess from the symbol.
+   */
+  assetType: AssetType | null;
 }
 
 /**
