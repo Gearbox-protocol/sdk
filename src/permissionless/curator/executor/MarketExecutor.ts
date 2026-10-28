@@ -44,7 +44,7 @@ type AnyDefinition = MarketActionDefinition<GipMarketAction>;
  * Only the market's identity is passed on, never its state, which is what
  * makes the result reusable for any replay of the same action.
  **/
-export function resolveMarketAction(args: {
+function resolveMarketAction(args: {
   ctx: GipBuilderContext;
   cache: ResolveCache;
   definition: AnyDefinition;
@@ -212,6 +212,13 @@ export class MarketExecutor {
       }
       return kept;
     };
+    const run = (blockedAt?: number): Run => ({
+      steps,
+      diagnostics,
+      creditSuites,
+      incompleteChecks,
+      ...(blockedAt === undefined ? {} : { blockedAt }),
+    });
     let state = initial && {
       ...initial,
       creditManagers: Object.fromEntries(
@@ -229,13 +236,7 @@ export class MarketExecutor {
         diagnostics.push(
           ...locateDiagnostics([target.diagnostic], index, recorded.type),
         );
-        return {
-          steps,
-          diagnostics,
-          creditSuites,
-          incompleteChecks,
-          blockedAt: index,
-        };
+        return run(index);
       }
       const action = target.action;
       const { params } = action;
@@ -264,14 +265,7 @@ export class MarketExecutor {
       );
       diagnostics.push(...locateDiagnostics(found, index, action.type));
       if (hasErrors(found))
-        return {
-          steps,
-          diagnostics,
-          creditSuites,
-          incompleteChecks,
-          blockedAt: index,
-          ...(created ? { created } : {}),
-        };
+        return { ...run(index), ...(created && { created }) };
       const after = state
         ? definition.apply({ state, params, resolved, env })
         : created!;
@@ -286,7 +280,7 @@ export class MarketExecutor {
       state = after;
     }
 
-    return { steps, diagnostics, creditSuites, incompleteChecks };
+    return run();
   }
 
   #encode(step: ActionStep): ParsedMarketTx {

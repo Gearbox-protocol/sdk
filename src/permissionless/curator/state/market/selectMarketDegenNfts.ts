@@ -3,6 +3,7 @@ import {
   type ContractReader,
   resolveSecuritizeRwaSetup,
 } from "../../rwaPeripherySetup.js";
+import { lowerAddress } from "../../utils/addressUtils.js";
 
 /**
  * Selects the configurator Degen NFTs that belong to one market.
@@ -19,7 +20,7 @@ export async function selectMarketDegenNfts(args: {
 }): Promise<Address[]> {
   const relevant = new Set(
     args.creditManagerDegenNfts
-      .map(address => address.toLowerCase())
+      .map(lowerAddress)
       .filter(address => address !== zeroAddress),
   );
 
@@ -28,8 +29,8 @@ export async function selectMarketDegenNfts(args: {
     underlying: args.underlying,
   });
   if (rwaSetup) {
-    relevant.add(rwaSetup.degenNFT.toLowerCase());
+    relevant.add(lowerAddress(rwaSetup.degenNFT));
   }
 
-  return args.registered.filter(address => relevant.has(address.toLowerCase()));
+  return args.registered.filter(address => relevant.has(lowerAddress(address)));
 }

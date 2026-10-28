@@ -33,12 +33,11 @@ import {
   type TreasuryState,
 } from "./types.js";
 
-// Constants
 const PERCENTAGE_FACTOR = 1e4;
 const PERCENTAGE_DIVISOR = 1e2;
 
-// Types
 type CreditSuite = MarketSuite["creditManagers"][number];
+type ReadClient = PublicClient<Transport, Chain>;
 
 /**
  * Fetches the complete market state for a given pool
@@ -47,9 +46,9 @@ export async function getMarketState(
   sdk: OnchainSDK,
   marketConfiguratorAddress: Address,
   pool: Address,
-  options?: {
+  options: {
     /** Read client for supplemental calls; defaults to the legacy SDK client. **/
-    client?: PublicClient<Transport, Chain>;
+    client?: ReadClient;
     /** Timestamp used for expiration; defaults to legacy wall-clock time. **/
     timestamp?: number;
     /**
@@ -60,98 +59,70 @@ export async function getMarketState(
     knownDeployments?: readonly Address[];
     /** Adapter plugins reading adapter states; the built-in ones by default. **/
     registry?: GipRegistry;
-  },
+  } = {},
 ): Promise<MarketState> {
-  // Get market data
   const marketSuite = sdk.marketRegister.findByPool(pool);
-  const underlyingDecimals = sdk.tokensMeta.decimals(
-    marketSuite.pool.pool.underlying,
-  );
-  const creditManagerAddresses = marketSuite.creditManagers.map(
-    cm => cm.creditManager.address,
-  );
+  const poolContract = marketSuite.pool.pool;
+  const underlying = poolContract.underlying;
+  const underlyingDecimals = sdk.tokensMeta.decimals(underlying);
+  const client = options.client ?? marketSuite.sdk.client;
 
-  // Build market state components
-  const creditManagerDebtLimits = buildCreditManagerDebtLimits(
-    marketSuite,
-    creditManagerAddresses,
+  const creditManagers = await buildCreditManagersState(marketSuite, {
     underlyingDecimals,
-  );
-  const creditManagersState = await buildCreditManagersState(
-    marketSuite,
-    underlyingDecimals,
-    options,
-  );
-  const marketAssets = buildMarketAssetsState(marketSuite, underlyingDecimals);
-  const rateKeeperState = buildRateKeeperState(marketSuite);
-  const lossPolicyState = await buildLossPolicyState(marketSuite);
-  const interestRateModelState = buildInterestRateModelState(marketSuite);
-  const treasutyState = await buildTreasuryState(
+    client,
+    timestamp: options.timestamp ?? Date.now() / 1000,
+    registry: options.registry,
+  });
+  const treasury = await buildTreasuryState(
     marketSuite,
     underlyingDecimals,
-    options?.client,
+    client,
   );
-  const peripheryState = await buildPeripheryState(
+  const periphery = await buildPeripheryState(
     marketSuite,
     marketConfiguratorAddress,
-    options?.client,
-    options?.knownDeployments,
+    client,
+    options.knownDeployments ?? [],
   );
 
-  // Assemble complete market state
   return {
-    minorVersion: marketSuite.pool.pool.version,
-    address: marketSuite.pool.pool.address,
-    symbol: marketSuite.pool.pool.symbol,
-    name: marketSuite.pool.pool.name,
-    underlyingAsset: marketSuite.pool.pool.underlying,
+    minorVersion: poolContract.version,
+    address: poolContract.address,
+    symbol: poolContract.symbol,
+    name: poolContract.name,
+    underlyingAsset: underlying,
     underlyingPriceFeed:
-      marketSuite.priceOracle.mainPriceFeeds.get(
-        marketSuite.pool.pool.underlying,
-      )?.address || zeroAddress,
+      marketSuite.priceOracle.mainPriceFeeds.get(underlying)?.address ??
+      zeroAddress,
     underlyingReservePriceFeed:
-      marketSuite.priceOracle.reservePriceFeeds.get(
-        marketSuite.pool.pool.underlying,
-      )?.address ?? zeroAddress,
-    totalDebtLimit:
-      marketSuite.pool.pool.totalDebtLimit === maxUint256
-        ? NO_LIMIT
-        : Number(
-            formatUnits(
-              marketSuite.pool.pool.totalDebtLimit,
-              underlyingDecimals,
-            ),
-          ),
-    creditManagerDebtLimit: creditManagerDebtLimits,
-    assets: convertArrayToRecord(marketAssets),
-    creditManagers: creditManagersState,
-    paused: marketSuite.pool.pool.isPaused,
-    treasury: treasutyState,
-    rateKeeper: rateKeeperState,
-    lossPolicy: lossPolicyState,
-    interestRateModel: interestRateModelState,
-    periphery: peripheryState,
+      marketSuite.priceOracle.reservePriceFeeds.get(underlying)?.address ??
+      zeroAddress,
+    totalDebtLimit: debtLimit(poolContract.totalDebtLimit, underlyingDecimals),
+    creditManagerDebtLimit: buildCreditManagerDebtLimits(
+      marketSuite,
+      underlyingDecimals,
+    ),
+    assets: buildMarketAssetsState(marketSuite, underlyingDecimals),
+    creditManagers,
+    paused: poolContract.isPaused,
+    treasury,
+    rateKeeper: buildRateKeeperState(marketSuite),
+    lossPolicy: buildLossPolicyState(marketSuite),
+    interestRateModel: buildInterestRateModelState(marketSuite),
+    periphery,
   };
 }
 
-/**
- * Converts an array of objects with address field to a record indexed by address
- **/
-function convertArrayToRecord<T extends { address: Address }>(
-  items: T[],
-): Record<Address, T> {
-  return items.reduce(
-    (acc, item) => {
-      acc[item.address] = item;
-      return acc;
-    },
-    {} as Record<Address, T>,
-  );
+/** A debt limit in underlying units; `maxUint256` on chain means no limit. **/
+function debtLimit(
+  limit: bigint,
+  underlyingDecimals: number,
+): number | typeof NO_LIMIT {
+  return limit === maxUint256
+    ? NO_LIMIT
+    : Number(formatUnits(limit, underlyingDecimals));
 }
 
-/**
- * Builds the rate keeper state based on the market suite
- **/
 function buildRateKeeperState(marketSuite: MarketSuite): RateKeeperState {
   switch (marketSuite.pool.rateKeeper.contractType) {
     case "RATE_KEEPER::TUMBLER":
@@ -165,9 +136,6 @@ function buildRateKeeperState(marketSuite: MarketSuite): RateKeeperState {
   }
 }
 
-/**
- * Builds tumbler rate keeper state
- **/
 function buildTumblerRateKeeperState(
   marketSuite: MarketSuite,
 ): RateKeeperState {
@@ -200,9 +168,6 @@ function buildGaugeRateKeeperState(marketSuite: MarketSuite): RateKeeperState {
   return { type: "GAUGE", rates };
 }
 
-/**
- * Builds interest rate model state
- **/
 function buildInterestRateModelState(
   marketSuite: MarketSuite,
 ): InterestRateModelState {
@@ -216,88 +181,70 @@ function buildInterestRateModelState(
   return {
     type: "LINEAR",
     params: {
-      U_1: Number(irm.U1 / PERCENTAGE_DIVISOR),
-      U_2: Number(irm.U2 / PERCENTAGE_DIVISOR),
-      R_base: Number(irm.Rbase / PERCENTAGE_DIVISOR),
-      R_slope1: Number(irm.Rslope1 / PERCENTAGE_DIVISOR),
-      R_slope2: Number(irm.Rslope2 / PERCENTAGE_DIVISOR),
-      R_slope3: Number(irm.Rslope3 / PERCENTAGE_DIVISOR),
+      U_1: irm.U1 / PERCENTAGE_DIVISOR,
+      U_2: irm.U2 / PERCENTAGE_DIVISOR,
+      R_base: irm.Rbase / PERCENTAGE_DIVISOR,
+      R_slope1: irm.Rslope1 / PERCENTAGE_DIVISOR,
+      R_slope2: irm.Rslope2 / PERCENTAGE_DIVISOR,
+      R_slope3: irm.Rslope3 / PERCENTAGE_DIVISOR,
       isBorrowingMoreU2Forbidden: irm.isBorrowingMoreU2Forbidden,
     },
-  } as InterestRateModelState;
+  };
 }
 
-/**
- * Builds credit manager debt limits
- **/
 function buildCreditManagerDebtLimits(
   marketSuite: MarketSuite,
-  creditManagerAddresses: Address[],
   underlyingDecimals: number,
 ): Record<Address, number | typeof NO_LIMIT> {
   const debtLimits: Record<Address, number | typeof NO_LIMIT> = {};
 
-  for (const creditManager of creditManagerAddresses) {
+  for (const cm of marketSuite.creditManagers) {
+    const address = cm.creditManager.address;
     const limit =
-      marketSuite.pool.pool.creditManagerDebtParams.get(creditManager)?.limit ||
-      0n;
-    debtLimits[lowerAddress(creditManager)] =
-      limit === maxUint256
-        ? NO_LIMIT
-        : Number(formatUnits(limit, underlyingDecimals));
+      marketSuite.pool.pool.creditManagerDebtParams.get(address)?.limit ?? 0n;
+    debtLimits[lowerAddress(address)] = debtLimit(limit, underlyingDecimals);
   }
 
   return debtLimits;
 }
 
-/**
- * Builds credit managers state
- **/
 async function buildCreditManagersState(
   marketSuite: MarketSuite,
-  underlyingDecimals: number,
-  options?: {
-    client?: PublicClient<Transport, Chain>;
-    timestamp?: number;
-    registry?: GipRegistry;
+  args: {
+    underlyingDecimals: number;
+    client: ReadClient;
+    timestamp: number;
+    registry: GipRegistry | undefined;
   },
 ): Promise<Record<Address, MarketCreditManagerState>> {
+  const { underlyingDecimals, client, timestamp, registry } = args;
   const creditManagersState: Record<Address, MarketCreditManagerState> = {};
 
   for (const cm of marketSuite.creditManagers) {
-    const address = lowerAddress(cm.creditManager.address);
+    const { creditManager: manager, creditFacade: facade } = cm;
 
-    creditManagersState[address] = {
-      address: cm.creditManager.address,
-      name: cm.creditManager.name,
-      isExpired: isCreditManagerExpired(
-        cm.creditFacade,
-        options?.timestamp ?? Date.now() / 1000,
-      ),
-      expirable: cm.creditFacade.expirable,
-      expirationDate: cm.creditFacade.expirationDate,
-      feeInterest: cm.creditManager.feeInterest / PERCENTAGE_DIVISOR,
-      maxEnabledTokens: cm.creditManager.maxEnabledTokens,
-      collateralTokens: await buildCollateralTokensState(cm, options?.client),
-      adapters: await buildAdaptersState(
-        cm,
-        options?.client,
-        options?.registry,
-      ),
-      degenNFT: cm.creditFacade.degenNFT,
-      creditFacade: cm.creditFacade.address,
-      minDebt: Number(formatUnits(cm.creditFacade.minDebt, underlyingDecimals)),
-      maxDebt: Number(formatUnits(cm.creditFacade.maxDebt, underlyingDecimals)),
-      maxDebtPerBlockMultiplier: cm.creditFacade.maxDebtPerBlockMultiplier,
-      paused: cm.creditFacade.isPaused,
-      feeLiquidation: cm.creditManager.feeLiquidation / PERCENTAGE_DIVISOR,
-      feeLiquidationExpired:
-        cm.creditManager.feeLiquidationExpired / PERCENTAGE_DIVISOR,
+    creditManagersState[lowerAddress(manager.address)] = {
+      address: manager.address,
+      name: manager.name,
+      isExpired: isCreditManagerExpired(facade, timestamp),
+      expirable: facade.expirable,
+      expirationDate: facade.expirationDate,
+      feeInterest: manager.feeInterest / PERCENTAGE_DIVISOR,
+      maxEnabledTokens: manager.maxEnabledTokens,
+      collateralTokens: await buildCollateralTokensState(cm, client),
+      adapters: await buildAdaptersState(cm, client, registry),
+      degenNFT: facade.degenNFT,
+      creditFacade: facade.address,
+      minDebt: Number(formatUnits(facade.minDebt, underlyingDecimals)),
+      maxDebt: Number(formatUnits(facade.maxDebt, underlyingDecimals)),
+      maxDebtPerBlockMultiplier: facade.maxDebtPerBlockMultiplier,
+      paused: facade.isPaused,
+      feeLiquidation: manager.feeLiquidation / PERCENTAGE_DIVISOR,
+      feeLiquidationExpired: manager.feeLiquidationExpired / PERCENTAGE_DIVISOR,
       feeLiquidationPremium:
-        (PERCENTAGE_FACTOR - cm.creditManager.liquidationDiscount) /
-        PERCENTAGE_DIVISOR,
+        (PERCENTAGE_FACTOR - manager.liquidationDiscount) / PERCENTAGE_DIVISOR,
       feeLiquidationPremiumExpired:
-        (PERCENTAGE_FACTOR - cm.creditManager.liquidationDiscountExpired) /
+        (PERCENTAGE_FACTOR - manager.liquidationDiscountExpired) /
         PERCENTAGE_DIVISOR,
     };
   }
@@ -306,19 +253,20 @@ async function buildCreditManagersState(
 }
 
 /**
- * Builds collateral tokens state
+ * Builds collateral tokens state. The underlying has a calculated LT and no
+ * ramp; every other token's thresholds and ramp come from its `ltParams`.
  **/
 export async function buildCollateralTokensState(
   creditManager: CreditSuite,
-  client: PublicClient<Transport, Chain> = creditManager.sdk.client,
+  client: ReadClient = creditManager.sdk.client,
 ): Promise<Record<Address, CollateralToken>> {
   const collateralTokens: Record<Address, CollateralToken> = {};
   const forbidden = new Set(creditManager.forbiddenTokens.map(lowerAddress));
   const manager = creditManager.creditManager;
-  const underlying = manager.underlying.toLowerCase();
-  const tokens = manager.collateralTokens;
-  // The underlying has a calculated LT; its ltParams storage is not used.
-  const rampTokens = tokens.filter(token => token.toLowerCase() !== underlying);
+  const underlying = lowerAddress(manager.underlying);
+  const rampTokens = manager.collateralTokens.filter(
+    token => lowerAddress(token) !== underlying,
+  );
   const rampParams =
     rampTokens.length === 0
       ? []
@@ -332,65 +280,64 @@ export async function buildCollateralTokensState(
           allowFailure: false,
         });
   const paramsByToken = new Map(
-    rampTokens.map((token, i) => [token.toLowerCase(), rampParams[i]]),
+    rampTokens.map((token, i) => [lowerAddress(token), rampParams[i]]),
   );
 
-  for (const tokenAddress of tokens) {
-    const normalizedAddress = lowerAddress(tokenAddress);
-    const params = paramsByToken.get(normalizedAddress);
-    const isUnderlying = normalizedAddress === underlying;
-    if (!isUnderlying && !params) {
-      throw new Error(
-        `Missing liquidation threshold parameters for ${normalizedAddress}`,
-      );
+  for (const token of manager.collateralTokens) {
+    const address = lowerAddress(token);
+    const isForbidden = forbidden.has(address);
+    if (address === underlying) {
+      const threshold =
+        manager.liquidationThresholds.mustGet(token) / PERCENTAGE_DIVISOR;
+      collateralTokens[address] = {
+        liquidationThresholdInitial: threshold,
+        liquidationThresholdFinal: threshold,
+        rampStart: 0,
+        rampDuration: 0,
+        isForbidden,
+      };
+      continue;
     }
 
-    collateralTokens[normalizedAddress] = {
-      liquidationThresholdInitial: isUnderlying
-        ? manager.liquidationThresholds.mustGet(tokenAddress) /
-          PERCENTAGE_DIVISOR
-        : Number(params![0]) / PERCENTAGE_DIVISOR,
-      liquidationThresholdFinal: isUnderlying
-        ? manager.liquidationThresholds.mustGet(tokenAddress) /
-          PERCENTAGE_DIVISOR
-        : Number(params![1]) / PERCENTAGE_DIVISOR,
+    const params = paramsByToken.get(address);
+    if (!params) {
+      throw new Error(
+        `Missing liquidation threshold parameters for ${address}`,
+      );
+    }
+    const [initial, final, rampStart, rampDuration] = params;
+    collateralTokens[address] = {
+      liquidationThresholdInitial: Number(initial) / PERCENTAGE_DIVISOR,
+      liquidationThresholdFinal: Number(final) / PERCENTAGE_DIVISOR,
       // Static thresholds use uint40.max on chain. MarketState uses zero.
-      rampStart:
-        isUnderlying || Number(params![3]) === 0 ? 0 : Number(params![2]),
-      rampDuration: isUnderlying ? 0 : Number(params![3]),
-      isForbidden: forbidden.has(normalizedAddress),
+      rampStart: Number(rampDuration) === 0 ? 0 : Number(rampStart),
+      rampDuration: Number(rampDuration),
+      isForbidden,
     };
   }
 
   return collateralTokens;
 }
 
-/**
- * Builds market assets state
- **/
 function buildMarketAssetsState(
   marketSuite: MarketSuite,
   underlyingDecimals: number,
-): MarketAsset[] {
-  const mainPriceFeeds = marketSuite.priceOracle.mainPriceFeeds;
-  const reservePriceFeeds = marketSuite.priceOracle.reservePriceFeeds;
-  const marketAssets: MarketAsset[] = [];
+): Record<Address, MarketAsset> {
+  const { mainPriceFeeds, reservePriceFeeds } = marketSuite.priceOracle;
+  const assets: Record<Address, MarketAsset> = {};
 
-  for (const [address, quota] of marketSuite.pool.pqk.quotas.entries()) {
-    const normalizedAddress = lowerAddress(address);
-
-    marketAssets.push({
-      address: normalizedAddress,
+  for (const [token, quota] of marketSuite.pool.pqk.quotas.entries()) {
+    const address = lowerAddress(token);
+    assets[address] = {
+      address,
       quotaLimit: Number(formatUnits(quota.limit, underlyingDecimals)),
-      quotaIncreaseFee: Number(quota.quotaIncreaseFee / PERCENTAGE_DIVISOR),
-      mainPriceFeed:
-        mainPriceFeeds.get(address as Address)?.address || zeroAddress,
-      reservePriceFeed:
-        reservePriceFeeds.get(address as Address)?.address || zeroAddress,
-    });
+      quotaIncreaseFee: quota.quotaIncreaseFee / PERCENTAGE_DIVISOR,
+      mainPriceFeed: mainPriceFeeds.get(token)?.address ?? zeroAddress,
+      reservePriceFeed: reservePriceFeeds.get(token)?.address ?? zeroAddress,
+    };
   }
 
-  return marketAssets;
+  return assets;
 }
 
 /**
@@ -404,53 +351,50 @@ function buildMarketAssetsState(
 async function buildPeripheryState(
   marketSuite: MarketSuite,
   marketConfiguratorAddress: Address,
-  readClient?: PublicClient<Transport, Chain>,
-  knownDeployments: readonly Address[] = [],
+  client: ReadClient,
+  knownDeployments: readonly Address[],
 ): Promise<PeripheryState[]> {
-  const client = readClient ?? marketSuite.sdk.client;
   const pool = marketSuite.pool.pool.address;
-
   const configurator = new PermissionlessMarketConfigurator(
     marketConfiguratorAddress,
     client,
   );
-  const peripheryByDomain = await configurator.getPeripheryContracts();
+  const { DEGEN_NFT: registeredDegenNfts, ZAPPER: registeredZappers } =
+    await configurator.getPeripheryContracts();
 
-  const selectedDegenNFTs = await selectMarketDegenNfts({
+  const selectedDegenNfts = await selectMarketDegenNfts({
     read: contractReaderFromClient(client),
     underlying: marketSuite.pool.pool.underlying,
-    registered: (peripheryByDomain.DEGEN_NFT ?? []) as Address[],
+    registered: registeredDegenNfts,
     creditManagerDegenNfts: marketSuite.creditManagers.map(
       cm => cm.creditFacade.degenNFT,
     ),
   });
-
-  const degenNFTAddresses = [
+  const degenNfts = [
     ...new Set([
-      ...selectedDegenNFTs,
-      ...((peripheryByDomain.DEGEN_NFT ?? []) as Address[]).filter(address =>
+      ...selectedDegenNfts,
+      ...registeredDegenNfts.filter(address =>
         knownDeployments.some(known => isSameAddress(known, address)),
       ),
     ]),
   ];
 
   // Zappers: query pool() for each, keep only those matching the given pool
-  const allZapperAddresses = (peripheryByDomain.ZAPPER ?? []) as Address[];
-  const zapperPoolResults = await client.multicall({
+  const zapperPools = await client.multicall({
     allowFailure: true,
-    contracts: allZapperAddresses.map(address => ({
+    contracts: registeredZappers.map(address => ({
       address,
       abi: iZapperAbi,
       functionName: "pool" as const,
     })),
   });
-  const zapperAddresses = allZapperAddresses.filter((_, i) => {
-    const r = zapperPoolResults[i];
-    return r?.status === "success" && isSameAddress(r.result as Address, pool);
+  const zappers = registeredZappers.filter((_, i) => {
+    const result = zapperPools[i];
+    return result.status === "success" && isSameAddress(result.result, pool);
   });
 
   // Known deployments that are not registered, and hold code
-  const registered = [...degenNFTAddresses, ...zapperAddresses];
+  const registered = [...degenNfts, ...zappers];
   const unregistered = knownDeployments.filter(
     address => !registered.some(entry => isSameAddress(entry, address)),
   );
@@ -462,17 +406,13 @@ async function buildPeripheryState(
   );
 
   // Assemble final list and enrich with contractType + version
-  const entries: {
-    domain: string;
-    address: Address;
-    status: PeripheryState["status"];
-  }[] = [
-    ...degenNFTAddresses.map(address => ({
+  const entries = [
+    ...degenNfts.map(address => ({
       domain: "DEGEN_NFT",
       address,
       status: "registered" as const,
     })),
-    ...zapperAddresses.map(address => ({
+    ...zappers.map(address => ({
       domain: "ZAPPER",
       address,
       status: "registered" as const,
@@ -487,26 +427,24 @@ async function buildPeripheryState(
 
   if (entries.length === 0) return [];
 
-  const versionCalls = entries.flatMap(({ address }) => [
-    { address, abi: iVersionAbi, functionName: "contractType" as const },
-    { address, abi: iVersionAbi, functionName: "version" as const },
-  ]);
-  const versionResults = await client.multicall({
+  const versions = await client.multicall({
     allowFailure: true,
-    contracts: versionCalls,
+    contracts: entries.flatMap(({ address }) => [
+      { address, abi: iVersionAbi, functionName: "contractType" as const },
+      { address, abi: iVersionAbi, functionName: "version" as const },
+    ]),
   });
 
   return entries.map(({ domain, address, status }, i) => {
-    const typeResult = versionResults[i * 2];
-    const versionResult = versionResults[i * 2 + 1];
+    const typeResult = versions[i * 2];
+    const versionResult = versions[i * 2 + 1];
 
     const type =
-      typeResult?.status === "success" && typeof typeResult.result === "string"
-        ? hexToString(typeResult.result as `0x${string}`, { size: 32 })
+      typeResult.status === "success" && typeof typeResult.result === "string"
+        ? hexToString(typeResult.result, { size: 32 })
         : "";
-
     const version =
-      versionResult?.status === "success" &&
+      versionResult.status === "success" &&
       typeof versionResult.result === "bigint"
         ? Number(versionResult.result)
         : 0;
@@ -521,20 +459,17 @@ async function buildPeripheryState(
   });
 }
 
-/**
- * Builds treasury state
- **/
-export async function buildTreasuryState(
+/** The treasury's type and its balances of the pool's underlying and shares. **/
+async function buildTreasuryState(
   marketSuite: MarketSuite,
   underlyingDecimals: number,
-  readClient?: PublicClient<Transport, Chain>,
+  client: ReadClient,
 ): Promise<TreasuryState> {
   const treasury = marketSuite.treasury;
   const underlying = marketSuite.pool.underlying;
   const pool = marketSuite.pool.pool.address;
-  const client = readClient ?? marketSuite.sdk.client;
 
-  const results = await client.multicall({
+  const [type, underlyingBalance, poolBalance] = await client.multicall({
     allowFailure: true,
     contracts: [
       {
@@ -557,17 +492,17 @@ export async function buildTreasuryState(
     ],
   });
 
-  if (!results) {
-    return {
-      address: treasury,
-      type: "TREASURY",
-      balances: {},
-    };
+  const balances: Record<Address, number> = {};
+  for (const [token, call] of [
+    [underlying, underlyingBalance],
+    [pool, poolBalance],
+  ] as const) {
+    if (call.status === "success") {
+      balances[lowerAddress(token)] = Number(
+        formatUnits(call.result, underlyingDecimals),
+      );
+    }
   }
-
-  const type = results[0];
-  const balances = results.slice(1);
-  const addresses = [underlying, pool] as const;
 
   return {
     address: treasury,
@@ -576,19 +511,6 @@ export async function buildTreasuryState(
       hexToString(type.result, { size: 32 }) === "TREASURY_SPLITTER"
         ? "TREASURY_SPLITTER"
         : "TREASURY",
-    balances: balances.reduce<Record<Address, number>>((acc, call, i) => {
-      if (
-        call &&
-        call.status === "success" &&
-        i < addresses.length &&
-        typeof call.result === "bigint"
-      ) {
-        acc[lowerAddress(addresses[i])] = +formatUnits(
-          call.result,
-          underlyingDecimals,
-        );
-      }
-      return acc;
-    }, {}),
+    balances,
   };
 }

@@ -1,8 +1,6 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -16,9 +14,13 @@ import {
   object,
   optional,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import { allowed, type ItemOf, lower } from "../adapterStateSchema.js";
 import type { MidasRedemptionAdapterState } from "./midasRedemptionAdapterPlugin.js";
@@ -62,10 +64,7 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
     description: `Set token allowed status batch, which represents tokens could be redeemed for credit accounts.`,
     // v310 pairs every redeemable token with a phantom token, v311 does not.
     schema: z.discriminatedUnion("version", [
-      z.object({
-        creditManager: creditManagerTargetSchema,
-        version: z.literal(310),
-        target: addressSchema,
+      adapterActionSchema([310], {
         allowedTokens: z.array(
           z.object({
             token: addressSchema,
@@ -74,10 +73,7 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
           }),
         ),
       }),
-      z.object({
-        creditManager: creditManagerTargetSchema,
-        version: z.literal(311),
-        target: addressSchema,
+      adapterActionSchema([311], {
         allowedTokens: z.array(
           z.object({
             token: addressSchema,
@@ -92,7 +88,7 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
       return configureAdapter(
         ctx,
         params,
-        adapterActionAbi.MIDAS_REDEMPTION_VAULT![version],
+        adapterAbi("MIDAS_REDEMPTION_VAULT", version),
         version > 310
           ? {
               functionName: "setOutputTokenStatusBatch",
@@ -111,18 +107,10 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
             },
       );
     },
-    ...adapterBatch<
-      "allowedTokens",
-      SetTokenAllowedStatusBatchAction["params"],
-      MidasRedemptionAdapterState
-    >({
+    ...adapterBatch({
       type: "MIDAS_REDEMPTION_VAULT",
       field: "allowedTokens",
       list: midasRedemptionAllowedTokensList,
-      toState: t => ({
-        allowed: t.allowed,
-        token: lowerAddress(t.token),
-        phantomToken: t.phantomToken?.toLowerCase() as Address | undefined,
-      }),
+      toState: t => lowerAddresses(t, ["token", "phantomToken"]),
     }),
   });

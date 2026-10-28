@@ -1,4 +1,3 @@
-import { BaseError } from "viem";
 /**
  * Findings of an action's `check` step.
  *
@@ -8,6 +7,7 @@ import { BaseError } from "viem";
  * revert there — and makes `build()` and `simulate()` reject; a `warning` is
  * reported and the projection goes on.
  **/
+import { BaseError } from "viem";
 
 export type ActionDiagnosticSeverity = "error" | "warning";
 
@@ -28,12 +28,21 @@ export interface GipActionDiagnostic extends ActionDiagnostic {
   actionType: string;
 }
 
+function diagnostic(
+  severity: ActionDiagnosticSeverity,
+  code: string,
+  message: string,
+  path?: ActionDiagnosticPath,
+): ActionDiagnostic {
+  return { severity, code, message, ...(path ? { path } : {}) };
+}
+
 export function actionError(
   code: string,
   message: string,
   path?: ActionDiagnosticPath,
 ): ActionDiagnostic {
-  return { severity: "error", code, message, ...(path ? { path } : {}) };
+  return diagnostic("error", code, message, path);
 }
 
 export function actionWarning(
@@ -41,13 +50,13 @@ export function actionWarning(
   message: string,
   path?: ActionDiagnosticPath,
 ): ActionDiagnostic {
-  return { severity: "warning", code, message, ...(path ? { path } : {}) };
+  return diagnostic("warning", code, message, path);
 }
 
 /** Code of an {@link incompleteCheck}. **/
 export const CHECK_UNAVAILABLE = "CHECK_UNAVAILABLE";
 
-/** Reported separately as incompleteChecks by the executor. */
+/** Reported separately as incompleteChecks by the executor. **/
 export function incompleteCheck(
   check: string,
   reason: string,

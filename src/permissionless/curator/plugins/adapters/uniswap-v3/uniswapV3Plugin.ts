@@ -38,14 +38,14 @@ export const uniswapV3Plugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "UNISWAP_V3_ROUTER",
     version: 310,
-    target: "0xE592427A0AEce92De3Edee1F18E0157C05861564" as Address,
+    target: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
   }),
   isEditable: false,
   allowGas: 2_050_000, // got 2,001,065
   stateSchema: adapterStateSchema<UniswapV3AdapterState>({
     pools: uniswapV3PoolsList,
   }),
-  getDeployState: (params: UniswapV3AdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("UNISWAP_V3_ROUTER", params),
     pools: [],
   }),

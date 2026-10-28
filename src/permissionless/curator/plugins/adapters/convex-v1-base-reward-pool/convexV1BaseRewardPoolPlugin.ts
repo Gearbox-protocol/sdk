@@ -7,10 +7,7 @@ import {
   resolveTargetTokens,
   stakedTokenDeployParamsSchema,
 } from "../adapterPluginHelpers.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type ConvexV1BaseRewardPoolAdapterState = AdapterStateBase;
@@ -32,19 +29,14 @@ export const convexV1BaseRewardPoolPlugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "CVX_V1_BASE_REWARD_POOL",
     version: 311,
-    target: "0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8" as Address,
+    target: "0x689440f2Ff927E1f24c72F1087E1FAF471eCe1c8",
     stakedToken: zeroAddress,
   }),
   isEditable: true,
   allowGas: 1_280_000, // got 1,250,044
   ...plainAdapter("CVX_V1_BASE_REWARD_POOL"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: ConvexV1BaseRewardPoolAdapterDeployParams;
-  }) => adapterDeployParams(args, [args.params.stakedToken]),
-  resolveValidation: (
-    args: ResolveAdapterValidationArgs<ConvexV1BaseRewardPoolAdapterDeployParams>,
-  ) => {
+  getDeployParams: args => adapterDeployParams(args, [args.params.stakedToken]),
+  resolveValidation: args => {
     const { target } = args.params;
     return resolveTargetTokens(
       args,

@@ -4,8 +4,7 @@ import {
   createCreditSuiteSchema,
 } from "../actions/createCreditSuiteActionData.js";
 import { BUNDLE_TARGET } from "../actions/creditManagerTargets.js";
-import type { MarketActions } from "../actions/types.js";
-import { lowerAddress } from "../utils/addressUtils.js";
+import { uniqueAddresses } from "../utils/addressUtils.js";
 import { addressSchema, percentageSchema } from "../validationSchemas.js";
 import type { Bundle } from "./Bundle.js";
 import { GipBuilderError } from "./GipBuilderError.js";
@@ -84,18 +83,14 @@ export function customizeBundle(
   // Partial overrides use the effective deployment debt bound. For a bundle
   // targeting an existing manager, LT-only changes leave its limits alone.
   const debtLimit = createSuite?.params.maxDebt;
-  const nonZeroLtAssets = customized.actions
-    .filter(
-      (
-        action,
-      ): action is Extract<
-        MarketActions,
-        { type: "CREDIT::addCollateralToken" }
-      > =>
-        action.type === "CREDIT::addCollateralToken" &&
-        action.params.liquidationThreshold > 0,
-    )
-    .map(action => lowerAddress(action.params.token));
+  const nonZeroLtAssets = uniqueAddresses(
+    customized.actions.flatMap(action =>
+      action.type === "CREDIT::addCollateralToken" &&
+      action.params.liquidationThreshold > 0
+        ? [action.params.token]
+        : [],
+    ),
+  );
 
   if (nonZeroLtAssets.length === 0) {
     throw new GipBuilderError(
@@ -104,7 +99,7 @@ export function customizeBundle(
     );
   }
 
-  for (const token of new Set(nonZeroLtAssets)) {
+  for (const token of nonZeroLtAssets) {
     customized.actions.push({
       type: "CREDIT::addCollateralToken",
       params: {

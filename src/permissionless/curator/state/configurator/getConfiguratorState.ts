@@ -166,7 +166,7 @@ export async function getTreasuryBalances(args: {
     })),
   });
   const tokens = uniqueAddresses([...pools, ...underlyings]);
-  const reads = (await client.multicall({
+  const reads = await client.multicall({
     allowFailure: false,
     contracts: tokens.flatMap(token => [
       {
@@ -183,24 +183,21 @@ export async function getTreasuryBalances(args: {
         args: [token] as const,
       },
     ]),
-  })) as unknown as (bigint | number)[];
+  });
 
-  return Object.fromEntries(
-    tokens.map((token, i) => {
-      const balance = BigInt(reads[i * 3]);
-      const decimals = Number(reads[i * 3 + 1]);
-      const insurance = BigInt(reads[i * 3 + 2]);
-      // @dev `distribute` sends what exceeds the insurance amount, if anything
-      const available = balance > insurance ? balance - insurance : 0n;
-      return [
-        token,
-        {
-          available: Number(formatUnits(available, decimals)),
-          insuranceAmount: Number(formatUnits(insurance, decimals)),
-        },
-      ];
-    }),
-  ) as Record<Address, TreasuryTokenBalance>;
+  const balances: Record<Address, TreasuryTokenBalance> = {};
+  tokens.forEach((token, i) => {
+    const balance = BigInt(reads[i * 3]);
+    const decimals = Number(reads[i * 3 + 1]);
+    const insurance = BigInt(reads[i * 3 + 2]);
+    // @dev `distribute` sends what exceeds the insurance amount, if anything
+    const available = balance > insurance ? balance - insurance : 0n;
+    balances[token] = {
+      available: Number(formatUnits(available, decimals)),
+      insuranceAmount: Number(formatUnits(insurance, decimals)),
+    };
+  });
+  return balances;
 }
 
 /**
@@ -251,41 +248,5 @@ export async function getConfiguratorState(
       }),
     },
     shutdown: false, // To be determined from contract state or database
-  };
-}
-
-/**
- * Normalizes all addresses in a ConfiguratorState object for consistent comparison
- **/
-export function normalizeConfiguratorState(
-  state: ConfiguratorState,
-): ConfiguratorState {
-  return {
-    ...state,
-    address: lowerAddress(state.address),
-    admin: lowerAddress(state.admin),
-    emergencyAdmin: lowerAddress(state.emergencyAdmin),
-    pausableAdmins: state.pausableAdmins.map(lowerAddress),
-    unpausableAdmins: state.unpausableAdmins.map(lowerAddress),
-    treasury: normalizeTreasurySplitterState(state.treasury),
-  };
-}
-
-export function normalizeTreasurySplitterState(
-  state: TreasurySplitterState,
-): TreasurySplitterState {
-  return {
-    ...state,
-    address: lowerAddress(state.address),
-    ...(state.balances
-      ? {
-          balances: Object.fromEntries(
-            Object.entries(state.balances).map(([token, balance]) => [
-              lowerAddress(token),
-              balance,
-            ]),
-          ) as Record<Address, TreasuryTokenBalance>,
-        }
-      : {}),
   };
 }

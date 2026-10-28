@@ -1,8 +1,6 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -15,9 +13,13 @@ import {
   list,
   object,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import { allowed, type ItemOf, lower } from "../adapterStateSchema.js";
 import type { MidasIssuanceAdapterState } from "./midasIssuanceAdapterPlugin.js";
@@ -54,10 +56,7 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
     gas: () => 200_000, // not measured
     name: "MidasIssuance::setTokenAllowedStatusBatch",
     description: `Set token allowed status batch, which represents tokens credit accounts can deposit into the Midas issuance vault.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.union([z.literal(310), z.literal(311)]),
-      target: addressSchema,
+    schema: adapterActionSchema([310, 311], {
       allowedTokens: z.array(
         z.object({
           token: addressSchema,
@@ -71,7 +70,7 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
       return configureAdapter(
         ctx,
         params,
-        adapterActionAbi.MIDAS_ISSUANCE_VAULT![version],
+        adapterAbi("MIDAS_ISSUANCE_VAULT", version),
         {
           // The function was renamed after v310.
           functionName:
@@ -85,17 +84,10 @@ export const setTokenAllowedStatusBatchActionData: MarketScopedDefinition<SetTok
         },
       );
     },
-    ...adapterBatch<
-      "allowedTokens",
-      SetTokenAllowedStatusBatchAction["params"],
-      MidasIssuanceAdapterState
-    >({
+    ...adapterBatch({
       type: "MIDAS_ISSUANCE_VAULT",
       field: "allowedTokens",
       list: midasIssuanceAllowedTokensList,
-      toState: t => ({
-        allowed: t.allowed,
-        token: lowerAddress(t.token),
-      }),
+      toState: t => lowerAddresses(t, ["token"]),
     }),
   });

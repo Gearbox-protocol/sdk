@@ -9,9 +9,9 @@ import {
 import { isSameAddress } from "../utils/addressUtils.js";
 import { addressSchema } from "../validationSchemas.js";
 import {
-  adminRoleHolders,
   adminRoleLabel,
   byRoleAndAdmin,
+  holdsAdminRole,
   updateAdminRole,
 } from "./configuratorActionHelpers.js";
 import {
@@ -38,9 +38,7 @@ export const removeAdminActionData: ConfiguratorScopedDefinition<RemoveAdminActi
       admin: addressSchema,
     }),
     check: ({ state, params }) =>
-      adminRoleHolders(state, params.role).some(holder =>
-        isSameAddress(holder, params.admin),
-      )
+      holdsAdminRole(state, params.role, params.admin)
         ? []
         : [
             actionError(

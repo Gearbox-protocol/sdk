@@ -2,10 +2,15 @@ import { type Address, stringToHex, zeroAddress } from "viem";
 import type { MarketState } from "../../state/market/types.js";
 import { peripheryStatus } from "../../state/market/types.js";
 import { isSameAddress } from "../../utils/addressUtils.js";
-import { actionError, incompleteCheck } from "../actionDiagnostics.js";
+import {
+  type ActionDiagnostic,
+  actionError,
+  incompleteCheck,
+} from "../actionDiagnostics.js";
 import type { GipBuilderContext } from "../builderContext.js";
 import { type ChainRead, readChain } from "./chainReads.js";
 
+/** Whether `address` is a registered Degen NFT; the zero address means none. **/
 export function resolveDegenNft(
   ctx: GipBuilderContext,
   address: Address,
@@ -20,11 +25,15 @@ export function resolveDegenNft(
       );
 }
 
+/**
+ * A facade's Degen NFT must be registered as periphery, on chain or by an
+ * earlier action of the GIP.
+ **/
 export function degenNftDiagnostics(
   state: MarketState,
   address: Address,
   registered: ChainRead<boolean>,
-) {
+): ActionDiagnostic[] {
   if (
     registered.value ||
     isSameAddress(address, zeroAddress) ||

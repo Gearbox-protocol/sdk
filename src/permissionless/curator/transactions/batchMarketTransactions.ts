@@ -2,12 +2,13 @@ import type { Address } from "viem";
 import type { RawTx } from "../../../onchain/index.js";
 import type { BatchTxs, ParsedMarketTx } from "../types.js";
 
-function getBatchGasLimit(chainId: number): number {
-  switch (chainId) {
-    default:
-      return 14_600_000;
-  }
-}
+/** Estimated gas a batch may hold; the same on every supported chain so far. **/
+const BATCH_GAS_LIMIT = 14_600_000;
+
+/** Optimism and Arbitrum also bound a batch by its calldata size. **/
+const ROLLUP_CHAIN_IDS = [10, 42161];
+const ROLLUP_DATA_SOFT_LIMIT = 80_000;
+const ROLLUP_DATA_HARD_LIMIT = 150_000;
 
 export function batchMarketTransactions(args: {
   chainId: number;
@@ -16,50 +17,44 @@ export function batchMarketTransactions(args: {
   >;
 }): BatchTxs[] {
   const { txs, chainId } = args;
+  const isRollup = ROLLUP_CHAIN_IDS.includes(chainId);
+
+  const result: BatchTxs[] = [];
+  let batchTxs: RawTx[] = [];
   let batchGasUsed = 0;
   let dataUsed = 0;
+  let batchTouchedFeeds = new Set<Address>();
 
-  const result: Array<BatchTxs> = [];
-  const batchTxs: Array<RawTx> = [];
-
-  const batchGasLimit = getBatchGasLimit(chainId);
-  const batchTouchedFeeds = new Set<Address>();
   for (const [num, { tx, estimatedGas, touchedFeeds }] of txs.entries()) {
-    dataUsed += tx.callData.length;
-
+    batchTxs.push(tx);
     batchGasUsed += estimatedGas;
-
+    dataUsed += tx.callData.length;
     for (const feed of touchedFeeds) {
       batchTouchedFeeds.add(feed);
     }
 
-    batchTxs.push(tx);
-
-    const nextTxDataUsed = txs[num + 1]?.tx.callData.length || 0;
-    const nextTxGasUsed = txs[num + 1]?.estimatedGas || 0;
+    const next = txs[num + 1];
+    const nextTxGasUsed = next?.estimatedGas ?? 0;
+    const nextTxDataUsed = next?.tx.callData.length ?? 0;
 
     if (
-      batchGasUsed + nextTxGasUsed > batchGasLimit ||
-      num === txs.length - 1 ||
-      // @dev Optimism or Arbitrum
-      ([10, 42161].includes(chainId) && dataUsed + nextTxDataUsed > 80_000)
+      next === undefined ||
+      batchGasUsed + nextTxGasUsed > BATCH_GAS_LIMIT ||
+      (isRollup && dataUsed + nextTxDataUsed > ROLLUP_DATA_SOFT_LIMIT)
     ) {
-      if ([10, 42161].includes(chainId) && dataUsed > 150_000) {
+      if (isRollup && dataUsed > ROLLUP_DATA_HARD_LIMIT) {
         throw new Error(`Data limit exceeded :${dataUsed}`);
       }
 
       result.push({
-        txs: [...batchTxs],
+        txs: batchTxs,
         estimatedGas: batchGasUsed,
-        touchedFeeds: Array.from(batchTouchedFeeds),
+        touchedFeeds: [...batchTouchedFeeds],
       });
+      batchTxs = [];
       batchGasUsed = 0;
       dataUsed = 0;
-      batchTouchedFeeds.clear();
-
-      while (batchTxs.length > 0) {
-        batchTxs.pop();
-      }
+      batchTouchedFeeds = new Set();
     }
   }
 

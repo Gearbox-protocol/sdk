@@ -3,10 +3,7 @@ import { z } from "zod/v4";
 import { addressSchema } from "../../../validationSchemas.js";
 import { adapterDeployParams, plainAdapter } from "../adapterPluginHelpers.js";
 import { resolveCurveTarget } from "../curve-v1/getCurveV1Plugin.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type CurveV1StETHAdapterState = AdapterStateBase;
@@ -41,14 +38,9 @@ export const curveV1StETHPlugin = defineAdapterPlugin<
   isEditable: true,
   allowGas: 2_000_000, // not measured
   ...plainAdapter("CURVE_V1_STECRV_POOL"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: CurveV1StETHAdapterDeployParams;
-  }) => adapterDeployParams(args, [args.params.lpToken]),
+  getDeployParams: args => adapterDeployParams(args, [args.params.lpToken]),
   // The stETH pool is a regular two-coin Curve pool.
-  resolveValidation: (
-    args: ResolveAdapterValidationArgs<CurveV1StETHAdapterDeployParams>,
-  ) =>
+  resolveValidation: args =>
     resolveCurveTarget({
       ...args,
       params: { type: "CURVE_V1_2ASSETS", target: args.params.target },

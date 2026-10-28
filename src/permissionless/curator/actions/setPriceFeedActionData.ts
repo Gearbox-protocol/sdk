@@ -66,7 +66,7 @@ It's also used to calculate price of a token during liquidation.`,
     const priceFeed = lowerAddress(params.priceFeed);
 
     // The underlying is not a quoted asset; its feed lives on the market.
-    if (isSameAddress(params.token, state.underlyingAsset)) {
+    if (isUnderlying(state, params.token)) {
       return {
         ...state,
         underlyingPriceFeed: priceFeed,

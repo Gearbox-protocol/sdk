@@ -27,13 +27,8 @@ import {
   requiresCollateral,
 } from "./utils/actionKeys.js";
 import {
-  collateralNotFound,
-  creditManagerNotFound,
-  findCollateral,
-  findCreditManager,
-  isUnderlying,
   liquidationThresholdDiagnostics,
-  underlyingNotAllowed,
+  targetCollateral,
 } from "./utils/checkHelpers.js";
 import { configureCreditManager } from "./utils/configureCalls.js";
 import { updateCollateralToken } from "./utils/creditManagerStateUpdates.js";
@@ -69,12 +64,12 @@ or a particular collateral token during the time.`,
       rampDuration: uintSchema(24),
     }),
     check: ({ state, params, env }) => {
-      const cm = findCreditManager(state, params.creditManager);
-      if (!cm) return [creditManagerNotFound(params.creditManager)];
-      if (isUnderlying(state, params.token)) return [underlyingNotAllowed()];
-      if (!findCollateral(cm, params.token)) {
-        return [collateralNotFound(params.token)];
-      }
+      const {
+        cm,
+        collateral,
+        diagnostics: missing,
+      } = targetCollateral(state, params);
+      if (missing) return missing;
       const diagnostics = liquidationThresholdDiagnostics(
         state,
         cm,
@@ -82,10 +77,7 @@ or a particular collateral token during the time.`,
         ["params", "liquidationThresholdFinal"],
       );
       if (
-        effectiveLiquidationThreshold(
-          findCollateral(cm, params.token)!,
-          env.timestamp,
-        ) === undefined
+        effectiveLiquidationThreshold(collateral, env.timestamp) === undefined
       )
         diagnostics.push(
           incompleteCheck(
@@ -139,8 +131,8 @@ or a particular collateral token during the time.`,
           rampDuration: params.rampDuration,
         }),
       }),
-    encode: ({ ctx, params }) => {
-      return configureCreditManager(ctx, params.creditManager, {
+    encode: ({ ctx, params }) =>
+      configureCreditManager(ctx, params.creditManager, {
         functionName: "rampLiquidationThreshold",
         args: [
           params.token,
@@ -148,8 +140,7 @@ or a particular collateral token during the time.`,
           params.rampStart,
           params.rampDuration,
         ],
-      });
-    },
+      }),
     requires: requiresCollateral,
     key: byCreditManagerAndToken,
   });

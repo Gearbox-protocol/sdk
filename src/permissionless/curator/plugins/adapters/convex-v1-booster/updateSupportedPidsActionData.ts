@@ -1,16 +1,14 @@
-import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
 } from "../../../actions/defineMarketAction.js";
 import { configureAdapter } from "../../../actions/utils/configureCalls.js";
 import { lowerAddress } from "../../../utils/addressUtils.js";
-import { addressSchema } from "../../../validationSchemas.js";
 import {
+  adapterAbi,
   adapterActionKeys,
+  adapterActionSchema,
   adapterDiagnostics,
   updateActionAdapter,
 } from "../adapterActionHelpers.js";
@@ -35,11 +33,7 @@ export const updateSupportedPidsActionData: MarketScopedDefinition<UpdateSupport
         43_000,
     name: "ConvexBooster::updateSupportedPids",
     description: `Update supported pids and related token mappings, which represents Convex reward pools could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.literal(310),
-      target: addressSchema,
-    }),
+    schema: adapterActionSchema([310], {}),
     // @dev nothing to project: the pids live on chain only. The update still
     // requires the booster adapter to exist.
     check: ({ state, params }) =>
@@ -54,8 +48,10 @@ export const updateSupportedPidsActionData: MarketScopedDefinition<UpdateSupport
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.CVX_V1_BOOSTER![params.version],
-        { functionName: "updateSupportedPids" },
+        adapterAbi("CVX_V1_BOOSTER", params.version),
+        {
+          functionName: "updateSupportedPids",
+        },
       ),
     ...adapterActionKeys,
   });

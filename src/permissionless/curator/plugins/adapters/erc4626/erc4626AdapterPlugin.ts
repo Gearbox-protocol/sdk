@@ -74,10 +74,7 @@ export const erc4626AdapterPlugin = defineAdapterPlugin<
   isEditable: true,
   allowGas: 1_100_000, // got 998,853, 994,659 & 1,011,759
   ...plainAdapter("ERC4626_VAULT"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: Erc4626AdapterDeployParams;
-  }) =>
+  getDeployParams: args =>
     adapterDeployParams(
       args,
       args.params.version === 312 ? [args.params.gateway] : [],

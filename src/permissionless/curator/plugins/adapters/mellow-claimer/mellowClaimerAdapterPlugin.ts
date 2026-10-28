@@ -42,7 +42,7 @@ export const mellowClaimerAdapterPlugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<MellowClaimerAdapterState>({
     vaults: mellowClaimerVaultsList,
   }),
-  getDeployState: (params: MellowClaimerAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("MELLOW_CLAIMER", params),
     vaults: [],
   }),

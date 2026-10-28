@@ -56,7 +56,7 @@ export const setRateActionData: MarketScopedDefinition<SetRateAction> =
           ...rateKeeper,
           rates: {
             ...rateKeeper.rates,
-            [params.token.toLowerCase()]: params.rate,
+            [lowerAddress(params.token)]: params.rate,
           },
         }),
       }),

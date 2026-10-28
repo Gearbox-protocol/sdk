@@ -1,5 +1,4 @@
 import {
-  type Abi,
   type Address,
   type Chain,
   type PublicClient,
@@ -7,8 +6,7 @@ import {
   zeroAddress,
 } from "viem";
 import { z } from "zod/v4";
-import type { AbstractAdapterContract } from "../../../../../onchain/index.js";
-import { addressSchema, literalsSchema } from "../../../validationSchemas.js";
+import { addressSchema } from "../../../validationSchemas.js";
 import {
   adapterDeployParams,
   getter,
@@ -55,15 +53,6 @@ export type CurveV1Adapter311DeployParams = {
 export type CurveV1AdapterDeployParams =
   | CurveV1Adapter310DeployParams
   | CurveV1Adapter311DeployParams;
-
-export const curveV1DeployParamsSchema = z.object({
-  type: literalsSchema(...CURVE_V1_ADAPTER_TYPES),
-  version: z.literal(311),
-  target: addressSchema,
-  lpToken: addressSchema,
-  basePool: addressSchema,
-  use256: z.boolean(),
-});
 
 export const curveAdapterInfo: Record<
   CurveV1AdapterTypes,
@@ -154,10 +143,7 @@ export const getCurveV1Plugin = (adapterType: CurveV1AdapterTypes) =>
     // Stable NG
     allowGas: adapterType === "CURVE_STABLE_NG" ? 2_100_000 : 2_000_000,
     ...plainAdapter(adapterType),
-    getDeployParams: (args: {
-      creditManager: Address;
-      params: CurveV1AdapterDeployParams;
-    }) => {
+    getDeployParams: args => {
       const { params } = args;
       return adapterDeployParams(
         args,
@@ -171,17 +157,20 @@ export const getCurveV1Plugin = (adapterType: CurveV1AdapterTypes) =>
             ],
       );
     },
-    resolveValidation: (
-      args: ResolveAdapterValidationArgs<CurveV1AdapterDeployParams>,
-    ) => resolveCurveTarget(args),
+    resolveValidation: resolveCurveTarget,
     // @dev the SDK reports the concrete Curve flavour, which is authoritative
-    getStateFromSDK: (adapter: AbstractAdapterContract<Abi, Abi>) =>
+    getStateFromSDK: adapter =>
       sdkState(
         adapter.adapterType.split("::")[1] as CurveV1AdapterTypes,
         adapter,
       ),
-    deployParamsSchema: curveV1DeployParamsSchema.extend({
+    deployParamsSchema: z.object({
       type: z.literal(adapterType),
-    }) as z.ZodType<CurveV1AdapterDeployParams>,
+      version: z.literal(311),
+      target: addressSchema,
+      lpToken: addressSchema,
+      basePool: addressSchema,
+      use256: z.boolean(),
+    }),
     actions: {},
   });

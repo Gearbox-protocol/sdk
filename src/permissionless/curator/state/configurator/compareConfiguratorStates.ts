@@ -1,12 +1,12 @@
 import type { Address } from "viem";
 import { lowerAddress } from "../../utils/addressUtils.js";
 import { compact } from "../../utils/objectUtils.js";
-import { normalizeConfiguratorState } from "./getConfiguratorState.js";
 import type {
   ConfiguratorState,
   GovernorState,
   Split,
   TreasurySplitterState,
+  TreasuryTokenBalance,
   TwoAdminProposal,
 } from "./types.js";
 
@@ -165,6 +165,18 @@ function changedAmount(
     : { old: oldValue, new: newValue };
 }
 
+/** Balances keyed by canonical token address. **/
+function byCanonicalToken(
+  balances: Record<Address, TreasuryTokenBalance>,
+): Map<Address, TreasuryTokenBalance> {
+  return new Map(
+    Object.entries(balances).map(([token, balance]) => [
+      lowerAddress(token),
+      balance,
+    ]),
+  );
+}
+
 /**
  * Token balances that differ. A token missing on one side counts as holding
  * nothing there; states without tracked balances are not compared.
@@ -172,26 +184,21 @@ function changedAmount(
 function compareBalances(
   oldBalances: TreasurySplitterState["balances"],
   newBalances: TreasurySplitterState["balances"],
-) {
+): NonNullable<Differences["treasury"]>["balances"] {
   if (!oldBalances || !newBalances) return undefined;
   const empty = { available: 0, insuranceAmount: 0 };
-  const tokens = [
-    ...new Set([...Object.keys(oldBalances), ...Object.keys(newBalances)]),
-  ] as Address[];
-  const differences = Object.fromEntries(
-    tokens.flatMap(token => {
-      const before = oldBalances[token] ?? empty;
-      const after = newBalances[token] ?? empty;
-      const difference = nonEmpty({
-        available: changedAmount(before.available, after.available),
-        insuranceAmount: changedAmount(
-          before.insuranceAmount,
-          after.insuranceAmount,
-        ),
-      });
-      return difference ? [[token, difference]] : [];
-    }),
-  );
+  const before = byCanonicalToken(oldBalances);
+  const after = byCanonicalToken(newBalances);
+  const differences: NonNullable<Differences["treasury"]>["balances"] = {};
+  for (const token of new Set([...before.keys(), ...after.keys()])) {
+    const old = before.get(token) ?? empty;
+    const new_ = after.get(token) ?? empty;
+    const difference = nonEmpty({
+      available: changedAmount(old.available, new_.available),
+      insuranceAmount: changedAmount(old.insuranceAmount, new_.insuranceAmount),
+    });
+    if (difference) differences[token] = difference;
+  }
   return Object.keys(differences).length > 0 ? differences : undefined;
 }
 
@@ -212,11 +219,8 @@ function compareTreasuryStates(
 }
 
 /**
- * Compares two ConfiguratorState objects and returns detailed differences
- *
- * @param oldState - The original configurator state
- * @param newState - The new configurator state to compare against
- * @returns A detailed diff object showing all differences between the states
+ * Compares two configurator states field by field. Addresses are compared
+ * case-insensitively and reported in lower case.
  *
  * @example
  * ```ts
@@ -228,17 +232,14 @@ function compareTreasuryStates(
  * ```
  **/
 export function compareConfiguratorStates(
-  oldState: ConfiguratorState,
-  newState: ConfiguratorState,
+  before: ConfiguratorState,
+  after: ConfiguratorState,
 ): ConfiguratorStateDiff {
-  const before = normalizeConfiguratorState(oldState);
-  const after = normalizeConfiguratorState(newState);
-
   const differences: Differences = compact({
-    address: changed(before.address, after.address),
+    address: changedAddress(before.address, after.address),
     version: changed(before.version, after.version),
-    admin: changed(before.admin, after.admin),
-    emergencyAdmin: changed(before.emergencyAdmin, after.emergencyAdmin),
+    admin: changedAddress(before.admin, after.admin),
+    emergencyAdmin: changedAddress(before.emergencyAdmin, after.emergencyAdmin),
     shutdown: changed(before.shutdown, after.shutdown),
     pausableAdmins: compareAddressArrays(
       before.pausableAdmins,

@@ -77,9 +77,6 @@ export const createCreditSuiteSchema = z
       "Invalid debt limits: total potential debt must not exceed 100x minDebt (maxDebt/minDebt <= 100/maxEnabledTokens)",
   });
 
-/** The market fields a credit suite deployment depends on. **/
-export type CreditSuiteMarket = MarketIdentity;
-
 /**
  * Builds the `createCreditSuite` transaction and previews the credit manager it
  * deploys. The preview depends on the action's own salt, so the same action
@@ -87,7 +84,7 @@ export type CreditSuiteMarket = MarketIdentity;
  **/
 export function createCreditSuite(args: {
   ctx: GipBuilderContext;
-  market: CreditSuiteMarket;
+  market: MarketIdentity;
   params: DeployCreateSuiteParams;
 }): Promise<CreateCreditSuiteResolution> {
   const { ctx, market, params } = args;
@@ -113,7 +110,7 @@ export function createCreditSuite(args: {
 /** The raw debt limits fit uint128, and so do the facade's debt ratio products. **/
 function debtLimitDiagnostics(
   ctx: GipBuilderContext,
-  market: CreditSuiteMarket,
+  market: MarketIdentity,
   params: DeployCreateSuiteParams,
 ): ActionDiagnostic[] {
   try {
@@ -199,15 +196,15 @@ export const createCreditSuiteActionData: MarketScopedDefinition<
   },
   apply: ({ state, params, resolved, env }) => {
     const creditManagerAddress = lowerAddress(resolved.creditManager);
+    // The underlying's LT is derived from the fees, never configured.
+    const underlyingLt =
+      100 - params.feeLiquidation - params.feeLiquidationPremium;
 
     const newCreditManagerState: MarketCreditManagerState = {
       address: creditManagerAddress,
       degenNFT: params.whitelistPolicy,
       isExpired: isCreditManagerExpired(
-        {
-          expirable: params.isExpired,
-          expirationDate: 0,
-        },
+        { expirable: params.isExpired, expirationDate: 0 },
         env.timestamp,
       ),
       expirable: params.isExpired,
@@ -224,12 +221,9 @@ export const createCreditSuiteActionData: MarketScopedDefinition<
       maxEnabledTokens: params.maxEnabledTokens,
       adapters: {},
       collateralTokens: {
-        // The underlying's LT is derived from the fees, never configured.
         [lowerAddress(state.underlyingAsset)]: {
-          liquidationThresholdInitial:
-            100 - params.feeLiquidation - params.feeLiquidationPremium,
-          liquidationThresholdFinal:
-            100 - params.feeLiquidation - params.feeLiquidationPremium,
+          liquidationThresholdInitial: underlyingLt,
+          liquidationThresholdFinal: underlyingLt,
           rampStart: 0,
           rampDuration: 0,
           isForbidden: false,
@@ -246,16 +240,14 @@ export const createCreditSuiteActionData: MarketScopedDefinition<
       },
     };
   },
-  // @dev debt limits are the only suite parameters that can change without
-  // producing a different credit suite
-  // @dev a suite with an id is that suite; otherwise debt limits are the only
-  // params that can change without producing a different suite
   provides: params =>
     params.id === undefined
       ? []
       : [resource.creditManager(creditSuiteRef(params.id))],
   // @dev a whitelisted suite needs its Degen NFT registered first
   requires: params => requiresDegenNft(params.whitelistPolicy),
+  // @dev a suite with an id is that suite; otherwise debt limits are the only
+  // params that can change without producing a different suite
   key: params =>
     params.id === undefined
       ? paramsKey(params, ["minDebt", "maxDebt"])

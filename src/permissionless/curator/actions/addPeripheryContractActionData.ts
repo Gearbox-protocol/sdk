@@ -53,19 +53,21 @@ export const addPeripheryContractActionData: MarketScopedDefinition<
     type: z.string(),
   }),
   resolve: async ({ ctx, params }) => {
-    const repository = await readChain(() =>
-      ctx.marketConfigurator.contract.read.bytecodeRepository(),
-    );
+    const repository = (
+      await readChain(() =>
+        ctx.marketConfigurator.contract.read.bytecodeRepository(),
+      )
+    ).value;
     const contract = getContract({
       address: params.peripheryContract,
       abi: iVersionAbi,
       client: ctx.client,
     });
     const [eligible, type, version] = await Promise.all([
-      repository.value
+      repository
         ? readChain(() =>
             ctx.client.readContract({
-              address: repository.value!,
+              address: repository,
               abi: iBytecodeRepositoryAbi,
               functionName: "isDeployedFromRepository",
               args: [params.peripheryContract],
@@ -114,21 +116,23 @@ export const addPeripheryContractActionData: MarketScopedDefinition<
           "Periphery must be deployed through the Bytecode Repository",
         ),
       ];
-    return known && peripheryStatus(known) === "registered"
-      ? [
-          noOp(
-            `${params.peripheryContract} is already registered as ${params.domain}`,
-            ["params", "peripheryContract"],
-          ),
-        ]
-      : !known && (resolved.repositoryEligible === undefined || !type)
+    if (known)
+      return peripheryStatus(known) === "registered"
         ? [
-            incompleteCheck(
-              "peripheryProvenance",
-              "Repository eligibility or contract type could not be read",
+            noOp(
+              `${params.peripheryContract} is already registered as ${params.domain}`,
+              ["params", "peripheryContract"],
             ),
           ]
         : [];
+    return resolved.repositoryEligible === undefined || !type
+      ? [
+          incompleteCheck(
+            "peripheryProvenance",
+            "Repository eligibility or contract type could not be read",
+          ),
+        ]
+      : [];
   },
   apply: ({ state, params, resolved }) => {
     const periphery = state.periphery ?? [];

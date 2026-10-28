@@ -64,7 +64,7 @@ export const updateRateKeeperActionData: MarketScopedDefinition<
     return {
       ...state,
       rateKeeper: {
-        salt: params.salt ? params.salt : zeroHash,
+        salt: params.salt || zeroHash,
         ...params,
         rates,
       } as RateKeeperState,

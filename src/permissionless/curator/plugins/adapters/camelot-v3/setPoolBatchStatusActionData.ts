@@ -1,17 +1,19 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
 } from "../../../actions/defineMarketAction.js";
 import { configureAdapter } from "../../../actions/utils/configureCalls.js";
 import { boolean, list, object } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import {
   allowed,
@@ -53,10 +55,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
     gas: ({ params }) => 135_000 + params.pairs.length * 60_000, // got 188,433
     name: "CAMELOT_V3_ROUTER::setPoolStatusBatch",
     description: `Set pool batch status, which represents Camelot V3 pairs could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      target: addressSchema,
-      version: z.literal(310),
+    schema: adapterActionSchema([310], {
       pairs: z.array(
         z.object({
           token0: addressSchema,
@@ -70,7 +69,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.CAMELOT_V3_ROUTER![params.version],
+        adapterAbi("CAMELOT_V3_ROUTER", params.version),
         {
           functionName: "setPoolStatusBatch",
           args: [
@@ -78,18 +77,10 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
           ],
         },
       ),
-    ...adapterBatch<
-      "pairs",
-      SetPoolBatchStatusAction["params"],
-      CamelotV3AdapterState
-    >({
+    ...adapterBatch({
       type: "CAMELOT_V3_ROUTER",
       field: "pairs",
       list: camelotV3PairsList,
-      toState: p => ({
-        allowed: p.allowed,
-        token0: lowerAddress(p.token0),
-        token1: lowerAddress(p.token1),
-      }),
+      toState: p => lowerAddresses(p, ["token0", "token1"]),
     }),
   });

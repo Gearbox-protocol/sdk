@@ -51,7 +51,7 @@ async function withMellowClaimerStakedTokens(
   readClient?: PublicClient<Transport, Chain>,
 ): Promise<MellowClaimerAdapterState> {
   const collateralTokens = cm.creditManager.collateralTokens;
-  if (!Array.isArray(collateralTokens) || collateralTokens.length === 0) {
+  if (collateralTokens.length === 0 || state.vaults.length === 0) {
     return state;
   }
 
@@ -65,17 +65,10 @@ async function withMellowClaimerStakedTokens(
       args: [token] as const,
     })),
   });
-  if (!results || results.length === 0 || !state.vaults?.length) {
-    return state;
-  }
 
   const stakedTokenByMultiVault = new Map<Address, Address>();
   results.forEach((result, index) => {
-    if (
-      result?.status === "success" &&
-      result.result &&
-      result.result !== zeroAddress
-    ) {
+    if (result.status === "success" && result.result !== zeroAddress) {
       stakedTokenByMultiVault.set(
         lowerAddress(result.result),
         lowerAddress(collateralTokens[index]),

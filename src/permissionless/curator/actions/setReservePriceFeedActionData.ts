@@ -49,10 +49,12 @@ collateral computation. The final price for such computation is a minimum betwee
   resolve: ({ ctx, params }) =>
     resolvePriceFeed(ctx, params.token, params.priceFeed, "reserve"),
   check: ({ state, params, resolved }) => {
+    // The underlying is not a quoted asset; its reserve feed, if any, lives
+    // on the market.
+    const underlying = isUnderlying(state, params.token);
     const asset = findAsset(state, params.token);
-    if (!asset && !isUnderlying(state, params.token))
-      return [assetNotFound(params.token)];
-    const current = isUnderlying(state, params.token)
+    if (!underlying && !asset) return [assetNotFound(params.token)];
+    const current = underlying
       ? state.underlyingReservePriceFeed
       : asset?.reservePriceFeed;
     return current && isSameAddress(current, params.priceFeed)
@@ -64,20 +66,16 @@ collateral computation. The final price for such computation is a minimum betwee
         ]
       : priceFeedDiagnostics(resolved);
   },
-  apply: ({ state, params }) =>
-    isUnderlying(state, params.token)
-      ? {
-          ...state,
-          underlyingReservePriceFeed: lowerAddress(params.priceFeed),
-        }
+  apply: ({ state, params }) => {
+    const priceFeed = lowerAddress(params.priceFeed);
+    return isUnderlying(state, params.token)
+      ? { ...state, underlyingReservePriceFeed: priceFeed }
       : updateMarketAsset({
           state,
           token: params.token,
-          update: asset => ({
-            ...asset,
-            reservePriceFeed: lowerAddress(params.priceFeed),
-          }),
-        }),
+          update: asset => ({ ...asset, reservePriceFeed: priceFeed }),
+        });
+  },
   requires: requiresAsset,
   key: byToken,
   merge: { position: "last", barriers: ["ORACLE::setPriceFeed"] },

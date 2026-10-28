@@ -32,12 +32,12 @@ export interface AdapterStateBase {
   isForbidden: boolean;
 }
 
-export interface ValidateAdapterParamsArgs<DeployParams> {
+export interface ValidateAdapterParamsArgs<D> {
   client: PublicClient<Transport, Chain>;
   instance: { assets: Array<{ address: Address; symbol: string }> };
   marketChanges: MarketStateChanges;
   creditManager: Address;
-  params: DeployParams;
+  params: D;
   marketConfigurator: Address;
 }
 

@@ -1,8 +1,8 @@
 import { type Address, BaseError, type Hex } from "viem";
 import type { GipRegistry } from "../GipRegistry.js";
 import type { ConfiguratorState } from "../state/configurator/types.js";
-import type { MarketState } from "../state/market/types.js";
 import type {
+  ExpectedMarketState,
   ForkExecutionCall,
   GipForkSimulationResult,
 } from "./simulateGipOnFork.js";
@@ -18,7 +18,7 @@ export interface GipSimulationTarget {
   calls: readonly ForkExecutionCall[];
   /** Earliest execution time; execution cannot precede the fork head. **/
   eta?: number;
-  expectedMarkets?: ReadonlyArray<{ address: Address; after: MarketState }>;
+  expectedMarkets?: ReadonlyArray<ExpectedMarketState>;
   expectedConfigurator?: ConfiguratorState;
   /** Adapter plugins the fork's markets are read and diffed with. **/
   registry?: GipRegistry;

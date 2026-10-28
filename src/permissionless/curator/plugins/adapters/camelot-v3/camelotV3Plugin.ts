@@ -35,14 +35,14 @@ export const camelotV3Plugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "CAMELOT_V3_ROUTER",
     version: 310,
-    target: "0x1F721E2E82F6676FCE4eA07A5958cF098D339e18" as Address,
+    target: "0x1F721E2E82F6676FCE4eA07A5958cF098D339e18",
   }),
   isEditable: false,
   allowGas: 2_100_000, // got 2,006,114 & 2,023,210
   stateSchema: adapterStateSchema<CamelotV3AdapterState>({
     pairs: camelotV3PairsList,
   }),
-  getDeployState: (params: CamelotV3AdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("CAMELOT_V3_ROUTER", params),
     pairs: [],
   }),

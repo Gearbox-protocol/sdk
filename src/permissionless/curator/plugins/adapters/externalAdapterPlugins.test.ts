@@ -27,14 +27,15 @@ import { adapterPluginKit } from "./adapterPluginKit.js";
 import type { AdapterStateBase } from "./defineAdapterPlugin.js";
 
 const {
+  adapterActionSchema,
   adapterBatch,
   adapterDeployParams,
   addressSchema,
   configureAdapter,
-  creditManagerTargetSchema,
   defineAdapterPlugin,
   defineMarketAction,
   deployState,
+  lowerAddresses,
   plainDeployParamsSchema,
   sdkState,
   schema: { address, adapterStateSchema, boolean, identity, list, object },
@@ -96,10 +97,7 @@ const setPoolsActionData = defineMarketAction<SetPoolsAction>({
   name: "TestRouter::setPools",
   description: "Sets which pools the test router may swap through.",
   gas: ({ params }) => 50_000 + params.pools.length * 30_000,
-  schema: z.object({
-    creditManager: creditManagerTargetSchema,
-    version: z.literal(310),
-    target: addressSchema,
+  schema: adapterActionSchema([310], {
     pools: z.array(z.object({ pool: addressSchema, allowed: z.boolean() })),
   }),
   encode: ({ ctx, params }) =>
@@ -107,14 +105,11 @@ const setPoolsActionData = defineMarketAction<SetPoolsAction>({
       functionName: "setPoolStatusBatch",
       args: [params.pools],
     }),
-  ...adapterBatch<"pools", SetPoolsAction["params"], TestRouterState>({
+  ...adapterBatch({
     type: "TEST_ROUTER",
     field: "pools",
     list: poolsList,
-    toState: pool => ({
-      pool: pool.pool.toLowerCase(),
-      allowed: pool.allowed,
-    }),
+    toState: pool => lowerAddresses(pool, ["pool"]),
   }),
 });
 

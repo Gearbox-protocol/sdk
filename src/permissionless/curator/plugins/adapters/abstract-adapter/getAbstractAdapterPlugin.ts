@@ -14,10 +14,7 @@ import {
   readAddresses,
   resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type AbstractAdapterState = AdapterStateBase;
@@ -42,11 +39,7 @@ export interface AbstractAdapterDeployParams {
 interface AbstractAdapterInfo {
   name: string;
   description: string;
-  latestVersion: 310;
-  targetLabel?: string;
   defaultTarget?: Address;
-  deprecated?: boolean;
-  isTargetCollateral: boolean;
   /** Gas of `CREDIT::allowAdapter` for this adapter. **/
   allowGas: number;
 }
@@ -58,49 +51,34 @@ export const abstractAdapterInfo: Record<
   LIDO_V1: {
     name: "Lido V1",
     description: "Adapter for Lido V1",
-    latestVersion: 310,
-    targetLabel: "Lido Gateway",
     defaultTarget: "0x6f4b4aB5142787c05b7aB9A9692A0f46b997C29D",
-    isTargetCollateral: false,
     allowGas: 2_000_000, // not measured
   },
   LIDO_WSTETH_V1: {
     name: "Lido wstETH",
     description: "Adapter for Lido wstETH",
-    latestVersion: 310,
-    targetLabel: "WstETH",
-    isTargetCollateral: true,
     allowGas: 890_000, // got 877,652
   },
   MELLOW_DVV: {
     name: "Mellow DVV",
     description: "Adapter for Mellow DVV Vault",
-    latestVersion: 310,
-    targetLabel: "Vault",
-    isTargetCollateral: true,
     allowGas: 2_000_000, // not measured
   },
   FLUID_DEX: {
     name: "Fluid Dex",
     description: "Adapter for Fluid Dex",
-    latestVersion: 310,
     defaultTarget: "0xdE632C3a214D5f14C1d8ddF0b92F8BCd188fee45",
-    isTargetCollateral: false,
     allowGas: 2_000_000, // not measured
   },
   BALANCER_V3_WRAPPER: {
     name: "BalancerV3 Wrapper",
     description: "Adapter for Balancer V3 Wrapper",
-    latestVersion: 310,
     defaultTarget: zeroAddress,
-    isTargetCollateral: true,
     allowGas: 2_000_000, // not measured
   },
   SECURITIZE_ONRAMP: {
     name: "Securitize Onramp",
     description: "Securitize On-Ramp Adapter",
-    latestVersion: 310,
-    isTargetCollateral: false,
     allowGas: 2_000_000, // not measured
   },
 };
@@ -185,21 +163,18 @@ export const getAbstractAdapterPlugin = (adapterType: AbstractAdapterTypes) => {
     AbstractAdapterState
   >()({
     type: adapterType,
-    deprecated: info.deprecated ?? false,
     name: info.name,
     description: info.description,
     getDefaultParams: () => ({
       type: adapterType,
-      version: info.latestVersion,
+      version: 310,
       target: info.defaultTarget ?? zeroAddress,
     }),
     isEditable: false,
     allowGas: info.allowGas,
     ...plainAdapter(adapterType),
     getDeployParams: args => adapterDeployParams(args),
-    resolveValidation: (
-      args: ResolveAdapterValidationArgs<AbstractAdapterDeployParams>,
-    ) =>
+    resolveValidation: args =>
       resolveTargetTokens(args, () =>
         readTargetTokens(args.client, args.params.type, args.params.target),
       ),

@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 import { TUMBLER_RATE_KEEPER_ABI } from "../../../../plugins/rate-keepers/constructor-params-abi.js";
 import { handleSalt } from "../../../../utils/create2.js";
 import { actionError } from "../../../actions/actionDiagnostics.js";
-import type { ActionOf } from "../../../actions/defineMarketAction.js";
 import {
   address,
   identity,
@@ -37,10 +36,6 @@ export const tumblerDeployParamsSchema = z.object({
   epochSeconds: z.number().int().min(0).max(MAX_TUMBLER_EPOCH),
   salt: z.string().optional(),
 });
-
-export type TumblerMarketActions = ActionOf<
-  (typeof tumblerMarketActionsData)[number]
->;
 
 export const tumblerPlugin: RateKeeperPlugin = {
   name: "Tumbler",

@@ -53,27 +53,21 @@ export function createPinnedReadClient<
       if (isPinnedCallAction(key)) {
         const action = Reflect.get(target, key, receiver);
         if (typeof action !== "function") return action;
+        const call = action as (...a: unknown[]) => unknown;
         return (
           args: Record<string, unknown> | undefined,
           ...rest: unknown[]
         ) => {
           const callArgs = key === "getBlock" && args === undefined ? {} : args;
-          if (
+          const unpinned =
             callArgs &&
             typeof callArgs === "object" &&
             callArgs.blockNumber === undefined &&
             callArgs.blockTag === undefined &&
-            callArgs.blockHash === undefined
-          ) {
-            return (action as (...a: unknown[]) => unknown).call(
-              target,
-              { ...callArgs, blockNumber },
-              ...rest,
-            );
-          }
-          return (action as (...a: unknown[]) => unknown).call(
+            callArgs.blockHash === undefined;
+          return call.call(
             target,
-            callArgs,
+            unpinned ? { ...callArgs, blockNumber } : callArgs,
             ...rest,
           );
         };

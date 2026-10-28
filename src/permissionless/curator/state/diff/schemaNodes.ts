@@ -83,7 +83,7 @@ function fail(kind: string, value: unknown): never {
 
 function finite(kind: string, value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) fail(kind, value);
-  return value as number;
+  return value;
 }
 
 export function leaf(kind: string, canon: (value: unknown) => Canon): LeafNode {

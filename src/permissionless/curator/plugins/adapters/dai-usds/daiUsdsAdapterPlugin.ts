@@ -7,10 +7,7 @@ import {
   readAddresses,
   resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type DaiUsdsAdapterState = AdapterStateBase;
@@ -31,15 +28,13 @@ export const daiUsdsAdapterPlugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "DAI_USDS_EXCHANGE",
     version: 310,
-    target: "0x3225737a9Bbb6473CB4a45b7244ACa2BeFdB276A" as Address,
+    target: "0x3225737a9Bbb6473CB4a45b7244ACa2BeFdB276A",
   }),
   isEditable: false,
   allowGas: 950_000, // got 915,913
   ...plainAdapter("DAI_USDS_EXCHANGE"),
   getDeployParams: args => adapterDeployParams(args),
-  resolveValidation: (
-    args: ResolveAdapterValidationArgs<DaiUsdsAdapterDeployParams>,
-  ) => {
+  resolveValidation: args => {
     const { target } = args.params;
     return resolveTargetTokens(args, () =>
       readAddresses(args.client, [

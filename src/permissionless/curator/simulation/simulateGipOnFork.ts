@@ -22,9 +22,27 @@ export type ForkExecutionCall = Omit<
   "signature" | "contractMethod" | "contractInputsValues"
 >;
 
+/** A market the payload configures and the state it should leave it in. **/
+export interface ExpectedMarketState {
+  address: Address;
+  after: MarketState;
+}
+
 export interface GipSimulationPlan {
   timelockTxs: TimelockTxs;
-  expectedMarkets: ReadonlyArray<{ address: Address; after: MarketState }>;
+  expectedMarkets: ReadonlyArray<ExpectedMarketState>;
+  expectedConfigurator?: ConfiguratorState;
+  /** Adapter plugins describing the markets' adapters; built-in by default. **/
+  registry?: GipRegistry;
+}
+
+/** Payload calls plus the states they are expected to produce. **/
+export interface GipPayloadSimulationRequest {
+  chainId: number;
+  marketConfigurator: Address;
+  calls: readonly ForkExecutionCall[];
+  /** May be empty: a scope with no projected state still executes. **/
+  expectedMarkets?: ReadonlyArray<ExpectedMarketState>;
   expectedConfigurator?: ConfiguratorState;
   /** Adapter plugins describing the markets' adapters; built-in by default. **/
   registry?: GipRegistry;
@@ -63,13 +81,17 @@ export interface ForkExecutionReceipt {
   revertReason?: string;
 }
 
-/** Fork lifecycle and reads belong to the caller, not the builder package. **/
-export interface GipForkSession {
+/** What a fork session's market read may be told about the GIP. **/
+export interface MarketReadOptions {
+  knownDeployments?: readonly Address[];
+}
+
+/**
+ * What every fork session does: execute calls and read the state back. Fork
+ * lifecycle and reads belong to the caller, not the builder package.
+ **/
+export interface GipForkSessionBase {
   getChainId(): Promise<number>;
-  prepare?(
-    calls: readonly ForkExecutionCall[],
-    plan: GipSimulationPlan,
-  ): Promise<void>;
   execute(
     call: ForkExecutionCall,
     index: number,
@@ -88,9 +110,25 @@ export interface GipForkSession {
   close?(): Promise<void>;
 }
 
-/** What a fork session's market read may be told about the GIP. **/
-export interface MarketReadOptions {
-  knownDeployments?: readonly Address[];
+/** A fork session that {@link simulateGipOnFork} prepares with the whole plan. **/
+export interface GipForkSession extends GipForkSessionBase {
+  prepare?(
+    calls: readonly ForkExecutionCall[],
+    plan: GipSimulationPlan,
+  ): Promise<void>;
+}
+
+/**
+ * A fork session that executes raw payload calls. Unlike {@link GipForkSession}
+ * it needs no `TimelockTxs`, so payload simulation works without an author or
+ * eta.
+ **/
+export interface GipPayloadForkSession extends GipForkSessionBase {
+  /** Impersonation, balances and other temporary fork setup. **/
+  prepareCalls?(
+    calls: readonly ForkExecutionCall[],
+    context: GipPayloadSimulationRequest,
+  ): Promise<void>;
 }
 
 export interface MarketSimulationComparison {
@@ -427,47 +465,6 @@ export async function compareGipForkState(
   };
 }
 
-/**
- * A fork that can execute raw payload calls. Unlike {@link GipForkSession} it
- * needs no `TimelockTxs`, so payload simulation works without an author or eta.
- **/
-export interface GipPayloadForkSession {
-  getChainId(): Promise<number>;
-  /** Impersonation, balances and other temporary fork setup. **/
-  prepareCalls?(
-    calls: readonly ForkExecutionCall[],
-    context: GipPayloadSimulationRequest,
-  ): Promise<void>;
-  execute(
-    call: ForkExecutionCall,
-    index: number,
-  ): Promise<ForkExecutionReceipt>;
-  /**
-   * Reads a market after execution. `knownDeployments` are the periphery
-   * contracts the GIP deploys without registering them: the reader reports
-   * each one that holds code as `deployed`.
-   **/
-  readMarketState(
-    address: Address,
-    options?: MarketReadOptions,
-  ): Promise<MarketState>;
-  readConfiguratorState(address: Address): Promise<ConfiguratorState>;
-  /** Release impersonation and other temporary fork setup. **/
-  close?(): Promise<void>;
-}
-
-/** Payload calls plus the states they are expected to produce. **/
-export interface GipPayloadSimulationRequest {
-  chainId: number;
-  marketConfigurator: Address;
-  calls: readonly ForkExecutionCall[];
-  /** May be empty: a scope with no projected state still executes. **/
-  expectedMarkets?: ReadonlyArray<{ address: Address; after: MarketState }>;
-  expectedConfigurator?: ConfiguratorState;
-  /** Adapter plugins describing the markets' adapters; built-in by default. **/
-  registry?: GipRegistry;
-}
-
 /** Rejects payload calls that an EVM could not accept. **/
 export function validateForkExecutionCalls(
   calls: readonly ForkExecutionCall[],
@@ -550,21 +547,14 @@ export async function simulateGipPayloadOnFork(
       },
       fork,
     );
-    const incompleteReasons: string[] = [];
-    let verdict = comparison.verdict;
+    const result: GipForkSimulationResult = { ...comparison, calls, receipts };
     if (expectedMarkets.length === 0 && !request.expectedConfigurator) {
-      verdict = "incomplete";
-      incompleteReasons.push(
+      result.verdict = "incomplete";
+      result.incompleteReasons = [
         "no projected state was supplied, so execution succeeded but nothing was compared",
-      );
+      ];
     }
-    return {
-      ...comparison,
-      verdict,
-      calls,
-      receipts,
-      ...(incompleteReasons.length > 0 ? { incompleteReasons } : {}),
-    };
+    return result;
   } catch (error) {
     return {
       verdict: "execution_failed",
@@ -584,6 +574,7 @@ export async function simulateGipOnFork(
   fork: GipForkSession,
 ): Promise<GipForkSimulationResult> {
   const calls = validatePlan(plan);
+  const { prepare, close } = fork;
   return simulateGipPayloadOnFork(
     {
       chainId: plan.timelockTxs.chainId,
@@ -595,14 +586,13 @@ export async function simulateGipOnFork(
     },
     {
       getChainId: () => fork.getChainId(),
-      prepareCalls: fork.prepare
-        ? forkCalls => fork.prepare!(forkCalls, plan)
-        : undefined,
+      prepareCalls:
+        prepare && (forkCalls => prepare.call(fork, forkCalls, plan)),
       execute: (call, index) => fork.execute(call, index),
       readMarketState: (address, options) =>
         fork.readMarketState(address, options),
       readConfiguratorState: address => fork.readConfiguratorState(address),
-      close: fork.close ? () => fork.close!() : undefined,
+      close: close && (() => close.call(fork)),
     },
   );
 }

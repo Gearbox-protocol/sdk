@@ -1,6 +1,10 @@
 import type { Address, Chain, PublicClient, Transport } from "viem";
 import type { MarketState } from "../../state/market/types.js";
-import { lowerAddress, uniqueAddresses } from "../../utils/addressUtils.js";
+import {
+  isSameAddress,
+  lowerAddress,
+  uniqueAddresses,
+} from "../../utils/addressUtils.js";
 
 export function checkCollateralTokens(
   state: MarketState,
@@ -19,21 +23,14 @@ export function checkCollateralTokens(
     .filter(token => !collateralTokens.includes(token))
     .map(
       token =>
-        assets.find(asset => asset.address.toLowerCase() === token)?.symbol ??
+        assets.find(asset => isSameAddress(asset.address, token))?.symbol ??
         token,
     );
-  const length = nonCollateral.length;
 
-  if (length > 0)
-    return `${
-      length > 1
-        ? `${nonCollateral.slice(0, -1).join(", ")} and ${
-            nonCollateral[length - 1]
-          }`
-        : nonCollateral[0]
-    } ${length > 1 ? "are" : "is"} not collateral${length > 1 ? "s" : ""}`;
-
-  return false;
+  if (nonCollateral.length === 0) return false;
+  if (nonCollateral.length === 1)
+    return `${nonCollateral[0]} is not collateral`;
+  return `${nonCollateral.slice(0, -1).join(", ")} and ${nonCollateral.at(-1)} are not collaterals`;
 }
 
 /**

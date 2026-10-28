@@ -1,12 +1,10 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
 import {
-  adapterActionAbi,
   PendlePairStatus as PendlePairStatusEnum,
   PendleTokenType,
 } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -20,9 +18,13 @@ import {
   scalar,
   status,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
-import { addressSchema, literalsSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import { addressSchema } from "../../../validationSchemas.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import { enabled, type ItemOf, lower } from "../adapterStateSchema.js";
 import type { PendleAdapterState } from "./pendlePlugin.js";
@@ -66,10 +68,7 @@ export const setPairBatchStatusActionData: MarketScopedDefinition<SetPairBatchSt
     gas: ({ params }) => 135_000 + params.pairs.length * 160_000, // got 288,453
     name: "Pendle::setPairStatusBatch",
     description: `Set pair batch status, which represents Pendle pairs could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: literalsSchema(310, 311),
-      target: addressSchema,
+    schema: adapterActionSchema([310, 311], {
       pairs: z.array(
         z.object({
           market: addressSchema,
@@ -86,7 +85,7 @@ export const setPairBatchStatusActionData: MarketScopedDefinition<SetPairBatchSt
       return configureAdapter(
         ctx,
         params,
-        adapterActionAbi.PENDLE_ROUTER![version],
+        adapterAbi("PENDLE_ROUTER", version),
         {
           functionName: "setPairStatusBatch",
           args: [
@@ -106,20 +105,10 @@ export const setPairBatchStatusActionData: MarketScopedDefinition<SetPairBatchSt
         },
       );
     },
-    ...adapterBatch<
-      "pairs",
-      SetPairBatchStatusAction["params"],
-      PendleAdapterState
-    >({
+    ...adapterBatch({
       type: "PENDLE_ROUTER",
       field: "pairs",
       list: pendlePairsList,
-      toState: p => ({
-        market: lowerAddress(p.market),
-        inputToken: lowerAddress(p.inputToken),
-        pendleToken: lowerAddress(p.pendleToken),
-        pendleTokenType: p.pendleTokenType,
-        status: p.status,
-      }),
+      toState: p => lowerAddresses(p, ["market", "inputToken", "pendleToken"]),
     }),
   });

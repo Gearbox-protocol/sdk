@@ -39,10 +39,7 @@ export const erc4626ReferralAdapterPlugin = defineAdapterPlugin<
   isEditable: true,
   allowGas: 2_000_000, // not measured
   ...plainAdapter("ERC4626_VAULT_REFERRAL"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: Erc4626ReferralAdapterDeployParams;
-  }) => adapterDeployParams(args, [args.params.referral]),
+  getDeployParams: args => adapterDeployParams(args, [args.params.referral]),
   resolveValidation: resolveErc4626Target,
   deployParamsSchema: erc4626ReferralDeployParamsSchema,
   actions: {},

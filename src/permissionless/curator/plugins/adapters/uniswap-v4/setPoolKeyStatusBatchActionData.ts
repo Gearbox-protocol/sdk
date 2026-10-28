@@ -1,8 +1,6 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -16,9 +14,13 @@ import {
   list,
   object,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import {
   allowed,
@@ -29,16 +31,10 @@ import {
 } from "../adapterStateSchema.js";
 import type { UniswapV4AdapterState } from "./uniswapV4Plugin.js";
 
-export const uniswapV4PoolFeeValues = [
-  1, 50, 80, 100, 500, 3_000, 10_000,
-] as const;
-
-export type UniswapV4PoolFee = number;
-
 export type UniswapV4PoolKey = {
   token0: Address;
   token1: Address;
-  fee: UniswapV4PoolFee;
+  fee: number;
   tickSpacing: number;
   hooks: Address;
 };
@@ -56,8 +52,6 @@ export type SetPoolKeyStatusBatchAction = BaseMarketAction<
   "ADAPTER::UNISWAP_V4_GATEWAY::setPoolKeyStatusBatch",
   SetPoolKeyStatusBatchParams
 >;
-
-export const uniswapV4FeeSchema = z.number().int().positive();
 
 /**
  * The adapter's `poolKeys` as its state schema lists them: the key identifies an
@@ -92,16 +86,13 @@ export const setPoolKeyStatusBatchActionData: MarketScopedDefinition<SetPoolKeyS
     gas: () => 200_000, // not measured
     name: "UNISWAP_V4_GATEWAY::setPoolKeyStatusBatch",
     description: `Set pool key status batch, which represents Uniswap V4 pools could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.literal(310),
-      target: addressSchema,
+    schema: adapterActionSchema([310], {
       poolKeys: z.array(
         z.object({
           poolKey: z.object({
             token0: addressSchema,
             token1: addressSchema,
-            fee: uniswapV4FeeSchema,
+            fee: z.number().int().positive(),
             tickSpacing: z.number(),
             hooks: addressSchema,
           }),
@@ -114,7 +105,7 @@ export const setPoolKeyStatusBatchActionData: MarketScopedDefinition<SetPoolKeyS
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.UNISWAP_V4_GATEWAY![params.version],
+        adapterAbi("UNISWAP_V4_GATEWAY", params.version),
         {
           functionName: "setPoolKeyStatusBatch",
           args: [
@@ -134,23 +125,13 @@ export const setPoolKeyStatusBatchActionData: MarketScopedDefinition<SetPoolKeyS
           ],
         },
       ),
-    ...adapterBatch<
-      "poolKeys",
-      SetPoolKeyStatusBatchAction["params"],
-      UniswapV4AdapterState
-    >({
+    ...adapterBatch({
       type: "UNISWAP_V4_GATEWAY",
       field: "poolKeys",
       list: uniswapV4PoolKeysList,
       toState: p => ({
-        allowed: p.allowed,
-        poolKey: {
-          token0: lowerAddress(p.poolKey.token0),
-          token1: lowerAddress(p.poolKey.token1),
-          fee: p.poolKey.fee,
-          tickSpacing: p.poolKey.tickSpacing,
-          hooks: p.poolKey.hooks,
-        },
+        ...p,
+        poolKey: lowerAddresses(p.poolKey, ["token0", "token1"]),
       }),
     }),
   });

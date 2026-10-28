@@ -6,7 +6,6 @@ import { lowerAddress } from "../utils/addressUtils.js";
 import { addressSchema, percentageSchema } from "../validationSchemas.js";
 import { actionError, incompleteCheck } from "./actionDiagnostics.js";
 import type { BaseMarketAction } from "./actionTypes.js";
-import type { GipBuilderContext } from "./builderContext.js";
 import {
   type CreditManagerTarget,
   creditManagerTargetSchema,
@@ -54,15 +53,6 @@ export type AddCollateralTokenAction = BaseMarketAction<
   AddCollateralTokenParams
 >;
 
-const readPhantomToken = (ctx: GipBuilderContext, token: Address) =>
-  readChain(() =>
-    ctx.client.readContract({
-      address: token,
-      abi: iPhantomTokenAbi,
-      functionName: "getPhantomTokenInfo",
-    }),
-  );
-
 export interface CollateralResolution {
   code: ChainRead<boolean>;
   balance: ChainRead<bigint>;
@@ -97,7 +87,13 @@ export const addCollateralTokenActionData: MarketScopedDefinition<
           ],
         }),
       ),
-      readPhantomToken(ctx, params.token),
+      readChain(() =>
+        ctx.client.readContract({
+          address: params.token,
+          abi: iPhantomTokenAbi,
+          functionName: "getPhantomTokenInfo",
+        }),
+      ),
     ]);
     return { code, balance, phantom };
   },
@@ -107,7 +103,7 @@ export const addCollateralTokenActionData: MarketScopedDefinition<
     if (isUnderlying(state, params.token)) return [underlyingNotAllowed()];
     const asset = findAsset(state, params.token);
     if (!asset) return [assetNotFound(params.token)];
-    if (findCollateral(cm, params.token)) {
+    if (findCollateral(cm, params.token))
       return [
         actionError(
           "COLLATERAL_EXISTS",
@@ -115,7 +111,6 @@ export const addCollateralTokenActionData: MarketScopedDefinition<
           ["params", "token"],
         ),
       ];
-    }
     if (Object.keys(cm.collateralTokens).length >= 255)
       return [
         actionError(

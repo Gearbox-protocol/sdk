@@ -26,8 +26,10 @@ import { stateSchema } from "../../state/diff/stateSchema.js";
 import { addressSchema, uintSchema } from "../../validationSchemas.js";
 import {
   adapterActionKeys,
+  adapterActionSchema,
   adapterBatch,
   adapterDiagnostics,
+  lowerAddresses,
   updateActionAdapter,
 } from "./adapterActionHelpers.js";
 import {
@@ -61,8 +63,10 @@ export const adapterPluginKit = {
 
   // Actions
   adapterActionKeys,
+  adapterActionSchema,
   adapterBatch,
   adapterDiagnostics,
+  lowerAddresses,
   updateActionAdapter,
   configureAdapter,
   actionError,

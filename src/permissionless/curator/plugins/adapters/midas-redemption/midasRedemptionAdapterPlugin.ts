@@ -10,10 +10,7 @@ import {
   sdkState,
 } from "../adapterPluginHelpers.js";
 import { adapterStateSchema } from "../adapterStateSchema.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 import type { MidasRedemptionTokenStatus } from "./setTokenAllowedStatusBatchActionData.js";
 import {
@@ -54,14 +51,12 @@ export const midasRedemptionAdapterPlugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<MidasRedemptionAdapterState>({
     allowedTokens: midasRedemptionAllowedTokensList,
   }),
-  getDeployState: (params: MidasRedemptionAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("MIDAS_REDEMPTION_VAULT", params),
     allowedTokens: [],
   }),
   getDeployParams: args => adapterDeployParams(args),
-  resolveValidation: (
-    args: ResolveAdapterValidationArgs<MidasRedemptionAdapterDeployParams>,
-  ) =>
+  resolveValidation: args =>
     resolveTargetTokens(
       args,
       async () => [

@@ -18,10 +18,6 @@ export interface ParsedMarketTx extends MarketTx {
   decoded: ParsedCall;
 }
 
-export interface ExtendedMarketTx extends ParsedMarketTx {
-  market: Address;
-}
-
 export interface BatchTxs {
   txs: Array<RawTx>;
   estimatedGas: number;

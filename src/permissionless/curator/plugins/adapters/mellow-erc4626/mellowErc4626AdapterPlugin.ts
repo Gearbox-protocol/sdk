@@ -63,10 +63,7 @@ export const mellowErc4626AdapterPlugin = defineAdapterPlugin<
   isEditable: true,
   allowGas: 950_000, // got 930,173
   ...plainAdapter("MELLOW_ERC4626_VAULT"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: MellowErc4626AdapterDeployParams;
-  }) =>
+  getDeployParams: args =>
     adapterDeployParams(
       args,
       args.params.version === 310 ? [] : [args.params.stakedToken],

@@ -26,7 +26,7 @@ export const convexV1BoosterPlugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "CVX_V1_BOOSTER",
     version: 310,
-    target: "0xF403C135812408BFbE8713b5A23a04b3D48AAE31" as Address,
+    target: "0xF403C135812408BFbE8713b5A23a04b3D48AAE31",
   }),
   isEditable: false,
   allowGas: 1_500_000, // got 1,476,235

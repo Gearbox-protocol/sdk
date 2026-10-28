@@ -9,10 +9,7 @@ import {
 import { adapterStateSchema } from "../adapterStateSchema.js";
 import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
-import type {
-  UniswapV4PoolFee,
-  UniswapV4PoolKeyStatus,
-} from "./setPoolKeyStatusBatchActionData.js";
+import type { UniswapV4PoolKeyStatus } from "./setPoolKeyStatusBatchActionData.js";
 import {
   setPoolKeyStatusBatchActionData,
   uniswapV4PoolKeysList,
@@ -45,7 +42,7 @@ export const uniswapV4Plugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<UniswapV4AdapterState>({
     poolKeys: uniswapV4PoolKeysList,
   }),
-  getDeployState: (params: UniswapV4AdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("UNISWAP_V4_GATEWAY", params),
     poolKeys: [],
   }),
@@ -58,7 +55,7 @@ export const uniswapV4Plugin = defineAdapterPlugin<
       poolKey: {
         token0: pool.token0,
         token1: pool.token1,
-        fee: pool.fee as UniswapV4PoolFee,
+        fee: pool.fee,
         tickSpacing: pool.tickSpacing,
         hooks: pool.hooks,
       },

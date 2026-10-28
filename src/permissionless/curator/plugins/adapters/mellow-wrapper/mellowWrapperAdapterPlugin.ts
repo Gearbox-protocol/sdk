@@ -10,10 +10,7 @@ import {
   sdkState,
 } from "../adapterPluginHelpers.js";
 import { adapterStateSchema } from "../adapterStateSchema.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 import type { MellowVaultStatus } from "./setVaultStatusBatchActionData.js";
 import {
@@ -57,17 +54,12 @@ export const mellowWrapperAdapterPlugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<MellowWrapperAdapterState>({
     vaults: mellowWrapperVaultsList,
   }),
-  getDeployState: (params: MellowWrapperAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("MELLOW_WRAPPER", params),
     vaults: [],
   }),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: MellowWrapperAdapterDeployParams;
-  }) => adapterDeployParams(args, [args.params.referral]),
-  resolveValidation: (
-    args: ResolveAdapterValidationArgs<MellowWrapperAdapterDeployParams>,
-  ) =>
+  getDeployParams: args => adapterDeployParams(args, [args.params.referral]),
+  resolveValidation: args =>
     resolveTargetTokens(
       args,
       async () => [await readAddress(args.client, args.params.target, "WETH")],

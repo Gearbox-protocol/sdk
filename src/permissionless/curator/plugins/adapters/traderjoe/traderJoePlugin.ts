@@ -42,7 +42,7 @@ export const traderJoePlugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<TraderJoeAdapterState>({
     pools: traderjoePoolsList,
   }),
-  getDeployState: (params: TraderJoeAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("TRADERJOE_ROUTER", params),
     pools: [],
   }),

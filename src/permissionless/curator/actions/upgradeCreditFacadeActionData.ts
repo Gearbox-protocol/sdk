@@ -62,22 +62,24 @@ export const upgradeCreditFacadeActionData: MarketScopedDefinition<
     updateCreditManagerState({
       state,
       creditManager: params.creditManager,
-      update: cm => ({
-        ...cm,
-        degenNFT: params.facade.degenNft,
-        expirable: params.facade.expirable,
-        expirationDate:
-          cm.expirable && params.facade.expirable ? cm.expirationDate : 0,
-        isExpired: isCreditManagerExpired(
-          {
-            expirable: params.facade.expirable,
-            expirationDate: cm.expirable ? cm.expirationDate : 0,
-          },
-          env.timestamp,
-        ),
-        paused: false,
-        creditFacade: undefined,
-      }),
+      update: cm => {
+        const { expirable } = params.facade;
+        // A new facade keeps the date only while both facades are expirable.
+        const expirationDate =
+          cm.expirable && expirable ? cm.expirationDate : 0;
+        return {
+          ...cm,
+          degenNFT: params.facade.degenNft,
+          expirable,
+          expirationDate,
+          isExpired: isCreditManagerExpired(
+            { expirable, expirationDate },
+            env.timestamp,
+          ),
+          paused: false,
+          creditFacade: undefined,
+        };
+      },
     }),
   requires: params => [
     ...requiresCreditManager(params),

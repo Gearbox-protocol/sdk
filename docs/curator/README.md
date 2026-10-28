@@ -392,14 +392,15 @@ import {
 
 // One object, so generic names (`list`, `address`…) stay out of the barrel.
 const {
+  adapterActionSchema,
   adapterBatch,
   adapterDeployParams,
   addressSchema,
   configureAdapter,
-  creditManagerTargetSchema,
   defineAdapterPlugin,
   defineMarketAction,
   deployState,
+  lowerAddresses,
   plainDeployParamsSchema,
   sdkState,
   schema: { adapterStateSchema },
@@ -409,10 +410,8 @@ const setPoolsActionData = defineMarketAction<SetPoolsAction>({
   type: "ADAPTER::MY_ROUTER::setPools",   // must be ADAPTER::<plugin type>::<function>
   description: "Sets which pools the router may swap through",
   gas: ({ params }) => 50_000 + params.pools.length * 30_000,
-  schema: z.object({
-    creditManager: creditManagerTargetSchema,
-    version: z.literal(310),
-    target: addressSchema,
+  // creditManager, version (one of the given) and target, plus the action's own fields
+  schema: adapterActionSchema([310], {
     pools: z.array(z.object({ pool: addressSchema, allowed: z.boolean() })),
   }),
   encode: ({ ctx, params }) =>
@@ -421,7 +420,12 @@ const setPoolsActionData = defineMarketAction<SetPoolsAction>({
       args: [params.pools],
     }),
   // key, merge, placement, check (NO_OP) and apply, like the built-in batches
-  ...adapterBatch({ type: "MY_ROUTER", field: "pools", list: myPoolsList, toState }),
+  ...adapterBatch({
+    type: "MY_ROUTER",
+    field: "pools",
+    list: myPoolsList,
+    toState: (pool) => lowerAddresses(pool, ["pool"]), // as the adapter state stores it
+  }),
 });
 
 export const myRouterPlugin = defineAdapterPlugin<MyRouterDeployParams, MyRouterState>()({
@@ -828,9 +832,10 @@ anything by hand:
 | Project an action onto `MarketState` | `updateCreditManagerState` / `updateCollateralToken`, `updateMarketAsset`, `updateAdapterState`, `updateRateKeeperState`, `updateLossPolicyState` |
 | Say what an action configures and needs | `actions/utils/actionKeys.ts` — `single`, `byToken`, `byCreditManager`, `byCreditManagerAndToken`, `byAdapter`, `paramsKey`, `resource`, `requiresAsset`, `requiresCreditManager`, `requiresCollateral` |
 | Name or move a credit manager target | `actions/creditManagerTargets.ts` — `creditManagerTargetSchema`, `creditSuiteRef`, `BUNDLE_TARGET`, `retargetCreditManager`, `isSameTarget` |
-| Write a configurator action | `configurator-actions/configuratorActionHelpers.ts` — `updateAdminRole`, `resolveTreasurySplitter`, `treasurySplitter` |
+| Check a collateral token an action configures | `actions/utils/checkHelpers.ts` — `targetCollateral`, `liquidationThresholdDiagnostics`, `noOp` |
+| Write a configurator action | `configurator-actions/configuratorActionHelpers.ts` — `updateAdminRole`, `holdsAdminRole`, `resolveTreasurySplitter`, `treasurySplitter` |
 | Write an adapter plugin | `plugins/adapters/adapterPluginHelpers.ts` — `deployState`, `sdkState`, `plainAdapter`, `adapterDeployParams`, `resolveTargetTokens`, `readAddress(es)` |
-| Write an adapter action | `plugins/adapters/adapterActionHelpers.ts` — `adapterBatch`, `adapterActionKeys`, `adapterDiagnostics`, `updateActionAdapter` |
+| Write an adapter action | `plugins/adapters/adapterActionHelpers.ts` — `adapterActionSchema`, `adapterAbi`, `adapterBatch`, `lowerAddresses`, `adapterActionKeys`, `adapterDiagnostics`, `updateActionAdapter` |
 | Share one lazy async value | `session/SharedPromise.ts` — `SharedPromise` (a rejection is not cached) |
 | Read an executed fork back | `simulation/forkReads.ts` — `attachForkSdk`, `readFailures` |
 | Small shared pieces | `utils/errorMessage.ts`, `constants.ts` (`POOL_CREATION_DEPOSIT`), `state/market/isCreditManagerExpired.ts` |

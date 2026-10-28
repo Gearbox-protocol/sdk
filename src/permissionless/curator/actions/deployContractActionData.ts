@@ -59,7 +59,7 @@ export function peripheryDomainOf(
     : undefined;
 }
 
-export const deployContractParamsSchema = z.object({
+const deployContractParamsSchema = z.object({
   contractType: z
     .string()
     .min(1, "Contract type cannot be empty")

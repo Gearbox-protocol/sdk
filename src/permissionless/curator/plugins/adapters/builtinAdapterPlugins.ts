@@ -4,7 +4,6 @@
  * `builtinAdapterPlugins` is the only list to extend: the adapter type, deploy
  * params, state and action unions below are derived from it.
  **/
-import type { ActionOf } from "../../actions/defineMarketAction.js";
 import { getAbstractAdapterPlugin } from "./abstract-adapter/getAbstractAdapterPlugin.js";
 import { balancerV3Plugin } from "./balancer-v3/balancerV3Plugin.js";
 import { camelotV3Plugin } from "./camelot-v3/camelotV3Plugin.js";
@@ -16,7 +15,6 @@ import { daiUsdsAdapterPlugin } from "./dai-usds/daiUsdsAdapterPlugin.js";
 import type {
   ActionDefinitionsOf,
   AdapterPluginDefinition,
-  AdapterStateBase,
   AdapterStateOf,
   DeployParamsOf,
 } from "./defineAdapterPlugin.js";
@@ -96,18 +94,9 @@ export type AdapterState = AdapterStateOf<BuiltinAdapterPlugin>;
 
 export type AdapterType = AdapterDeployParams["type"];
 
-/** @deprecated the state every adapter has; use {@link AdapterStateBase}. **/
-export type BaseAdapterState = AdapterStateBase;
-
-/** @deprecated use {@link AdapterPluginDefinition}. **/
-export type AdapterPlugin = AdapterPluginDefinition;
-
 /** Definitions of the built-in adapter actions. **/
 export type AdapterMarketActionDefinition =
   ActionDefinitionsOf<BuiltinAdapterPlugin>;
-
-/** Every built-in adapter action, derived from the plugins' `actions`. **/
-export type AdapterMarketActions = ActionOf<AdapterMarketActionDefinition>;
 
 /** The built-in plugins by adapter type. **/
 export const adapterPlugins = Object.fromEntries(

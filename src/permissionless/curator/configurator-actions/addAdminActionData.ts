@@ -6,12 +6,12 @@ import {
   type AdminRole,
   adminRoleSchema,
 } from "../state/configurator/types.js";
-import { isSameAddress, lowerAddress } from "../utils/addressUtils.js";
+import { lowerAddress } from "../utils/addressUtils.js";
 import { addressSchema } from "../validationSchemas.js";
 import {
-  adminRoleHolders,
   adminRoleLabel,
   byRoleAndAdmin,
+  holdsAdminRole,
   updateAdminRole,
 } from "./configuratorActionHelpers.js";
 import {
@@ -38,9 +38,7 @@ export const addAdminActionData: ConfiguratorScopedDefinition<AddAdminAction> =
       admin: addressSchema,
     }),
     check: ({ state, params }) =>
-      adminRoleHolders(state, params.role).some(holder =>
-        isSameAddress(holder, params.admin),
-      )
+      holdsAdminRole(state, params.role, params.admin)
         ? [
             noOp(
               `${params.admin} is already one of the ${adminRoleLabel(params.role)}`,

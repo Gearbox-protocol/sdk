@@ -2,7 +2,6 @@ import { type Address, encodeAbiParameters, stringToHex, zeroHash } from "viem";
 import { z } from "zod/v4";
 import { GAUGE_RATE_KEEPER_ABI } from "../../../../plugins/rate-keepers/constructor-params-abi.js";
 import { handleSalt } from "../../../../utils/create2.js";
-import type { ActionOf } from "../../../actions/defineMarketAction.js";
 import {
   address,
   identity,
@@ -31,10 +30,6 @@ export const gaugeDeployParamsSchema = z.object({
   type: z.literal("GAUGE"),
   salt: z.string().optional(),
 });
-
-export type GaugeMarketActions = ActionOf<
-  (typeof gaugeMarketActionsData)[number]
->;
 
 export const gaugePlugin: RateKeeperPlugin = {
   name: "Gauge",

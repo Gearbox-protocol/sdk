@@ -10,10 +10,7 @@ import {
   sdkState,
 } from "../adapterPluginHelpers.js";
 import { adapterStateSchema } from "../adapterStateSchema.js";
-import type {
-  AdapterStateBase,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 import type { MidasIssuanceTokenStatus } from "./setTokenAllowedStatusBatchActionData.js";
 import {
@@ -57,20 +54,15 @@ export const midasIssuanceAdapterPlugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<MidasIssuanceAdapterState>({
     allowedTokens: midasIssuanceAllowedTokensList,
   }),
-  getDeployState: (params: MidasIssuanceAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("MIDAS_ISSUANCE_VAULT", params),
     allowedTokens: [],
   }),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: MidasIssuanceAdapterDeployParams;
-  }) =>
+  getDeployParams: args =>
     adapterDeployParams(args, [
       stringToHex(args.params.reffererId, { size: 32 }),
     ]),
-  resolveValidation: (
-    args: ResolveAdapterValidationArgs<MidasIssuanceAdapterDeployParams>,
-  ) =>
+  resolveValidation: args =>
     resolveTargetTokens(
       args,
       async () => [

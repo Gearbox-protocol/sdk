@@ -1,8 +1,6 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -15,9 +13,13 @@ import {
   list,
   object,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
-import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import { addressSchema, literalsSchema } from "../../../validationSchemas.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import {
   allowed,
@@ -50,13 +52,7 @@ export type SetPoolBatchStatusAction = BaseMarketAction<
   SetPoolBatchStatusParams
 >;
 
-export const uniswapV3FeeSchema = z.union([
-  ...(uniswapV3PoolFeeValues.map(value => z.literal(value)) as [
-    z.ZodLiteral<UniswapV3PoolFee>,
-    z.ZodLiteral<UniswapV3PoolFee>,
-    ...z.ZodLiteral<UniswapV3PoolFee>[],
-  ]),
-]);
+export const uniswapV3FeeSchema = literalsSchema(...uniswapV3PoolFeeValues);
 
 /**
  * The adapter's `pools` as its state schema lists them: the key identifies an
@@ -77,10 +73,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
     gas: ({ params }) => 135_000 + params.pools.length * 65_000, // got 190,529
     name: "UniswapV3::setPoolBatchStatus",
     description: `Set pool batch status, which represents Uniswap V3 pools could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.literal(310),
-      target: addressSchema,
+    schema: adapterActionSchema([310], {
       pools: z.array(
         z.object({
           token0: addressSchema,
@@ -95,7 +88,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.UNISWAP_V3_ROUTER![params.version],
+        adapterAbi("UNISWAP_V3_ROUTER", params.version),
         {
           functionName: "setPoolStatusBatch",
           args: [
@@ -105,19 +98,10 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
           ],
         },
       ),
-    ...adapterBatch<
-      "pools",
-      SetPoolBatchStatusAction["params"],
-      UniswapV3AdapterState
-    >({
+    ...adapterBatch({
       type: "UNISWAP_V3_ROUTER",
       field: "pools",
       list: uniswapV3PoolsList,
-      toState: p => ({
-        allowed: p.allowed,
-        token0: lowerAddress(p.token0),
-        token1: lowerAddress(p.token1),
-        fee: p.fee,
-      }),
+      toState: p => lowerAddresses(p, ["token0", "token1"]),
     }),
   });

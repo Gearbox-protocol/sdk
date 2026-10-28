@@ -19,11 +19,7 @@ import {
   readAddresses,
   resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
-import type {
-  AdapterStateBase,
-  AdapterValidation,
-  ResolveAdapterValidationArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type MidasGatewayAdapterState = AdapterStateBase;
@@ -93,9 +89,7 @@ export const midasGatewayAdapterPlugin = defineAdapterPlugin<
   allowGas: 2_000_000, // not measured
   ...plainAdapter("MIDAS_GATEWAY"),
   getDeployParams: args => adapterDeployParams(args),
-  resolveValidation: async (
-    args: ResolveAdapterValidationArgs<MidasGatewayAdapterDeployParams>,
-  ): Promise<AdapterValidation> => {
+  resolveValidation: async args => {
     const { client, params, marketConfigurator } = args;
     const { target } = params;
     const label = "midas gateway";

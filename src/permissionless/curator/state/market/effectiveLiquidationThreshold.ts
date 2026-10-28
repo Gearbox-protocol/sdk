@@ -1,6 +1,6 @@
 import type { CollateralToken } from "./types.js";
 
-/** Core's integer-basis-point interpolation, including decreasing ramps. */
+/** Core's integer-basis-point interpolation, including decreasing ramps. **/
 export function effectiveLiquidationThreshold(
   token: CollateralToken,
   timestamp: number,

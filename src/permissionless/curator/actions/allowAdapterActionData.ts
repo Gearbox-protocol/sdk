@@ -17,7 +17,7 @@ import {
   type MarketScopedDefinition,
 } from "./defineMarketAction.js";
 import {
-  byCreditManager,
+  byAdapter,
   requiresCreditManager,
   resource,
 } from "./utils/actionKeys.js";
@@ -74,12 +74,14 @@ export const allowAdapterActionData: MarketScopedDefinition<
   paramsSchema: registry =>
     allowAdapterSchema(registry.adapterDeployParamsSchema),
   resolve: async ({ ctx, params, registry }) => {
-    const plugin = registry.adapter(params.adapter.type);
+    const resolveValidation = registry.adapter(
+      params.adapter.type,
+    )?.resolveValidation;
     const [code, validation] = await Promise.all([
       readBytecode(ctx, params.adapter.target),
-      plugin?.resolveValidation
+      resolveValidation
         ? readChain(() =>
-            plugin.resolveValidation!({
+            resolveValidation({
               client: ctx.client,
               params: params.adapter,
               marketConfigurator: ctx.marketConfigurator.address,
@@ -186,17 +188,16 @@ export const allowAdapterActionData: MarketScopedDefinition<
     resource.adapter(params.creditManager, params.adapter.target),
   ],
   key: params =>
-    `${byCreditManager(params)}:${params.adapter.target.toLowerCase()}`,
+    byAdapter({
+      creditManager: params.creditManager,
+      target: params.adapter.target,
+    }),
   encode: ({ ctx, params, env }) => {
     const { creditManager, adapter } = params;
     const deployParams = env.registry
       .requireAdapter(adapter.type)
-      .getDeployParams({
-        creditManager,
-        params: adapter,
-      });
-
-    return configureCreditManager(ctx, params.creditManager, {
+      .getDeployParams({ creditManager, params: adapter });
+    return configureCreditManager(ctx, creditManager, {
       functionName: "allowAdapter",
       args: [deployParams],
     });

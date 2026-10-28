@@ -35,14 +35,14 @@ export const uniswapV2Plugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "UNISWAP_V2_ROUTER",
     version: 310,
-    target: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D" as Address,
+    target: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
   }),
   isEditable: false,
   allowGas: 1_550_000, // got 1,517,137
   stateSchema: adapterStateSchema<UniswapV2AdapterState>({
     pairs: uniswapV2PairsList,
   }),
-  getDeployState: (params: UniswapV2AdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("UNISWAP_V2_ROUTER", params),
     pairs: [],
   }),

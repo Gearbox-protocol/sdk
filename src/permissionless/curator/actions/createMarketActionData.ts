@@ -43,7 +43,7 @@ const marketLabelSchema = nonEmptyStringSchema.refine(
   { message: "Must be at least 3 characters long" },
 );
 
-export const createMarketParamsSchema = z.object({
+const createMarketParamsSchema = z.object({
   minorVersion: minorVersionSchema,
   name: marketLabelSchema,
   symbol: marketLabelSchema,
@@ -61,7 +61,7 @@ export interface CreateMarketResolution {
   /** The configurator's treasury, which every new market inherits. **/
   treasury: Address;
   tx: RawTx;
-  priceFeed?: PriceFeedResolution;
+  priceFeed: PriceFeedResolution;
 }
 
 export const createMarketActionData: MarketScopedDefinition<
@@ -122,7 +122,7 @@ export const createMarketActionData: MarketScopedDefinition<
     };
   },
   checkCreate: ({ params, resolved }) => [
-    ...(resolved.priceFeed ? priceFeedDiagnostics(resolved.priceFeed) : []),
+    ...priceFeedDiagnostics(resolved.priceFeed),
     ...tumblerDiagnostics(params.rateKeeperParams),
   ],
   check: () => [

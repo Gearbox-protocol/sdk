@@ -1,7 +1,6 @@
 import {
   type Address,
   type Chain,
-  createWalletClient,
   decodeErrorResult,
   type Hex,
   http,
@@ -178,10 +177,10 @@ async function sourceCaveats(
 /** Takes the isolation snapshot, unless isolation is switched off. **/
 async function takeSnapshot(
   anvil: AnvilClient,
-  options: AnvilSimulationOptions,
+  isolation: GipSimulationOptions["isolation"],
   setupChanges: string[],
 ): Promise<Hex | undefined> {
-  if ((options.isolation ?? "snapshot") !== "snapshot") {
+  if ((isolation ?? "snapshot") !== "snapshot") {
     setupChanges.push(
       "isolation disabled: the executed state is left on the node",
     );
@@ -274,12 +273,14 @@ export async function simulateOnAnvil(
     }
     if (sourceIsNodeHead) await assertForkUnchanged(anvil, target);
     const caveats = await sourceCaveats(anvil, target, sourceIsNodeHead);
-    const snapshotId = await takeSnapshot(anvil, options, setupChanges);
+    const snapshotId = await takeSnapshot(
+      anvil,
+      options.isolation,
+      setupChanges,
+    );
 
     const session = createSession({
       anvil,
-      chain,
-      rpcUrl,
       target,
       options,
       setupChanges,
@@ -288,21 +289,8 @@ export async function simulateOnAnvil(
     });
 
     try {
-      const result = await simulateGipPayloadOnFork(
-        {
-          chainId: target.chainId,
-          marketConfigurator: target.marketConfigurator,
-          calls: target.calls,
-          ...(target.expectedMarkets
-            ? { expectedMarkets: target.expectedMarkets }
-            : {}),
-          ...(target.expectedConfigurator
-            ? { expectedConfigurator: target.expectedConfigurator }
-            : {}),
-          ...(target.registry ? { registry: target.registry } : {}),
-        },
-        session,
-      );
+      // A target is a payload request plus the source block it was computed at.
+      const result = await simulateGipPayloadOnFork(target, session);
       failures.push(...readFailures(result, target.marketConfigurator));
       if (result.executionError) {
         failures.push({
@@ -404,16 +392,15 @@ function describeRevert(error: unknown): string {
 
 function createSession(args: {
   anvil: AnvilClient;
-  chain: Chain;
-  /** Normalized RPC URL of the node. **/
-  rpcUrl: string;
+  /** Already verified to be on the node's chain. **/
   target: GipSimulationTarget;
   options: AnvilSimulationOptions;
   setupChanges: string[];
   failures: GipSimulationFailure[];
+  /** RPC timeout in milliseconds. **/
   timeout: number;
 }): GipPayloadForkSession {
-  const { anvil, chain, target, options, setupChanges, failures } = args;
+  const { anvil, target, options, setupChanges, failures, timeout } = args;
   const marketConfigurator = target.marketConfigurator;
   // The Anvil client is a public client plus test actions.
   const client = anvil as unknown as PublicClient<Transport, Chain>;
@@ -424,13 +411,6 @@ function createSession(args: {
   let codeOverridden = false;
   let intervalSet = false;
   let observedSdk: Promise<OnchainSDK> | undefined;
-
-  const wallet = createWalletClient({
-    account: undefined,
-    chain,
-    transport: http(args.rpcUrl, { timeout: args.timeout }),
-    pollingInterval: 50,
-  });
 
   async function restoreTimelock(): Promise<void> {
     if (timelock && impersonating) {
@@ -466,7 +446,7 @@ function createSession(args: {
   const attachObservedSdk = () =>
     attachForkSdk({
       client,
-      chainId: chain.id,
+      chainId: target.chainId,
       marketConfigurator,
       addressProvider: options.addressProvider,
     });
@@ -522,14 +502,15 @@ function createSession(args: {
     },
     async execute(call) {
       const account = resolveSender(call.to);
-      const hash = await wallet.sendTransaction({
+      const hash = await anvil.sendTransaction({
         account,
+        chain: anvil.chain,
         to: call.to,
         data: call.callData,
         value: BigInt(call.value),
         gas: options.gas ?? DEFAULT_CALL_GAS,
       });
-      const receipt = await waitForAnvilReceipt(anvil, hash, args.timeout);
+      const receipt = await waitForAnvilReceipt(anvil, hash, timeout);
       const block = await anvil.getBlock({ blockNumber: receipt.blockNumber });
       return {
         hash,
@@ -546,17 +527,15 @@ function createSession(args: {
           : {}),
       };
     },
-    async readMarketState(address, options) {
+    async readMarketState(address, read) {
       await restoreTimelock();
       observedSdk ??= attachObservedSdk();
       const sdk = await observedSdk;
       return getMarketState(sdk, marketConfigurator, address, {
         client,
         timestamp: Number(sdk.timestamp),
-        ...(target.registry ? { registry: target.registry } : {}),
-        ...(options?.knownDeployments
-          ? { knownDeployments: options.knownDeployments }
-          : {}),
+        registry: target.registry,
+        knownDeployments: read?.knownDeployments,
       });
     },
     async readConfiguratorState(address) {

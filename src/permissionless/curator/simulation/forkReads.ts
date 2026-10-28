@@ -19,7 +19,7 @@ export async function attachForkSdk(args: {
     {},
   );
   await sdk.attach({
-    ...(args.addressProvider ? { addressProvider: args.addressProvider } : {}),
+    addressProvider: args.addressProvider,
     marketConfigurators: [args.marketConfigurator],
     ignoreUpdateablePrices: true,
   });
