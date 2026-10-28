@@ -195,6 +195,7 @@ export class MarketBuilder extends ScopedBuilder<
 
   protected async compile(
     intents: readonly MarketIntent[],
+    eta: number,
   ): Promise<ScopeCompilation<MarketPreview>> {
     const { runtime } = this;
     const recordedActions = intents.flatMap(intent =>
@@ -204,8 +205,7 @@ export class MarketBuilder extends ScopedBuilder<
       intent.kind === "bundle" ? [intent.bundle] : [],
     );
 
-    const { state: initialState, provenance } =
-      await this.#resolveInitialState(recordedActions);
+    const initialState = await this.#resolveInitialState(recordedActions);
 
     await runtime.tokens.ensure(
       tokensForCompilation({
@@ -216,7 +216,7 @@ export class MarketBuilder extends ScopedBuilder<
     );
 
     const executor = new MarketExecutor(runtime.ctx, {
-      timestamp: runtime.source.blockTimestamp,
+      timestamp: this.executionTimestamp(eta),
       resolveCache: runtime.resolveCache,
       registry: runtime.registry,
     });
@@ -261,10 +261,11 @@ export class MarketBuilder extends ScopedBuilder<
     const preview = snapshot<MarketPreview>({
       scope: "market",
       source: runtime.source,
+      eta,
       // For a new market this is the pool address the creation is predicted to
       // deploy to, so a preview always names the market it describes.
       pool: lowerAddress(this.#pool ?? changes.after.address),
-      stateProvenance: provenance,
+      stateProvenance: this.#provenance,
       ...(initialState ? { before: changes.before } : {}),
       after: changes.after,
       resolvedActions,
@@ -284,6 +285,7 @@ export class MarketBuilder extends ScopedBuilder<
             reason,
           })),
         ),
+        ...changes.incompleteChecks,
         ...incompleteChecks,
       ],
     });
@@ -397,10 +399,10 @@ export class MarketBuilder extends ScopedBuilder<
     return { actions, bundleApplications, suiteIds };
   }
 
-  async #resolveInitialState(actions: readonly GipMarketAction[]): Promise<{
-    state: MarketState | undefined;
-    provenance: StateProvenance;
-  }> {
+  /** The state the actions start from; `undefined` for a market being created. **/
+  async #resolveInitialState(
+    actions: readonly GipMarketAction[],
+  ): Promise<MarketState | undefined> {
     const { runtime } = this;
     const pool = this.#pool;
 
@@ -412,7 +414,7 @@ export class MarketBuilder extends ScopedBuilder<
           `Supplied market state is for pool ${state.address}, but this builder is scoped to ${pool}`,
         );
       }
-      return { state, provenance: this.#provenance };
+      return state;
     }
     if (!pool) {
       if (!isCreateMarket(actions[0])) {
@@ -420,7 +422,7 @@ export class MarketBuilder extends ScopedBuilder<
           "A market builder needs a pool, an initial state, or a first createMarket action",
         );
       }
-      return { state: undefined, provenance: "new-market" };
+      return undefined;
     }
     if (isCreateMarket(actions[0])) {
       throw new Error(
@@ -442,7 +444,7 @@ export class MarketBuilder extends ScopedBuilder<
         `Loaded market state is for pool ${state.address}, but this builder is scoped to ${pool}`,
       );
     }
-    return { state, provenance: this.#provenance };
+    return state;
   }
 
   #resolveBundleTarget(args: {

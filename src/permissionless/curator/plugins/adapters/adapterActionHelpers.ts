@@ -1,13 +1,16 @@
 /** Scaffolding shared by the adapter action definitions. **/
-import type { Address } from "viem";
+import type { AbiParameter, Address } from "viem";
+import { z } from "zod/v4";
+import { adapterActionAbi } from "../../../../onchain/index.js";
 import {
   type ActionDiagnostic,
   actionError,
   actionWarning,
 } from "../../actions/actionDiagnostics.js";
-import type {
-  CreditManagerTarget,
-  ResolvedParams,
+import {
+  type CreditManagerTarget,
+  creditManagerTargetSchema,
+  type ResolvedParams,
 } from "../../actions/creditManagerTargets.js";
 import type { MergePolicy } from "../../actions/defineMarketAction.js";
 import {
@@ -24,9 +27,39 @@ import type { ListNode } from "../../state/diff/schemaNodes.js";
 import type { MarketState } from "../../state/market/types.js";
 import { lowerAddress } from "../../utils/addressUtils.js";
 import { stableStringify } from "../../utils/objectUtils.js";
+import { addressSchema, literalsSchema } from "../../validationSchemas.js";
 import type { AdapterActionContext } from "./adapterMarketActionsData.js";
 import type { AdapterStateBase } from "./defineAdapterPlugin.js";
 import { updateAdapterState } from "./updateAdapterState.js";
+
+/**
+ * Params schema of an action addressed to one adapter: what every adapter
+ * action carries (`creditManager`, `version`, `target`) plus its own fields.
+ **/
+export function adapterActionSchema<V extends number, F extends z.ZodRawShape>(
+  versions: readonly [V, ...V[]],
+  fields: F,
+) {
+  return z.object({
+    creditManager: creditManagerTargetSchema,
+    version: literalsSchema(...versions),
+    target: addressSchema,
+    ...fields,
+  });
+}
+
+/** The ABI the SDK has for the configuration calls of an adapter type and version. **/
+export function adapterAbi(
+  type: string,
+  version: number,
+): readonly AbiParameter[] {
+  const abis = adapterActionAbi as Partial<
+    Record<string, Record<number, readonly AbiParameter[] | undefined>>
+  >;
+  const abi = abis[type]?.[version];
+  if (!abi) throw new Error(`No action ABI for ${type} v${version}`);
+  return abi;
+}
 
 /**
  * Keys, placement and merging of an action addressed to one adapter.
@@ -67,7 +100,7 @@ export function updateActionAdapter<T extends AdapterStateBase>(
  **/
 export function adapterDiagnostics(
   state: MarketState,
-  params: { creditManager: Address; target: Address },
+  params: { creditManager: Address; target: Address; version?: number },
   type: string,
 ): ActionDiagnostic[] {
   const cm = findCreditManager(state, params.creditManager);
@@ -82,6 +115,14 @@ export function adapterDiagnostics(
       ),
     ];
   }
+  if (params.version !== undefined && params.version !== adapter.version)
+    return [
+      actionError(
+        "ADAPTER_VERSION_MISMATCH",
+        `The allowed adapter is v${adapter.version}, but the action encodes v${params.version}`,
+        ["params", "version"],
+      ),
+    ];
   return adapter.type === type
     ? []
     : [
@@ -91,6 +132,22 @@ export function adapterDiagnostics(
           ["params", "target"],
         ),
       ];
+}
+
+/**
+ * `item` with the given address fields in their canonical, lower-case form:
+ * how the adapter state stores an item of a batch action's params.
+ **/
+export function lowerAddresses<
+  K extends string,
+  T extends { [P in K]?: string },
+>(item: T, keys: readonly K[]): T {
+  const lowered = { ...item };
+  for (const key of keys) {
+    const value = item[key];
+    if (typeof value === "string") lowered[key] = lowerAddress(value) as T[K];
+  }
+  return lowered;
 }
 
 /**
@@ -129,11 +186,14 @@ type ResolvedBatchParams<F extends string> = {
  * - the adapter state holds each item once, with its latest status;
  * - a batch that changes nothing is an error, unchanged items in a batch that
  *   changes others are a warning.
+ *
+ * Spread into `defineMarketAction<A>({ … })`, the params type `P` is inferred
+ * from `A`, so `toState` sees the action's own item type.
  **/
 export function adapterBatch<
   F extends string,
   P extends BatchParams<F>,
-  S extends AdapterStateBase,
+  S extends AdapterStateBase = AdapterStateBase,
 >(spec: {
   type: string;
   /** The params field holding the items; the state field has the same name. **/

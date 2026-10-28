@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import type { ActionOf } from "../../actions/defineMarketAction.js";
 import type { MarketState } from "../../state/market/types.js";
 import type { DeployParams } from "../../types.js";
 import type { Plugin } from "../Plugin.js";
@@ -39,18 +38,8 @@ export const rateKeeperPlugins: Record<RateKeeperType, RateKeeperPlugin> = {
   GAUGE: gaugePlugin,
 };
 
-const DEFAULT_RATE_KEEPER_TYPE: RateKeeperType = "TUMBLER";
-
 export const DEFAULT_RATE_KEEPER_PARAMS: RateKeeperDeployParams =
-  rateKeeperPlugins[DEFAULT_RATE_KEEPER_TYPE].getDefaultParams();
-
-export const DEFAULT_RATE_KEEPER_STATE: RateKeeperState = rateKeeperPlugins[
-  DEFAULT_RATE_KEEPER_PARAMS.type
-].getDeployState(DEFAULT_RATE_KEEPER_PARAMS);
-
-export type RateKeeperMarketActions = ActionOf<
-  (typeof rateKeeperMarketActionsData)[number]
->;
+  tumblerPlugin.getDefaultParams();
 
 export const rateKeeperDeployParamsSchema = z.discriminatedUnion("type", [
   tumblerDeployParamsSchema,

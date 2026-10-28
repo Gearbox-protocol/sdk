@@ -519,24 +519,22 @@ export async function createTestSdk(
         createStubSdk({
           client,
           marketSuite: holder,
-          ...(options.sdkCurrentBlock !== undefined
-            ? { currentBlock: options.sdkCurrentBlock }
-            : {}),
+          currentBlock: options.sdkCurrentBlock,
         }));
   const session = await CuratorSession.create({
     client,
     marketConfigurator: CONFIGURATOR,
     blockNumber: SOURCE_BLOCK,
-    ...(sdk ? { sdk } : {}),
-    ...(options.tokenDecimals ? { tokenDecimals: options.tokenDecimals } : {}),
-    ...(options.plugins ? { plugins: options.plugins } : {}),
+    sdk,
+    tokenDecimals: options.tokenDecimals,
+    plugins: options.plugins,
   });
   if (options.marketSuite !== null) {
     holder.suite =
       options.marketSuite ??
       createMarketSuite({
         client: session.readClient,
-        ...(options.marketSuiteOptions ?? {}),
+        ...options.marketSuiteOptions,
       });
   }
   return { sdk: session, client, onchain: sdk, marketSuite: holder.suite };

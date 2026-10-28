@@ -92,11 +92,30 @@ export interface IncompleteCheck {
 /** A `getGipDiagnostics` finding, as previews and market plans carry it. **/
 export type MarketDiagnostic = GipDiagnostic<DiagnosticMarketInput>;
 
-export interface MarketPreview {
-  scope: "market";
+/** What every scope's preview reports about its compilation. **/
+export interface GipPreviewBase {
+  scope: ActionScope;
   source: GipSourceSnapshot;
-  pool?: Address;
+  /** Earliest execution time; defaults to the source block timestamp. **/
+  eta: number;
   stateProvenance: StateProvenance;
+  /**
+   * Findings of the actions' `check` steps, warnings included. An error means
+   * the batch would revert at that action: see {@link blockedAt}.
+   **/
+  actionDiagnostics: readonly GipActionDiagnostic[];
+  /**
+   * Index of the first action whose `check` found an error. The projection
+   * stops before it, and `build()` and `simulate()` reject with a
+   * `GipActionError`.
+   **/
+  blockedAt?: number;
+  incompleteChecks: readonly IncompleteCheck[];
+}
+
+export interface MarketPreview extends GipPreviewBase {
+  scope: "market";
+  pool?: Address;
   before?: MarketState;
   after: MarketState;
   /** Actions after bundle merges and credit-manager resolution. **/
@@ -106,39 +125,13 @@ export interface MarketPreview {
   /** Decimals resolved (and cached) for the tokens this compilation touched. **/
   tokenDecimals: Readonly<Record<Address, number>>;
   diagnostics: readonly MarketDiagnostic[];
-  /**
-   * Findings of the actions' `check` steps, warnings included. An error means
-   * the batch would revert at that action: see {@link blockedAt}.
-   **/
-  actionDiagnostics: readonly GipActionDiagnostic[];
-  /**
-   * Index of the first action whose `check` found an error. The projection
-   * stops before it, and `build()` and `simulate()` reject with a
-   * `GipActionError`.
-   **/
-  blockedAt?: number;
-  incompleteChecks: readonly IncompleteCheck[];
 }
 
-export interface ConfiguratorPreview {
+export interface ConfiguratorPreview extends GipPreviewBase {
   scope: "configurator";
-  source: GipSourceSnapshot;
-  stateProvenance: StateProvenance;
   before: ConfiguratorState;
   after: ConfiguratorState;
   resolvedActions: readonly ConfiguratorActions[];
-  /**
-   * Findings of the actions' `check` steps, warnings included. An error means
-   * the batch would revert at that action: see {@link blockedAt}.
-   **/
-  actionDiagnostics: readonly GipActionDiagnostic[];
-  /**
-   * Index of the first action whose `check` found an error. The projection
-   * stops before it, and `build()` and `simulate()` reject with a
-   * `GipActionError`.
-   **/
-  blockedAt?: number;
-  incompleteChecks: readonly IncompleteCheck[];
 }
 
 export type GipPreview = MarketPreview | ConfiguratorPreview;
@@ -146,8 +139,8 @@ export type GipPreview = MarketPreview | ConfiguratorPreview;
 /** Heuristic gas numbers, explicitly not measurements. **/
 export interface GipPlanGas {
   /**
-   * `heuristic-action-table` — the per-action table in `estimateActionGas`, not
-   * an `eth_estimateGas` result.
+   * `heuristic-action-table` — the sum of each action definition's `gas`
+   * estimate, not an `eth_estimateGas` result.
    * `unavailable` — no estimate exists for this scope; the numbers are zero
    * placeholders, not a claim that execution is free.
    **/
@@ -161,10 +154,11 @@ export interface GipPlanGas {
 /** Transactions and provenance shared by every plan scope. **/
 export interface GipPlanBase {
   /** Serialization format version of this plan shape. **/
-  readonly planVersion: 1;
+  readonly planVersion: 2;
   scope: ActionScope;
   source: GipSourceSnapshot;
   author: Address;
+  /** Earliest execution time; projections use the later of ETA and source time. **/
   eta: number;
   /**
    * The GIP's own calls, i.e. what the TimeLock will execute.

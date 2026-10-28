@@ -1,11 +1,7 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import {
-  adapterActionAbi,
-  BalancerV3PoolStatus,
-} from "../../../../../onchain/index.js";
+import { BalancerV3PoolStatus } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -18,9 +14,13 @@ import {
   object,
   status,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
-import { addressSchema, literalsSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import { addressSchema } from "../../../validationSchemas.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import { enabled, type ItemOf, lower } from "../adapterStateSchema.js";
 import type { BalancerV3AdapterState } from "./balancerV3Plugin.js";
@@ -62,10 +62,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
     gas: ({ params }) => 135_000 + params.pools.length * 50_000, // got 167,969
     name: "BalancerV3::setPoolStatusBatch",
     description: `Set pool batch status, which represents Balancer V3 pool could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: literalsSchema(310, 311),
-      target: addressSchema,
+    schema: adapterActionSchema([310, 311], {
       pools: z.union([
         z.array(
           z.object({
@@ -87,7 +84,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
       return configureAdapter(
         ctx,
         params,
-        adapterActionAbi.BALANCER_V3_ROUTER![version],
+        adapterAbi("BALANCER_V3_ROUTER", version),
         {
           functionName: "setPoolStatusBatch",
           // v310 takes parallel arrays, later versions a list of pairs
@@ -105,17 +102,10 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
         },
       );
     },
-    ...adapterBatch<
-      "pools",
-      SetPoolBatchStatusAction["params"],
-      BalancerV3AdapterState
-    >({
+    ...adapterBatch({
       type: "BALANCER_V3_ROUTER",
       field: "pools",
       list: balancerV3PoolsList,
-      toState: p => ({
-        pool: lowerAddress(p.pool),
-        status: p.status,
-      }),
+      toState: p => lowerAddresses(p, ["pool"]),
     }),
   });

@@ -345,7 +345,7 @@ describe("builder scope enforcement at runtime", () => {
         address: FEED_WBTC,
         domain: "ZAPPER",
         type: 42,
-        version: 0,
+        version: 310,
         status: "registered",
       },
     ]);

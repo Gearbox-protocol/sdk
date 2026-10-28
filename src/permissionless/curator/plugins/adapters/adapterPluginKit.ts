@@ -26,8 +26,10 @@ import { stateSchema } from "../../state/diff/stateSchema.js";
 import { addressSchema, uintSchema } from "../../validationSchemas.js";
 import {
   adapterActionKeys,
+  adapterActionSchema,
   adapterBatch,
   adapterDiagnostics,
+  lowerAddresses,
   updateActionAdapter,
 } from "./adapterActionHelpers.js";
 import {
@@ -38,8 +40,8 @@ import {
   plainDeployParamsSchema,
   readAddress,
   readAddresses,
+  resolveTargetTokens,
   sdkState,
-  validateTargetTokens,
 } from "./adapterPluginHelpers.js";
 import {
   adapterStateSchema,
@@ -61,8 +63,10 @@ export const adapterPluginKit = {
 
   // Actions
   adapterActionKeys,
+  adapterActionSchema,
   adapterBatch,
   adapterDiagnostics,
+  lowerAddresses,
   updateActionAdapter,
   configureAdapter,
   actionError,
@@ -77,7 +81,7 @@ export const adapterPluginKit = {
   getter,
   readAddress,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 
   // Params schemas
   addressSchema,

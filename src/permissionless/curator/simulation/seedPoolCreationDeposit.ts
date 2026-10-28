@@ -1,4 +1,10 @@
-import { type Address, erc20Abi, erc4626Abi, hexToString } from "viem";
+import {
+  type Address,
+  erc20Abi,
+  erc4626Abi,
+  type Hash,
+  hexToString,
+} from "viem";
 import { iVersionAbi } from "../../../abi/iVersion.js";
 import type { AnvilClient } from "../../../dev/createAnvilClient.js";
 import { createMinter } from "../../../dev/mint/factory.js";
@@ -27,6 +33,16 @@ async function ensureTokenMeta(
   ]);
 
   sdk.tokensMeta.upsert(token, { addr: token, symbol, name, decimals });
+}
+
+/** Sends a transaction and waits for it to succeed; `failure` names a revert. **/
+async function confirm(
+  anvil: AnvilClient,
+  send: () => Promise<Hash>,
+  failure: string,
+): Promise<void> {
+  const receipt = await waitForAnvilReceipt(anvil, await send());
+  if (receipt.status !== "success") throw new Error(failure);
 }
 
 export interface SeedPoolCreationDepositParams {
@@ -61,7 +77,8 @@ export async function seedPoolCreationDeposit({
     .catch(() => null);
 
   const isRwaUnderlying = contractType?.startsWith("RWA_UNDERLYING::") ?? false;
-  const mintToken = isRwaUnderlying
+  // The token to mint: the wrapper's backing asset for an RWA underlying.
+  const asset = isRwaUnderlying
     ? await anvil.readContract({
         address: underlying,
         abi: erc4626Abi,
@@ -69,48 +86,41 @@ export async function seedPoolCreationDeposit({
       })
     : underlying;
 
-  await ensureTokenMeta(sdk, anvil, mintToken);
-
-  const minter = createMinter(sdk, anvil, mintToken);
+  await ensureTokenMeta(sdk, anvil, asset);
+  const minter = createMinter(sdk, anvil, asset);
 
   if (!isRwaUnderlying) {
-    await minter.mint(mintToken, marketConfigurator, amount);
+    await minter.mint(asset, marketConfigurator, amount);
     return;
   }
-
-  const asset = mintToken;
 
   // Mirrors the Securitize deployment scripts: obtain the backing asset, then
   // deposit it for the Market Configurator.
   await minter.mint(asset, admin, amount);
-
-  const approveHash = await anvil.writeContract({
-    account: admin,
-    address: asset,
-    abi: erc20Abi,
-    functionName: "approve",
-    args: [underlying, amount],
-    chain: anvil.chain,
-  });
-  const approveReceipt = await waitForAnvilReceipt(anvil, approveHash);
-  if (approveReceipt.status !== "success") {
-    throw new Error(
-      `failed to approve ${amount} raw units of ${asset} for RWA underlying ${underlying}`,
-    );
-  }
-
-  const depositHash = await anvil.writeContract({
-    account: admin,
-    address: underlying,
-    abi: erc4626Abi,
-    functionName: "deposit",
-    args: [amount, marketConfigurator],
-    chain: anvil.chain,
-  });
-  const depositReceipt = await waitForAnvilReceipt(anvil, depositHash);
-  if (depositReceipt.status !== "success") {
-    throw new Error(
-      `failed to deposit ${amount} raw units of ${asset} into RWA underlying ${underlying}`,
-    );
-  }
+  await confirm(
+    anvil,
+    () =>
+      anvil.writeContract({
+        account: admin,
+        address: asset,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [underlying, amount],
+        chain: anvil.chain,
+      }),
+    `failed to approve ${amount} raw units of ${asset} for RWA underlying ${underlying}`,
+  );
+  await confirm(
+    anvil,
+    () =>
+      anvil.writeContract({
+        account: admin,
+        address: underlying,
+        abi: erc4626Abi,
+        functionName: "deposit",
+        args: [amount, marketConfigurator],
+        chain: anvil.chain,
+      }),
+    `failed to deposit ${amount} raw units of ${asset} into RWA underlying ${underlying}`,
+  );
 }

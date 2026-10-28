@@ -132,7 +132,6 @@ export class CuratorSession {
    * @throws when a plugin's adapter or action type is already registered
    **/
   static async create(args: CuratorSessionArgs): Promise<CuratorSession> {
-    args = { ...args };
     assertArgs(args);
     const registry = GipRegistry.builtin.extend(args.plugins ?? []);
 

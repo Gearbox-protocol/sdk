@@ -72,7 +72,6 @@ export const kpk116FrxusdMarket: GipReproduction = {
           maxDebt: 5_000_000,
           accountFactoryType: "DEFAULT",
           isExpired: false,
-          expirationDate: 0,
           whitelistPolicy: "0x0000000000000000000000000000000000000000",
         },
       })

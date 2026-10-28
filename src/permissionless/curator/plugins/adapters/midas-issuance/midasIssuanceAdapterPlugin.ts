@@ -6,14 +6,11 @@ import {
   adapterDeployParams,
   deployState,
   readAddress,
+  resolveTargetTokens,
   sdkState,
-  validateTargetTokens,
 } from "../adapterPluginHelpers.js";
 import { adapterStateSchema } from "../adapterStateSchema.js";
-import type {
-  AdapterStateBase,
-  ValidateAdapterParamsArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 import type { MidasIssuanceTokenStatus } from "./setTokenAllowedStatusBatchActionData.js";
 import {
@@ -57,21 +54,16 @@ export const midasIssuanceAdapterPlugin = defineAdapterPlugin<
   stateSchema: adapterStateSchema<MidasIssuanceAdapterState>({
     allowedTokens: midasIssuanceAllowedTokensList,
   }),
-  getDeployState: (params: MidasIssuanceAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("MIDAS_ISSUANCE_VAULT", params),
     allowedTokens: [],
   }),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: MidasIssuanceAdapterDeployParams;
-  }) =>
+  getDeployParams: args =>
     adapterDeployParams(args, [
       stringToHex(args.params.reffererId, { size: 32 }),
     ]),
-  validateParams: (
-    args: ValidateAdapterParamsArgs<MidasIssuanceAdapterDeployParams>,
-  ) =>
-    validateTargetTokens(
+  resolveValidation: args =>
+    resolveTargetTokens(
       args,
       async () => [
         await readAddress(args.client, args.params.target, "mToken"),

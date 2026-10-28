@@ -20,6 +20,8 @@ export interface MarketAsset {
 }
 
 export interface CollateralToken {
+  /** Absent in legacy snapshots; an active ramp then has an unknown initial LT. **/
+  liquidationThresholdInitial?: number;
   liquidationThresholdFinal: number;
   rampStart: number;
   rampDuration: number;
@@ -50,6 +52,8 @@ export interface MarketCreditManagerState extends CreditManagerFees {
    **/
   adapters: Record<Address, AdapterState | AdapterStateBase>;
   degenNFT: Address;
+  /** Current facade; unknown immediately after an unpredicted upgrade. **/
+  creditFacade?: Address;
   minDebt: number;
   maxDebt: number;
   maxDebtPerBlockMultiplier: number;
@@ -95,8 +99,9 @@ export interface MarketState {
   name: string;
   underlyingAsset: Address;
   underlyingPriceFeed: Address;
+  underlyingReservePriceFeed?: Address;
   totalDebtLimit: number | typeof NO_LIMIT;
-  creditManagerDebtLimit: Record<Address, number>;
+  creditManagerDebtLimit: Record<Address, number | typeof NO_LIMIT>;
   assets: Record<Address, MarketAsset>;
   creditManagers: Record<Address, MarketCreditManagerState>;
   treasury: TreasuryState;

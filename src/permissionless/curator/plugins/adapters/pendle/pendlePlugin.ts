@@ -38,14 +38,14 @@ export const pendlePlugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "PENDLE_ROUTER",
     version: 311,
-    target: "0x888888888889758F76e7103c6CbF23ABbF58F946" as Address,
+    target: "0x888888888889758F76e7103c6CbF23ABbF58F946",
   }),
   isEditable: false,
   allowGas: 2_750_000, // got 2,710,289
   stateSchema: adapterStateSchema<PendleAdapterState>({
     pairs: pendlePairsList,
   }),
-  getDeployState: (params: PendleAdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("PENDLE_ROUTER", params),
     pairs: [],
   }),
@@ -63,7 +63,9 @@ export const pendlePlugin = defineAdapterPlugin<
       }),
     ),
   }),
-  deployParamsSchema:
-    plainDeployParamsSchema<PendleAdapterDeployParams>("PENDLE_ROUTER"),
+  deployParamsSchema: plainDeployParamsSchema<PendleAdapterDeployParams>(
+    "PENDLE_ROUTER",
+    [310, 311],
+  ),
   actions: { setPairStatusBatch: setPairBatchStatusActionData },
 });

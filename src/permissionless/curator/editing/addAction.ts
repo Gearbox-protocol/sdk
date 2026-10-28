@@ -13,6 +13,7 @@
  *    such action, so a Degen NFT is registered before the credit suite that
  *    uses it, and a contract is deployed before it is registered.
  **/
+import { isSameTarget, targetOf } from "../actions/creditManagerTargets.js";
 import type { MergePolicy } from "../actions/defineMarketAction.js";
 import type { GipMarketAction } from "../actions/types.js";
 import type { ConfiguratorActions } from "../configurator-actions/types.js";
@@ -44,17 +45,24 @@ function placementIndex<A extends AnyAction>(
       : actions.findIndex(candidate =>
           rules.requires(candidate).some(name => provides.has(name)),
         );
-  let lastProvider = -1;
-  if (requires.size > 0) {
-    actions.forEach((candidate, index) => {
-      if (rules.provides(candidate).some(name => requires.has(name))) {
-        lastProvider = index;
-      }
-    });
-  }
+  const lastProvider =
+    requires.size === 0
+      ? -1
+      : actions.findLastIndex(candidate =>
+          rules.provides(candidate).some(name => requires.has(name)),
+        );
   // @dev a dependent recorded before what this action needs cannot be fixed
   // by placement; it stays at the end and its check reports the gap
   return firstDependent > lastProvider ? firstDependent : actions.length;
+}
+
+/** Whether both actions address the same credit manager. **/
+function sameTarget(a: AnyAction, b: AnyAction): boolean {
+  const target = targetOf(a.params);
+  const other = targetOf(b.params);
+  return (
+    target !== undefined && other !== undefined && isSameTarget(target, other)
+  );
 }
 
 function insertAt<A>(actions: readonly A[], index: number, action: A): A[] {
@@ -70,15 +78,25 @@ function addAction<A extends AnyAction>(
   const index =
     key === undefined
       ? -1
-      : actions.findIndex(
+      : actions.findLastIndex(
           candidate =>
             candidate.type === action.type && rules.key(candidate) === key,
         );
-  if (index === -1) {
+  const policy = rules.merge(action) ?? {};
+  // A barrier recorded since the earlier action keeps the two apart.
+  const barred =
+    index !== -1 &&
+    actions
+      .slice(index + 1)
+      .some(
+        candidate =>
+          policy.barriers?.includes(candidate.type) &&
+          (rules.key(candidate) === key || sameTarget(candidate, action)),
+      );
+  if (index === -1 || barred) {
     return insertAt(actions, placementIndex(actions, action, rules), action);
   }
 
-  const policy = rules.merge(action) ?? {};
   const earlier = actions[index];
   const merged = {
     ...action,
@@ -86,11 +104,23 @@ function addAction<A extends AnyAction>(
       ? policy.combine(earlier.params, action.params)
       : action.params,
   } as A;
-  if ((policy.position ?? "first") === "first") {
+  if (policy.position !== "last") {
     return [...actions.slice(0, index), merged, ...actions.slice(index + 1)];
   }
   const rest = [...actions.slice(0, index), ...actions.slice(index + 1)];
   return insertAt(rest, placementIndex(rest, merged, rules), merged);
+}
+
+/** `actions` with every action of `added` added in order. **/
+function addActions<A extends AnyAction>(
+  actions: readonly A[],
+  added: readonly A[],
+  rules: PlacementRules<A>,
+): A[] {
+  return added.reduce<A[]>(
+    (list, action) => addAction(list, action, rules),
+    [...actions],
+  );
 }
 
 function marketRules(registry: GipRegistry): PlacementRules<GipMarketAction> {
@@ -135,11 +165,7 @@ export function addMarketActions<A extends GipMarketAction>(
   added: readonly A[],
   registry: GipRegistry = GipRegistry.builtin,
 ): A[] {
-  const rules = marketRules(registry);
-  return added.reduce<A[]>(
-    (list, action) => addAction<A>(list, action, rules),
-    [...actions],
-  );
+  return addActions<A>(actions, added, marketRules(registry));
 }
 
 /** `actions` with `action` added; see the module comment. **/
@@ -157,9 +183,5 @@ export function addConfiguratorActions(
   added: readonly ConfiguratorActions[],
   registry: GipRegistry = GipRegistry.builtin,
 ): ConfiguratorActions[] {
-  const rules = configuratorRules(registry);
-  return added.reduce<ConfiguratorActions[]>(
-    (list, action) => addAction(list, action, rules),
-    [...actions],
-  );
+  return addActions(actions, added, configuratorRules(registry));
 }

@@ -116,7 +116,7 @@ describe("compile-time scope enforcement", () => {
     // @ts-expect-error a built-in action keeps its params type
     market.addAction({
       type: "POOL::setTotalDebtLimit",
-      params: { limit: "1" },
+      params: { limit: true },
     });
 
     market.addAction({
@@ -289,6 +289,10 @@ describe("compile-time scope enforcement", () => {
     market.simulate();
     configurator.simulate();
     market.simulate({ isolation: "none", gas: 1_000_000n });
+    market.preview({ eta: 1_800_000_000 });
+    configurator.preview({ eta: 1_800_000_000 });
+    market.simulate({ eta: 1_800_000_000 });
+    configurator.simulate({ eta: 1_800_000_000 });
 
     // @ts-expect-error the node is chosen when the SDK is created
     market.simulate({ rpcUrl: "http://127.0.0.1:8545" });

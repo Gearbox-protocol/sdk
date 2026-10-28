@@ -6,12 +6,9 @@ import {
   getter,
   plainAdapter,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
-import type {
-  AdapterStateBase,
-  ValidateAdapterParamsArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type SecuritizeRedemptionAdapterState = AdapterStateBase;
@@ -46,11 +43,9 @@ export const securitizeRedemptionAdapterPlugin = defineAdapterPlugin<
   allowGas: 2_000_000, // not measured
   ...plainAdapter("SECURITIZE_REDEMPTION"),
   getDeployParams: args => adapterDeployParams(args),
-  validateParams: (
-    args: ValidateAdapterParamsArgs<SecuritizeRedemptionAdapterDeployParams>,
-  ) => {
+  resolveValidation: args => {
     const { target } = args.params;
-    return validateTargetTokens(args, () =>
+    return resolveTargetTokens(args, () =>
       readAddresses(args.client, [
         getter(target, "dsToken"),
         getter(target, "stableCoinToken"),

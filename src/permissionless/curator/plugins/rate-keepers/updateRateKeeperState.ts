@@ -11,13 +11,5 @@ export function updateRateKeeperState<T extends RateKeeperState>(args: {
   update: (state: T) => T;
 }): MarketState {
   const { state, update } = args;
-
-  if (!state.rateKeeper) {
-    throw new Error("Rate keeper not found");
-  }
-
-  return {
-    ...state,
-    rateKeeper: update(state.rateKeeper as T),
-  };
+  return { ...state, rateKeeper: update(state.rateKeeper as T) };
 }

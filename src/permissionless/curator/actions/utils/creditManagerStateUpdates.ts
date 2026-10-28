@@ -14,12 +14,8 @@ export function updateCreditManagerState(args: {
 }): MarketState {
   const { state, creditManager, update } = args;
   const cmAddress = lowerAddress(creditManager);
-
-  if (!state.creditManagers[cmAddress]) {
-    throw new Error(`Credit manager ${cmAddress} not found`);
-  }
-
   const cm = state.creditManagers[cmAddress];
+  if (!cm) throw new Error(`Credit manager ${cmAddress} not found`);
 
   return {
     ...state,

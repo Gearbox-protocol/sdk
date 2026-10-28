@@ -1,8 +1,8 @@
 import { type Address, BaseError, type Hex } from "viem";
 import type { GipRegistry } from "../GipRegistry.js";
 import type { ConfiguratorState } from "../state/configurator/types.js";
-import type { MarketState } from "../state/market/types.js";
 import type {
+  ExpectedMarketState,
   ForkExecutionCall,
   GipForkSimulationResult,
 } from "./simulateGipOnFork.js";
@@ -16,7 +16,9 @@ export interface GipSimulationTarget {
   /** Canonical hash of the source block. **/
   sourceBlockHash: Hex;
   calls: readonly ForkExecutionCall[];
-  expectedMarkets?: ReadonlyArray<{ address: Address; after: MarketState }>;
+  /** Earliest execution time; execution cannot precede the fork head. **/
+  eta?: number;
+  expectedMarkets?: ReadonlyArray<ExpectedMarketState>;
   expectedConfigurator?: ConfiguratorState;
   /** Adapter plugins the fork's markets are read and diffed with. **/
   registry?: GipRegistry;
@@ -24,6 +26,8 @@ export interface GipSimulationTarget {
 
 /** How `simulate()` treats the SDK's Anvil node. **/
 export interface GipSimulationOptions {
+  /** Earliest execution time; defaults to the source block timestamp. **/
+  eta?: number;
   /**
    * `"snapshot"` (default) takes an `evm_snapshot` before any setup and reverts
    * to it once the comparison is done, so the node is left as it was.

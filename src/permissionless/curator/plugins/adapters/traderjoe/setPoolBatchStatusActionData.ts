@@ -1,11 +1,7 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import {
-  adapterActionAbi,
-  TraderJoePoolVersion,
-} from "../../../../../onchain/index.js";
+import { TraderJoePoolVersion } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -19,9 +15,13 @@ import {
   object,
   scalar,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import {
   allowed,
@@ -73,10 +73,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
     gas: ({ params }) => 135_000 + params.pools.length * 160_000, // not measured
     name: "TraderJoe::setPoolStatusBatch",
     description: `Set pool batch status, which represents Trader Joe pool could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.literal(310),
-      target: addressSchema,
+    schema: adapterActionSchema([310], {
       pools: z.array(
         z.object({
           token0: addressSchema,
@@ -92,7 +89,7 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.TRADERJOE_ROUTER![params.version],
+        adapterAbi("TRADERJOE_ROUTER", params.version),
         {
           functionName: "setPoolStatusBatch",
           args: [
@@ -109,20 +106,10 @@ export const setPoolBatchStatusActionData: MarketScopedDefinition<SetPoolBatchSt
           ],
         },
       ),
-    ...adapterBatch<
-      "pools",
-      SetPoolBatchStatusAction["params"],
-      TraderJoeAdapterState
-    >({
+    ...adapterBatch({
       type: "TRADERJOE_ROUTER",
       field: "pools",
       list: traderjoePoolsList,
-      toState: p => ({
-        token0: lowerAddress(p.token0),
-        token1: lowerAddress(p.token1),
-        binStep: p.binStep,
-        version: p.version,
-        allowed: p.allowed,
-      }),
+      toState: p => lowerAddresses(p, ["token0", "token1"]),
     }),
   });

@@ -7,9 +7,6 @@ export function updateAliasLossPolicy(
   state: MarketState,
   update: (lossPolicy: AliasLossPolicyState) => AliasLossPolicyState,
 ): MarketState {
-  if (!state.lossPolicy) {
-    throw new Error("Loss policy not configured");
-  }
   if (state.lossPolicy.type !== "ALIAS") {
     throw new Error("Invalid loss policy type");
   }

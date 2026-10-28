@@ -14,15 +14,7 @@ import {
   byCreditManagerAndToken,
   requiresCollateral,
 } from "./utils/actionKeys.js";
-import {
-  collateralNotFound,
-  creditManagerNotFound,
-  findCollateral,
-  findCreditManager,
-  isUnderlying,
-  noOp,
-  underlyingNotAllowed,
-} from "./utils/checkHelpers.js";
+import { noOp, targetCollateral } from "./utils/checkHelpers.js";
 import { configureCreditManager } from "./utils/configureCalls.js";
 import { updateCollateralToken } from "./utils/creditManagerStateUpdates.js";
 
@@ -46,11 +38,8 @@ export const allowTokenActionData: MarketScopedDefinition<AllowTokenAction> =
       token: addressSchema,
     }),
     check: ({ state, params }) => {
-      const cm = findCreditManager(state, params.creditManager);
-      if (!cm) return [creditManagerNotFound(params.creditManager)];
-      if (isUnderlying(state, params.token)) return [underlyingNotAllowed()];
-      const collateral = findCollateral(cm, params.token);
-      if (!collateral) return [collateralNotFound(params.token)];
+      const { collateral, diagnostics } = targetCollateral(state, params);
+      if (diagnostics) return diagnostics;
       return collateral.isForbidden
         ? []
         : [noOp(`Token ${params.token} is not forbidden`)];

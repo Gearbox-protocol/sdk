@@ -1,17 +1,19 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
 } from "../../../actions/defineMarketAction.js";
 import { configureAdapter } from "../../../actions/utils/configureCalls.js";
 import { boolean, list, object } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import {
   allowed,
@@ -54,10 +56,7 @@ export const setPairBatchStatusActionData: MarketScopedDefinition<SetPairBatchSt
     gas: ({ params }) => 135_000 + params.pairs.length * 60_000,
     name: "UniswapV2::setPairBatchStatus",
     description: `Set pair batch status, which represents Uniswap V2 pairs could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.literal(310),
-      target: addressSchema,
+    schema: adapterActionSchema([310], {
       pairs: z.array(
         z.object({
           token0: addressSchema,
@@ -71,7 +70,7 @@ export const setPairBatchStatusActionData: MarketScopedDefinition<SetPairBatchSt
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.UNISWAP_V2_ROUTER![params.version],
+        adapterAbi("UNISWAP_V2_ROUTER", params.version),
         {
           functionName: "setPairStatusBatch",
           args: [
@@ -79,18 +78,10 @@ export const setPairBatchStatusActionData: MarketScopedDefinition<SetPairBatchSt
           ],
         },
       ),
-    ...adapterBatch<
-      "pairs",
-      SetPairBatchStatusAction["params"],
-      UniswapV2AdapterState
-    >({
+    ...adapterBatch({
       type: "UNISWAP_V2_ROUTER",
       field: "pairs",
       list: uniswapV2PairsList,
-      toState: p => ({
-        allowed: p.allowed,
-        token0: lowerAddress(p.token0),
-        token1: lowerAddress(p.token1),
-      }),
+      toState: p => lowerAddresses(p, ["token0", "token1"]),
     }),
   });

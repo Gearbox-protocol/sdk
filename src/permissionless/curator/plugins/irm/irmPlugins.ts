@@ -16,10 +16,6 @@ export type InterestRateModelType = InterestRateModelParams["type"];
 export const DEFAULT_INTEREST_RATE_MODEL_PARAMS: InterestRateModelParams =
   linearPlugin.getDefaultParams();
 
-export const DEFAULT_INTEREST_RATE_MODEL_STATE: InterestRateModelState = {
-  ...DEFAULT_INTEREST_RATE_MODEL_PARAMS,
-};
-
 export interface IRMPlugin
   extends Plugin<InterestRateModelParams, InterestRateModelState> {
   getDeployParams(params: InterestRateModelParams): DeployParams;

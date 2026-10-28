@@ -193,7 +193,6 @@ export const kpk127MglobalStrategy: GipReproduction = {
           maxDebt: 1_000_000,
           accountFactoryType: "DEFAULT",
           isExpired: false,
-          expirationDate: 0,
           whitelistPolicy: DEGEN_NFT,
         },
       })

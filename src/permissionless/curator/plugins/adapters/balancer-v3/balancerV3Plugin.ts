@@ -60,14 +60,14 @@ export const balancerV3Plugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "BALANCER_V3_ROUTER",
     version: 311,
-    target: "0x21F55223de449224e8BdF4f59452E072BDF7af57" as Address,
+    target: "0x21F55223de449224e8BdF4f59452E072BDF7af57",
   }),
   isEditable: false,
   allowGas: 1_350_000, // got 1,317,074
   stateSchema: adapterStateSchema<BalancerV3AdapterState>({
     pools: balancerV3PoolsList,
   }),
-  getDeployState: (params: BalancerV3AdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("BALANCER_V3_ROUTER", params),
     pools: [],
   }),
@@ -76,9 +76,9 @@ export const balancerV3Plugin = defineAdapterPlugin<
     ...sdkState("BALANCER_V3_ROUTER", adapter),
     pools: poolsFromSDK(adapter as unknown as BalancerV3RouterAdapterContract),
   }),
-  deployParamsSchema:
-    plainDeployParamsSchema<BalancerV3AdapterDeployParams>(
-      "BALANCER_V3_ROUTER",
-    ),
+  deployParamsSchema: plainDeployParamsSchema<BalancerV3AdapterDeployParams>(
+    "BALANCER_V3_ROUTER",
+    [310, 311],
+  ),
   actions: { setPoolStatusBatch: setPoolBatchStatusActionData },
 });

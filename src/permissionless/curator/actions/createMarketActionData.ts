@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, zeroAddress } from "viem";
 import { z } from "zod/v4";
 import type { RawTx } from "../../../onchain/index.js";
 import {
@@ -13,6 +13,7 @@ import {
   rateKeeperDeployParamsSchema,
   rateKeeperPlugins,
 } from "../plugins/rate-keepers/rateKeeperPlugins.js";
+import { tumblerDiagnostics } from "../plugins/rate-keepers/tumbler/tumblerPlugin.js";
 import { NO_LIMIT } from "../state/market/types.js";
 import { lowerAddress } from "../utils/addressUtils.js";
 import {
@@ -26,6 +27,11 @@ import {
   defineMarketAction,
   type MarketScopedDefinition,
 } from "./defineMarketAction.js";
+import {
+  type PriceFeedResolution,
+  priceFeedDiagnostics,
+  resolvePriceFeed,
+} from "./utils/priceFeedChecks.js";
 
 export type CreateMarketAction = BaseMarketAction<
   "MARKET::createMarket",
@@ -37,7 +43,7 @@ const marketLabelSchema = nonEmptyStringSchema.refine(
   { message: "Must be at least 3 characters long" },
 );
 
-export const createMarketParamsSchema = z.object({
+const createMarketParamsSchema = z.object({
   minorVersion: minorVersionSchema,
   name: marketLabelSchema,
   symbol: marketLabelSchema,
@@ -55,6 +61,7 @@ export interface CreateMarketResolution {
   /** The configurator's treasury, which every new market inherits. **/
   treasury: Address;
   tx: RawTx;
+  priceFeed: PriceFeedResolution;
 }
 
 export const createMarketActionData: MarketScopedDefinition<
@@ -103,8 +110,21 @@ export const createMarketActionData: MarketScopedDefinition<
       }),
       underlyingPriceFeed: params.underlyingPriceFeed,
     });
-    return { pool, treasury: await mc.treasury(), tx };
+    return {
+      pool,
+      treasury: await mc.treasury(),
+      tx,
+      priceFeed: await resolvePriceFeed(
+        ctx,
+        params.underlying,
+        params.underlyingPriceFeed,
+      ),
+    };
   },
+  checkCreate: ({ params, resolved }) => [
+    ...priceFeedDiagnostics(resolved.priceFeed),
+    ...tumblerDiagnostics(params.rateKeeperParams),
+  ],
   check: () => [
     actionError(
       "MARKET_ALREADY_EXISTS",
@@ -118,6 +138,7 @@ export const createMarketActionData: MarketScopedDefinition<
     name: params.name,
     underlyingAsset: params.underlying,
     underlyingPriceFeed: params.underlyingPriceFeed,
+    underlyingReservePriceFeed: zeroAddress,
     totalDebtLimit: NO_LIMIT,
     creditManagerDebtLimit: {},
     assets: {},

@@ -52,4 +52,8 @@ export const unpauseCreditManagerActionData: MarketScopedDefinition<UnpauseCredi
       }),
     requires: requiresCreditManager,
     key: byCreditManager,
+    merge: {
+      position: "last",
+      barriers: ["CREDIT::upgradeCreditFacade", "CREDIT::pause"],
+    },
   });

@@ -8,7 +8,7 @@ import {
 } from "../adapterPluginHelpers.js";
 import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
-import { validateErc4626Target } from "../erc4626/erc4626AdapterPlugin.js";
+import { resolveErc4626Target } from "../erc4626/erc4626AdapterPlugin.js";
 
 export type MellowErc4626AdapterState = AdapterStateBase;
 
@@ -63,15 +63,12 @@ export const mellowErc4626AdapterPlugin = defineAdapterPlugin<
   isEditable: true,
   allowGas: 950_000, // got 930,173
   ...plainAdapter("MELLOW_ERC4626_VAULT"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: MellowErc4626AdapterDeployParams;
-  }) =>
+  getDeployParams: args =>
     adapterDeployParams(
       args,
       args.params.version === 310 ? [] : [args.params.stakedToken],
     ),
-  validateParams: validateErc4626Target,
+  resolveValidation: resolveErc4626Target,
   deployParamsSchema: mellowErc4626DeployParamsSchema,
   actions: {},
 });

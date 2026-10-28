@@ -7,6 +7,7 @@ import {
   creditSuiteRef,
   normalizeBundleTarget,
   retargetCreditManager,
+  targetOf,
 } from "../actions/creditManagerTargets.js";
 import type { GipMarketAction, MarketActions } from "../actions/types.js";
 import { addMarketAction } from "../editing/addAction.js";
@@ -71,7 +72,7 @@ function adaptToMarket(
       if (isUnderlying(token)) return undefined;
       const asset = state.assets[token];
       // A larger limit already in place is preserved.
-      return asset && asset.quotaLimit > action.params.limit
+      return asset && asset.quotaLimit > Number(action.params.limit)
         ? {
             type: "POOL::setTokenLimit",
             params: { token: action.params.token, limit: asset.quotaLimit },
@@ -108,9 +109,7 @@ export function bundleActions(
 /** Whether the bundle names its credit manager by placeholder. **/
 export function usesBundleTarget(bundle: Pick<Bundle, "actions">): boolean {
   return bundleActions(bundle).some(
-    action =>
-      (action.params as { creditManager?: unknown }).creditManager ===
-      BUNDLE_TARGET,
+    action => targetOf(action.params) === BUNDLE_TARGET,
   );
 }
 
@@ -163,13 +162,10 @@ export function applyBundle<A extends GipMarketAction = MarketActions>(args: {
   registry?: GipRegistry;
 }): (A | MarketActions)[] {
   const { actions, currentState, bundle, targetCmAddress, registry } = args;
-  return bindBundleTarget(bundle, targetCmAddress).reduce<
-    (A | MarketActions)[]
-  >(
-    (updated, bundleAction) => {
-      const action = adaptToMarket(bundleAction, currentState);
-      return action ? addMarketAction(updated, action, registry) : updated;
-    },
-    [...actions],
-  );
+  let updated: (A | MarketActions)[] = [...actions];
+  for (const bundleAction of bindBundleTarget(bundle, targetCmAddress)) {
+    const action = adaptToMarket(bundleAction, currentState);
+    if (action) updated = addMarketAction(updated, action, registry);
+  }
+  return updated;
 }

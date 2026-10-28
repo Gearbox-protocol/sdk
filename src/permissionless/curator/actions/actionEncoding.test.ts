@@ -84,7 +84,7 @@ function marketState({
         address: WETH,
         quotaLimit: 0,
         quotaIncreaseFee: 0,
-        mainPriceFeed: zeroAddress,
+        mainPriceFeed: "0x1010101010101010101010101010101010101010",
         reservePriceFeed: zeroAddress,
       },
     },
@@ -274,7 +274,6 @@ describe("action encoding", () => {
           whitelistPolicy: zeroAddress,
           accountFactoryType: "DEFAULT",
           isExpired: false,
-          expirationDate: 0,
         },
       },
     ]);
@@ -287,7 +286,7 @@ describe("action encoding", () => {
     expect(params.minDebt).toBe(1_000_000_000n);
   });
 
-  it("derives a new suite's expiry from the executor timestamp, not the wall clock", async () => {
+  it("creates an expirable suite without an expiration date", async () => {
     const ctx = context();
     const params: CreateCreditSuiteAction["params"] = {
       name: "Expiring suite",
@@ -303,7 +302,6 @@ describe("action encoding", () => {
       whitelistPolicy: zeroAddress,
       accountFactoryType: "DEFAULT",
       isExpired: true,
-      expirationDate: 1_800_000_000,
     };
     const run = (timestamp: number) =>
       new MarketExecutor(ctx, { timestamp }).executeBatch(marketState(), [
@@ -313,7 +311,7 @@ describe("action encoding", () => {
       false,
     );
     expect((await run(1_900_000_000)).after.creditManagers[CM].isExpired).toBe(
-      true,
+      false,
     );
   });
 });
@@ -408,7 +406,6 @@ describe("resolve / apply / encode", () => {
     whitelistPolicy: zeroAddress,
     accountFactoryType: "DEFAULT",
     isExpired: false,
-    expirationDate: 0,
   };
 
   function countingContext() {
@@ -454,7 +451,7 @@ describe("resolve / apply / encode", () => {
       ]);
     await run(suiteParams);
     const once = reads.length;
-    await run({ ...suiteParams, maxDebt: 30_000 });
+    await run({ ...suiteParams, maxDebt: 24_000 });
     expect(reads.length).toBe(once * 2);
   });
 

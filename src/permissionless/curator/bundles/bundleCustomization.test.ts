@@ -51,7 +51,6 @@ function strategyBundle(): Bundle {
           maxDebt: 100_000,
           accountFactoryType: "DEFAULT",
           isExpired: false,
-          expirationDate: 0,
           whitelistPolicy: zeroAddress,
         },
       },

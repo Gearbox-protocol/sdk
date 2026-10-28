@@ -55,9 +55,6 @@ export const aliasPlugin: LossPolicyPlugin = {
     aliases: record(address, address),
   }),
   getDeployState(params): AliasLossPolicyState {
-    if (params.type !== "ALIAS") {
-      throw new Error("Invalid params");
-    }
     return {
       ...params,
       aliases: {},
@@ -67,10 +64,6 @@ export const aliasPlugin: LossPolicyPlugin = {
   },
 
   getDeployParams({ pool, addressProvider, params }) {
-    if (params.type !== "ALIAS") {
-      throw new Error("Invalid ALIAS params");
-    }
-
     return {
       postfix: stringToHex("ALIASED", { size: 32 }),
       salt: params.salt ? handleSalt(params.salt) : zeroHash,

@@ -10,7 +10,6 @@ import { iMarketConfiguratorV310Abi } from "../../../abi/310/generated.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
   type OnchainSDK,
-  type RawTx,
   VERSION_RANGE_310,
 } from "../../../onchain/index.js";
 import { GovernorContract } from "../../bindings/governance/governor.js";
@@ -18,6 +17,7 @@ import { TimeLockContract } from "../../bindings/governance/timelock.js";
 import { convertRawTxToSafeMultisigTx } from "../../utils/governance/batch.js";
 import type { TimelockTxs } from "../../utils/governance/types.js";
 import { getUpdatablePriceFeeds } from "../../utils/price-update/get-updatable-feeds.js";
+import type { ForkExecutionCall } from "../simulation/simulateGipOnFork.js";
 import type { BatchTxs } from "../types.js";
 
 export interface SignedTimelockTxs extends TimelockTxs {
@@ -87,21 +87,18 @@ export async function getTimelockTransactions(args: {
   );
 
   const updatableFeeds = await Promise.all(
-    batches
-      .map(({ touchedFeeds }) => touchedFeeds)
-      .map(async priceFeeds => {
-        if (priceFeeds.length === 0) {
-          return [];
-        }
-        const contracts = await getUpdatablePriceFeeds({
-          sdk: sdk,
-          client,
-          pfCompressor,
-          priceFeeds,
-        });
-
-        return contracts.map(contract => contract.address);
-      }),
+    batches.map(async ({ touchedFeeds: priceFeeds }) => {
+      if (priceFeeds.length === 0) {
+        return [];
+      }
+      const contracts = await getUpdatablePriceFeeds({
+        sdk,
+        client,
+        pfCompressor,
+        priceFeeds,
+      });
+      return contracts.map(contract => contract.address);
+    }),
   );
 
   return {
@@ -115,44 +112,38 @@ export async function getTimelockTransactions(args: {
   };
 }
 
+/**
+ * The payload calls the TimeLock will execute, in order: every
+ * `queueTransaction` of every batch, with its selector restored from the
+ * signature, and without the governor wrappers.
+ **/
 export function getTimelockTransactionsForExecution(
   txs: TimelockTxs,
-): Omit<RawTx, "signature" | "contractMethod" | "contractInputsValues">[] {
-  const result: Omit<
-    RawTx,
-    "signature" | "contractMethod" | "contractInputsValues"
-  >[] = [];
-  for (let i = 0; i < txs.queueBatches.length; i++) {
-    const batch = txs.queueBatches[i];
+): ForkExecutionCall[] {
+  const result: ForkExecutionCall[] = [];
+  for (const [i, batch] of txs.queueBatches.entries()) {
     if (batch.length <= 1) {
       throw new Error(`batch ${i} has 1 or less txs`);
     }
-    const startBatch = batch[0];
-    // if (startBatch.to !== governor) {
-    //   throw new Error(`batch ${i} does not start with governor`);
-    // }
-    if (startBatch.contractMethod?.name !== "startBatch") {
+    if (batch[0].contractMethod?.name !== "startBatch") {
       throw new Error(`batch ${i} does not start with startBatch`);
     }
     for (let j = 1; j < batch.length; j++) {
-      const tx = batch[j];
-      if (tx.contractMethod.name !== "queueTransaction") {
+      const { contractMethod, contractInputsValues } = batch[j];
+      if (contractMethod.name !== "queueTransaction") {
         throw new Error(
-          `expected queueTransaction tx ${j} in batch ${i}, got ${tx.contractMethod.name}`,
+          `expected queueTransaction tx ${j} in batch ${i}, got ${contractMethod.name}`,
         );
       }
-      const { target, data, value } = tx.contractInputsValues;
-      const signature = tx.contractInputsValues.signature.startsWith("function")
-        ? tx.contractInputsValues.signature
-        : `function ${tx.contractInputsValues.signature}`;
-      const selector = toFunctionSelector(signature);
-      const callData = data.replace("0x", selector);
-
+      const { target, data, value, signature } = contractInputsValues;
+      const selector = toFunctionSelector(
+        signature.startsWith("function") ? signature : `function ${signature}`,
+      );
       result.push({
         to: target as Address,
-        callData: callData as Hex,
-        value: value as string,
-        description: tx.contractInputsValues.signature,
+        callData: data.replace("0x", selector) as Hex,
+        value,
+        description: signature,
       });
     }
   }

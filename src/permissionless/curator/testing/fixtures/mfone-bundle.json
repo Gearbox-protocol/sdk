@@ -110,7 +110,6 @@
         "maxDebt": 7500000,
         "accountFactoryType": "DEFAULT",
         "isExpired": false,
-        "expirationDate": 0,
         "whitelistPolicy": "0x0000000000000000000000000000000000000000",
         "debtLimit": 5000000
       }

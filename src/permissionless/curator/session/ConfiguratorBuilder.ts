@@ -68,25 +68,27 @@ export class ConfiguratorBuilder extends ScopedBuilder<
 
   protected async compile(
     recorded: readonly ConfiguratorActions[],
+    eta: number,
   ): Promise<ScopeCompilation<ConfiguratorPreview>> {
     const { runtime } = this;
     // Recorded actions are added the way every caller adds them: a later
     // action merges into an earlier one with the same key.
     const actions = addConfiguratorActions([], recorded, runtime.registry);
-    const before = await this.#resolveInitialState();
     const executor = new ConfigurationExecutor(runtime.ctx, {
-      timestamp: runtime.source.blockTimestamp,
+      timestamp: this.executionTimestamp(eta),
       resolveCache: runtime.resolveCache,
       registry: runtime.registry,
     });
-    const changes = await executor.execute(before.state, actions);
-    const isFetched =
-      before.provenance === "chain-read" || before.provenance === "fork-read";
+    const changes = await executor.execute(
+      await this.#resolveInitialState(),
+      actions,
+    );
 
     const preview = snapshot<ConfiguratorPreview>({
       scope: "configurator",
       source: runtime.source,
-      stateProvenance: before.provenance,
+      eta,
+      stateProvenance: this.#provenance,
       before: changes.before,
       after: changes.after,
       resolvedActions: actions,
@@ -96,15 +98,15 @@ export class ConfiguratorBuilder extends ScopedBuilder<
         : {}),
       incompleteChecks: [
         ...runtime.notes,
-        ...(isFetched
-          ? [
+        ...(this.#initialState
+          ? []
+          : [
               {
                 check: "configuratorState.shutdown",
                 reason:
                   "the legacy configurator state reader does not read shutdown and currently reports false",
               },
-            ]
-          : []),
+            ]),
       ],
     });
 
@@ -136,10 +138,7 @@ export class ConfiguratorBuilder extends ScopedBuilder<
     };
   }
 
-  async #resolveInitialState(): Promise<{
-    state: ConfiguratorState;
-    provenance: StateProvenance;
-  }> {
+  async #resolveInitialState(): Promise<ConfiguratorState> {
     const { runtime } = this;
     const { marketConfigurator } = runtime.source;
 
@@ -151,11 +150,8 @@ export class ConfiguratorBuilder extends ScopedBuilder<
           `Supplied configurator state is for ${state.address}, but this SDK is scoped to ${marketConfigurator}`,
         );
       }
-      return { state, provenance: this.#provenance };
+      return state;
     }
-    return {
-      state: await getConfiguratorState(runtime.readClient, marketConfigurator),
-      provenance: runtime.fork ? "fork-read" : "chain-read",
-    };
+    return getConfiguratorState(runtime.readClient, marketConfigurator);
   }
 }

@@ -2,10 +2,7 @@ import type { Address } from "viem";
 import { z } from "zod/v4";
 import type { DeployParams } from "../../types.js";
 import type { Plugin } from "../Plugin.js";
-import {
-  type AliasMarketActions,
-  aliasMarketActionsData,
-} from "./alias/actions/aliasMarketActionsData.js";
+import { aliasMarketActionsData } from "./alias/actions/aliasMarketActionsData.js";
 import {
   type AliasLossPolicyParams as AliasLossPolicyDeployParams,
   type AliasLossPolicyState,
@@ -36,16 +33,8 @@ export const lossPolicyPlugins: Record<LossPolicyType, LossPolicyPlugin> = {
   ALIAS: aliasPlugin,
 };
 
-const DEFAULT_LOSS_POLICY_TYPE: LossPolicyType = "ALIAS";
-
 export const DEFAULT_LOSS_POLICY_PARAMS: LossPolicyDeployParams =
-  lossPolicyPlugins[DEFAULT_LOSS_POLICY_TYPE].getDefaultParams();
-
-export const DEFAULT_LOSS_POLICY_STATE: LossPolicyState = lossPolicyPlugins[
-  DEFAULT_LOSS_POLICY_PARAMS.type
-].getDeployState(DEFAULT_LOSS_POLICY_PARAMS);
-
-export type LossPolicyMarketActions = AliasMarketActions;
+  aliasPlugin.getDefaultParams();
 
 export const lossPolicyDeployParamsSchema = z.discriminatedUnion("type", [
   aliasDeployParamsSchema,

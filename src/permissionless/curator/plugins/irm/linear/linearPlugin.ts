@@ -63,10 +63,6 @@ export const linearPlugin: IRMPlugin = {
   }),
   getDeployState: params => params,
   getDeployParams: params => {
-    if (params.type !== "LINEAR") {
-      throw new Error(`Unsupported IRM type: ${params.type}`);
-    }
-
     const model = params.params;
     const bps = (percentage: number) => BigInt(convertPercent(percentage));
     return {

@@ -4,6 +4,7 @@ import type { MarketConfiguratorContract } from "../../bindings/market-configura
 import {
   type ActionDiagnostic,
   actionError,
+  CHECK_UNAVAILABLE,
   type GipActionDiagnostic,
   GipActionError,
   hasErrors,
@@ -25,6 +26,9 @@ import {
 import type { GipMarketAction } from "../actions/types.js";
 import type { ConfiguratorTx } from "../configurator-actions/ConfiguratorTx.js";
 import type { ConfiguratorActions } from "../configurator-actions/types.js";
+import type { GipRegistry } from "../GipRegistry.js";
+import type { IncompleteCheck } from "../session/types.js";
+import { isCreditManagerExpired } from "../state/market/isCreditManagerExpired.js";
 import type { MarketState } from "../state/market/types.js";
 import type { MarketStateChanges, ParsedMarketTx } from "../types.js";
 import { lowerAddress } from "../utils/addressUtils.js";
@@ -40,19 +44,20 @@ type AnyDefinition = MarketActionDefinition<GipMarketAction>;
  * Only the market's identity is passed on, never its state, which is what
  * makes the result reusable for any replay of the same action.
  **/
-export function resolveMarketAction(args: {
+function resolveMarketAction(args: {
   ctx: GipBuilderContext;
   cache: ResolveCache;
   definition: AnyDefinition;
   state: MarketState | undefined;
   params: GipMarketAction["params"];
+  registry: GipRegistry;
 }): Promise<unknown> {
   const { ctx, cache, definition, state, params } = args;
   const { resolve } = definition;
   if (!resolve) return Promise.resolve(undefined);
   const market = state ? marketIdentity(state) : undefined;
   return cache.run({ type: definition.type, market, params }, () =>
-    resolve({ ctx, market, params }),
+    resolve({ ctx, market, params, registry: args.registry }),
   );
 }
 
@@ -69,6 +74,7 @@ export interface MarketProjection {
   creditSuites: Record<string, Address>;
   /** Every `check` finding, warnings included, located by action. **/
   diagnostics: GipActionDiagnostic[];
+  incompleteChecks: IncompleteCheck[];
   /**
    * Index of the first action whose `check` found an error. The projection
    * stops there: `after` is the state right before it.
@@ -100,7 +106,7 @@ export class MarketExecutor {
   constructor(ctx: GipBuilderContext, options: ExecutorOptions = {}) {
     this.mc = ctx.marketConfigurator;
     this.ctx = ctx;
-    this.env = actionEnv(options);
+    this.env = { ...actionEnv(options), tokens: ctx.tokens };
     this.#cache = options.resolveCache ?? new ResolveCache();
   }
 
@@ -156,6 +162,7 @@ export class MarketExecutor {
       after: execution.after,
       txs: execution.txs,
       diagnostics: execution.diagnostics,
+      incompleteChecks: execution.incompleteChecks,
     };
   }
 
@@ -179,7 +186,48 @@ export class MarketExecutor {
     const steps: ActionStep[] = [];
     const diagnostics: GipActionDiagnostic[] = [];
     const creditSuites: Record<string, Address> = {};
-    let state = initial;
+    const incompleteChecks: IncompleteCheck[] = [
+      {
+        check: "executionState",
+        reason:
+          "Source-block checks cannot establish future prices, permissions, deployment availability or integration-specific restrictions; verify execution on a fork",
+      },
+    ];
+    /** Moves incomplete checks out of `found` into `incompleteChecks`. **/
+    const extractChecks = (
+      found: ActionDiagnostic[],
+      index: number,
+      type: string,
+    ) => {
+      const kept: ActionDiagnostic[] = [];
+      for (const finding of found) {
+        if (finding.code === CHECK_UNAVAILABLE) {
+          incompleteChecks.push({
+            check: `action:${index}:${type}`,
+            reason: finding.message,
+          });
+        } else {
+          kept.push(finding);
+        }
+      }
+      return kept;
+    };
+    const run = (blockedAt?: number): Run => ({
+      steps,
+      diagnostics,
+      creditSuites,
+      incompleteChecks,
+      ...(blockedAt === undefined ? {} : { blockedAt }),
+    });
+    let state = initial && {
+      ...initial,
+      creditManagers: Object.fromEntries(
+        Object.entries(initial.creditManagers).map(([address, cm]) => [
+          address,
+          { ...cm, isExpired: isCreditManagerExpired(cm, this.env.timestamp) },
+        ]),
+      ),
+    };
 
     for (const [index, recorded] of actions.entries()) {
       const definition = this.env.registry.requireMarketAction(recorded.type);
@@ -188,7 +236,7 @@ export class MarketExecutor {
         diagnostics.push(
           ...locateDiagnostics([target.diagnostic], index, recorded.type),
         );
-        return { steps, diagnostics, creditSuites, blockedAt: index };
+        return run(index);
       }
       const action = target.action;
       const { params } = action;
@@ -198,25 +246,29 @@ export class MarketExecutor {
         definition,
         state,
         params,
+        registry: this.env.registry,
       });
       const env = this.env;
 
-      let after: MarketState;
-      if (state === undefined) {
-        if (index !== 0 || !definition.create) {
-          throw new Error("Market state is undefined");
-        }
-        after = definition.create({ params, resolved, env });
-      } else {
-        const found =
-          definition.check?.({ state, params, resolved, env }) ?? [];
-        diagnostics.push(...locateDiagnostics(found, index, action.type));
-        // @dev the batch would revert here: nothing after it is projected
-        if (hasErrors(found)) {
-          return { steps, diagnostics, creditSuites, blockedAt: index };
-        }
-        after = definition.apply({ state, params, resolved, env });
-      }
+      if (state === undefined && (index !== 0 || !definition.create))
+        throw new Error("Market state is undefined");
+      const created =
+        state === undefined
+          ? definition.create?.({ params, resolved, env })
+          : undefined;
+      const found = extractChecks(
+        state
+          ? (definition.check?.({ state, params, resolved, env }) ?? [])
+          : (definition.checkCreate?.({ params, resolved, env }) ?? []),
+        index,
+        action.type,
+      );
+      diagnostics.push(...locateDiagnostics(found, index, action.type));
+      if (hasErrors(found))
+        return { ...run(index), ...(created && { created }) };
+      const after = state
+        ? definition.apply({ state, params, resolved, env })
+        : created!;
 
       const suiteId = definition.suiteId?.(recorded.params);
       const deployed = definition.deployedContract?.({ params, resolved });
@@ -228,7 +280,7 @@ export class MarketExecutor {
       state = after;
     }
 
-    return { steps, diagnostics, creditSuites };
+    return run();
   }
 
   #encode(step: ActionStep): ParsedMarketTx {
@@ -257,8 +309,10 @@ export class MarketExecutor {
 }
 
 interface Run {
+  created?: MarketState;
   steps: ActionStep[];
   diagnostics: GipActionDiagnostic[];
+  incompleteChecks: IncompleteCheck[];
   creditSuites: Record<string, Address>;
   blockedAt?: number;
 }
@@ -291,8 +345,8 @@ function projection(
   run: Run,
   initial: MarketState | undefined,
 ): MarketProjection {
-  const before = initial ?? run.steps[0]?.after;
-  const after = run.steps.at(-1)?.after ?? initial;
+  const before = initial ?? run.steps[0]?.after ?? run.created;
+  const after = run.steps.at(-1)?.after ?? initial ?? run.created;
   if (!before || !after) throw new Error("Market state is undefined");
   return {
     before,
@@ -300,6 +354,7 @@ function projection(
     resolvedActions: run.steps.map(step => step.action),
     creditSuites: run.creditSuites,
     diagnostics: run.diagnostics,
+    incompleteChecks: run.incompleteChecks,
     ...(run.blockedAt !== undefined ? { blockedAt: run.blockedAt } : {}),
   };
 }

@@ -11,13 +11,5 @@ export function updateLossPolicyState<T extends LossPolicyState>(args: {
   update: (state: T) => T;
 }): MarketState {
   const { state, update } = args;
-
-  if (!state.lossPolicy) {
-    throw new Error("Loss policy not configured");
-  }
-
-  return {
-    ...state,
-    lossPolicy: update(state.lossPolicy as T),
-  };
+  return { ...state, lossPolicy: update(state.lossPolicy as T) };
 }

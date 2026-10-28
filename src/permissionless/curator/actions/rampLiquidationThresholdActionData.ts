@@ -2,12 +2,17 @@ import type { Address } from "viem";
 import { z } from "zod/v4";
 import { convertPercent } from "../../utils/format.js";
 import { MIN_RAMP_DURATION, UINT40_MAX } from "../constants.js";
+import { effectiveLiquidationThreshold } from "../state/market/effectiveLiquidationThreshold.js";
 import {
   addressSchema,
   percentageSchema,
   uintSchema,
 } from "../validationSchemas.js";
-import { actionError, actionWarning } from "./actionDiagnostics.js";
+import {
+  actionError,
+  actionWarning,
+  incompleteCheck,
+} from "./actionDiagnostics.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import {
   type CreditManagerTarget,
@@ -22,13 +27,8 @@ import {
   requiresCollateral,
 } from "./utils/actionKeys.js";
 import {
-  collateralNotFound,
-  creditManagerNotFound,
-  findCollateral,
-  findCreditManager,
-  isUnderlying,
   liquidationThresholdDiagnostics,
-  underlyingNotAllowed,
+  targetCollateral,
 } from "./utils/checkHelpers.js";
 import { configureCreditManager } from "./utils/configureCalls.js";
 import { updateCollateralToken } from "./utils/creditManagerStateUpdates.js";
@@ -64,18 +64,27 @@ or a particular collateral token during the time.`,
       rampDuration: uintSchema(24),
     }),
     check: ({ state, params, env }) => {
-      const cm = findCreditManager(state, params.creditManager);
-      if (!cm) return [creditManagerNotFound(params.creditManager)];
-      if (isUnderlying(state, params.token)) return [underlyingNotAllowed()];
-      if (!findCollateral(cm, params.token)) {
-        return [collateralNotFound(params.token)];
-      }
+      const {
+        cm,
+        collateral,
+        diagnostics: missing,
+      } = targetCollateral(state, params);
+      if (missing) return missing;
       const diagnostics = liquidationThresholdDiagnostics(
         state,
         cm,
         params.liquidationThresholdFinal,
         ["params", "liquidationThresholdFinal"],
       );
+      if (
+        effectiveLiquidationThreshold(collateral, env.timestamp) === undefined
+      )
+        diagnostics.push(
+          incompleteCheck(
+            "rampInitialLT",
+            "The supplied active ramp has no initial liquidation threshold",
+          ),
+        );
       if (params.rampDuration < MIN_RAMP_DURATION) {
         diagnostics.push(
           actionError(
@@ -106,20 +115,24 @@ or a particular collateral token during the time.`,
       }
       return diagnostics;
     },
-    apply: ({ state, params }) =>
+    apply: ({ state, params, env }) =>
       updateCollateralToken({
         state,
         creditManager: params.creditManager,
         token: params.token,
         update: token => ({
           ...token,
+          liquidationThresholdInitial: effectiveLiquidationThreshold(
+            token,
+            env.timestamp,
+          ),
           liquidationThresholdFinal: params.liquidationThresholdFinal,
-          rampStart: params.rampStart,
+          rampStart: Math.max(params.rampStart, env.timestamp),
           rampDuration: params.rampDuration,
         }),
       }),
-    encode: ({ ctx, params }) => {
-      return configureCreditManager(ctx, params.creditManager, {
+    encode: ({ ctx, params }) =>
+      configureCreditManager(ctx, params.creditManager, {
         functionName: "rampLiquidationThreshold",
         args: [
           params.token,
@@ -127,8 +140,7 @@ or a particular collateral token during the time.`,
           params.rampStart,
           params.rampDuration,
         ],
-      });
-    },
+      }),
     requires: requiresCollateral,
     key: byCreditManagerAndToken,
   });

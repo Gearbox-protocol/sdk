@@ -6,12 +6,9 @@ import {
   getter,
   plainAdapter,
   readAddresses,
-  validateTargetTokens,
+  resolveTargetTokens,
 } from "../adapterPluginHelpers.js";
-import type {
-  AdapterStateBase,
-  ValidateAdapterParamsArgs,
-} from "../defineAdapterPlugin.js";
+import type { AdapterStateBase } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
 export type StakingRewardsAdapterState = AdapterStateBase;
@@ -59,21 +56,16 @@ export const stakingRewardsPlugin = defineAdapterPlugin<
   isEditable: true,
   allowGas: 990_000, // got 981,079
   ...plainAdapter("STAKING_REWARDS"),
-  getDeployParams: (args: {
-    creditManager: Address;
-    params: StakingRewardsAdapterDeployParams;
-  }) =>
+  getDeployParams: args =>
     adapterDeployParams(
       args,
       args.params.version === 310
         ? [args.params.stakedToken]
         : [args.params.stakedToken, args.params.referral],
     ),
-  validateParams: (
-    args: ValidateAdapterParamsArgs<StakingRewardsAdapterDeployParams>,
-  ) => {
+  resolveValidation: args => {
     const { target } = args.params;
-    return validateTargetTokens(
+    return resolveTargetTokens(
       args,
       () =>
         readAddresses(args.client, [

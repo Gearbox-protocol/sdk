@@ -8,6 +8,8 @@ export type {
   AdapterPluginDefinition,
   AdapterStateBase,
   AdapterStateOf,
+  AdapterValidation,
   DeployParamsOf,
+  ResolveAdapterValidationArgs,
   ValidateAdapterParamsArgs,
 } from "./defineAdapterPlugin.js";

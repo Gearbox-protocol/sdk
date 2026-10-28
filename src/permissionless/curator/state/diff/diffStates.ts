@@ -19,7 +19,7 @@ export type StatePath = readonly string[];
 export type CanonTree = Canon | { [key: string]: CanonTree };
 
 /** Canonical value of a leaf that is not known yet on that side. **/
-export const UNKNOWN = "<unknown>";
+const UNKNOWN = "<unknown>";
 
 export type StateChange =
   | { op: "set"; path: StatePath; before: Canon; after: Canon }
@@ -277,11 +277,15 @@ function canon(
     case "record":
     case "list": {
       const tree: Record<string, CanonTree> = {};
-      const entries = [...toMap(node, value, path, side, ctx)].sort(
-        ([x], [y]) => (x < y ? -1 : x > y ? 1 : 0),
-      );
-      for (const [key, item] of entries) {
-        const child = canon(node.item, item, [...path, key], side, ctx);
+      const items = toMap(node, value, path, side, ctx);
+      for (const key of [...items.keys()].sort()) {
+        const child = canon(
+          node.item,
+          items.get(key),
+          [...path, key],
+          side,
+          ctx,
+        );
         if (child !== OMIT) tree[key] = child;
       }
       return tree;
@@ -330,6 +334,24 @@ function canonLeaf(
 
 // -------------------------------------------------------------------- reading
 
+/** The value as a plain object, or `undefined` with a diagnostic. **/
+function readPlainObject(
+  value: unknown,
+  path: StatePath,
+  side: Side,
+  ctx: Ctx,
+): Record<string, unknown> | undefined {
+  if (isPlainObject(value)) return value;
+  diagnostic(
+    ctx,
+    "invalid-value",
+    side,
+    path,
+    `expected object, got ${describe(value)}`,
+  );
+  return undefined;
+}
+
 function readObject(
   node: ObjectNode,
   value: unknown,
@@ -337,17 +359,9 @@ function readObject(
   side: Side,
   ctx: Ctx,
 ): Record<string, unknown> | undefined {
-  if (!isPlainObject(value)) {
-    diagnostic(
-      ctx,
-      "invalid-value",
-      side,
-      path,
-      `expected object, got ${describe(value)}`,
-    );
-    return undefined;
-  }
-  const source = node.normalize ? node.normalize(value) : value;
+  const raw = readPlainObject(value, path, side, ctx);
+  if (!raw) return undefined;
+  const source = node.normalize ? node.normalize(raw) : raw;
   for (const name of Object.keys(source)) {
     if (!(name in node.fields))
       diagnostic(
@@ -409,20 +423,12 @@ function toMap(
     }
     return map;
   }
-  if (!isPlainObject(value)) {
-    diagnostic(
-      ctx,
-      "invalid-value",
-      side,
-      path,
-      `expected object, got ${describe(value)}`,
-    );
-    return map;
-  }
+  const source = readPlainObject(value, path, side, ctx);
+  if (!source) return map;
   const zero = node.zero
     ? JSON.stringify(canon(node.item, node.zero.value, path, side, context([])))
     : undefined;
-  for (const [rawKey, item] of Object.entries(value)) {
+  for (const [rawKey, item] of Object.entries(source)) {
     const key = canonLeaf(node.key, rawKey, [...path, rawKey], side, ctx);
     if (key === INVALID) continue;
     if (
@@ -445,23 +451,20 @@ function variantOf(
   ctx: Ctx,
 ): { tag: string; schema: ObjectNode } | undefined {
   const tag = isPlainObject(value) ? value[node.tag] : undefined;
-  const schema =
-    typeof tag !== "string"
-      ? undefined
-      : Object.hasOwn(node.variants, tag)
-        ? node.variants[tag]
-        : node.fallback;
-  if (typeof tag !== "string" || !schema) {
-    diagnostic(
-      ctx,
-      "unknown-variant",
-      side,
-      path,
-      `${node.tag} = ${JSON.stringify(tag)}`,
-    );
-    return undefined;
+  if (typeof tag === "string") {
+    const schema = Object.hasOwn(node.variants, tag)
+      ? node.variants[tag]
+      : node.fallback;
+    if (schema) return { tag, schema };
   }
-  return { tag, schema };
+  diagnostic(
+    ctx,
+    "unknown-variant",
+    side,
+    path,
+    `${node.tag} = ${JSON.stringify(tag)}`,
+  );
+  return undefined;
 }
 
 // -------------------------------------------------------------------- helpers

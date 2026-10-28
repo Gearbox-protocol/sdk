@@ -143,6 +143,7 @@ export class ConfigurationExecutor {
   ): Promise<ConfiguratorTx[]> {
     return buildConfiguratorTxs(this.ctx, actions, {
       resolveCache: this.#cache,
+      registry: this.env.registry,
     });
   }
 }

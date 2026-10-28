@@ -35,14 +35,14 @@ export const velodromeV2Plugin = defineAdapterPlugin<
   getDefaultParams: () => ({
     type: "VELODROME_V2_ROUTER",
     version: 310,
-    target: "0xa062aE8A9c5e11aaA026fc2670B0D65cCc8B2858" as Address,
+    target: "0xa062aE8A9c5e11aaA026fc2670B0D65cCc8B2858",
   }),
   isEditable: false,
   allowGas: 2_000_000, // not measured
   stateSchema: adapterStateSchema<VelodromeV2AdapterState>({
     pairs: velodromeV2PairsList,
   }),
-  getDeployState: (params: VelodromeV2AdapterDeployParams) => ({
+  getDeployState: params => ({
     ...deployState("VELODROME_V2_ROUTER", params),
     pairs: [],
   }),

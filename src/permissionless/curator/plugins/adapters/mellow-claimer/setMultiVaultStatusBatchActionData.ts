@@ -1,8 +1,6 @@
 import type { Address } from "viem";
 import { z } from "zod/v4";
-import { adapterActionAbi } from "../../../../../onchain/index.js";
 import type { BaseMarketAction } from "../../../actions/actionTypes.js";
-import { creditManagerTargetSchema } from "../../../actions/creditManagerTargets.js";
 import {
   defineMarketAction,
   type MarketScopedDefinition,
@@ -15,9 +13,13 @@ import {
   list,
   object,
 } from "../../../state/diff/schemaNodes.js";
-import { lowerAddress } from "../../../utils/addressUtils.js";
 import { addressSchema } from "../../../validationSchemas.js";
-import { adapterBatch } from "../adapterActionHelpers.js";
+import {
+  adapterAbi,
+  adapterActionSchema,
+  adapterBatch,
+  lowerAddresses,
+} from "../adapterActionHelpers.js";
 import type { AdapterActionContext } from "../adapterMarketActionsData.js";
 import { allowed, type ItemOf, lower } from "../adapterStateSchema.js";
 import type { MellowClaimerAdapterState } from "./mellowClaimerAdapterPlugin.js";
@@ -59,10 +61,7 @@ export const setMultiVaultStatusBatchActionData: MarketScopedDefinition<SetMulti
     gas: () => 200_000, // not measured
     name: "MellowClaimer::setMultiVaultStatusBatch",
     description: `Set vault batch status, which represents Mellow vaults could be used for swaps for credit accounts.`,
-    schema: z.object({
-      creditManager: creditManagerTargetSchema,
-      version: z.literal(310),
-      target: addressSchema,
+    schema: adapterActionSchema([310], {
       vaults: z.array(
         z.object({
           multiVault: addressSchema,
@@ -76,7 +75,7 @@ export const setMultiVaultStatusBatchActionData: MarketScopedDefinition<SetMulti
       configureAdapter(
         ctx,
         params,
-        adapterActionAbi.MELLOW_CLAIMER![params.version],
+        adapterAbi("MELLOW_CLAIMER", params.version),
         {
           functionName: "setMultiVaultStatusBatch",
           args: [
@@ -86,18 +85,10 @@ export const setMultiVaultStatusBatchActionData: MarketScopedDefinition<SetMulti
           ],
         },
       ),
-    ...adapterBatch<
-      "vaults",
-      SetMultiVaultStatusBatchAction["params"],
-      MellowClaimerAdapterState
-    >({
+    ...adapterBatch({
       type: "MELLOW_CLAIMER",
       field: "vaults",
       list: mellowClaimerVaultsList,
-      toState: v => ({
-        allowed: v.allowed,
-        multiVault: lowerAddress(v.multiVault),
-        stakedToken: lowerAddress(v.stakedToken),
-      }),
+      toState: v => lowerAddresses(v, ["multiVault", "stakedToken"]),
     }),
   });

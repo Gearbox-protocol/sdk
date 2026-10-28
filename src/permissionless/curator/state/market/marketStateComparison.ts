@@ -25,6 +25,7 @@ import {
   boolean,
   identity,
   integer,
+  type LeafNode,
   limit,
   list,
   mapValues,
@@ -47,7 +48,14 @@ import type {
   TreasuryState,
 } from "./types.js";
 
+const legacyUnknown = (node: LeafNode) =>
+  absent(
+    unknownWhen(node, value => value === undefined),
+    undefined,
+  );
+
 const collateralToken = object<CollateralToken>({
+  liquidationThresholdInitial: legacyUnknown(percent),
   liquidationThresholdFinal: percent,
   rampStart: integer,
   rampDuration: integer,
@@ -72,6 +80,7 @@ const creditManager = (adapters: SchemaNode) =>
     maxDebt: amount,
     maxDebtPerBlockMultiplier: integer,
     degenNFT: address,
+    creditFacade: legacyUnknown(address),
     paused: boolean,
     collateralTokens: record(address, collateralToken),
     adapters,
@@ -115,9 +124,10 @@ export function buildMarketStateSchema(
     name: identity(string),
     underlyingAsset: identity(address),
     underlyingPriceFeed: address,
+    underlyingReservePriceFeed: legacyUnknown(address),
     totalDebtLimit: limit,
     // The chain reader writes 0 for every credit manager, a transition writes nothing.
-    creditManagerDebtLimit: record(address, amount, { value: 0 }),
+    creditManagerDebtLimit: record(address, limit, { value: 0 }),
     assets: record(address, asset),
     creditManagers: record(
       address,

@@ -1,4 +1,4 @@
-/** Helpers shared by the configurator action processors. **/
+/** Helpers shared by the configurator action definitions. **/
 
 import type { Address } from "viem";
 import { TreasurySplitterContract } from "../../bindings/treasury-splitter.js";
@@ -7,6 +7,7 @@ import type {
   AdminRole,
   ConfiguratorState,
 } from "../state/configurator/types.js";
+import { isSameAddress } from "../utils/addressUtils.js";
 
 /** The treasury splitter every market of the configurator shares. **/
 export interface TreasurySplitterResolution {
@@ -50,35 +51,36 @@ const ADMIN_ROLE_LISTS: Record<
   },
 };
 
-/** Holders of `role`. **/
-export function adminRoleHolders(
-  state: ConfiguratorState,
-  role: AdminRole,
-): Address[] {
+function adminRoleList(role: AdminRole) {
   const list = ADMIN_ROLE_LISTS[role];
   if (!list) throw new Error(`Unknown admin role: ${role}`);
-  return state[list.field];
+  return list;
+}
+
+/** Whether `admin` holds `role`. **/
+export function holdsAdminRole(
+  state: ConfiguratorState,
+  role: AdminRole,
+  admin: Address,
+): boolean {
+  return state[adminRoleList(role).field].some(holder =>
+    isSameAddress(holder, admin),
+  );
 }
 
 /** How diagnostics name the holder list of `role`. **/
 export function adminRoleLabel(role: AdminRole): string {
-  return ADMIN_ROLE_LISTS[role]?.label ?? role;
+  return adminRoleList(role).label;
 }
 
-/**
- * Rewrites the holder list of `role`.
- *
- * `update` receives the current holders and returns the new ones; it is also
- * given the role's label so its errors can say which list was involved.
- **/
+/** Rewrites the holder list of `role`: `update` maps the holders to the new ones. **/
 export function updateAdminRole(
   state: ConfiguratorState,
   role: AdminRole,
-  update: (holders: Address[], label: string) => Address[],
+  update: (holders: Address[]) => Address[],
 ): ConfiguratorState {
-  const list = ADMIN_ROLE_LISTS[role];
-  if (!list) throw new Error(`Unknown admin role: ${role}`);
-  return { ...state, [list.field]: update(state[list.field], list.label) };
+  const { field } = adminRoleList(role);
+  return { ...state, [field]: update(state[field]) };
 }
 
 export const byRoleAndAdmin = (params: {

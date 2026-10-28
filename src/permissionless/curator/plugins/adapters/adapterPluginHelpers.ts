@@ -24,10 +24,11 @@ import {
 import type { DeployParams } from "../../types.js";
 import { addressSchema, literalsSchema } from "../../validationSchemas.js";
 import { plainAdapterStateSchema } from "./adapterStateSchema.js";
-import { validateCollateralTokens } from "./adapterValidation.js";
+import { checkCollateralTokens } from "./adapterValidation.js";
 import type {
   AdapterDeployParamsBase,
-  ValidateAdapterParamsArgs,
+  AdapterValidation,
+  ResolveAdapterValidationArgs,
 } from "./defineAdapterPlugin.js";
 
 type SdkAdapter = AbstractAdapterContract<Abi, Abi>;
@@ -163,43 +164,41 @@ export function readAddresses(
 }
 
 /**
- * The usual `validateParams`: the target must be a contract of the expected
+ * The usual `resolveValidation`: the target must be a contract of the expected
  * kind, and every token the adapter moves must be collateral of the credit
  * manager.
  *
- * `readTokens` reads those tokens off the target. A failing read means the
- * target is not what the adapter expects; returning a string reports a more
- * specific problem. `label` names the target in the messages.
+ * `readTokens` reads those tokens off the target once; the returned check is
+ * replayed against each projected state. A failing read means the target is
+ * not what the adapter expects; returning a string reports a more specific
+ * problem. `label` names the target in the messages.
  **/
-export async function validateTargetTokens<P extends { target: Address }>(
-  args: ValidateAdapterParamsArgs<P>,
+export async function resolveTargetTokens<P extends { target: Address }>(
+  args: ResolveAdapterValidationArgs<P>,
   readTokens: () => Promise<Address[] | string>,
   label = "target",
-): Promise<false | string> {
-  if (!isAddress(args.params.target)) return `Invalid ${label} address`;
-
-  try {
-    const tokens = await readTokens();
-    if (typeof tokens === "string") return tokens;
-    return validateCollateralTokens({ ...args, tokens });
-  } catch {
-    return `Invalid ${label}`;
-  }
+): Promise<AdapterValidation> {
+  if (!isAddress(args.params.target)) return () => `Invalid ${label} address`;
+  const tokens = await readTokens();
+  return (state, creditManager, instance) =>
+    typeof tokens === "string"
+      ? tokens
+      : checkCollateralTokens(state, creditManager, tokens, instance?.assets);
 }
 
 /**
  * Deploy params schema of an adapter whose constructor takes nothing but
  * `(creditManager, target)`.
  *
- * @dev accepts versions 310–312 whatever the plugin's type declares, so a new
- * adapter version deploys without a schema change
+ * Supported versions must have a known constructor ABI. New versions opt in explicitly.
  **/
 export function plainDeployParamsSchema<D extends AdapterDeployParamsBase>(
   type: D["type"],
+  versions: readonly [number, ...number[]] = [310],
 ): z.ZodType<D> {
   return z.object({
     type: z.literal(type),
-    version: literalsSchema(310, 311, 312),
+    version: literalsSchema(...versions),
     target: addressSchema,
   }) as unknown as z.ZodType<D>;
 }

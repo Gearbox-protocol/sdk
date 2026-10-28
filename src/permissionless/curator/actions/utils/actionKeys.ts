@@ -5,7 +5,8 @@
  * the same key merges into the earlier one. Resources name what one action
  * makes available to another, which decides where a new action is placed.
  **/
-import type { Address } from "viem";
+import { type Address, zeroAddress } from "viem";
+import { isSameAddress } from "../../utils/addressUtils.js";
 import { stableStringify } from "../../utils/objectUtils.js";
 import {
   type CreditManagerTarget,
@@ -71,6 +72,12 @@ export const requiresCollateral = (params: {
   resource.creditManager(params.creditManager),
   resource.collateral(params.creditManager, params.token),
 ];
+
+/** A Degen NFT must be registered before a facade uses it; zero means none. **/
+export const requiresDegenNft = (degenNft: Address): string[] =>
+  isSameAddress(degenNft, zeroAddress)
+    ? []
+    : [resource.periphery("DEGEN_NFT", degenNft)];
 
 /** What an action configuring one quoted asset needs. **/
 export const requiresAsset = (params: { token: Address }): string[] => [

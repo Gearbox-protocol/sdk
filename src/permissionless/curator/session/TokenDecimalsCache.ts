@@ -40,7 +40,7 @@ export function collectBundleTokens(bundle: Bundle): Address[] {
 }
 
 /** Tokens of a market state: its underlying, assets and treasury balances. **/
-export function collectStateTokens(state: MarketState | undefined): Address[] {
+function collectStateTokens(state: MarketState | undefined): Address[] {
   if (!state) return [];
   return uniqueAddresses([
     state.underlyingAsset,

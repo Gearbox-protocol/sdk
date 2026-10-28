@@ -52,6 +52,7 @@ export interface ResolveArgs<A extends AnyMarketAction> {
   /** `undefined` for the action that creates the market. **/
   market: MarketIdentity | undefined;
   params: StepParams<A>;
+  registry: GipRegistry;
 }
 
 export interface ApplyArgs<A extends AnyMarketAction, R> {
@@ -121,6 +122,8 @@ export interface MarketActionDefinition<
    * `warning` is reported. Pure and synchronous. It is not run for `create`.
    **/
   check?(args: CheckArgs<A, R>): ActionDiagnostic[];
+  /** Checks source facts for the first action, before its created state can be used. **/
+  checkCreate?(args: CreateArgs<A, R>): ActionDiagnostic[];
   /**
    * The market an action creates. Only an action that may come first, before
    * any market state exists, defines it.
@@ -170,6 +173,8 @@ export interface MarketActionDefinition<
 }
 
 export interface MergePolicy<P> {
+  /** Preserve separate actions across transitions that consume/reset this setting. **/
+  readonly barriers?: readonly string[];
   /**
    * Where the merged action goes: `first` (the default) keeps the earlier
    * action's position, `last` moves it after everything recorded since — for

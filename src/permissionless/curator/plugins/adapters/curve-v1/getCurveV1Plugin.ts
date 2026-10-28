@@ -1,5 +1,4 @@
 import {
-  type Abi,
   type Address,
   type Chain,
   type PublicClient,
@@ -7,19 +6,19 @@ import {
   zeroAddress,
 } from "viem";
 import { z } from "zod/v4";
-import type { AbstractAdapterContract } from "../../../../../onchain/index.js";
-import { addressSchema, literalsSchema } from "../../../validationSchemas.js";
+import { addressSchema } from "../../../validationSchemas.js";
 import {
   adapterDeployParams,
   getter,
   plainAdapter,
+  resolveTargetTokens,
   sdkState,
-  validateTargetTokens,
 } from "../adapterPluginHelpers.js";
 import { getCurveTargetCoins } from "../adapterValidation.js";
 import type {
   AdapterStateBase,
-  ValidateAdapterParamsArgs,
+  AdapterValidation,
+  ResolveAdapterValidationArgs,
 } from "../defineAdapterPlugin.js";
 import { defineAdapterPlugin } from "../defineAdapterPlugin.js";
 
@@ -54,15 +53,6 @@ export type CurveV1Adapter311DeployParams = {
 export type CurveV1AdapterDeployParams =
   | CurveV1Adapter310DeployParams
   | CurveV1Adapter311DeployParams;
-
-export const curveV1DeployParamsSchema = z.object({
-  type: literalsSchema(...CURVE_V1_ADAPTER_TYPES),
-  version: z.literal(311),
-  target: addressSchema,
-  lpToken: addressSchema,
-  basePool: addressSchema,
-  use256: z.boolean(),
-});
 
 export const curveAdapterInfo: Record<
   CurveV1AdapterTypes,
@@ -119,13 +109,13 @@ async function getNCoins(
 }
 
 /** A Curve pool is usable when all of its coins are collateral. **/
-export function validateCurveTarget(
-  args: ValidateAdapterParamsArgs<
+export function resolveCurveTarget(
+  args: ResolveAdapterValidationArgs<
     Pick<CurveV1AdapterDeployParams, "type" | "target">
   >,
-): Promise<false | string> {
+): Promise<AdapterValidation> {
   const { client, params } = args;
-  return validateTargetTokens(args, async () =>
+  return resolveTargetTokens(args, async () =>
     // TODO: check metapoolBase coins
     getCurveTargetCoins({
       client,
@@ -153,10 +143,7 @@ export const getCurveV1Plugin = (adapterType: CurveV1AdapterTypes) =>
     // Stable NG
     allowGas: adapterType === "CURVE_STABLE_NG" ? 2_100_000 : 2_000_000,
     ...plainAdapter(adapterType),
-    getDeployParams: (args: {
-      creditManager: Address;
-      params: CurveV1AdapterDeployParams;
-    }) => {
+    getDeployParams: args => {
       const { params } = args;
       return adapterDeployParams(
         args,
@@ -170,17 +157,20 @@ export const getCurveV1Plugin = (adapterType: CurveV1AdapterTypes) =>
             ],
       );
     },
-    validateParams: (
-      args: ValidateAdapterParamsArgs<CurveV1AdapterDeployParams>,
-    ) => validateCurveTarget(args),
+    resolveValidation: resolveCurveTarget,
     // @dev the SDK reports the concrete Curve flavour, which is authoritative
-    getStateFromSDK: (adapter: AbstractAdapterContract<Abi, Abi>) =>
+    getStateFromSDK: adapter =>
       sdkState(
         adapter.adapterType.split("::")[1] as CurveV1AdapterTypes,
         adapter,
       ),
-    deployParamsSchema: curveV1DeployParamsSchema.extend({
+    deployParamsSchema: z.object({
       type: z.literal(adapterType),
-    }) as z.ZodType<CurveV1AdapterDeployParams>,
+      version: z.literal(311),
+      target: addressSchema,
+      lpToken: addressSchema,
+      basePool: addressSchema,
+      use256: z.boolean(),
+    }),
     actions: {},
   });

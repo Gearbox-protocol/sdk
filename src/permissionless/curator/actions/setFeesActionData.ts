@@ -43,27 +43,28 @@ export const setFeesActionData: MarketScopedDefinition<SetFeesAction> =
       const cm = findCreditManager(state, params.creditManager);
       if (!cm) return [creditManagerNotFound(params.creditManager)];
       const fees = params.params;
+      // Compared in basis points, as the contract stores them.
+      const same = (a: number, b: number) =>
+        convertPercent(a) === convertPercent(b);
       const sum = (fee: number, premium: number) =>
         convertPercent(fee) + convertPercent(premium);
+      const sumChanged =
+        sum(fees.feeLiquidation, fees.feeLiquidationPremium) !==
+        sum(cm.feeLiquidation, cm.feeLiquidationPremium);
+      const expiredSumChanged =
+        sum(fees.feeLiquidationExpired, fees.feeLiquidationPremiumExpired) !==
+        sum(cm.feeLiquidationExpired, cm.feeLiquidationPremiumExpired);
       if (
-        sum(fees.feeLiquidation, fees.feeLiquidationPremium) ===
-          sum(cm.feeLiquidation, cm.feeLiquidationPremium) &&
-        convertPercent(fees.feeLiquidation) ===
-          convertPercent(cm.feeLiquidation) &&
-        sum(fees.feeLiquidationExpired, fees.feeLiquidationPremiumExpired) ===
-          sum(cm.feeLiquidationExpired, cm.feeLiquidationPremiumExpired) &&
-        convertPercent(fees.feeLiquidationExpired) ===
-          convertPercent(cm.feeLiquidationExpired)
-      ) {
+        !sumChanged &&
+        !expiredSumChanged &&
+        same(fees.feeLiquidation, cm.feeLiquidation) &&
+        same(fees.feeLiquidationExpired, cm.feeLiquidationExpired)
+      )
         return [noOp("The credit manager already has these fees")];
-      }
       const diagnostics: ActionDiagnostic[] = [];
       // `InconsistentLiquidationFeesException`: the underlying's LT is derived
       // from the fees and must not change.
-      if (
-        sum(fees.feeLiquidation, fees.feeLiquidationPremium) !==
-        sum(cm.feeLiquidation, cm.feeLiquidationPremium)
-      ) {
+      if (sumChanged)
         diagnostics.push(
           actionError(
             "FEES_SUM_CHANGED",
@@ -71,15 +72,13 @@ export const setFeesActionData: MarketScopedDefinition<SetFeesAction> =
             ["params", "params", "feeLiquidationPremium"],
           ),
         );
-      }
       // `InconsistentExpiredLiquidationFeesException`, judged at the source
       // block: execution happens later, which only makes it stricter.
       if (
-        sum(fees.feeLiquidationExpired, fees.feeLiquidationPremiumExpired) !==
-          sum(cm.feeLiquidationExpired, cm.feeLiquidationPremiumExpired) &&
+        expiredSumChanged &&
         cm.expirationDate !== 0 &&
         env.timestamp + TWO_WEEKS > cm.expirationDate
-      ) {
+      )
         diagnostics.push(
           actionError(
             "EXPIRED_FEES_SUM_CHANGED",
@@ -87,7 +86,6 @@ export const setFeesActionData: MarketScopedDefinition<SetFeesAction> =
             ["params", "params", "feeLiquidationPremiumExpired"],
           ),
         );
-      }
       return diagnostics;
     },
     apply: ({ state, params }) =>

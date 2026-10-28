@@ -81,8 +81,36 @@ export function collateralNotFound(token: Address): ActionDiagnostic {
   );
 }
 
+/** What {@link targetCollateral} finds, or why it finds nothing. **/
+export type CollateralLookup =
+  | {
+      cm: MarketCreditManagerState;
+      collateral: CollateralToken;
+      diagnostics?: undefined;
+    }
+  | { cm?: undefined; collateral?: undefined; diagnostics: ActionDiagnostic[] };
+
+/**
+ * The collateral token an action configures, with its credit manager, or the
+ * diagnostics of a target that cannot be configured: an unknown credit
+ * manager, the underlying, or a token that is not collateral.
+ **/
+export function targetCollateral(
+  state: MarketState,
+  params: { creditManager: Address; token: Address },
+): CollateralLookup {
+  const cm = findCreditManager(state, params.creditManager);
+  if (!cm)
+    return { diagnostics: [creditManagerNotFound(params.creditManager)] };
+  if (isUnderlying(state, params.token))
+    return { diagnostics: [underlyingNotAllowed()] };
+  const collateral = findCollateral(cm, params.token);
+  if (!collateral) return { diagnostics: [collateralNotFound(params.token)] };
+  return { cm, collateral };
+}
+
 /** The underlying's liquidation threshold, in basis points. **/
-export function underlyingLtBps(
+function underlyingLtBps(
   state: MarketState,
   cm: MarketCreditManagerState,
 ): number | undefined {

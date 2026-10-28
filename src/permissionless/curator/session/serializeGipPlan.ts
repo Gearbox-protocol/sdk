@@ -2,7 +2,7 @@ import { json_parse, json_stringify } from "../../../onchain/index.js";
 import type { GipPlan } from "./types.js";
 
 /** Envelope version, bumped when the serialized plan shape changes. **/
-export const GIP_PLAN_SERIALIZATION_VERSION = 1;
+export const GIP_PLAN_SERIALIZATION_VERSION = 2;
 
 export interface SerializedGipPlan {
   serializationVersion: number;
@@ -31,5 +31,9 @@ export function deserializeGipPlan(serialized: string): GipPlan {
     );
   }
   if (!envelope.plan) throw new Error("Serialized GIP plan has no plan");
+  if (envelope.plan.planVersion !== 2)
+    throw new Error(
+      `Unsupported GIP plan version ${String(envelope.plan.planVersion)}; expected 2`,
+    );
   return envelope.plan;
 }
