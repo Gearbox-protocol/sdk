@@ -29,9 +29,9 @@ import type { ConfiguratorActions } from "../configurator-actions/types.js";
 import type { GipRegistry } from "../GipRegistry.js";
 import type { IncompleteCheck } from "../session/types.js";
 import { isCreditManagerExpired } from "../state/market/isCreditManagerExpired.js";
-import type { MarketState } from "../state/market/types.js";
+import type { MarketState, PeripheryState } from "../state/market/types.js";
 import type { MarketStateChanges, ParsedMarketTx } from "../types.js";
-import { lowerAddress } from "../utils/addressUtils.js";
+import { isSameAddress, lowerAddress } from "../utils/addressUtils.js";
 import { actionEnv, type ExecutorOptions } from "./actionEnv.js";
 import { buildConfiguratorTxs } from "./ConfigurationExecutor.js";
 import { ResolveCache } from "./ResolveCache.js";
@@ -87,6 +87,15 @@ export interface MarketExecution extends MarketProjection {
   txs: ParsedMarketTx[];
 }
 
+export interface MarketExecutorOptions extends ExecutorOptions {
+  /**
+   * Periphery deployed or registered by earlier markets of the same GIP. The
+   * Bytecode Repository and the periphery registry are configurator-wide, so
+   * the market sees these entries from its first action on.
+   **/
+  periphery?: readonly PeripheryState[];
+}
+
 /** Everything a run derives from one action. **/
 interface ActionStep {
   action: GipMarketAction;
@@ -102,8 +111,12 @@ export class MarketExecutor {
   public readonly ctx: GipBuilderContext;
   public readonly env: ActionEnv;
   readonly #cache: ResolveCache;
+  readonly #checkActions: boolean;
+  readonly #periphery: readonly PeripheryState[];
 
-  constructor(ctx: GipBuilderContext, options: ExecutorOptions = {}) {
+  constructor(ctx: GipBuilderContext, options: MarketExecutorOptions = {}) {
+    this.#checkActions = options.checkActions !== false;
+    this.#periphery = options.periphery ?? [];
     this.mc = ctx.marketConfigurator;
     this.ctx = ctx;
     this.env = { ...actionEnv(options), tokens: ctx.tokens };
@@ -121,8 +134,7 @@ export class MarketExecutor {
     before: MarketState | undefined,
     actions: readonly GipMarketAction[],
   ): Promise<MarketProjection> {
-    const run = await this.#run(before, actions);
-    return projection(run, before);
+    return projection(await this.#run(before, actions));
   }
 
   /**
@@ -135,7 +147,7 @@ export class MarketExecutor {
   ): Promise<MarketExecution> {
     const run = await this.#run(before, actions);
     return {
-      ...projection(run, before),
+      ...projection(run),
       txs: run.steps.map(step => this.#encode(step)),
     };
   }
@@ -212,17 +224,19 @@ export class MarketExecutor {
       }
       return kept;
     };
+    const start = initial && this.#withPeriphery(initial);
     const run = (blockedAt?: number): Run => ({
+      start,
       steps,
       diagnostics,
       creditSuites,
       incompleteChecks,
       ...(blockedAt === undefined ? {} : { blockedAt }),
     });
-    let state = initial && {
-      ...initial,
+    let state = start && {
+      ...start,
       creditManagers: Object.fromEntries(
-        Object.entries(initial.creditManagers).map(([address, cm]) => [
+        Object.entries(start.creditManagers).map(([address, cm]) => [
           address,
           { ...cm, isExpired: isCreditManagerExpired(cm, this.env.timestamp) },
         ]),
@@ -256,19 +270,21 @@ export class MarketExecutor {
         state === undefined
           ? definition.create?.({ params, resolved, env })
           : undefined;
-      const found = extractChecks(
-        state
-          ? (definition.check?.({ state, params, resolved, env }) ?? [])
-          : (definition.checkCreate?.({ params, resolved, env }) ?? []),
-        index,
-        action.type,
-      );
+      const found = this.#checkActions
+        ? extractChecks(
+            state
+              ? (definition.check?.({ state, params, resolved, env }) ?? [])
+              : (definition.checkCreate?.({ params, resolved, env }) ?? []),
+            index,
+            action.type,
+          )
+        : [];
       diagnostics.push(...locateDiagnostics(found, index, action.type));
       if (hasErrors(found))
         return { ...run(index), ...(created && { created }) };
       const after = state
         ? definition.apply({ state, params, resolved, env })
-        : created!;
+        : this.#withPeriphery(created!);
 
       const suiteId = definition.suiteId?.(recorded.params);
       const deployed = definition.deployedContract?.({ params, resolved });
@@ -281,6 +297,16 @@ export class MarketExecutor {
     }
 
     return run();
+  }
+
+  /** `state` with {@link MarketExecutorOptions.periphery}, which supersedes it. **/
+  #withPeriphery(state: MarketState): MarketState {
+    if (this.#periphery.length === 0) return state;
+    const own = (state.periphery ?? []).filter(
+      entry =>
+        !this.#periphery.some(p => isSameAddress(p.address, entry.address)),
+    );
+    return { ...state, periphery: [...own, ...this.#periphery] };
   }
 
   #encode(step: ActionStep): ParsedMarketTx {
@@ -309,6 +335,8 @@ export class MarketExecutor {
 }
 
 interface Run {
+  /** The state the run started from, `undefined` when it creates the market. **/
+  start?: MarketState;
   created?: MarketState;
   steps: ActionStep[];
   diagnostics: GipActionDiagnostic[];
@@ -341,12 +369,9 @@ function resolveTarget(
   };
 }
 
-function projection(
-  run: Run,
-  initial: MarketState | undefined,
-): MarketProjection {
-  const before = initial ?? run.steps[0]?.after ?? run.created;
-  const after = run.steps.at(-1)?.after ?? initial ?? run.created;
+function projection(run: Run): MarketProjection {
+  const before = run.start ?? run.steps[0]?.after ?? run.created;
+  const after = run.steps.at(-1)?.after ?? run.start ?? run.created;
   if (!before || !after) throw new Error("Market state is undefined");
   return {
     before,

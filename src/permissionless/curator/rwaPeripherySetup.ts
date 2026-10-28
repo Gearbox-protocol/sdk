@@ -12,7 +12,10 @@ import { iVersionAbi } from "../../abi/iVersion.js";
 import { iRWAUnderlyingAbi } from "../../abi/rwa/iRWAUnderlying.js";
 import { iSecuritizeRWAFactoryAbi } from "../../abi/rwa/iSecuritizeRWAFactory.js";
 import { RWA_FACTORY_SECURITIZE } from "../../model/rwa.js";
-import { RWA_UNDERLYING_DEFAULT } from "../../onchain/index.js";
+import {
+  RWA_UNDERLYING_DEFAULT,
+  RWA_UNDERLYING_ON_DEMAND,
+} from "../../onchain/index.js";
 import { DEFAULT_DEPLOY_SALT } from "../api/deploy/PermissionlessDeploy.js";
 import type { AddPeripheryContractAction } from "./actions/addPeripheryContractActionData.js";
 import {
@@ -25,16 +28,21 @@ import {
   type PeripheryRegistryEntry,
 } from "./actions/utils/isPeripheryContractAdded.js";
 
+/** Contract type labels, as the Gearbox SDK names them. **/
+export const SECURITIZE_RWA_FACTORY_TYPE = RWA_FACTORY_SECURITIZE;
+export const DEFAULT_RWA_UNDERLYING_TYPE = RWA_UNDERLYING_DEFAULT;
+export const ON_DEMAND_RWA_UNDERLYING_TYPE = RWA_UNDERLYING_ON_DEMAND;
+
 /** `contractType()` prefix shared by every RWA underlying. **/
-const RWA_UNDERLYING_TYPE_PREFIX = "RWA_UNDERLYING::";
+export const RWA_UNDERLYING_TYPE_PREFIX = "RWA_UNDERLYING::";
 
 /**
  * Zapper deployed alongside default RWA markets, see periphery-v3
  * `script/DeploySecuritizeContracts.s.sol`: it is deployed with
  * `abi.encode(pool)` and registered as market periphery.
  **/
-const RWA_ZAPPER_CONTRACT_TYPE = "ZAPPER::ERC4626_UNDERLYING";
-const RWA_ZAPPER_VERSION = 310;
+export const RWA_ZAPPER_CONTRACT_TYPE = "ZAPPER::ERC4626_UNDERLYING";
+export const RWA_ZAPPER_VERSION = 310;
 
 /**
  * Narrow read interface so RWA classification can be unit tested without a
@@ -67,12 +75,17 @@ async function readHexOrNull(
   }
 }
 
+/** Decodes a `bytes32` contract type into its string label. **/
+export function parseContractType(value: Hex): string {
+  return hexToString(value, { size: 32 });
+}
+
 /**
  * Reads `contractType()`. A revert (or a non-`bytes32` answer) means the
  * address is an ordinary token/contract that does not participate in the RWA
  * setup, so `null` is returned instead of throwing.
  **/
-async function readContractType(
+export async function readContractType(
   read: ContractReader,
   address: Address,
 ): Promise<string | null> {
@@ -81,7 +94,7 @@ async function readContractType(
     abi: iVersionAbi,
     functionName: "contractType",
   });
-  return value === null ? null : hexToString(value, { size: 32 });
+  return value === null ? null : parseContractType(value);
 }
 
 async function readAddressOrNull(
@@ -139,7 +152,7 @@ export async function resolveSecuritizeRwaSetup(args: {
   if (!factory) return null;
 
   const factoryType = await readContractType(read, factory);
-  if (factoryType !== RWA_FACTORY_SECURITIZE) return null;
+  if (factoryType !== SECURITIZE_RWA_FACTORY_TYPE) return null;
 
   const degenNFT = await readAddressOrNull(read, {
     address: factory,
@@ -158,7 +171,7 @@ export async function resolveSecuritizeRwaSetup(args: {
     underlyingType,
     factory,
     degenNFT,
-    needsZapper: underlyingType === RWA_UNDERLYING_DEFAULT,
+    needsZapper: underlyingType === DEFAULT_RWA_UNDERLYING_TYPE,
   };
 }
 
@@ -176,20 +189,42 @@ export interface RwaZapperDeployParams {
   owner: Address;
 }
 
+/** `abi.encode(pool)`: the zapper's constructor parameters. **/
+const encodeZapperParams = (pool: Address): Hex =>
+  encodeAbiParameters([{ type: "address" }], [pool]);
+
 /**
  * Deterministic Bytecode Repository deployment parameters of the RWA zapper.
  * Mirrors `_deploy("ZAPPER::ERC4626_UNDERLYING", 3_10, abi.encode(pool))`.
  **/
-function getRwaZapperDeployParams(
-  pool: Address,
-  owner: Address,
-): RwaZapperDeployParams {
+export function getRwaZapperDeployParams(args: {
+  pool: Address;
+  owner: Address;
+}): RwaZapperDeployParams {
   return {
     contractType: RWA_ZAPPER_CONTRACT_TYPE,
     version: RWA_ZAPPER_VERSION,
-    encodedParams: encodeAbiParameters([{ type: "address" }], [pool]),
+    encodedParams: encodeZapperParams(args.pool),
     salt: DEFAULT_DEPLOY_SALT,
-    owner,
+    owner: args.owner,
+  };
+}
+
+/** Turns deployment parameters into the persisted generic deployment action. **/
+export function getRwaZapperDeployAction(args: {
+  params: RwaZapperDeployParams;
+  expectedAddress: Address;
+}): DeployContractAction {
+  const { params, expectedAddress } = args;
+  return {
+    type: "BCR::deployContract",
+    params: {
+      contractType: params.contractType,
+      version: params.version,
+      constructorParams: params.encodedParams,
+      salt: params.salt,
+      expectedAddress,
+    },
   };
 }
 
@@ -311,10 +346,10 @@ async function planRwaPeripheryRequirements(
   // are skipped for the same, conservative reason.
   let zapper: Address | null = null;
   if (setup.needsZapper) {
-    const deployParams = getRwaZapperDeployParams(
-      market.pool,
-      await lookups.getDeployer(),
-    );
+    const deployParams = getRwaZapperDeployParams({
+      pool: market.pool,
+      owner: await lookups.getDeployer(),
+    });
     zapper = await lookups.computeZapperAddress(deployParams);
 
     // @dev deployment and registration are suppressed independently: a zapper
@@ -327,20 +362,13 @@ async function planRwaPeripheryRequirements(
         actions: queued(),
       })
     ) {
-      const deployment: DeployContractAction = {
-        type: "BCR::deployContract",
-        params: {
-          contractType: deployParams.contractType,
-          version: deployParams.version,
-          constructorParams: deployParams.encodedParams,
-          salt: deployParams.salt,
-          expectedAddress: zapper,
-        },
-      };
       missing.push({
         kind: "zapperDeployment",
         address: zapper,
-        action: deployment,
+        action: getRwaZapperDeployAction({
+          params: deployParams,
+          expectedAddress: zapper,
+        }),
       });
     }
 
@@ -368,6 +396,42 @@ async function planRwaPeripheryRequirements(
     zapper,
     missing,
   };
+}
+
+/**
+ * Builds the actions that must follow `MARKET::createMarket` for a Securitize
+ * RWA underlying, in order: Degen NFT registration, zapper deployment, zapper
+ * registration. Empty for ordinary (non-RWA) and non-Securitize underlyings.
+ **/
+export async function planRwaPeripheryActions(
+  args: RwaPeripheryLookups & {
+    underlying: Address;
+    /**
+     * Pool the zapper is built for: the previewed address while the market is
+     * being created, the market address afterwards.
+     **/
+    pool: Address;
+    /** Actions queued anywhere in the same GIP. **/
+    queuedActions?: readonly GipMarketAction[];
+  },
+): Promise<MarketActions[]> {
+  const plan = await planRwaPeripheryRequirements(
+    args,
+    args,
+    args.queuedActions ?? [],
+  );
+  return plan?.missing.map(requirement => requirement.action) ?? [];
+}
+
+/** Whether an action registers an auto-queued RWA zapper as periphery. **/
+export function isRwaZapperRegistration(
+  action: GipMarketAction,
+): action is AddPeripheryContractAction {
+  return (
+    action.type === "MARKET::addPeripheryContract" &&
+    action.params.domain === "ZAPPER" &&
+    action.params.type === RWA_ZAPPER_CONTRACT_TYPE
+  );
 }
 
 export interface IncompleteRwaPeripherySetup<TMarket> {
@@ -437,4 +501,160 @@ export async function findIncompleteRwaPeripherySetups<
   return found.filter(
     (entry): entry is IncompleteRwaPeripherySetup<TMarket> => entry !== null,
   );
+}
+
+/**
+ * Applies a {@link RwaPeripherySetupPlan} to a market's queued actions, adding
+ * every missing action in executable order in a single step.
+ *
+ * A legacy GIP registered — and sometimes deployed — an author-derived zapper
+ * address that nobody can produce any more; leaving it queued would make the
+ * batch revert, so such actions are dropped in favour of the reconciled ones.
+ * Every other action keeps its position, and nothing already queued (here or in
+ * `otherActions`) is duplicated.
+ **/
+export function reconcileRwaPeripheryActions(args: {
+  actions: readonly MarketActions[];
+  /** Missing requirements in executable order. **/
+  missing: readonly RwaPeripheryRequirement[];
+  /** Pool the zapper is deployed for, i.e. the market address. **/
+  pool: Address;
+  /** Deterministic zapper address, `null` when the market gets none. **/
+  zapper?: Address | null;
+  /** Actions queued for the other markets of the same GIP. **/
+  otherActions?: readonly MarketActions[];
+}): MarketActions[] {
+  const zapper = args.zapper?.toLowerCase() ?? null;
+  const poolParams = encodeZapperParams(args.pool).toLowerCase();
+
+  const isStale = (action: MarketActions): boolean => {
+    if (zapper === null) return false;
+    if (isRwaZapperRegistration(action)) {
+      return action.params.peripheryContract.toLowerCase() !== zapper;
+    }
+    // @dev only this pool's zapper deployment; unrelated (and generic) BCR
+    // deployments are never touched
+    return (
+      action.type === "BCR::deployContract" &&
+      action.params.contractType === RWA_ZAPPER_CONTRACT_TYPE &&
+      action.params.constructorParams.toLowerCase() === poolParams &&
+      action.params.expectedAddress.toLowerCase() !== zapper
+    );
+  };
+
+  const kept = args.actions.filter(action => !isStale(action));
+
+  const additions: MarketActions[] = [];
+  for (const { action } of args.missing) {
+    const queued = [...kept, ...(args.otherActions ?? []), ...additions];
+
+    if (
+      action.type === "MARKET::addPeripheryContract" &&
+      isPeripheryContractAdded({
+        address: action.params.peripheryContract,
+        domain: action.params.domain,
+        queuedActions: queued,
+      })
+    ) {
+      continue;
+    }
+    if (
+      action.type === "BCR::deployContract" &&
+      isContractDeploymentQueued({
+        expectedAddress: action.params.expectedAddress,
+        actions: queued,
+      })
+    ) {
+      continue;
+    }
+
+    additions.push(action);
+  }
+
+  if (additions.length === 0) return kept;
+
+  // `MARKET::addPeripheryContract` reverts unless the zapper exists, so a
+  // deployment added for an already queued registration goes before it.
+  const anchor =
+    zapper === null
+      ? -1
+      : kept.findIndex(
+          action =>
+            isRwaZapperRegistration(action) &&
+            action.params.peripheryContract.toLowerCase() === zapper,
+        );
+
+  return anchor === -1
+    ? [...kept, ...additions]
+    : [...kept.slice(0, anchor), ...additions, ...kept.slice(anchor)];
+}
+
+/**
+ * Inserts an RWA zapper deployment right before the registration it serves.
+ *
+ * `MARKET::addPeripheryContract` reverts unless the zapper is already deployed,
+ * so ordering matters. Legacy GIPs registered an author-derived address that
+ * nobody can produce any more; such a registration is rewritten to the address
+ * this deployment actually lands on.
+ *
+ * Unrelated actions keep their position, and neither the deployment nor the
+ * registration is duplicated. Without a registration to anchor to, the
+ * deployment is simply appended.
+ **/
+export function insertRwaZapperDeployment(args: {
+  actions: readonly MarketActions[];
+  deployment: DeployContractAction;
+}): MarketActions[] {
+  const { deployment } = args;
+  const expectedAddress = deployment.params.expectedAddress;
+  const expected = expectedAddress.toLowerCase();
+
+  const registrationQueued = args.actions.some(isRwaZapperRegistration);
+  const queuedDeployment = args.actions.find(
+    (action): action is DeployContractAction =>
+      action.type === "BCR::deployContract" &&
+      action.params.expectedAddress.toLowerCase() === expected,
+  );
+
+  // Without a registration there is no ordering anchor. Preserve an existing
+  // deployment in place, or append the new one.
+  if (!registrationQueued) {
+    return queuedDeployment ? [...args.actions] : [...args.actions, deployment];
+  }
+
+  const result: MarketActions[] = [];
+  let registered = false;
+
+  for (const action of args.actions) {
+    // A matching deployment is reinserted immediately before registration,
+    // even when an older GIP queued it later or separated it by other actions.
+    if (
+      action.type === "BCR::deployContract" &&
+      action.params.expectedAddress.toLowerCase() === expected
+    ) {
+      continue;
+    }
+
+    if (!isRwaZapperRegistration(action)) {
+      result.push(action);
+      continue;
+    }
+
+    // @dev a market has exactly one RWA zapper, so any further registration
+    // would become a duplicate of the (possibly rewritten) first one
+    if (registered) continue;
+    registered = true;
+
+    result.push(queuedDeployment ?? deployment);
+    result.push(
+      action.params.peripheryContract.toLowerCase() === expected
+        ? action
+        : {
+            ...action,
+            params: { ...action.params, peripheryContract: expectedAddress },
+          },
+    );
+  }
+
+  return result;
 }

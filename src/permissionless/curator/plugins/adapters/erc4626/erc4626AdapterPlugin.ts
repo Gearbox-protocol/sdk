@@ -26,7 +26,7 @@ export type Erc4626Adapter312DeployParams = {
 export type Erc4626AdapterDeployParams =
   | {
       type: "ERC4626_VAULT";
-      version: 310 | 311;
+      version: 311;
       target: Address;
     }
   | Erc4626Adapter312DeployParams;

@@ -6,7 +6,6 @@ import type {
   GipSimulationOutcome,
   GipSimulationTarget,
 } from "../simulation/GipSimulationError.js";
-import type { ForkExecutionCall } from "../simulation/simulateGipOnFork.js";
 import type { BatchTxs } from "../types.js";
 import { lowerAddress } from "../utils/addressUtils.js";
 import { buildPlanTransactions } from "./buildPlanTransactions.js";
@@ -50,15 +49,6 @@ export type ScopePlanFields<TPlan extends GipPlan> = Omit<
 interface Capture<TIntent> {
   revision: number;
   intents: readonly TIntent[];
-}
-
-function toForkCall(tx: RawTx): ForkExecutionCall {
-  return {
-    to: tx.to,
-    callData: tx.callData,
-    value: tx.value,
-    description: tx.description,
-  };
 }
 
 /**
@@ -158,26 +148,19 @@ export abstract class ScopedBuilder<
     const capture = this.#capture();
     // Checked first: a chain SDK is rejected before any projection work.
     const fork = requireFork(this.#runtime);
-    const eta = this.#eta(options.eta);
+    const eta = this.#runtime.eta(options.eta);
     const { payloadCalls, expected, blocked } = await this.#compile(
       capture,
       eta,
     );
     if (blocked) throw blocked;
-    const { source } = this.#runtime;
     return simulateOnFork({
+      runtime: this.#runtime,
       fork,
       options,
-      target: {
-        chainId: source.chainId,
-        marketConfigurator: source.marketConfigurator,
-        sourceBlockNumber: source.blockNumber,
-        sourceBlockHash: source.blockHash,
-        eta,
-        calls: payloadCalls.map(toForkCall),
-        ...expected,
-        registry: this.#runtime.registry,
-      },
+      eta,
+      payloadCalls,
+      expected,
     });
   }
 
@@ -190,11 +173,6 @@ export abstract class ScopedBuilder<
     this.#intents.push(intent);
     this.#revision += 1;
     return this;
-  }
-
-  /** Clock of time-dependent transitions: `eta`, or the source block if later. **/
-  protected executionTimestamp(eta: number): number {
-    return Math.max(eta, this.source.blockTimestamp);
   }
 
   /** Resolves, projects and encodes the recorded intent. **/
@@ -210,18 +188,11 @@ export abstract class ScopedBuilder<
     return { revision: this.#revision, intents: this.recordedActions() };
   }
 
-  #eta(eta?: number): number {
-    const value = eta ?? this.source.blockTimestamp;
-    if (!Number.isSafeInteger(value) || value < 0)
-      throw new Error("eta must be a nonnegative safe integer in Unix seconds");
-    return value;
-  }
-
   #compile(
     capture: Capture<TIntent>,
     requestedEta?: number,
   ): Promise<ScopeCompilation<TPreview>> {
-    const eta = this.#eta(requestedEta);
+    const eta = this.#runtime.eta(requestedEta);
     return this.#compilations.run(capture.revision, String(eta), () =>
       this.compile(capture.intents, eta),
     );
@@ -232,7 +203,7 @@ export abstract class ScopedBuilder<
     args: { author: Address; eta: number },
   ): Promise<TPlan> {
     const author = lowerAddress(args.author);
-    const eta = this.#eta(args.eta);
+    const eta = this.#runtime.eta(args.eta);
     return this.#plans.run(capture.revision, `${author}:${eta}`, async () => {
       const { preview, payloadCalls, batches, gasModel, blocked } =
         await this.#compile(capture, eta);

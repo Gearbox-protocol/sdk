@@ -8,6 +8,7 @@ import {
 import type { GovernorContract } from "../../bindings/governance/governor.js";
 import { MarketConfiguratorContract } from "../../bindings/market-configurator.js";
 import type { GipBuilderContext } from "../actions/builderContext.js";
+import type { ExecutorOptions } from "../executor/actionEnv.js";
 import { ResolveCache } from "../executor/ResolveCache.js";
 import { GipRegistry } from "../GipRegistry.js";
 import { getGovernorContract } from "../transactions/getTimelockTransactions.js";
@@ -150,6 +151,26 @@ export class GipSdkRuntime {
       check: `${check}-block-hash`,
       reason: snapshot.hashCaveat,
     });
+  }
+
+  /** `eta` checked, or the source block time when it is omitted. **/
+  eta(eta?: number): number {
+    const value = eta ?? this.source.blockTimestamp;
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new Error("eta must be a nonnegative safe integer in Unix seconds");
+    return value;
+  }
+
+  /**
+   * Options of an executor compiling for `eta`: time-dependent transitions run
+   * at `eta`, or at the source block if that is later.
+   **/
+  executorOptions(eta: number): ExecutorOptions {
+    return {
+      timestamp: Math.max(eta, this.source.blockTimestamp),
+      resolveCache: this.resolveCache,
+      registry: this.registry,
+    };
   }
 
   /**

@@ -72,8 +72,10 @@ export class ConfigurationExecutor {
   public readonly ctx: GipBuilderContext;
   public readonly env: ActionEnv;
   readonly #cache: ResolveCache;
+  readonly #checkActions: boolean;
 
   constructor(ctx: GipBuilderContext, options: ExecutorOptions = {}) {
+    this.#checkActions = options.checkActions !== false;
     this.mc = ctx.marketConfigurator;
     this.ctx = ctx;
     this.env = actionEnv(options);
@@ -104,7 +106,9 @@ export class ConfigurationExecutor {
         params,
       });
       const env = this.env;
-      const found = definition.check?.({ state, params, resolved, env }) ?? [];
+      const found = this.#checkActions
+        ? (definition.check?.({ state, params, resolved, env }) ?? [])
+        : [];
       diagnostics.push(...locateDiagnostics(found, index, action.type));
       if (hasErrors(found)) {
         return { before, after: state, txs, diagnostics, blockedAt: index };

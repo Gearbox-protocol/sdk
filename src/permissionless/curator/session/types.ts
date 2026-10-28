@@ -5,11 +5,12 @@ import type { TimelockTxs } from "../../utils/governance/types.js";
 import type { GipActionDiagnostic } from "../actions/actionDiagnostics.js";
 import type { GipMarketAction } from "../actions/types.js";
 import type { Bundle } from "../bundles/Bundle.js";
+import type { ConfiguratorTx } from "../configurator-actions/ConfiguratorTx.js";
 import type { ConfiguratorActions } from "../configurator-actions/types.js";
 import type { GipDiagnostic } from "../diagnostics/getGipDiagnostics.js";
 import type { ConfiguratorState } from "../state/configurator/types.js";
 import type { MarketState } from "../state/market/types.js";
-import type { BatchTxs } from "../types.js";
+import type { BatchTxs, ParsedMarketTx } from "../types.js";
 import type { ActionScope } from "./actionScope.js";
 import type { DiagnosticMarketInput } from "./collectGipDiagnostics.js";
 
@@ -114,6 +115,7 @@ export interface GipPreviewBase {
 }
 
 export interface MarketPreview extends GipPreviewBase {
+  txs: readonly ParsedMarketTx[];
   scope: "market";
   pool?: Address;
   before?: MarketState;
@@ -128,6 +130,7 @@ export interface MarketPreview extends GipPreviewBase {
 }
 
 export interface ConfiguratorPreview extends GipPreviewBase {
+  txs: readonly ConfiguratorTx[];
   scope: "configurator";
   before: ConfiguratorState;
   after: ConfiguratorState;

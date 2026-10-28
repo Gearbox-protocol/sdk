@@ -11,7 +11,11 @@
 import type { z } from "zod/v4";
 import type { MarketActionDefinition } from "./actions/defineMarketAction.js";
 import { marketActionDefinitions } from "./actions/marketActionDefinitions.js";
-import type { GipMarketAction } from "./actions/types.js";
+import type {
+  GipMarketAction,
+  MarketActionType,
+  RegisteredMarketActionDefinition,
+} from "./actions/types.js";
 import { configuratorActionDefinitions } from "./configurator-actions/configuratorActionDefinitions.js";
 import type { ConfiguratorActionDefinition } from "./configurator-actions/defineConfiguratorAction.js";
 import type { ConfiguratorActions } from "./configurator-actions/types.js";
@@ -108,6 +112,12 @@ export class GipRegistry {
     return plugin;
   }
 
+  marketAction<T extends MarketActionType>(
+    type: T,
+  ):
+    | Extract<RegisteredMarketActionDefinition, { readonly type: T }>
+    | undefined;
+  marketAction(type: string): MarketActionDefinition | undefined;
   marketAction(type: string): MarketActionDefinition | undefined {
     return this.#marketActions.get(type);
   }

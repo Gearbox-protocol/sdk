@@ -29,6 +29,7 @@ import {
 } from "./forkConnection.js";
 import { GipSdkRuntime } from "./GipSdkRuntime.js";
 import { MarketBuilder } from "./MarketBuilder.js";
+import { MergedGip } from "./MergedGip.js";
 import { snapshot } from "./snapshot.js";
 import type { GipSourceSnapshot, StateProvenance } from "./types.js";
 
@@ -216,6 +217,14 @@ export class CuratorSession {
       intents: [{ kind: "action", action }],
       provenance: "new-market",
     });
+  }
+
+  /**
+   * One GIP over several markets: their builders, previewed, built and
+   * simulated together. See {@link MergedGip}.
+   **/
+  merge(markets: readonly MarketBuilder[]): MergedGip {
+    return new MergedGip(this.#runtime, markets);
   }
 
   /** The `OnchainSDK` used for reads; fork mode always binds it to the fork URL. **/

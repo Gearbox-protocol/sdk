@@ -18,6 +18,12 @@ export type MarketActions = ActionOf<RegisteredMarketActionDefinition>;
 
 export type MarketActionType = MarketActions["type"];
 
+/** The built-in market action of type `T`. **/
+export type MarketActionOf<T extends MarketActionType> = Extract<
+  MarketActions,
+  { type: T }
+>;
+
 /**
  * An action of an adapter plugin the package does not ship. Its params are
  * validated at runtime by the plugin registered with the SDK; build it with
@@ -37,6 +43,6 @@ export type GipMarketAction = MarketActions | ExternalAdapterAction;
  **/
 export type ValidMarketAction<A> = A extends { type: infer T }
   ? T extends MarketActionType
-    ? Extract<MarketActions, { type: T }>
+    ? MarketActionOf<T>
     : ExternalAdapterAction
   : never;

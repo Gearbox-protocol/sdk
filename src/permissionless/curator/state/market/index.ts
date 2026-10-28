@@ -6,6 +6,7 @@ export {
   formatMarketStateDiff,
   marketStateSchema,
 } from "./marketStateComparison.js";
+export { selectMarketDegenNfts } from "./selectMarketDegenNfts.js";
 export {
   type CollateralToken,
   creditManagerFeesSchema,

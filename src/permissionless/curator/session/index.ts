@@ -20,6 +20,11 @@ export {
   MarketBuilder,
   type MarketBundleOptions,
 } from "./MarketBuilder.js";
+export {
+  MergedGip,
+  type MergedGipPlan,
+  type MergedGipPreview,
+} from "./MergedGip.js";
 export { deserializeGipPlan, serializeGipPlan } from "./serializeGipPlan.js";
 export type {
   BundleApplication,

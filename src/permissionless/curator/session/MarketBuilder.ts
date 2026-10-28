@@ -22,7 +22,10 @@ import {
   customizeBundle,
 } from "../bundles/customizeBundle.js";
 import { addMarketAction } from "../editing/addAction.js";
-import { MarketExecutor } from "../executor/MarketExecutor.js";
+import {
+  type MarketExecution,
+  MarketExecutor,
+} from "../executor/MarketExecutor.js";
 import { getMarketState } from "../state/market/getMarketState.js";
 import type { MarketState } from "../state/market/types.js";
 import { batchMarketTransactions } from "../transactions/batchMarketTransactions.js";
@@ -37,7 +40,10 @@ import {
   type MarketScopedAction,
   parseMarketScopedAction,
 } from "./actionScope.js";
-import { collectGipDiagnostics } from "./collectGipDiagnostics.js";
+import {
+  collectGipDiagnostics,
+  type DiagnosticMarketInput,
+} from "./collectGipDiagnostics.js";
 import { collectPredictedDeployments } from "./collectPredictedDeployments.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
 import {
@@ -49,6 +55,8 @@ import { snapshot } from "./snapshot.js";
 import { tokensForCompilation } from "./TokenDecimalsCache.js";
 import type {
   BundleApplication,
+  IncompleteCheck,
+  MarketDiagnostic,
   MarketGipPlan,
   MarketIntent,
   MarketPreview,
@@ -100,6 +108,98 @@ function creditSuiteActions(
 
 const isCreateMarket = (action: GipMarketAction | undefined): boolean =>
   action?.type === "MARKET::createMarket";
+
+/** A builder's recorded intent, resolved into the actions the market executes. **/
+export interface PreparedMarket {
+  pool?: Address;
+  provenance: StateProvenance;
+  /** `undefined` for a market the first action creates. **/
+  initialState?: MarketState;
+  actions: GipMarketAction[];
+  bundleApplications: BundleApplication[];
+  /** Per bundle application: the suite its target refers to, if any. **/
+  suiteIds: (string | undefined)[];
+}
+
+/** A market as `collectGipDiagnostics` sees it. **/
+export function diagnosticMarket(
+  actions: readonly GipMarketAction[],
+  changes: MarketExecution,
+): DiagnosticMarketInput {
+  return {
+    address: changes.after.address,
+    underlyingAsset: changes.after.underlyingAsset,
+    transactions: resolvedActions(actions, changes),
+  };
+}
+
+/** The preview of one executed market. **/
+export function marketPreview(args: {
+  runtime: GipSdkRuntime;
+  eta: number;
+  prepared: PreparedMarket;
+  changes: MarketExecution;
+  found: {
+    diagnostics: readonly MarketDiagnostic[];
+    incompleteChecks: readonly IncompleteCheck[];
+  };
+}): MarketPreview {
+  const { runtime, prepared, changes } = args;
+  const applications = prepared.bundleApplications.map((application, index) => {
+    const suiteId = prepared.suiteIds[index];
+    const address =
+      suiteId === undefined ? undefined : changes.creditSuites[suiteId];
+    return address
+      ? { ...application, targetCreditManager: address }
+      : application;
+  });
+  return snapshot<MarketPreview>({
+    scope: "market",
+    source: runtime.source,
+    txs: changes.txs,
+    eta: args.eta,
+    // For a new market this is the pool address the creation is predicted to
+    // deploy to, so a preview always names the market it describes.
+    pool: lowerAddress(prepared.pool ?? changes.after.address),
+    stateProvenance: prepared.provenance,
+    ...(prepared.initialState ? { before: changes.before } : {}),
+    after: changes.after,
+    resolvedActions: resolvedActions(prepared.actions, changes),
+    bundles: applications,
+    predictedDeployments: collectPredictedDeployments(changes.txs),
+    tokenDecimals: runtime.tokens.resolved(),
+    diagnostics: [...args.found.diagnostics],
+    actionDiagnostics: changes.diagnostics,
+    ...(changes.blockedAt !== undefined
+      ? { blockedAt: changes.blockedAt }
+      : {}),
+    incompleteChecks: [
+      ...runtime.notes,
+      ...applications.flatMap(application =>
+        (application.paramWarnings ?? []).map(reason => ({
+          check: `bundleActionParams:${application.bundleName}`,
+          reason,
+        })),
+      ),
+      ...changes.incompleteChecks,
+      ...args.found.incompleteChecks,
+    ],
+  });
+}
+
+/**
+ * The executed actions, which name credit managers by address; past a blocked
+ * action the recorded ones follow, so indices still match `actions`.
+ **/
+function resolvedActions(
+  actions: readonly GipMarketAction[],
+  changes: MarketExecution,
+): GipMarketAction[] {
+  return [
+    ...changes.resolvedActions,
+    ...actions.slice(changes.resolvedActions.length),
+  ];
+}
 
 /**
  * Records market-scoped intent for exactly ONE market and compiles it into a
@@ -198,6 +298,52 @@ export class MarketBuilder extends ScopedBuilder<
     eta: number,
   ): Promise<ScopeCompilation<MarketPreview>> {
     const { runtime } = this;
+    const prepared = await this.prepare(intents, eta);
+    const executor = new MarketExecutor(
+      runtime.ctx,
+      runtime.executorOptions(eta),
+    );
+    // @dev never throws for a failing `check`: the preview reports it and
+    // `build()`/`simulate()` reject through `blocked`
+    const changes = await executor.execute(
+      prepared.initialState,
+      prepared.actions,
+    );
+    const found = await collectGipDiagnostics({
+      runtime,
+      markets: [diagnosticMarket(prepared.actions, changes)],
+    });
+    const preview = marketPreview({ runtime, eta, prepared, changes, found });
+
+    return {
+      preview,
+      payloadCalls: changes.txs.map(({ tx }) => tx),
+      batches: batchMarketTransactions({
+        chainId: runtime.source.chainId,
+        txs: changes.txs,
+      }),
+      expected: {
+        expectedMarkets: [
+          { address: preview.after.address, after: preview.after },
+        ],
+      },
+      ...(changes.blockedAt !== undefined
+        ? { blocked: new GipActionError(changes.diagnostics) }
+        : {}),
+    };
+  }
+
+  /**
+   * Resolves the state and the action list the recorded intent executes,
+   * without executing it: a `MergedGip` executes several markets together.
+   *
+   * @internal
+   **/
+  async prepare(
+    intents: readonly MarketIntent[],
+    eta: number,
+  ): Promise<PreparedMarket> {
+    const { runtime } = this;
     const recordedActions = intents.flatMap(intent =>
       intent.kind === "action" ? [intent.action] : [],
     );
@@ -215,11 +361,10 @@ export class MarketBuilder extends ScopedBuilder<
       }),
     );
 
-    const executor = new MarketExecutor(runtime.ctx, {
-      timestamp: this.executionTimestamp(eta),
-      resolveCache: runtime.resolveCache,
-      registry: runtime.registry,
-    });
+    const executor = new MarketExecutor(
+      runtime.ctx,
+      runtime.executorOptions(eta),
+    );
     const { actions, bundleApplications, suiteIds } =
       await this.#resolveActions(intents, initialState, executor);
 
@@ -229,82 +374,13 @@ export class MarketBuilder extends ScopedBuilder<
       tokensForCompilation({ state: initialState, actions, bundles: [] }),
     );
 
-    // @dev never throws for a failing `check`: the preview reports it and
-    // `build()`/`simulate()` reject through `blocked`
-    const changes = await executor.execute(initialState, actions);
-    // The executed actions name credit managers by address; past a blocked
-    // action the recorded ones follow, so indices still match `actions`.
-    const resolvedActions = [
-      ...changes.resolvedActions,
-      ...actions.slice(changes.resolvedActions.length),
-    ];
-    const applications = bundleApplications.map((application, index) => {
-      const suiteId = suiteIds[index];
-      const address =
-        suiteId === undefined ? undefined : changes.creditSuites[suiteId];
-      return address
-        ? { ...application, targetCreditManager: address }
-        : application;
-    });
-
-    const { diagnostics, incompleteChecks } = await collectGipDiagnostics({
-      runtime,
-      markets: [
-        {
-          address: changes.after.address,
-          underlyingAsset: changes.after.underlyingAsset,
-          transactions: resolvedActions,
-        },
-      ],
-    });
-
-    const preview = snapshot<MarketPreview>({
-      scope: "market",
-      source: runtime.source,
-      eta,
-      // For a new market this is the pool address the creation is predicted to
-      // deploy to, so a preview always names the market it describes.
-      pool: lowerAddress(this.#pool ?? changes.after.address),
-      stateProvenance: this.#provenance,
-      ...(initialState ? { before: changes.before } : {}),
-      after: changes.after,
-      resolvedActions,
-      bundles: applications,
-      predictedDeployments: collectPredictedDeployments(changes.txs),
-      tokenDecimals: runtime.tokens.resolved(),
-      diagnostics,
-      actionDiagnostics: changes.diagnostics,
-      ...(changes.blockedAt !== undefined
-        ? { blockedAt: changes.blockedAt }
-        : {}),
-      incompleteChecks: [
-        ...runtime.notes,
-        ...applications.flatMap(application =>
-          (application.paramWarnings ?? []).map(reason => ({
-            check: `bundleActionParams:${application.bundleName}`,
-            reason,
-          })),
-        ),
-        ...changes.incompleteChecks,
-        ...incompleteChecks,
-      ],
-    });
-
     return {
-      preview,
-      payloadCalls: changes.txs.map(({ tx }) => tx),
-      batches: batchMarketTransactions({
-        chainId: runtime.source.chainId,
-        txs: changes.txs,
-      }),
-      expected: {
-        expectedMarkets: [
-          { address: preview.after.address, after: preview.after },
-        ],
-      },
-      ...(changes.blockedAt !== undefined
-        ? { blocked: new GipActionError(changes.diagnostics) }
-        : {}),
+      pool: this.#pool,
+      provenance: this.#provenance,
+      initialState,
+      actions,
+      bundleApplications,
+      suiteIds,
     };
   }
 

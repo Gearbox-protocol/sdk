@@ -6,6 +6,7 @@ export {
 export {
   type MarketExecution,
   MarketExecutor,
+  type MarketExecutorOptions,
   type MarketProjection,
 } from "./MarketExecutor.js";
 export { ResolveCache } from "./ResolveCache.js";

@@ -59,6 +59,17 @@ export const resource = {
   contract: (address: Address) => `contract:${address.toLowerCase()}`,
 };
 
+/**
+ * The contract a configurator-wide resource names, `undefined` for a
+ * market-specific one. The Bytecode Repository and the periphery registry are
+ * the only state the markets of a GIP share.
+ **/
+export function sharedContract(name: string): Address | undefined {
+  return name.startsWith("contract:") || name.startsWith("periphery:")
+    ? (name.slice(name.lastIndexOf(":") + 1) as Address)
+    : undefined;
+}
+
 /** What an action addressed to one credit manager needs. **/
 export const requiresCreditManager = (params: {
   creditManager: CreditManagerTarget;

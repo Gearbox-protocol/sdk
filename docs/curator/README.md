@@ -1038,3 +1038,56 @@ To add a GIP, write its module next to the others — `timelockTxHashes` and
 `priceUpdates` come from the TimeLock's `ExecuteTransaction` logs and the
 execution transactions — list it in `src/e2e/curator/executedGips.ts`, and
 record its fixture.
+
+## One GIP over several markets
+
+`session.merge(builders)` merges market builders of one session into one GIP with
+the same `preview()`, `build()` and `simulate()` as a single builder:
+
+```ts
+const usdc = session.market({ pool: USDC_POOL }).addAction(registerNft);
+const rwa = session.newMarket(rwaParams).addAction(suiteUsingNft);
+const gip = session.merge([usdc, rwa]);
+
+const preview = await gip.preview({ eta });  // preview.markets[i] is builders[i]'s MarketPreview
+const plan = await gip.build({ author, eta });
+const result = await gip.simulate();         // session created with fork: { rpcUrl }
+```
+
+Markets share nothing but configurator periphery, so they execute one after another
+and each sees the periphery the earlier ones deployed or registered. A market waits
+for the markets providing periphery it requires (a deployment before its
+registration, a Degen NFT registration before a suite or facade using it), and a
+periphery call listed by several markets runs once; a conflicting one is blocked.
+`preview.executionOrder` names the pools in the order their calls execute, and
+`preview.batches` holds every call of the proposal.
+
+Each market is compiled even when another one is blocked, so a preview reports every
+problem at once; `build()` and `simulate()` reject while any market is blocked. The
+builders stay live: each call compiles what they have recorded by then. The merged
+plan is separate from the single-scope versioned plan serialization.
+
+## Integration API
+
+Market and configurator `preview()` results also expose the compiled `txs`, including
+per-action decoded calls, without performing a second execution.
+
+Action definitions and parameter types, concrete adapter parameter/state types, and
+IRM, loss policy and rate keeper defaults are available through the public permissionless
+entry. `MarketActionOf<T>` selects a built-in action by type, and
+`GipRegistry.marketAction(type)` retains the concrete definition for a built-in type.
+
+`planRwaPeripheryActions` takes chain lookups and returns the periphery actions a new
+Securitize RWA market is missing. `reconcileRwaPeripheryActions` and
+`insertRwaZapperDeployment` repair action lists without mutating their inputs.
+
+Deployment schemas define supported versions. Legacy adapters belong to application
+compatibility registries; they are not made available to new users by this API.
+
+For historical transaction inspection, `MarketExecutor` and `ConfigurationExecutor`
+accept `{ checkActions: false }`: they resolve, project and encode the recorded calls
+without applying current source-block preflight checks to already executed calls.
+Session previews and plans always enforce their normal checks.
+
+External plugins and UI validation can reuse `adapterPluginKit.checkCollateralTokens`
+and `adapterPluginKit.getCurveTargetCoins` without duplicating the protocol checks.
