@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { chainSchema } from "../chains/schemas.js";
 import { addressRecord, addressSchema } from "../schemas.js";
 
 /**
@@ -20,23 +21,31 @@ export const priceFeedSchema = z.looseObject({
   name: z.string(),
 });
 
-/** {@link PermissionlessAsset} */
-export const assetSchema = z.looseObject({
+/**
+ * {@link PermissionlessPriceFeedAsset}
+ *
+ * What identifies an asset, which is all a feed's own listing of one says.
+ **/
+export const priceFeedAssetSchema = z.looseObject({
   address: addressSchema,
   symbol: z.string(),
   name: z.string(),
   decimals: z.number(),
+});
+
+/** {@link PermissionlessAsset} — identified as above, plus what prices it. */
+export const assetSchema = priceFeedAssetSchema.extend({
   owner: addressSchema,
   priceFeeds: z.array(priceFeedSchema),
 });
 
-/** {@link PermissionlessPriceFeedStore} */
-export const priceFeedStoreSchema = z.looseObject({
-  chainId: z.number(),
-  name: z.string(),
-  isPublic: z.boolean(),
-  isActivated: z.boolean(),
-  explorerUrl: z.string(),
+/**
+ * {@link PermissionlessPriceFeedStore}
+ *
+ * A store is a chain's, and is described by the same five fields the chain
+ * list answers with, so those are extended rather than restated.
+ **/
+export const priceFeedStoreSchema = chainSchema.extend({
   assets: z.array(assetSchema),
   priceFeeds: z.array(priceFeedSchema),
 });
@@ -48,27 +57,30 @@ export const pricesSchema = z.looseObject({
   time: z.number(),
 });
 
-/** {@link PermissionlessPriceFeedAsset} */
-export const priceFeedAssetSchema = z.looseObject({
-  address: addressSchema,
-  symbol: z.string(),
-  name: z.string(),
-  decimals: z.number(),
-});
-
-/** {@link PermissionlessPriceFeedMarket} */
-export const priceFeedMarketSchema = z.looseObject({
+/**
+ * What names a market, whichever side it is being listed from.
+ *
+ * A feed's markets and an asset's markets are different reads, but they
+ * answer with the same market: who curates it, what it is denominated in and
+ * how much of the quota is taken. Only what the read is about differs, which
+ * is what each of the two below adds.
+ **/
+const marketSchema = z.looseObject({
   market: addressSchema,
   marketConfigurator: addressSchema,
   curatorName: z.string().nullable(),
   marketName: z.string().nullable(),
-  token: addressSchema,
-  tokenSymbol: z.string().nullable(),
   underlyingSymbol: z.string().nullable(),
-  reserve: z.boolean(),
   isUnderlying: z.boolean(),
   quotaLimit: z.number().nullable(),
   quotaUsed: z.number().nullable(),
+});
+
+/** {@link PermissionlessPriceFeedMarket} — the market as the feed's slot in it. */
+export const priceFeedMarketSchema = marketSchema.extend({
+  token: addressSchema,
+  tokenSymbol: z.string().nullable(),
+  reserve: z.boolean(),
   marketStalenessPeriod: z.number().nullable(),
 });
 
@@ -93,20 +105,12 @@ export const assetMarketFeedSchema = z.looseObject({
   inStore: z.boolean(),
 });
 
-/** {@link PermissionlessAssetMarket} */
-export const assetMarketSchema = z.looseObject({
-  market: addressSchema,
-  marketConfigurator: addressSchema,
-  curatorName: z.string().nullable(),
-  marketName: z.string().nullable(),
+/** {@link PermissionlessAssetMarket} — the market as what prices the asset in it. */
+export const assetMarketSchema = marketSchema.extend({
   underlyingToken: addressSchema,
-  underlyingSymbol: z.string().nullable(),
-  isUnderlying: z.boolean(),
   isShutdown: z.boolean(),
   mainFeed: assetMarketFeedSchema.nullable(),
   reserveFeed: assetMarketFeedSchema.nullable(),
-  quotaLimit: z.number().nullable(),
-  quotaUsed: z.number().nullable(),
 });
 
 /** {@link PermissionlessAssetDetails} */
@@ -119,7 +123,13 @@ export const assetDetailsSchema = z.looseObject({
   quotaUsedUsd: z.number().nullable(),
 });
 
-/** {@link PermissionlessAssetPrices} */
+/**
+ * {@link PermissionlessAssetPrices}
+ *
+ * The same shape as {@link priceFeedMarketCapsSchema} plus the prices, but not
+ * an extension of it: the caps there are keyed by asset and these are keyed by
+ * feed, so what the two have in common is a coincidence of form.
+ **/
 export const assetPricesSchema = z.looseObject({
   prices: addressRecord(z.string().nullable()),
   marketCaps: addressRecord(z.string().nullable()),

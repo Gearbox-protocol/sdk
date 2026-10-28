@@ -16,6 +16,7 @@ import {
 } from "./schemas.js";
 import type {
   AssetArgs,
+  AssetsArgs,
   GetPricesArgs,
   PermissionlessAssetDetails,
   PermissionlessAssetPrices,
@@ -170,16 +171,14 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * const everywhere = await permissionless.oracles.assets();
    * ```
    **/
-  public async assets(
-    args: { chainId?: number } = {},
-  ): Promise<PermissionlessAssetSummary[]> {
-    const query =
-      args.chainId === undefined
-        ? ""
-        : `?chainId=${encodeURIComponent(args.chainId)}`;
-
+  public async assets({
+    chainId,
+  }: AssetsArgs = {}): Promise<PermissionlessAssetSummary[]> {
     return this.getData({
-      path: `/pfs/assets${query}`,
+      path: "/pfs/assets",
+      // An absent chain is a condition that does not narrow, and `getData`
+      // leaves such an entry out of the URL rather than sending it empty.
+      query: { chainId: chainId?.toString() },
       schema: assetSummariesSchema,
     });
   }
