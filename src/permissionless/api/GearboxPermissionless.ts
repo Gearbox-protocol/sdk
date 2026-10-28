@@ -1,6 +1,7 @@
 import { PermissionlessAnalytics } from "./analytics/PermissionlessAnalytics.js";
 import { ChainsNamespace } from "./chains/ChainsNamespace.js";
 import type { AttachChainsArgs } from "./chains/types.js";
+import { PermissionlessCurator } from "./curator/PermissionlessCurator.js";
 import { PermissionlessDeploy } from "./deploy/PermissionlessDeploy.js";
 import { PermissionlessOracles } from "./oracles/PermissionlessOracles.js";
 import { InstanceOwnerTransactions } from "./transactions/InstanceOwnerTransactions.js";
@@ -8,8 +9,8 @@ import type { GearboxPermissionlessOptions } from "./types.js";
 
 /**
  * Client for the permissionless stack: the oracle rows of a chain, the
- * batches an instance owner executes, and the deploys that produce what goes
- * into both.
+ * batches an instance owner executes, the deploys that produce what goes
+ * into both, and the GIPs a curator assembles for a market configurator.
  *
  * It reads the same backend {@link GearboxAPI} does, and reads the same way —
  * one namespace per subject, every call scoped by the chain it names. Which
@@ -28,10 +29,11 @@ import type { GearboxPermissionlessOptions } from "./types.js";
  * ```
  *
  * Only what needs a server goes to one. {@link chains}, {@link oracles} and
- * {@link analytics} are the backend's reads; {@link deploy} and
- * {@link transactions} read the target chain directly, because everything
+ * {@link analytics} are the backend's reads; {@link deploy},
+ * {@link transactions} and {@link curator} read the target chain directly, because everything
  * they answer is derived from there and a round trip would only move the
- * derivation further from the wallet that has to sign for it.
+ * derivation further from the wallet that has to sign for it. Curator sessions
+ * can also connect directly to an Anvil fork without attaching first.
  **/
 export class GearboxPermissionless {
   /**
@@ -58,6 +60,11 @@ export class GearboxPermissionless {
    * {@link PermissionlessDeploy}.
    **/
   public readonly deploy: PermissionlessDeploy;
+  /**
+   * Namespace for GIP sessions over a market configurator. Backend-free, see
+   * {@link PermissionlessCurator}.
+   **/
+  public readonly curator: PermissionlessCurator;
 
   constructor(options: GearboxPermissionlessOptions = {}) {
     this.chains = new ChainsNamespace(options);
@@ -68,6 +75,7 @@ export class GearboxPermissionless {
       this.oracles,
     );
     this.deploy = new PermissionlessDeploy(this.chains);
+    this.curator = new PermissionlessCurator(this.chains);
   }
 
   /**
@@ -75,8 +83,9 @@ export class GearboxPermissionless {
    * {@link ChainsNamespace.attach}. Idempotent, and joins a call already in
    * flight.
    *
-   * Everything that reads a chain goes through it, so this has to finish
-   * before the first such call.
+   * Calls that use an attached chain client must wait for this to finish.
+   * Curator sessions opened with `fork` connect directly to their Anvil
+   * endpoint and do not require attaching.
    **/
   public async attach(args: AttachChainsArgs = {}): Promise<void> {
     return this.chains.attach(args);
