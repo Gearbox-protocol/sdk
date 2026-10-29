@@ -19,7 +19,10 @@ import {
 } from "../../../onchain/index.js";
 import { AddressProviderContract } from "../../bindings/address-provider.js";
 import { Addresses } from "../../deployment/addresses.js";
-import { getPrices } from "../../utils/price-update/get-prices.js";
+import {
+  getLatestPrices,
+  getPrices,
+} from "../../utils/price-update/get-prices.js";
 import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
 import {
@@ -471,11 +474,16 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * carry prices the same way, which is what makes this the call to reach for
    * after a deploy, or while a form is still choosing between candidates.
    *
-   * Feeds needing a fresh answer before they can be read are updated inside
-   * the same simulation, so a push-based feed prices as readily as a
-   * pull-based one. `null` is a feed whose read reverted, and a chain with no
-   * client configured is every one of its feeds reading `null` rather than a
-   * failed call — the figures built on them are floors either way.
+   * Read in two passes. The first asks every feed what it reports as it
+   * stands, which is one multicall per chain; a feed that will not answer
+   * until it has been given a fresh one is then priced inside a simulation
+   * that updates it first, so a push-based feed prices as readily as a
+   * pull-based one. The second pass costs an `OnchainSDK` to attach, hence
+   * only the feeds that need it rather than all of them.
+   *
+   * `null` is a feed neither pass could read, and a chain with no client
+   * configured is every one of its feeds reading `null` rather than a failed
+   * call — the figures built on them are floors either way.
    *
    * ```ts
    * const [{ price }] = await permissionless.oracles.getPrices([
@@ -487,31 +495,18 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * the 8 decimals every Gearbox feed reports.
    **/
   public async getPrices(feeds: PriceFeedRef[]): Promise<PriceFeedPrice[]> {
-    const byChain = new Map<number, Address[]>();
+    const byChain = new Map<number, Set<Address>>();
     for (const { chainId, address } of feeds) {
-      const addresses = byChain.get(chainId) ?? [];
-      addresses.push(address.toLowerCase() as Address);
+      const addresses = byChain.get(chainId) ?? new Set<Address>();
+      addresses.add(address.toLowerCase() as Address);
       byChain.set(chainId, addresses);
     }
 
     const chainIds = [...byChain.keys()];
     const results = await Promise.all(
-      chainIds.map(async chainId => {
-        const priceFeeds = [...new Set(byChain.get(chainId) ?? [])];
-        try {
-          return await getPrices({
-            client: this.#chains.client(chainId),
-            priceFeeds,
-            chunkSize: GET_PRICES_CHUNK_SIZE,
-            gasLimit: GET_PRICES_GAS_LIMIT_BY_CHAIN_ID[chainId],
-          });
-        } catch (e) {
-          this.logger?.warn(
-            `chain ${chainId} would not price its ${priceFeeds.length} feed(s), reporting them unpriced: ${describe(e)}`,
-          );
-          return {} as Record<Address, bigint | null>;
-        }
-      }),
+      chainIds.map(chainId =>
+        this.#pricesOf(chainId, [...(byChain.get(chainId) ?? [])]),
+      ),
     );
 
     const prices = new Map(chainIds.map((id, i) => [id, results[i] ?? {}]));
@@ -520,6 +515,54 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
       address,
       price: prices.get(chainId)?.[address.toLowerCase() as Address] ?? null,
     }));
+  }
+
+  /** One chain's half of {@link getPrices}: the cheap pass, then the rest. */
+  async #pricesOf(
+    chainId: number,
+    priceFeeds: Address[],
+  ): Promise<Record<Address, bigint | null>> {
+    let client: PublicClient<Transport, Chain>;
+    try {
+      client = this.#chains.client(chainId);
+    } catch (e) {
+      this.logger?.warn(
+        `chain ${chainId} has no client, reporting its ${priceFeeds.length} feed(s) unpriced: ${describe(e)}`,
+      );
+      return {};
+    }
+
+    let prices: Record<Address, bigint | null>;
+    try {
+      prices = await getLatestPrices({ client, priceFeeds });
+    } catch (e) {
+      this.logger?.warn(
+        `chain ${chainId} would not answer for its ${priceFeeds.length} feed(s), trying each with an update: ${describe(e)}`,
+      );
+      prices = {};
+    }
+
+    const stale = priceFeeds.filter(feed => (prices[feed] ?? null) === null);
+    if (stale.length === 0) {
+      return prices;
+    }
+
+    try {
+      return {
+        ...prices,
+        ...(await getPrices({
+          client,
+          priceFeeds: stale,
+          chunkSize: GET_PRICES_CHUNK_SIZE,
+          gasLimit: GET_PRICES_GAS_LIMIT_BY_CHAIN_ID[chainId],
+        })),
+      };
+    } catch (e) {
+      this.logger?.warn(
+        `chain ${chainId} would not price ${stale.length} of its feed(s) even with an update, reporting them unpriced: ${describe(e)}`,
+      );
+      return prices;
+    }
   }
 
   /**
