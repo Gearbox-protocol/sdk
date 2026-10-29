@@ -44,7 +44,6 @@ import type {
   PythOptions,
   RedstoneOptions,
 } from "./updates/index.js";
-import { PythUpdater, RedstoneUpdater } from "./updates/index.js";
 import { WstETHPriceFeedContract } from "./WstETHPriceFeed.js";
 import { YearnPriceFeedContract } from "./YearnPriceFeed.js";
 import { ZeroPriceFeedContract } from "./ZeroPriceFeed.js";
@@ -61,11 +60,11 @@ export type PriceFeedRegisterHooks = {
  **/
 export interface PriceFeedRegisterOptions {
   /**
-   * Redstone price-update provider options.
+   * @deprecated RedStone options are accepted for compatibility and ignored.
    **/
   redstone?: RedstoneOptions;
   /**
-   * Pyth price-update provider options.
+   * @deprecated Pyth options are accepted for compatibility and ignored.
    **/
   pyth?: PythOptions;
 }
@@ -90,8 +89,7 @@ export interface LatestUpdate {
  *
  * All {@link IPriceOracleContract}s across different markets share a single
  * `PriceFeedRegister`, avoiding duplicate contract wrappers for the same
- * on-chain feed. The register also orchestrates off-chain price updates
- * (Pyth, Redstone, etc.).
+ * on-chain feed. Pyth and RedStone off-chain updates are disabled.
  **/
 export class PriceFeedRegister
   extends SDKConstruct
@@ -102,12 +100,9 @@ export class PriceFeedRegister
   #feeds = new AddressMap<IPriceFeedContract>(undefined, "priceFeeds");
   #latestUpdate: LatestUpdate | undefined;
 
-  constructor(sdk: OnchainSDK, opts: PriceFeedRegisterOptions = {}) {
+  constructor(sdk: OnchainSDK, _opts: PriceFeedRegisterOptions = {}) {
     super(sdk);
-    this.#updaters = [
-      new PythUpdater(sdk, opts?.pyth),
-      new RedstoneUpdater(sdk, opts?.redstone),
-    ];
+    this.#updaters = [];
   }
 
   /**
@@ -244,6 +239,7 @@ export class PriceFeedRegister
     feeds: Address[],
     block?: { blockNumber: bigint } | { blockTag: BlockTag },
   ): Promise<UpdatePriceFeedsResult> {
+    if (this.#updaters.length === 0) return { txs: [], timestamp: 0 };
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,
@@ -332,6 +328,7 @@ export class PriceFeedRegister
   public async getPartialUpdatablePriceFeeds(
     configurators: Address[],
   ): Promise<IPriceFeedContract[]> {
+    if (this.#updaters.length === 0) return [];
     const [priceFeedCompressorAddress] = this.sdk.addressProvider.mustGetLatest(
       AP_PRICE_FEED_COMPRESSOR,
       VERSION_RANGE_310,

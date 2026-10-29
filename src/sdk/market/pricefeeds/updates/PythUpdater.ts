@@ -1,26 +1,10 @@
-import type { Address, Hex } from "viem";
 import { z } from "zod/v4";
 import { SDKConstruct } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
-import type {
-  IPriceFeedContract,
-  IUpdatablePriceFeedContract,
-} from "../types.js";
-import { fetchPythPayloads } from "./fetchPythPayloads.js";
-import { PriceUpdatesCache } from "./PriceUpdatesCache.js";
+import type { IPriceFeedContract } from "../types.js";
+import type { PriceUpdatesCache } from "./PriceUpdatesCache.js";
 import { PriceUpdateTx } from "./PriceUpdateTx.js";
-import type {
-  IPriceUpdater,
-  IPriceUpdateTask,
-  TimestampedCalldata,
-} from "./types.js";
-
-interface IPythPriceFeedContract extends IUpdatablePriceFeedContract {
-  readonly token: Address;
-  readonly priceFeedId: Hex;
-  readonly pyth: Address;
-  readonly maxConfToPriceRatio?: bigint;
-}
+import type { IPriceUpdater, IPriceUpdateTask } from "./types.js";
 
 export type PythUpdateTask = IPriceUpdateTask;
 
@@ -28,6 +12,7 @@ class PythUpdateTx extends PriceUpdateTx<PythUpdateTask> {
   public readonly name = "pyth";
 }
 
+/** @deprecated Options are accepted for compatibility and ignored. */
 export const PythOptions = z.object({
   /**
    * Fixed pyth historic timestamp in seconds
@@ -58,162 +43,22 @@ export type PythOptions = z.infer<typeof PythOptions> & {
   cache?: PriceUpdatesCache;
 };
 
-/**
- * Class to update multiple pyth price feeds at once
- */
+/** @deprecated Pyth updates are no longer supported. */
 export class PythUpdater
   extends SDKConstruct
   implements IPriceUpdater<PythUpdateTask>
 {
-  #cache: PriceUpdatesCache;
-  /**
-   * Fixed pyth historic timestamp in seconds
-   */
-  #historicalTimestamp?: number;
-  #apiProxy?: string;
-  #failOnMissingFeeds?: boolean;
-
-  constructor(sdk: OnchainSDK, opts: PythOptions = {}) {
+  constructor(sdk: OnchainSDK, _opts: PythOptions = {}) {
     super(sdk);
-    const { apiProxy, cacheTTL, failOnMissingFeeds, historicTimestamp } = opts;
-    this.#failOnMissingFeeds = failOnMissingFeeds;
-    this.#apiProxy = apiProxy;
-
-    if (historicTimestamp) {
-      this.#historicalTimestamp =
-        historicTimestamp === true
-          ? Number(this.sdk.timestamp)
-          : historicTimestamp;
-      this.logger?.debug(
-        `using historical timestamp ${this.#historicalTimestamp}`,
-      );
-    }
-    this.#cache =
-      opts.cache ??
-      new PriceUpdatesCache({
-        ttl: cacheTTL ?? 225 * 1000,
-        historical: !!historicTimestamp,
-      });
   }
 
   public async getUpdateTxs(
-    feeds: IPriceFeedContract[],
+    _feeds: IPriceFeedContract[],
   ): Promise<PythUpdateTx[]> {
-    if (feeds.length === 0) {
-      return [];
-    }
-    this.logger?.debug(
-      `generating update transactions for ${feeds.length} pyth price feeds`,
-    );
-    const pythFeeds = new Map<string, IPythPriceFeedContract>(
-      feeds.filter(isPyth).map(f => [f.priceFeedId, f]),
-    );
-
-    const payloads = await this.#getPayloads(new Set(pythFeeds.keys()));
-
-    let [minTimestamp, maxTimestamp] = [Number.POSITIVE_INFINITY, 0];
-    const results: PythUpdateTx[] = [];
-
-    for (const p of payloads) {
-      const priceFeed = pythFeeds.get(p.dataFeedId);
-      if (!priceFeed) {
-        throw new Error(`cannot find price feed for ${p.dataFeedId}`);
-      }
-      const { dataFeedId, timestamp, cached, data } = p;
-      minTimestamp = Math.min(minTimestamp, timestamp);
-      maxTimestamp = Math.max(maxTimestamp, timestamp);
-      results.push(
-        new PythUpdateTx(priceFeed.createPriceUpdateTx(data), {
-          dataFeedId,
-          priceFeed: priceFeed.address,
-          timestamp,
-          cached,
-        }),
-      );
-    }
-    let tsRange = "";
-    if (results.length) {
-      const minDelta = BigInt(minTimestamp) - this.sdk.timestamp;
-      tsRange = `, timestamps ${minTimestamp} (${minDelta})`;
-      if (minTimestamp !== maxTimestamp) {
-        const maxDelta = BigInt(maxTimestamp) - this.sdk.timestamp;
-        tsRange = `${tsRange} - ${maxTimestamp} (${maxDelta})`;
-      }
-    }
-    this.logger?.debug(
-      `generated ${results.length} update transactions for pyth price feeds: ${Array.from(pythFeeds.keys()).join(", ")}${tsRange}`,
-    );
-    return results;
+    return [];
   }
 
   public get historical(): boolean {
-    return !!this.#historicalTimestamp;
+    return false;
   }
-
-  /**
-   * Gets pyth payloads
-   * @param dataFeedsIds
-   * @returns
-   */
-  async #getPayloads(
-    dataFeedsIds: Set<string>,
-  ): Promise<TimestampedCalldata[]> {
-    this.logger?.debug(
-      `getting pyth payloads for ${dataFeedsIds.size} price feeds: ${Array.from(dataFeedsIds).join(", ")}`,
-    );
-    const fromCache: TimestampedCalldata[] = [];
-    const uncached: string[] = [];
-    for (const priceFeedsId of dataFeedsIds) {
-      const cached = this.#cache.get(priceFeedsId);
-      if (cached) {
-        fromCache.push({ ...cached, cached: true });
-      } else {
-        uncached.push(priceFeedsId);
-      }
-    }
-
-    const fromPyth: TimestampedCalldata[] = await this.#fetchPayloads(
-      new Set(uncached),
-    );
-    // cache newly fetched responses
-    for (const resp of fromPyth) {
-      this.#cache.set(resp, resp.dataFeedId);
-    }
-    this.logger?.debug(
-      `got ${fromPyth.length} new pyth updates and ${fromCache.length} from cache`,
-    );
-
-    return [...fromCache, ...fromPyth];
-  }
-
-  /**
-   * Fetches pyth payloads from Hermes API
-   * @param dataFeedsIds
-   * @returns
-   */
-  async #fetchPayloads(
-    dataFeedsIds: Set<string>,
-  ): Promise<TimestampedCalldata[]> {
-    if (dataFeedsIds.size === 0) {
-      return [];
-    }
-    const ids = Array.from(dataFeedsIds);
-    const tsStr = this.#historicalTimestamp
-      ? ` with historical timestamp ${this.#historicalTimestamp}`
-      : "";
-    this.logger?.debug(
-      `fetching pyth payloads for ${dataFeedsIds.size} price feeds: ${ids.join(", ")}${tsStr}`,
-    );
-    return fetchPythPayloads({
-      dataFeedsIds,
-      historicalTimestampSeconds: this.#historicalTimestamp,
-      apiProxy: this.#apiProxy,
-      failOnMissingFeeds: this.#failOnMissingFeeds,
-      logger: this.logger,
-    });
-  }
-}
-
-function isPyth(pf: IPriceFeedContract): pf is IPythPriceFeedContract {
-  return pf.contractType === "PRICE_FEED::PYTH";
 }

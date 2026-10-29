@@ -23,11 +23,11 @@ import {
   type ParsedCallArgs,
 } from "../../sdk/index.js";
 import { Addresses } from "../deployment/addresses.js";
+import { BytecodeRepositoryContract } from "./bytecode-repository.js";
 import { WithdrawalCompressorContract } from "./compressors/index.js";
 import { PriceFeedStoreContract } from "./price-feed-store.js";
 import { RoutingManagerContract } from "./router/index.js";
 import { TreasurySplitterContract } from "./treasury-splitter.js";
-import { BytecodeRepositoryContract } from "./bytecode-repository.js";
 
 const abi = instanceManagerAbi;
 

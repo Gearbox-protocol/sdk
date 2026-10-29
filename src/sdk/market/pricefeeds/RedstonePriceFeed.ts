@@ -26,6 +26,7 @@ export class RedstonePriceFeedContract
   constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
     super(options, {
       ...args,
+      updatable: false,
       name: "RedstonePriceFeed",
       abi: redstonePriceFeedAbi,
     });

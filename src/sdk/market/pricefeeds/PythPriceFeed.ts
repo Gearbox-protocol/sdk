@@ -28,6 +28,7 @@ export class PythPriceFeed
   constructor(options: ConstructOptions, args: PartialPriceFeedTreeNode) {
     super(options, {
       ...args,
+      updatable: false,
       name: "PythPriceFeed",
       abi,
     });
