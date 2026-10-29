@@ -127,8 +127,26 @@ describe("maxBorrowAndWithdraw", () => {
   it.each([
     { availableLiquidity: 1_000_000_000n },
     { debtLimitAvailable: 1_000_000_000n },
-  ])("caps the loan at market capacity %o", extras => {
-    expect(maxBorrowAndWithdraw(setup(extras))).toBe(1_000_000_000n);
+  ])(
+    "leaves two basis points of market capacity for changes before execution %o",
+    extras => {
+      expect(maxBorrowAndWithdraw(setup(extras))).toBe(999_800_000n);
+    },
+  );
+
+  it("still prepares the payout after market capacity decreases by one basis point", async () => {
+    const props = setup({ debtLimitAvailable: 1_000_000_000n });
+    const amount = maxBorrowAndWithdraw(props);
+    const updated = setup({ debtLimitAvailable: 999_900_000n });
+    const sim = await new CreditAccountOperationsService(
+      updated.sdk,
+    ).startIntent({
+      ...updated,
+      intent: { type: "BORROW_AND_WITHDRAW", amount, to: WALLET },
+      slippage: undefined,
+      quotaReserve: undefined,
+    });
+    expect(sim.ok).toBe(true);
   });
 
   it("subtracts existing debt from the per-account debt cap", () => {
