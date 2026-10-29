@@ -47,14 +47,22 @@ jobs:
         with:
           version: ${{ steps.foundry.outputs.version }}
 
-      - name: Test and build
+      - name: Typecheck and test
         env:
           ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: |
           pnpm typecheck:ci
-          pnpm test:all
-          pnpm build
+          pnpm vitest run --project unit --project e2e
+
+      # Backend releases depend on prereleases from `next`, so there failing
+      # backend client tests must not block the release.
+      - name: Backend client tests
+        continue-on-error: ${{ github.ref_name == 'next' }}
+        run: pnpm test:api
+
+      - name: Build
+        run: pnpm build
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v8

@@ -9,6 +9,7 @@ const FEED = "0x0000000000000000000000000000000000000001" as Address;
 const CHILD = "0x0000000000000000000000000000000000000002" as Address;
 const WETH = "0x00000000000000000000000000000000000000aa" as Address;
 const MARKET = "0x0000000000000000000000000000000000000f01" as Address;
+const ORACLE = "0x0000000000000000000000000000000000000e01" as Address;
 const CONFIGURATOR = "0x0000000000000000000000000000000000000c01" as Address;
 const DEPLOYER = "0x0000000000000000000000000000000000000d01" as Address;
 
@@ -38,27 +39,10 @@ const DETAILS = {
       isUnderlying: true,
       // The market's own underlying, which is never quota-managed.
       quotaLimit: null,
+      quotaUsed: null,
+      priceOracle: ORACLE,
     },
   ],
-};
-
-/**
- * A cap no market would report, on purpose.
- *
- * What is worth pinning is that the figure arrives as the string the backend
- * sent and is not routed through a number on the way, so the fixture is wider
- * than a double can hold rather than whatever the chain happens to say today.
- */
-const CAP = "12345678901234567890.123456789";
-
-const MARKET_CAPS = {
-  marketCaps: {
-    [WETH]: CAP,
-    // An asset the backend could price neither off its index nor off the
-    // chain. Distinct from a cap of zero.
-    [CHILD]: null,
-  },
-  time: 1_700_000_000_000,
 };
 
 const GRAPH = {
@@ -124,9 +108,21 @@ describe("oracles.feed", () => {
       address: FEED,
     });
 
-    expect(details).toEqual(DETAILS);
+    expect(details).toMatchObject(DETAILS);
     expect(details.markets[0]?.reserve).toBe(true);
     expect(details.markets[0]?.isUnderlying).toBe(true);
+  });
+
+  it("reports no staleness period for a chain it cannot reach", async () => {
+    // The period lives on the market's own oracle and is not indexed, so a
+    // client with no chain attached cannot have it. The indexed half of the
+    // read is perfectly good and is answered rather than failed.
+    const details = await client().oracles.feed({
+      chainId: CHAIN,
+      address: FEED,
+    });
+
+    expect(details.markets[0]?.marketStalenessPeriod).toBe(null);
   });
 
   it("keeps a token the backend has no metadata for", async () => {
@@ -195,53 +191,141 @@ describe("oracles.feed", () => {
   });
 });
 
-describe("oracles.feedMarketCaps", () => {
-  beforeEach(() => respond(MARKET_CAPS));
+describe("oracles.stores", () => {
+  const STORE = {
+    chainId: CHAIN,
+    name: "Mainnet",
+    isPublic: true,
+    isActivated: true,
+    explorerUrl: "https://etherscan.io",
+    assets: [],
+    priceFeeds: [],
+  };
 
-  it("reads the caps of the one feed, not of the whole chain", async () => {
-    await client().oracles.feedMarketCaps({ chainId: CHAIN, address: FEED });
+  it("reads every chain from the one route", async () => {
+    respond([STORE, { ...STORE, chainId: 42_793, name: "Etherlink" }]);
 
-    expect(requested().pathname).toBe(
-      `/pfs/${CHAIN}/price-feed/${FEED}/market-caps`,
-    );
+    const stores = await client().oracles.stores();
+
+    expect(requested().pathname).toBe("/pfs/stores");
+    expect(requested().searchParams.get("chainId")).toBeNull();
+    expect(stores.map(it => it.chainId)).toEqual([CHAIN, 42_793]);
   });
 
-  it("decodes the caps and the time they were read at", async () => {
-    const caps = await client().oracles.feedMarketCaps({
-      chainId: CHAIN,
-      address: FEED,
-    });
+  it("narrows to one chain without changing the shape", async () => {
+    respond([STORE]);
 
-    expect(caps).toEqual(MARKET_CAPS);
+    const stores = await client().oracles.stores({ chainId: CHAIN });
+
+    expect(requested().searchParams.get("chainId")).toBe(String(CHAIN));
+    expect(stores).toHaveLength(1);
+  });
+});
+
+describe("oracles.assets", () => {
+  // Real addresses, because what the rows are classified as is read off this
+  // package's own tables rather than taken from the payload.
+  const MAINNET_WETH = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" as Address;
+  const MAINNET_RWA = "0x238a700ed6165261cf8b2e544ba797bc11e466ba" as Address;
+
+  const summary = (overrides: Record<string, unknown> = {}) => ({
+    chainId: CHAIN,
+    address: MAINNET_WETH,
+    symbol: "WETH",
+    underlyingMarketCount: 2,
+    marketQuotas: [],
+    ...overrides,
   });
 
-  it("keeps an asset nobody could price as unpriced", async () => {
-    const { marketCaps } = await client().oracles.feedMarketCaps({
-      chainId: CHAIN,
-      address: FEED,
-    });
+  it("classifies an asset the curated tables name", async () => {
+    respond([summary()]);
 
-    expect(marketCaps[CHILD]).toBe(null);
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]).toMatchObject({ assetType: "ETH", isRwa: false });
   });
 
-  it("hands the figure over untouched, to its last digit", async () => {
-    const { marketCaps } = await client().oracles.feedMarketCaps({
-      chainId: CHAIN,
-      address: FEED,
-    });
+  it("leaves an asset no table names unclassified", async () => {
+    respond([summary({ address: WETH, symbol: "NOTHING" })]);
 
-    expect(marketCaps[WETH]).toBe(CAP);
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]).toMatchObject({ assetType: null, isRwa: false });
   });
 
-  it("answers an empty set for a feed no asset uses", async () => {
-    respond({ marketCaps: {}, time: 1_700_000_000_000 });
+  it("marks an asset the real-world list names", async () => {
+    // Orthogonal to the type, which this one has none of.
+    respond([summary({ address: MAINNET_RWA, symbol: "mF-ONE" })]);
 
-    const { marketCaps } = await client().oracles.feedMarketCaps({
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]).toMatchObject({ assetType: null, isRwa: true });
+  });
+
+  it("serves a chain the tables do not cover rather than failing", async () => {
+    respond([summary({ chainId: 999_999 })]);
+
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]).toMatchObject({ assetType: null, isRwa: false });
+  });
+
+  it("classifies each chain of a list by its own tables", async () => {
+    respond([summary(), summary({ chainId: 999_999 })]);
+
+    const assets = await client().oracles.assets();
+
+    expect(assets.map(it => it.assetType)).toEqual(["ETH", null]);
+  });
+});
+
+describe("oracles.getMarketCap", () => {
+  beforeEach(() => respond(DETAILS));
+
+  it("enumerates one asset against each of its feeds", async () => {
+    const caps = await client().oracles.getMarketCap({
       chainId: CHAIN,
-      address: FEED,
+      asset: WETH,
+      priceFeeds: [FEED, CHILD],
     });
 
-    expect(marketCaps).toEqual({});
+    expect(caps.map(it => [it.priceFeed, it.asset])).toEqual([
+      [FEED, WETH],
+      [CHILD, WETH],
+    ]);
+  });
+
+  it("enumerates one feed against each of the assets it prices", async () => {
+    const caps = await client().oracles.getMarketCap({
+      chainId: CHAIN,
+      priceFeed: FEED,
+      assets: [WETH, CHILD],
+    });
+
+    expect(caps.map(it => [it.priceFeed, it.asset])).toEqual([
+      [FEED, WETH],
+      [FEED, CHILD],
+    ]);
+  });
+
+  it("reports a pair it could not read as unpriced, not as worthless", async () => {
+    const caps = await client().oracles.getMarketCap({
+      chainId: CHAIN,
+      asset: WETH,
+      priceFeeds: [FEED],
+    });
+
+    expect(caps[0]?.cap).toBe(null);
+  });
+
+  it("reads nothing at all for a feed no asset uses", async () => {
+    const caps = await client().oracles.getMarketCap({
+      chainId: CHAIN,
+      priceFeed: FEED,
+      assets: [],
+    });
+
+    expect(caps).toEqual([]);
   });
 });
 
