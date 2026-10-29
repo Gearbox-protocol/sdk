@@ -1,3 +1,4 @@
+import { PERCENTAGE_FACTOR } from "../../constants/math.js";
 import type { OnchainSDK } from "../../index.js";
 import { BigIntMath } from "../../utils/bigint-math.js";
 import { collateralValuation } from "./collateral-valuation.js";
@@ -39,12 +40,13 @@ export function maxBorrowAndWithdraw(props: MaxBorrowAndWithdrawProps): bigint {
     supportedDebt(targetSafeHF, true),
     suite.creditFacade.maxDebt,
   );
+  // Leave two basis points for capacity shrinking between the read and execution.
+  const borrowable =
+    (suite.maxBorrowAmount().amount.value * (PERCENTAGE_FACTOR - 2n)) /
+    PERCENTAGE_FACTOR;
   const additional = BigIntMath.max(
     0n,
-    BigIntMath.min(
-      totalDebt - creditAccount.totalDebt,
-      suite.maxBorrowAmount().amount.value,
-    ),
+    BigIntMath.min(totalDebt - creditAccount.totalDebt, borrowable),
   );
   const asset = sdk.tokensMeta.rwaUnderlyings.get(
     creditAccount.underlying,
