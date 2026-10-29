@@ -1,44 +1,12 @@
-import { type Address, getContract, type PublicClient } from "viem";
-import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
-import {
-  bytes32ToString,
-  type IPriceFeedContract,
-  type OnchainSDK,
-  type PriceFeedTreeNode,
-  PythPriceFeed,
-  RedstonePriceFeedContract,
-} from "../../../sdk/index.js";
+import type { Address, PublicClient } from "viem";
+import type { IPriceFeedContract, OnchainSDK } from "../../../sdk/index.js";
 
-export async function getUpdatablePriceFeeds(args: {
+/** Pyth and RedStone updates are disabled; retained for compatibility. */
+export async function getUpdatablePriceFeeds(_args: {
   sdk: OnchainSDK;
   client: PublicClient;
   pfCompressor: Address;
   priceFeeds: Address[];
 }): Promise<IPriceFeedContract[]> {
-  const { sdk, client, pfCompressor, priceFeeds } = args;
-  const priceFeedCompressor = getContract({
-    address: pfCompressor,
-    abi: priceFeedCompressorAbi,
-    client,
-  });
-  const updatablePriceFeeds = (
-    (await priceFeedCompressor.read.loadPriceFeedTree([
-      priceFeeds,
-    ])) as PriceFeedTreeNode[]
-  )
-    .filter((data: PriceFeedTreeNode) =>
-      ["PRICE_FEED::PYTH", "PRICE_FEED::REDSTONE"].includes(
-        bytes32ToString(data.baseParams.contractType),
-      ),
-    )
-    .map((data: PriceFeedTreeNode) => {
-      if (
-        bytes32ToString(data.baseParams.contractType) === "PRICE_FEED::PYTH"
-      ) {
-        return new PythPriceFeed(sdk, data);
-      }
-      return new RedstonePriceFeedContract(sdk, data);
-    });
-
-  return updatablePriceFeeds;
+  return [];
 }

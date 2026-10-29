@@ -366,27 +366,6 @@ export class OnchainSDK<
     this.#currentBlock = block.number;
     this.#timestamp = block.timestamp;
 
-    // attaching to historical block but providing latest price update will fail
-    // with PriceTimestampTooFarAheadException if we exceed MAX_DATA_TIMESTAMP_AHEAD_SECONDS (1 minute)
-    if (
-      blockNumber &&
-      !redstone?.historicTimestamp &&
-      time - Number(block.timestamp) * 1000 > 60 * 1000
-    ) {
-      this.logger?.warn(
-        "attaching to fixed block number, but redstone historicTimestamp is not set. price updates might fail",
-      );
-    }
-    if (
-      blockNumber &&
-      !pyth?.historicTimestamp &&
-      time - Number(block.timestamp) * 1000 > 60 * 1000
-    ) {
-      this.logger?.warn(
-        "attaching to fixed block number, but pyth historicTimestamp is not set. price updates might fail",
-      );
-    }
-
     this.#priceFeeds = new PriceFeedRegister(this, { redstone, pyth });
 
     this.logger?.debug(
@@ -583,11 +562,6 @@ export class OnchainSDK<
    */
   public async syncState(opts?: SyncStateOptions): Promise<boolean> {
     let { blockNumber, timestamp, ignoreUpdateablePrices } = opts ?? {};
-    if (this.priceFeeds.historical && !ignoreUpdateablePrices) {
-      this.logger?.warn(
-        "syncState is not supported with redstone or pyth historicTimestamp",
-      );
-    }
     if (!blockNumber || !timestamp) {
       const block = await this.client.getBlock({
         blockTag: "latest",

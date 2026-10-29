@@ -1,0 +1,108 @@
+import type { MarketData } from "../../base/index.js";
+
+// Synthetic v3.10 market based on K3 USDT; unrelated lists and oracle data removed.
+export const DISABLED_UPDATES_MARKET: MarketData = {
+  acl: "0x440d31050B91AE5db3F654C3A3BC735e03EC02Aa",
+  contractsRegister: "0x0E23d48dBfCdC49Ca29b4b458323ed53610Ab2e6",
+  treasury: "0x019AD5F451Af1Ebae4AfAc3f465ae39DFb95Ea71",
+  pool: {
+    baseParams: {
+      addr: "0xF5503D3D4bd254C2c17690EED523bcb2935Db6de",
+      version: 310n,
+      contractType:
+        "0x504f4f4c3a3a5553445400000000000000000000000000000000000000000000",
+      serializedParams: "0x",
+    },
+    symbol: "dUSDTV3K3",
+    name: "K3 USDT v3 stable",
+    decimals: 6,
+    totalSupply: 6421408176n,
+    quotaKeeper: "0xf7AbB3d89c5EA61a33048cf3CDbFD0723319BB74",
+    interestRateModel: "0xC37d01e3e41A14d5B622A20164Cc29C02B838C38",
+    underlying: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    availableLiquidity: 6642035601n,
+    expectedLiquidity: 6514633225n,
+    baseInterestIndex: 1018351802757220834211461358n,
+    baseInterestRate: 0n,
+    dieselRate: 1014517851294429223650086809n,
+    supplyRate: 0n,
+    withdrawFee: 0n,
+    totalBorrowed: 0n,
+    totalDebtLimit: 1000000000000000n,
+    creditManagerDebtParams: [],
+    baseInterestIndexLU: 1018351802757220834211461358n,
+    expectedLiquidityLU: 6514633225n,
+    quotaRevenue: 0n,
+    lastBaseInterestUpdate: 1761833819,
+    lastQuotaRevenueUpdate: 1761833819,
+    isPaused: false,
+  },
+  quotaKeeper: {
+    baseParams: {
+      addr: "0xf7AbB3d89c5EA61a33048cf3CDbFD0723319BB74",
+      version: 310n,
+      contractType:
+        "0x504f4f4c5f51554f54415f4b4545504552000000000000000000000000000000",
+      serializedParams: "0x",
+    },
+    rateKeeper: "0x1aC40ED952f4d1e73e7604CD7C10e9415338c84C",
+    quotas: [],
+    creditManagers: [],
+    lastQuotaRateUpdate: 1743524759,
+  },
+  interestRateModel: {
+    baseParams: {
+      addr: "0xC37d01e3e41A14d5B622A20164Cc29C02B838C38",
+      version: 310n,
+      contractType:
+        "0x49524d3a3a4c494e454152000000000000000000000000000000000000000000",
+      serializedParams:
+        "0x0000000000000000000000000000000000000000000000000000000000001b580000000000000000000000000000000000000000000000000000000000002328000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c800000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000008fc0000000000000000000000000000000000000000000000000000000000000001",
+    },
+  },
+  rateKeeper: {
+    baseParams: {
+      addr: "0x1aC40ED952f4d1e73e7604CD7C10e9415338c84C",
+      version: 310n,
+      contractType:
+        "0x524154455f4b45455045523a3a47415547450000000000000000000000000000",
+      serializedParams:
+        "0x0000000000000000000000004d427d418342d8ce89a7634c3a402851978b680a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    },
+    rates: [],
+  },
+  priceOracle: {
+    baseParams: {
+      addr: "0x599f585D1042A14aAb194AC8031b2048dEFdFB85",
+      version: 310n,
+      contractType:
+        "0x50524943455f4f5241434c450000000000000000000000000000000000000000",
+      serializedParams: "0x",
+    },
+    priceFeedMap: [],
+    priceFeedTree: [],
+  },
+  lossPolicy: {
+    baseParams: {
+      addr: "0x0E6CFA02c8A42289d7d14f801e0630eAAD7712C9",
+      version: 310n,
+      contractType:
+        "0x4c4f53535f504f4c4943593a3a44454641554c54000000000000000000000000",
+      serializedParams:
+        "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
+    },
+  },
+  tokens: [
+    {
+      addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      symbol: "USDT",
+      name: "Tether USD",
+      decimals: 6,
+    },
+  ],
+  creditManagers: [],
+  configurator: "0x4d427D418342d8CE89a7634c3a402851978B680A",
+  pausableAdmins: [],
+  unpausableAdmins: [],
+  emergencyLiquidators: [],
+};
