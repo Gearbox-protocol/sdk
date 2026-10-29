@@ -23,6 +23,8 @@ import {
   startOracleProxy,
 } from "./oracleProxy.js";
 
+import { workaroundRefreshRedstone } from "./workaroundRefreshRedstone.js";
+
 export { PYTH_API_PROXY, REDSTONE_GATEWAYS } from "./oracleProxy.js";
 
 const FIXTURES_DIR = resolve(import.meta.dirname, "fixtures");
@@ -84,6 +86,12 @@ export function useFixture(options: UseFixtureOptions): void {
     });
 
     client = createAnvilClient({ transport: http(anvil.url) });
+    // Same fixture workaround as SDK 17; remove after regenerating old forks.
+    await workaroundRefreshRedstone({
+      client,
+      network: options.network,
+      block: options.block,
+    });
     snapshotId = (await client.snapshot()) as Hex;
   });
 
