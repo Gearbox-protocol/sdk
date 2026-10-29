@@ -1,6 +1,7 @@
 import { PermissionlessAnalytics } from "./analytics/PermissionlessAnalytics.js";
 import { ChainsNamespace } from "./chains/ChainsNamespace.js";
 import type { AttachChainsArgs } from "./chains/types.js";
+import { PermissionlessConfigurators } from "./configurators/PermissionlessConfigurators.js";
 import { PermissionlessCurator } from "./curator/PermissionlessCurator.js";
 import { PermissionlessDeploy } from "./deploy/PermissionlessDeploy.js";
 import { PermissionlessOracles } from "./oracles/PermissionlessOracles.js";
@@ -28,8 +29,8 @@ import type { GearboxPermissionlessOptions } from "./types.js";
  * const store = await permissionless.oracles.store({ chainId: chain.chainId });
  * ```
  *
- * Only what needs a server goes to one. {@link chains}, {@link oracles} and
- * {@link analytics} are the backend's reads; {@link deploy},
+ * Only what needs a server goes to one. {@link chains}, {@link oracles},
+ * {@link configurators} and {@link analytics} are the backend's reads; {@link deploy},
  * {@link transactions} and {@link curator} read the target chain directly, because everything
  * they answer is derived from there and a round trip would only move the
  * derivation further from the wallet that has to sign for it. Curator sessions
@@ -45,6 +46,12 @@ export class GearboxPermissionless {
    * Namespace for price feeds: the store and its prices.
    **/
   public readonly oracles: PermissionlessOracles;
+  /**
+   * Namespace for market configurators: the backend's index of them and
+   * their markets, the TimeLock events of their GIPs, and the roles and
+   * TimeLock windows read off the chain, see {@link PermissionlessConfigurators}.
+   **/
+  public readonly configurators: PermissionlessConfigurators;
   /**
    * Namespace for history: what a feed's price did over a window, see
    * {@link PermissionlessAnalytics}.
@@ -69,6 +76,7 @@ export class GearboxPermissionless {
   constructor(options: GearboxPermissionlessOptions = {}) {
     this.chains = new ChainsNamespace(options);
     this.oracles = new PermissionlessOracles(options, this.chains);
+    this.configurators = new PermissionlessConfigurators(options, this.chains);
     this.analytics = new PermissionlessAnalytics(options);
     this.transactions = new InstanceOwnerTransactions(
       this.chains,
