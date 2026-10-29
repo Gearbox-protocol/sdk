@@ -1,5 +1,4 @@
 import { z } from "zod/v4";
-import { assetTypeSchema } from "../../../model/primitives.schema.js";
 import { chainSchema } from "../chains/schemas.js";
 import { addressRecord, addressSchema } from "../schemas.js";
 
@@ -137,7 +136,7 @@ export const assetPricesSchema = z.looseObject({
   time: z.number(),
 });
 
-/** {@link PermissionlessAssetSummary} */
+/** {@link PermissionlessIndexedAssetSummary} */
 export const assetSummarySchema = z.looseObject({
   chainId: z.number(),
   address: addressSchema,
@@ -145,11 +144,6 @@ export const assetSummarySchema = z.looseObject({
   underlyingMarketCount: z.number(),
   quotaLimitUsd: z.number().nullable(),
   quotaUsedUsd: z.number().nullable(),
-  // Defaulted rather than merely nullable, so that a backend older than this
-  // client is read as "nothing is known" instead of refused: the field says
-  // what a curated table says about the asset, and a payload without it is
-  // one that was built before the table was consulted.
-  assetType: assetTypeSchema.nullable().default(null),
 });
 
 /** The list of {@link PermissionlessAssetSummary}, already ordered. */

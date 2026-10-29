@@ -272,8 +272,11 @@ export interface PermissionlessAssetPrices {
  * still running, what is already quoted counts everywhere, and `null` is
  * nothing to total rather than a zero — so the list and the page a row of it
  * opens cannot disagree.
+ *
+ * What a reader gets is {@link PermissionlessAssetSummary}, this plus what the
+ * SDK makes of the asset.
  **/
-export interface PermissionlessAssetSummary {
+export interface PermissionlessIndexedAssetSummary {
   chainId: number;
   /** Lowercased, as everything addressed in these payloads is. */
   address: Address;
@@ -289,16 +292,40 @@ export interface PermissionlessAssetSummary {
   underlyingMarketCount: number;
   quotaLimitUsd: number | null;
   quotaUsedUsd: number | null;
+}
+
+/**
+ * The same asset with what this SDK's curated tables say it is.
+ *
+ * Read here rather than served, because the tables are this package's and a
+ * backend consulting them could only answer from whichever version it was
+ * built against. A reader on a newer SDK than the deployment it talks to
+ * still classifies by the newer tables, and nothing has to be redeployed for
+ * a token added to one to be sorted.
+ **/
+export interface PermissionlessAssetSummary
+  extends PermissionlessIndexedAssetSummary {
   /**
-   * What the asset is, where the SDK's curated tables say so.
+   * What the asset is, where the tables say so.
    *
-   * `null` for anything they do not name, which is most of a store: the
-   * tables classify the tokens markets are built on, and a store carries
-   * everything those markets will take as collateral. A filter over this
-   * sorts the assets worth sorting and leaves the rest in one heap, which is
-   * the honest answer rather than a guess from the symbol.
+   * `null` for anything they do not name, which is most of a store: they
+   * classify the tokens markets are built on, and a store carries everything
+   * those markets will take as collateral. A filter over this sorts the
+   * assets worth sorting and leaves the rest in one heap, which is the honest
+   * answer rather than a guess from the symbol.
    */
   assetType: AssetType | null;
+  /**
+   * Whether the asset stands for something outside the chain.
+   *
+   * A flag rather than a value of {@link assetType}, because the two answer
+   * different questions and an asset can be both: a tokenised treasury is a
+   * real-world asset and may still be the stable a market is built on. Unlike
+   * {@link assetType} there is no third state — the curated list naming it is
+   * the whole of what makes an asset one, so not being on it is a real `false`
+   * rather than something unknown.
+   */
+  isRwa: boolean;
 }
 
 /**

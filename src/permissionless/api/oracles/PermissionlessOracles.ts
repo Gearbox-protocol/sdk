@@ -2,6 +2,13 @@ import type { Address } from "viem";
 import type { PriceFeedData } from "../../../model/opportunities.js";
 import { priceFeedDataSchema } from "../../../model/opportunities.schema.js";
 import { AbstractOffchainNamespace } from "../../../offchain/AbstractOffchainNamespace.js";
+import type { NetworkType } from "../../../onchain/index.js";
+import {
+  getAssetType,
+  getNetworkType,
+  isRWAToken,
+  isSupportedNetwork,
+} from "../../../onchain/index.js";
 import { getPrices } from "../../utils/price-update/get-prices.js";
 import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
@@ -166,6 +173,10 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * renders the rows as they arrive. Omit `chainId` for every chain the
    * backend serves, ordered the same way across all of them.
    *
+   * Each row also carries what this SDK's tables say the asset is — see
+   * {@link PermissionlessAssetSummary} for why that is read here and not
+   * served.
+   *
    * ```ts
    * const assets = await permissionless.oracles.assets({ chainId: 1 });
    * const everywhere = await permissionless.oracles.assets();
@@ -174,12 +185,36 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
   public async assets({
     chainId,
   }: AssetsArgs = {}): Promise<PermissionlessAssetSummary[]> {
-    return this.getData({
+    const indexed = await this.getData({
       path: "/pfs/assets",
       // An absent chain is a condition that does not narrow, and `getData`
       // leaves such an entry out of the URL rather than sending it empty.
       query: { chainId: chainId?.toString() },
       schema: assetSummariesSchema,
+    });
+
+    // One lookup per chain rather than per asset: the network a chain is on
+    // never changes, and a list of every chain is mostly rows of a few of
+    // them. A chain the tables do not cover is one whose assets are simply
+    // unclassified, not a reason to fail a list the backend answered in full.
+    const networks = new Map<number, NetworkType | undefined>();
+    for (const { chainId: id } of indexed) {
+      if (!networks.has(id)) {
+        networks.set(id, isSupportedNetwork(id) ? getNetworkType(id) : undefined);
+      }
+    }
+
+    return indexed.map(asset => {
+      const network = networks.get(asset.chainId);
+      return {
+        ...asset,
+        assetType:
+          network === undefined
+            ? null
+            : (getAssetType(asset.address, network) ?? null),
+        isRwa:
+          network === undefined ? false : isRWAToken(asset.address, network),
+      };
     });
   }
 

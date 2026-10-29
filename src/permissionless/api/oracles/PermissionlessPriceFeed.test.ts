@@ -198,48 +198,60 @@ describe("oracles.feed", () => {
 });
 
 describe("oracles.assets", () => {
-  const SUMMARY = {
+  // Real addresses, because what the rows are classified as is read off this
+  // package's own tables rather than taken from the payload.
+  const MAINNET_WETH = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" as Address;
+  const MAINNET_RWA = "0x238a700ed6165261cf8b2e544ba797bc11e466ba" as Address;
+
+  const summary = (overrides: Record<string, unknown> = {}) => ({
     chainId: CHAIN,
-    address: WETH,
+    address: MAINNET_WETH,
     symbol: "WETH",
     underlyingMarketCount: 2,
     quotaLimitUsd: null,
     quotaUsedUsd: null,
-    assetType: "ETH",
-  };
+    ...overrides,
+  });
 
-  it("keeps the type of an asset the curated tables name", async () => {
-    respond([SUMMARY]);
+  it("classifies an asset the curated tables name", async () => {
+    respond([summary()]);
 
     const assets = await client().oracles.assets();
 
-    expect(assets[0]?.assetType).toBe("ETH");
+    expect(assets[0]).toMatchObject({ assetType: "ETH", isRwa: false });
   });
 
-  it("keeps an asset no table names as nothing known", async () => {
-    respond([{ ...SUMMARY, assetType: null }]);
+  it("leaves an asset no table names unclassified", async () => {
+    respond([summary({ address: WETH, symbol: "NOTHING" })]);
 
     const assets = await client().oracles.assets();
 
-    expect(assets[0]?.assetType).toBeNull();
+    expect(assets[0]).toMatchObject({ assetType: null, isRwa: false });
   });
 
-  it("reads a backend older than the field the same way", async () => {
-    // The field is defaulted rather than merely nullable, so a payload built
-    // before the tables were consulted is an asset nothing is known about —
-    // not a payload this client refuses.
-    const { assetType: _, ...before } = SUMMARY;
-    respond([before]);
+  it("marks an asset the real-world list names", async () => {
+    // Orthogonal to the type, which this one has none of.
+    respond([summary({ address: MAINNET_RWA, symbol: "mF-ONE" })]);
 
     const assets = await client().oracles.assets();
 
-    expect(assets[0]?.assetType).toBeNull();
+    expect(assets[0]).toMatchObject({ assetType: null, isRwa: true });
   });
 
-  it("rejects a type the tables cannot produce", async () => {
-    respond([{ ...SUMMARY, assetType: "RWA" }]);
+  it("serves a chain the tables do not cover rather than failing", async () => {
+    respond([summary({ chainId: 999_999 })]);
 
-    await expect(client().oracles.assets()).rejects.toThrow();
+    const assets = await client().oracles.assets();
+
+    expect(assets[0]).toMatchObject({ assetType: null, isRwa: false });
+  });
+
+  it("classifies each chain of a list by its own tables", async () => {
+    respond([summary(), summary({ chainId: 999_999 })]);
+
+    const assets = await client().oracles.assets();
+
+    expect(assets.map(it => it.assetType)).toEqual(["ETH", null]);
   });
 });
 
