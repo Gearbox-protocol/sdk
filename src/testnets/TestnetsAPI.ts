@@ -1,12 +1,14 @@
 import { z } from "zod/v4";
 import type { ILogger } from "../onchain/types/logger.js";
 import {
+  TestnetFailedError,
   TestnetNotFoundError,
   TestnetRequestFailedError,
   TestnetStatusError,
   TestnetValidationError,
   TestnetWaitTimeoutError,
 } from "./errors/index.js";
+import { isTestnetReady } from "./isTestnetReady.js";
 import { testnetSchema, testnetStatusSchema } from "./schemas.js";
 import type {
   CreateTestnetRequest,
@@ -63,6 +65,13 @@ export interface WaitUntilReadyOptions {
    * @defaultValue `5_000`
    **/
   interval?: number;
+  /**
+   * Passed to {@link isTestnetReady}: also wait for healthy price sync and an
+   * active backend sidecar. Frontend testing will most likely want `true`.
+   *
+   * @defaultValue `false`
+   **/
+  strict?: boolean;
 }
 
 /**
@@ -128,7 +137,7 @@ export class TestnetsAPI {
 
   /**
    * Starts a testnet. It answers as soon as the testnet is created, long
-   * before it is {@link TestnetStatus.ready}.
+   * before {@link isTestnetReady} holds for it.
    *
    * @param files - Saved in the testnet's shared dir, where scripts and tasks
    * can read them.
@@ -158,10 +167,13 @@ export class TestnetsAPI {
   }
 
   /**
-   * Polls a testnet's status until it is {@link TestnetStatus.ready}.
+   * Polls a testnet's status until {@link isTestnetReady} holds for it.
    *
    * @param id - Execution id of the testnet.
    * @returns The first status that is ready.
+   * @throws {@link TestnetFailedError} as soon as the testnet can no longer
+   * become ready: its deployment failed, it was terminated, or, when
+   * `strict`, its backend sidecar failed.
    * @throws {@link TestnetWaitTimeoutError} when the testnet is not ready in
    * time. Any error of a poll is thrown as is, without retrying.
    **/
@@ -169,18 +181,30 @@ export class TestnetsAPI {
     id: string,
     options: WaitUntilReadyOptions = {},
   ): Promise<TestnetStatus> {
-    const { timeout = DEFAULT_WAIT_TIMEOUT, interval = DEFAULT_WAIT_INTERVAL } =
-      options;
+    const {
+      timeout = DEFAULT_WAIT_TIMEOUT,
+      interval = DEFAULT_WAIT_INTERVAL,
+      strict = false,
+    } = options;
     const deadline = Date.now() + timeout;
 
     while (true) {
       const status = await this.get(id);
-      if (status.ready) {
+      if (isTestnetReady(status, strict)) {
         return status;
+      }
+      const failure = failureReason(status, strict);
+      if (failure !== undefined) {
+        throw new TestnetFailedError(this.#forkUrl(id), id, failure, status);
       }
       const remaining = deadline - Date.now();
       if (remaining <= 0) {
-        throw new TestnetWaitTimeoutError(this.#forkUrl(id), id, timeout);
+        throw new TestnetWaitTimeoutError(
+          this.#forkUrl(id),
+          id,
+          timeout,
+          strict ? status.sync?.error : undefined,
+        );
       }
       this.logger?.debug(`testnet ${id} is not ready yet`);
       await new Promise(resolve =>
@@ -249,6 +273,26 @@ export class TestnetsAPI {
     }
     return parsed.data;
   }
+}
+
+/**
+ * Why a testnet that is not ready never will be, or `undefined` while it
+ * still may become ready.
+ **/
+function failureReason(
+  status: TestnetStatus,
+  strict: boolean,
+): string | undefined {
+  if (status.state === "failed") {
+    return status.error ?? "deployment failed";
+  }
+  if (status.state === "terminated") {
+    return "testnet is terminated";
+  }
+  if (strict && status.backend?.state === "error") {
+    return `backend: ${status.backend.error ?? "failed"}`;
+  }
+  return undefined;
 }
 
 /**

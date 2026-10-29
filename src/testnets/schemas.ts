@@ -47,6 +47,27 @@ export const testnetBackendStateSchema = z.enum([
 ]);
 
 /**
+ * {@link TestnetPipelineState}
+ **/
+export const testnetPipelineStateSchema = z.enum([
+  "queued",
+  "deploying",
+  "deployed",
+  "failed",
+  "terminated",
+]);
+
+/**
+ * {@link TestnetSyncState}
+ **/
+export const testnetSyncStateSchema = z.enum([
+  "disabled",
+  "pending",
+  "ok",
+  "failing",
+]);
+
+/**
  * {@link Testnet}
  **/
 export const testnetSchema = z.object({
@@ -76,6 +97,15 @@ export const testnetBackendStatusSchema = z.object({
   state: testnetBackendStateSchema,
   error: z.string().optional(),
   version: z.string().optional(),
+});
+
+/**
+ * {@link TestnetSyncStatus}
+ **/
+export const testnetSyncStatusSchema = z.object({
+  state: testnetSyncStateSchema,
+  error: z.string().optional(),
+  lastSyncedAt: timestamp.optional(),
 });
 
 /**
@@ -221,7 +251,6 @@ export const testnetStatusSchema = z.object({
   network: NetworkType,
   nextRestart: timestamp.optional(),
   isActive: z.boolean(),
-  ready: z.boolean(),
   paused: z.boolean(),
   rpcUrl: z.string().optional(),
   url: z.string(),
@@ -230,11 +259,12 @@ export const testnetStatusSchema = z.object({
   latestBlock: testnetScriptBlockSchema.optional(),
   tasks: z.array(testnetTaskSchema).optional(),
   backend: testnetBackendStatusSchema.optional(),
+  sync: testnetSyncStatusSchema.optional(),
   executionId: z.string(),
+  state: testnetPipelineStateSchema,
+  error: z.string().optional(),
   options: testnetOptionsSchema,
   forkBlock: testnetBlockSchema,
-  syncBlock: z.number(),
-  syncError: z.string().optional(),
   originChainId: z.number(),
   anvilChainId: z.number(),
   createdAt: timestamp,

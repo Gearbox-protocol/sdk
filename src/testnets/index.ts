@@ -5,6 +5,7 @@
  * not pull in the on-chain SDK.
  **/
 export * from "./errors/index.js";
+export * from "./isTestnetReady.js";
 export * from "./schemas.js";
 export * from "./TestnetsAPI.js";
 export * from "./types.js";

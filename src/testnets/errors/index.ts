@@ -1,3 +1,4 @@
+export * from "./TestnetFailedError.js";
 export * from "./TestnetNotFoundError.js";
 export * from "./TestnetRequestFailedError.js";
 export * from "./TestnetStatusError.js";

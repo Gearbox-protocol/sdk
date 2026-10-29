@@ -29,6 +29,49 @@ export type TestnetBackendState =
   | "error";
 
 /**
+ * Deployment lifecycle of a testnet:
+ *
+ * - `queued`: the testnet was accepted, but deployment has not started. Don't
+ *   use it yet.
+ * - `deploying`: deploy scripts are running and, if requested, the backend is
+ *   starting. The RPC answers but the chain is incomplete.
+ * - `deployed`: deployment finished. Every deploy script succeeded, or failed
+ *   with ignore-errors set. Script outputs can be read and tasks started.
+ *   Whether a frontend can use the RPC also depends on
+ *   {@link TestnetStatus.sync} and {@link TestnetStatus.backend}.
+ * - `failed`: deployment stopped with the error in
+ *   {@link TestnetStatus.error}. Final. The testnet keeps running until it is
+ *   killed or expires, so its logs and artifacts can be inspected. It stays
+ *   `failed` after it stops.
+ * - `terminated`: no longer running, because it was killed, expired, or lost
+ *   in an anvil-manager restart. Final. Artifacts stay readable.
+ *
+ * Mirrors Go `core.PipelineState` (anvil-manager
+ * `backend/manager/core/pipeline.go`).
+ **/
+export type TestnetPipelineState =
+  | "queued"
+  | "deploying"
+  | "deployed"
+  | "failed"
+  | "terminated";
+
+/**
+ * State of price feed sync with the origin chain:
+ *
+ * - `disabled`: sync was turned off at creation, so prices stay at the fork
+ *   block.
+ * - `pending`: no sync attempt has finished yet.
+ * - `ok`: the latest attempt succeeded and prices follow the origin chain.
+ * - `failing`: the latest attempt failed (see {@link TestnetSyncStatus.error})
+ *   and is retried on schedule. Prices go stale meanwhile, and frontends may
+ *   see reverts.
+ *
+ * Mirrors Go `core.SyncState` (anvil-manager `backend/manager/core/pipeline.go`).
+ **/
+export type TestnetSyncState = "disabled" | "pending" | "ok" | "failing";
+
+/**
  * A testnet as the list endpoint returns it.
  *
  * Mirrors Go `core.ListedFork` (anvil-manager `backend/manager/core/responses.go`).
@@ -91,6 +134,23 @@ export interface TestnetBackendStatus {
    * when the label is missing or the image could not be obtained.
    **/
   version?: string;
+}
+
+/**
+ * Runtime state of a running testnet's price feed sync.
+ *
+ * Mirrors Go `core.SyncStatus` (anvil-manager `backend/manager/core/pipeline.go`).
+ **/
+export interface TestnetSyncStatus {
+  state: TestnetSyncState;
+  /**
+   * Error of the latest attempt, set when `state` is `failing`.
+   **/
+  error?: string;
+  /**
+   * ISO timestamp of when the latest successful attempt finished.
+   **/
+  lastSyncedAt?: string;
 }
 
 /**
@@ -660,11 +720,6 @@ export interface TestnetStatus {
    **/
   nextRestart?: string;
   isActive: boolean;
-  /**
-   * Anvil active, scripts done, first price sync done (unless disabled),
-   * backend sidecar active (if configured).
-   **/
-  ready: boolean;
   paused: boolean;
   /**
    * JSON-RPC URL of the testnet, absent when it is not running.
@@ -680,9 +735,22 @@ export interface TestnetStatus {
   tasks?: TestnetTask[];
   backend?: TestnetBackendStatus;
   /**
+   * Price feed sync, present only while the testnet is running.
+   **/
+  sync?: TestnetSyncStatus;
+  /**
    * Unique identifier of the execution.
    **/
   executionId: string;
+  /**
+   * Deployment lifecycle state. See {@link isTestnetReady} for whether the
+   * testnet can be used.
+   **/
+  state: TestnetPipelineState;
+  /**
+   * Why deployment failed, set when `state` is `failed`.
+   **/
+  error?: string;
   /**
    * Options the testnet was created with.
    **/
@@ -691,15 +759,6 @@ export interface TestnetStatus {
    * Block the testnet was forked at.
    **/
   forkBlock: TestnetBlock;
-  /**
-   * Block when the initial chainlink price feed sync was completed, `0` until
-   * then.
-   **/
-  syncBlock: number;
-  /**
-   * Latest price feed sync failure, cleared after the next successful sync.
-   **/
-  syncError?: string;
   /**
    * Chain ID of the origin network.
    **/

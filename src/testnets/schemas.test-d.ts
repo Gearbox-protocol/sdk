@@ -6,12 +6,15 @@ import type {
   testnetBackendStatusSchema,
   testnetBlockSchema,
   testnetOptionsSchema,
+  testnetPipelineStateSchema,
   testnetSchema,
   testnetScriptBlockSchema,
   testnetScriptOptionsSchema,
   testnetScriptSchema,
   testnetStageStatusSchema,
   testnetStatusSchema,
+  testnetSyncStateSchema,
+  testnetSyncStatusSchema,
   testnetTaskDefinitionSchema,
   testnetTaskProgressSchema,
   testnetTaskSchema,
@@ -23,11 +26,14 @@ import type {
   TestnetBackendStatus,
   TestnetBlock,
   TestnetOptions,
+  TestnetPipelineState,
   TestnetScript,
   TestnetScriptBlock,
   TestnetScriptOptions,
   TestnetStageStatus,
   TestnetStatus,
+  TestnetSyncState,
+  TestnetSyncStatus,
   TestnetTask,
   TestnetTaskDefinition,
   TestnetTaskProgress,
@@ -41,6 +47,12 @@ describe("testnet schemas match testnet types", () => {
     expectTypeOf<
       z.output<typeof testnetBackendStateSchema>
     >().toEqualTypeOf<TestnetBackendState>();
+    expectTypeOf<
+      z.output<typeof testnetPipelineStateSchema>
+    >().toEqualTypeOf<TestnetPipelineState>();
+    expectTypeOf<
+      z.output<typeof testnetSyncStateSchema>
+    >().toEqualTypeOf<TestnetSyncState>();
   });
 
   it("list", () => {
@@ -66,6 +78,9 @@ describe("testnet schemas match testnet types", () => {
     expectTypeOf<
       z.output<typeof testnetBackendStatusSchema>
     >().toEqualTypeOf<TestnetBackendStatus>();
+    expectTypeOf<
+      z.output<typeof testnetSyncStatusSchema>
+    >().toEqualTypeOf<TestnetSyncStatus>();
   });
 
   it("scripts", () => {

@@ -14,16 +14,22 @@ export class TestnetWaitTimeoutError extends TestnetsError {
    * How long the wait lasted, in milliseconds.
    **/
   public readonly timeout: number;
+  /**
+   * What was still in the way when the wait ran out, if known.
+   **/
+  public readonly reason?: string;
 
   /**
    * @param url - Status URL that was polled.
    **/
-  constructor(url: string, id: string, timeout: number) {
+  constructor(url: string, id: string, timeout: number, reason?: string) {
     super(`Testnet ${id} did not become ready within ${timeout} ms.`, {
       url,
+      details: reason,
       metaMessages: [`Execution id: ${id}`, `Timeout: ${timeout} ms`],
     });
     this.id = id;
     this.timeout = timeout;
+    this.reason = reason;
   }
 }
