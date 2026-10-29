@@ -1,5 +1,12 @@
+import { type Hex, isHex } from "viem";
 import { z } from "zod/v4";
-import { addressSchema, hexSchema } from "../schemas.js";
+import { addressSchema } from "../schemas.js";
+
+/** A `0x`-prefixed hex string, as viem's `Hex`. */
+const hexSchema = z.custom<Hex>(
+  value => typeof value === "string" && isHex(value),
+  { message: "invalid hex string" },
+);
 
 /**
  * Runtime schemas for {@link ./types.js}. Loose, like the other namespaces':
