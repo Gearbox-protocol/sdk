@@ -246,6 +246,8 @@ describe("merged GIP", () => {
       .preview();
     expect(executedActions(preview)).toEqual(["BCR::deployContract"]);
     expect(preview.markets[1].resolvedActions).toHaveLength(0);
+    expect(preview.markets[0].inputActions).toEqual([NFT_DEPLOYMENT]);
+    expect(preview.markets[1].inputActions).toHaveLength(0);
   });
 
   it("blocks a conflicting declaration of a shared deployment", async () => {

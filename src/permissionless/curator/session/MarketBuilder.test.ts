@@ -568,6 +568,8 @@ describe("sequential actions, bundles and deployment targets", () => {
 
     expect(preview.stateProvenance).toBe("new-market");
     expect(preview.before).toBeUndefined();
+    expect(preview.creationState?.creditManagers).toEqual({});
+    expect(preview.inputActions[0].type).toBe("MARKET::createMarket");
     expect(preview.resolvedActions[0].type).toBe("MARKET::createMarket");
     expect(preview.pool).toBe(POOL);
     expect(preview.predictedDeployments).toEqual([

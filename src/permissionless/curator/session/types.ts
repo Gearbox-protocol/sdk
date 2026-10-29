@@ -119,7 +119,15 @@ export interface MarketPreview extends GipPreviewBase {
   scope: "market";
   pool?: Address;
   before?: MarketState;
+  /** State immediately after creation, before later actions; new markets only. **/
+  creationState?: MarketState;
   after: MarketState;
+  /**
+   * Executable inputs after merging and shared-call deduplication, before
+   * resolving suite references. Indices match txs and actionDiagnostics.
+   * Safe to persist when editing a preview without freezing predicted addresses.
+   **/
+  inputActions: readonly GipMarketAction[];
   /** Actions after bundle merges and credit-manager resolution. **/
   resolvedActions: readonly GipMarketAction[];
   bundles: readonly BundleApplication[];

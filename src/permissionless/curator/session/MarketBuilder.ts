@@ -162,8 +162,11 @@ export function marketPreview(args: {
     // deploy to, so a preview always names the market it describes.
     pool: lowerAddress(prepared.pool ?? changes.after.address),
     stateProvenance: prepared.provenance,
-    ...(prepared.initialState ? { before: changes.before } : {}),
+    ...(prepared.initialState
+      ? { before: changes.before }
+      : { creationState: changes.before }),
     after: changes.after,
+    inputActions: prepared.actions,
     resolvedActions: resolvedActions(prepared.actions, changes),
     bundles: applications,
     predictedDeployments: collectPredictedDeployments(changes.txs),
@@ -400,8 +403,7 @@ export class MarketBuilder extends ScopedBuilder<
   /**
    * Turns the recorded intents into one action list.
    *
-   * Explicitly recorded actions keep their full sequence; only a bundle merge
-   * is allowed to replace an earlier action.
+   * Explicit actions and bundle actions use the registry's merge rules.
    **/
   async #resolveActions(
     intents: readonly MarketIntent[],
