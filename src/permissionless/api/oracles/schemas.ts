@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { chainSchema } from "../chains/schemas.js";
-import { addressRecord, addressSchema } from "../schemas.js";
+import { addressSchema } from "../schemas.js";
 
 /**
  * Runtime schemas for {@link ./types.js}.
@@ -50,12 +50,8 @@ export const priceFeedStoreSchema = chainSchema.extend({
   priceFeeds: z.array(priceFeedSchema),
 });
 
-/** {@link PermissionlessPrices} */
-export const pricesSchema = z.looseObject({
-  prices: addressRecord(z.string().nullable()),
-  marketCaps: addressRecord(addressRecord(z.string().nullable())),
-  time: z.number(),
-});
+/** Every chain's {@link PermissionlessPriceFeedStore}, one per chain. */
+export const priceFeedStoresSchema = z.array(priceFeedStoreSchema);
 
 /**
  * What names a market, whichever side it is being listed from.
@@ -76,26 +72,23 @@ const marketSchema = z.looseObject({
   quotaUsed: z.number().nullable(),
 });
 
-/** {@link PermissionlessPriceFeedMarket} — the market as the feed's slot in it. */
+/**
+ * {@link PermissionlessIndexedPriceFeedMarket} — the market as the feed's slot
+ * in it, before the oracle is asked what period it holds for the slot.
+ **/
 export const priceFeedMarketSchema = marketSchema.extend({
   token: addressSchema,
   tokenSymbol: z.string().nullable(),
   reserve: z.boolean(),
-  marketStalenessPeriod: z.number().nullable(),
+  priceOracle: addressSchema,
 });
 
-/** {@link PermissionlessPriceFeedDetails} */
+/** {@link PermissionlessIndexedPriceFeedDetails} */
 export const priceFeedDetailsSchema = z.looseObject({
   chainId: z.number(),
   priceFeed: priceFeedSchema,
   assets: z.array(priceFeedAssetSchema),
   markets: z.array(priceFeedMarketSchema),
-});
-
-/** {@link PermissionlessPriceFeedMarketCaps} */
-export const priceFeedMarketCapsSchema = z.looseObject({
-  marketCaps: addressRecord(z.string().nullable()),
-  time: z.number(),
 });
 
 /** {@link PermissionlessAssetMarketFeed} */
@@ -108,32 +101,26 @@ export const assetMarketFeedSchema = z.looseObject({
 /** {@link PermissionlessAssetMarket} — the market as what prices the asset in it. */
 export const assetMarketSchema = marketSchema.extend({
   underlyingToken: addressSchema,
+  underlyingPriceFeed: addressSchema.nullable(),
   isShutdown: z.boolean(),
   mainFeed: assetMarketFeedSchema.nullable(),
   reserveFeed: assetMarketFeedSchema.nullable(),
 });
 
-/** {@link PermissionlessAssetDetails} */
+/** {@link PermissionlessIndexedAssetDetails} */
 export const assetDetailsSchema = z.looseObject({
   chainId: z.number(),
   asset: priceFeedAssetSchema,
   priceFeeds: z.array(priceFeedSchema),
   markets: z.array(assetMarketSchema),
-  quotaLimitUsd: z.number().nullable(),
-  quotaUsedUsd: z.number().nullable(),
 });
 
-/**
- * {@link PermissionlessAssetPrices}
- *
- * The same shape as {@link priceFeedMarketCapsSchema} plus the prices, but not
- * an extension of it: the caps there are keyed by asset and these are keyed by
- * feed, so what the two have in common is a coincidence of form.
- **/
-export const assetPricesSchema = z.looseObject({
-  prices: addressRecord(z.string().nullable()),
-  marketCaps: addressRecord(z.string().nullable()),
-  time: z.number(),
+/** {@link PermissionlessAssetQuota} */
+export const assetQuotaSchema = z.looseObject({
+  quotaLimit: z.number().nullable(),
+  quotaUsed: z.number().nullable(),
+  isShutdown: z.boolean(),
+  underlyingPriceFeed: addressSchema.nullable(),
 });
 
 /** {@link PermissionlessIndexedAssetSummary} */
@@ -142,8 +129,7 @@ export const assetSummarySchema = z.looseObject({
   address: addressSchema,
   symbol: z.string(),
   underlyingMarketCount: z.number(),
-  quotaLimitUsd: z.number().nullable(),
-  quotaUsedUsd: z.number().nullable(),
+  marketQuotas: z.array(assetQuotaSchema),
 });
 
 /** The list of {@link PermissionlessAssetSummary}, already ordered. */
