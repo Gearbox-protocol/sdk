@@ -20,6 +20,7 @@ import {
 import { AddressProviderContract } from "../../bindings/address-provider.js";
 import { Addresses } from "../../deployment/addresses.js";
 import {
+  getFeedDecimals,
   getLatestPrices,
   getPrices,
 } from "../../utils/price-update/get-prices.js";
@@ -35,9 +36,14 @@ import {
 import {
   assetDetailsSchema,
   assetSummariesSchema,
+  marketSlotsSchema,
   priceFeedDetailsSchema,
   priceFeedStoresSchema,
 } from "./schemas.js";
+import { runAssetScores } from "./score/run.js";
+import type { AssetScore, AssetScoresArgs } from "./score/types.js";
+import { runStressTest } from "./stress/run.js";
+import type { StressReport, StressTestArgs } from "./stress/types.js";
 import type {
   AssetArgs,
   AssetCap,
@@ -47,9 +53,11 @@ import type {
   PermissionlessAssetDetails,
   PermissionlessAssetQuota,
   PermissionlessAssetSummary,
+  PermissionlessMarketSlot,
   PermissionlessPriceFeedDetails,
   PermissionlessPriceFeedStore,
   PriceFeedArgs,
+  PriceFeedDecimals,
   PriceFeedPrice,
   PriceFeedRef,
 } from "./types.js";
@@ -151,6 +159,36 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
       // leaves such an entry out of the URL rather than sending it empty.
       query: { chainId: chainId?.toString() },
       schema: priceFeedStoresSchema,
+    });
+  }
+
+  /**
+   * Every market slot in force, with the feed holding it and what the market
+   * has riding on it.
+   *
+   * The chain's whole slot table, which {@link feed} and {@link asset} answer
+   * one subject's slice of. What reads it this way is analysis over every
+   * market at once — which feed holds which slot, and what breaks if it
+   * lies — and asking a feed at a time would be a few hundred requests for
+   * the same rows.
+   *
+   * Served as indexed, with nothing folded in: the quotas are in each
+   * market's own underlying, as everywhere else, and pricing them is
+   * {@link getPrices} over the `underlyingPriceFeed` column.
+   *
+   * ```ts
+   * const slots = await permissionless.oracles.slots({ chainId: 1 });
+   * ```
+   **/
+  public async slots({
+    chainId,
+  }: AssetsArgs = {}): Promise<PermissionlessMarketSlot[]> {
+    return this.getData({
+      path: "/pfs/slots",
+      // An absent chain is a condition that does not narrow, and `getData`
+      // leaves such an entry out of the URL rather than sending it empty.
+      query: { chainId: chainId?.toString() },
+      schema: marketSlotsSchema,
     });
   }
 
@@ -442,6 +480,136 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
   }
 
   /**
+   * What each source of price information can do to the chain's markets if it
+   * lies.
+   *
+   * The feeds under a chain's oracles are partitioned by where their numbers
+   * actually come from — Chainlink, Redstone, Pyth, Lido, Curve, each vault's
+   * own issuer — on the grounds that a source fails as a whole: whoever
+   * trusts one Chainlink aggregator trusts the operator behind all of them.
+   * Each group is then made to report a multiple of what it reports now, and
+   * every feed the markets read is read again inside that same call.
+   *
+   * No fork and no harness. The lie is a state override on an `eth_call`, so
+   * the composite feeds above it, their bounds and the oracle's own checks all
+   * run as deployed, against real state, at the current block — what comes
+   * back is what the market would have read.
+   *
+   * Each slot is scored by how its collateral moved *against its market's own
+   * underlying*, because that is what an account is valued by: a group that
+   * moves both legs has moved nothing. Beyond the two unbounded ends, each
+   * group is bisected for the multiple at which something first breaks, which
+   * is the figure that separates a source held in check by a bound from one
+   * nothing is checking.
+   *
+   * ```ts
+   * const report = await permissionless.oracles.stressTest({ chainId: 1 });
+   * for (const group of report.groups) {
+   *   console.log(group.verdict);
+   * }
+   * ```
+   *
+   * Report {@link StressReport.unidentifiedUsd} alongside anything taken from
+   * this: it is the quota priced through a source the partition could only
+   * name after its own description, and nothing says what that fails with.
+   *
+   * Reads the chain directly, so the client has to have attached — see
+   * {@link GearboxPermissionless.attach}. Costs one request for the slots and
+   * then, per group, one `eth_call` per scenario plus the bisection's; a whole
+   * chain comes to a minute or so, and `thresholds: false` cuts it to seconds.
+   *
+   * @throws When the client has not attached, when the chain has no client
+   * configured, or when no PriceFeedCompressor is deployed on it — none of the
+   * three leaves anything to simulate.
+   **/
+  /**
+   * Every asset's score out of 10 for how its markets guard its price.
+   *
+   * A market scores 10 when its reserve feed is a second feed on other
+   * sources than the main one, and one of the two is bounded — a
+   * `BoundedPriceFeed` or a Gearbox LP feed. It loses 6 points as the two
+   * feeds' sources overlap — all of them if there is no reserve, it is a
+   * `ZeroPriceFeed`, or it is the main feed again — and 5 if neither is
+   * bounded. An asset scores its worst running market that takes it as
+   * collateral.
+   *
+   * Read off the chain, one multicall of feed trees per chain, so the score
+   * is of the trees as they stand rather than as last indexed. A chain with
+   * no client configured is left out with a warning rather than failing the
+   * rest.
+   *
+   * ```ts
+   * const scores = await permissionless.oracles.assetScores({ chainId: 1 });
+   * ```
+   *
+   * @throws {PermissionlessNotAttachedError} before
+   * {@link GearboxPermissionless.attach} has resolved.
+   **/
+  public async assetScores({
+    chainId,
+  }: AssetScoresArgs = {}): Promise<AssetScore[]> {
+    const slots = await this.slots({ chainId });
+
+    const byChain = new Map<number, PermissionlessMarketSlot[]>();
+    for (const slot of slots) {
+      byChain.set(slot.chainId, [...(byChain.get(slot.chainId) ?? []), slot]);
+    }
+
+    const perChain = await Promise.all(
+      [...byChain].map(async ([id, chainSlots]) => {
+        let client: PublicClient<Transport, Chain>;
+        try {
+          client = this.#chains.client(id);
+        } catch (e) {
+          this.logger?.warn(
+            `chain ${id} has no client, leaving its assets unscored: ${describe(e)}`,
+          );
+          return [];
+        }
+        try {
+          const compressor = await new AddressProviderContract(
+            Addresses.ADDRESS_PROVIDER,
+            client,
+          ).getLatestVersionAddress(AP_PRICE_FEED_COMPRESSOR);
+          return await runAssetScores({
+            client,
+            chainId: id,
+            slots: chainSlots,
+            compressor,
+            logger: this.logger ?? undefined,
+          });
+        } catch (e) {
+          this.logger?.warn(
+            `chain ${id} would not report its feed trees, leaving its assets unscored: ${describe(e)}`,
+          );
+          return [];
+        }
+      }),
+    );
+    return perChain.flat();
+  }
+
+  public async stressTest({
+    chainId,
+    ...options
+  }: StressTestArgs): Promise<StressReport> {
+    const client = this.#chains.client(chainId);
+    const compressor = await new AddressProviderContract(
+      Addresses.ADDRESS_PROVIDER,
+      client,
+    ).getLatestVersionAddress(AP_PRICE_FEED_COMPRESSOR);
+
+    return runStressTest({
+      client,
+      chainId,
+      compressor,
+      slots: await this.slots({ chainId }),
+      logger: this.logger ?? undefined,
+      ...options,
+    });
+  }
+
+  /**
    * The feeds one feed reads from, recursively.
    *
    * Answers for any feed the chain has indexed, store member or not: a
@@ -515,6 +683,81 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
       address,
       price: prices.get(chainId)?.[address.toLowerCase() as Address] ?? null,
     }));
+  }
+
+  /**
+   * The scale each of the named feeds answers in.
+   *
+   * The companion to {@link getPrices} for the callers whose feeds are not
+   * all an oracle's: everything an oracle holds reports 8 decimals, but the
+   * feeds under a composite are whatever was deployed, and a rate leg at 18
+   * read as 8 is wrong by ten orders of magnitude rather than visibly wrong.
+   *
+   * Separate from the price because the two keep different company: this is
+   * fixed for the life of the contract and worth caching for the session,
+   * while a price is re-read whenever the reader asks. One multicall per
+   * chain either way.
+   *
+   * `null` is a feed that would not answer, or one on a chain with no client
+   * configured.
+   *
+   * ```ts
+   * const [{ decimals }] = await permissionless.oracles.getDecimals([
+   *   { chainId: 1, address: feed },
+   * ]);
+   * ```
+   *
+   * @returns One entry per feed asked for, in the order asked.
+   **/
+  public async getDecimals(
+    feeds: PriceFeedRef[],
+  ): Promise<PriceFeedDecimals[]> {
+    const byChain = new Map<number, Set<Address>>();
+    for (const { chainId, address } of feeds) {
+      const addresses = byChain.get(chainId) ?? new Set<Address>();
+      addresses.add(address.toLowerCase() as Address);
+      byChain.set(chainId, addresses);
+    }
+
+    const chainIds = [...byChain.keys()];
+    const results = await Promise.all(
+      chainIds.map(chainId =>
+        this.#decimalsOf(chainId, [...(byChain.get(chainId) ?? [])]),
+      ),
+    );
+
+    const decimals = new Map(chainIds.map((id, i) => [id, results[i] ?? {}]));
+    return feeds.map(({ chainId, address }) => ({
+      chainId,
+      address,
+      decimals:
+        decimals.get(chainId)?.[address.toLowerCase() as Address] ?? null,
+    }));
+  }
+
+  /** One chain's half of {@link getDecimals}. */
+  async #decimalsOf(
+    chainId: number,
+    priceFeeds: Address[],
+  ): Promise<Record<Address, number | null>> {
+    let client: PublicClient<Transport, Chain>;
+    try {
+      client = this.#chains.client(chainId);
+    } catch (e) {
+      this.logger?.warn(
+        `chain ${chainId} has no client, reporting its ${priceFeeds.length} feed(s) without a scale: ${describe(e)}`,
+      );
+      return {};
+    }
+
+    try {
+      return await getFeedDecimals({ client, priceFeeds });
+    } catch (e) {
+      this.logger?.warn(
+        `chain ${chainId} would not answer decimals for its ${priceFeeds.length} feed(s): ${describe(e)}`,
+      );
+      return {};
+    }
   }
 
   /** One chain's half of {@link getPrices}: the cheap pass, then the rest. */

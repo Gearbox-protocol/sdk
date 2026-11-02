@@ -83,6 +83,23 @@ export const priceFeedMarketSchema = marketSchema.extend({
   priceOracle: addressSchema,
 });
 
+/**
+ * {@link PermissionlessMarketSlot} — the same slot read from the chain's end,
+ * so the feed is a column rather than what was asked for.
+ **/
+export const marketSlotSchema = priceFeedMarketSchema.extend({
+  chainId: z.number(),
+  underlyingToken: addressSchema,
+  isShutdown: z.boolean(),
+  priceFeed: addressSchema,
+  priceFeedName: z.string().nullable(),
+  priceFeedInStore: z.boolean(),
+  underlyingPriceFeed: addressSchema.nullable(),
+});
+
+/** Every slot in scope, across whichever chains the read covered. */
+export const marketSlotsSchema = z.array(marketSlotSchema);
+
 /** {@link PermissionlessIndexedPriceFeedDetails} */
 export const priceFeedDetailsSchema = z.looseObject({
   chainId: z.number(),
