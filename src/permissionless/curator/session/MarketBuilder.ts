@@ -464,8 +464,14 @@ export class MarketBuilder extends ScopedBuilder<
       runtime.ctx,
       runtime.executorOptions(eta),
     );
+    // @dev for predicted addresses only: a suite an action check blocks, say
+    // until another market of a merged GIP registers its Degen NFT, has one too
+    const unchecked = new MarketExecutor(runtime.ctx, {
+      ...runtime.executorOptions(eta),
+      checkActions: false,
+    });
     const { actions, bundleApplications, suiteIds } =
-      await this.#resolveActions(intents, initialState, executor);
+      await this.#resolveActions(intents, initialState, executor, unchecked);
 
     // Tokens a bundle merge introduced were not known when decimals were
     // prefetched, so top the cache up before the final replay.
@@ -505,6 +511,7 @@ export class MarketBuilder extends ScopedBuilder<
     intents: readonly MarketIntent[],
     initialState: MarketState | undefined,
     executor: MarketExecutor,
+    unchecked: MarketExecutor,
   ): Promise<{
     actions: GipMarketAction[];
     bundleApplications: BundleApplication[];
@@ -530,7 +537,7 @@ export class MarketBuilder extends ScopedBuilder<
           intent,
           actions,
           initialState,
-          executor,
+          unchecked,
         );
         continue;
       }
@@ -538,7 +545,7 @@ export class MarketBuilder extends ScopedBuilder<
         actions = await this.#completeRwaPeriphery(
           actions,
           initialState,
-          executor,
+          unchecked,
         );
         continue;
       }
@@ -591,7 +598,7 @@ export class MarketBuilder extends ScopedBuilder<
       suiteIds.push(suiteId);
     }
 
-    actions = await this.#referenceSuites(actions, initialState, executor);
+    actions = await this.#referenceSuites(actions, initialState, unchecked);
     return { actions, bundleApplications, suiteIds };
   }
 

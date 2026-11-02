@@ -1,4 +1,4 @@
-import { zeroAddress } from "viem";
+import { stringToHex, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 import type { DeployCreateSuiteParams } from "../actions/actionTypes.js";
 import type { GipMarketAction } from "../actions/types.js";
@@ -6,6 +6,7 @@ import { MarketExecutor } from "../executor/MarketExecutor.js";
 import {
   CM,
   CM2,
+  createStubClient,
   createTestSdk,
   marketState,
   SOURCE_TIMESTAMP,
@@ -181,5 +182,32 @@ describe("credit suite references", () => {
       createSuite({ id: "New CM" }),
       debtLimit("suite:New CM", 1_000),
     ]);
+  });
+
+  it("names a suite by reference even when a check blocks it", async () => {
+    const NFT = "0x0000000000000000000000000000000000000123";
+    const { sdk } = await createTestSdk({
+      marketSuite: null,
+      client: createStubClient({
+        readContract: args => {
+          if (args.functionName === "isPeripheryContract") return false;
+          return args.address?.toLowerCase() === NFT &&
+            args.functionName === "contractType"
+            ? stringToHex("DEGEN_NFT::DEFAULT", { size: 32 })
+            : undefined;
+        },
+      }),
+    });
+    // @dev its Degen NFT is not registered: in a merged GIP, another market
+    // may register it, but on its own the suite is blocked
+    const preview = await sdk
+      .market({ initialState: emptyMarket() })
+      .addActions([
+        createSuite({ whitelistPolicy: NFT }),
+        debtLimit(CM2, 1_000),
+      ])
+      .preview();
+    expect(preview.blockedAt).toBe(0);
+    expect(preview.inputActions[1]).toEqual(debtLimit("suite:New CM", 1_000));
   });
 });
