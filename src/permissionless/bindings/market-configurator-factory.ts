@@ -2,6 +2,7 @@ import type { Address, Chain, PublicClient, Transport } from "viem";
 import { iMarketConfiguratorFactoryAbi } from "../../abi/310/iMarketConfiguratorFactory.js";
 import type { RawTx } from "../../onchain/index.js";
 import { BaseContract } from "../../onchain/index.js";
+import { Addresses } from "../deployment/addresses.js";
 import { KILL_SWITCH_PROXY } from "../utils/literals.js";
 import { BytecodeRepositoryContract } from "./bytecode-repository.js";
 import {
@@ -67,7 +68,7 @@ export class MarketConfiguratorFactoryContract extends BaseContract<
   }> {
     const { admin, emergencyAdmin, killSwitchOwner, ...rest } = args;
     const bcr = new BytecodeRepositoryContract(
-      await this.contract.read.bytecodeRepository(),
+      Addresses.BYTECODE_REPOSITORY,
       this.client,
     );
     const proxy = await KillSwitchProxyContract.prepareDeploy(bcr, {

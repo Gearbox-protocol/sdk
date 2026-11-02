@@ -24,6 +24,7 @@ import { iKillSwitchProxyAbi } from "../../abi/310/iKillSwitchProxy.js";
 import { iMarketConfiguratorFactoryAbi } from "../../abi/310/iMarketConfiguratorFactory.js";
 import type { RawTx } from "../../onchain/index.js";
 import {
+  Addresses,
   BytecodeRepositoryContract,
   KillSwitchProxyContract,
   KillSwitchProxyNotAllowedError,
@@ -41,8 +42,6 @@ import { useFixture } from "../helpers.js";
 
 const BLOCK = 24_736_900n;
 
-const BYTECODE_REPOSITORY: Address =
-  "0x1cE2B1BE96a082b1b1539F80d5D8f82Ec06a0f9A";
 const MARKET_CONFIGURATOR_FACTORY: Address =
   "0x7D60CfaF7c2cec210638A5e46E4000894830C034";
 // existing market configurator with legacy (direct) emergency admin and its USDC pool
@@ -95,7 +94,7 @@ describe("kill switch proxy as emergency admin", () => {
       transport: http(ANVIL_URL, { timeout: 120_000 }),
       pollingInterval: 100,
     }).extend(walletActions);
-    bcr = new BytecodeRepositoryContract(BYTECODE_REPOSITORY, client);
+    bcr = new BytecodeRepositoryContract(Addresses.BYTECODE_REPOSITORY, client);
     mcf = new MarketConfiguratorFactoryContract(
       MARKET_CONFIGURATOR_FACTORY,
       client,
@@ -158,7 +157,7 @@ describe("kill switch proxy as emergency admin", () => {
   });
 
   it("deploys market configurator with kill switch proxy in one batch", async () => {
-    await allowKillSwitchProxyOnFork(client, testClient, BYTECODE_REPOSITORY);
+    await allowKillSwitchProxyOnFork(client, testClient);
     await expect(KillSwitchProxyContract.isAvailable(bcr)).resolves.toBe(true);
 
     const args = {
@@ -244,7 +243,7 @@ describe("kill switch proxy as emergency admin", () => {
   });
 
   it("executes emergency actions through kill switch proxy until it is killed", async () => {
-    await allowKillSwitchProxyOnFork(client, testClient, BYTECODE_REPOSITORY);
+    await allowKillSwitchProxyOnFork(client, testClient);
     const mc = new MarketConfiguratorContract(LEGACY_MC, client);
 
     // switch existing market configurator to kill switch proxy

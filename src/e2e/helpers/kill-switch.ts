@@ -15,6 +15,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { iBytecodeRepositoryAbi } from "../../abi/310/iBytecodeRepository.js";
 import {
+  Addresses,
   BytecodeRepositoryContract,
   KILL_SWITCH_PROXY,
   KILL_SWITCH_PROXY_MINOR_VERSION,
@@ -79,8 +80,8 @@ export async function waitForMined(
 export async function allowKillSwitchProxyOnFork(
   publicClient: PublicClient<Transport, Chain>,
   testClient: ForkClient,
-  bytecodeRepository: Address,
 ): Promise<void> {
+  const bytecodeRepository = Addresses.BYTECODE_REPOSITORY;
   const bcr = new BytecodeRepositoryContract(bytecodeRepository, publicClient);
   const allowed = await bcr.getAllowedBytecodeHash(
     KILL_SWITCH_PROXY,
