@@ -236,4 +236,6 @@ export type GipPlan = MarketGipPlan | ConfiguratorGipPlan;
 /** Intent recorded by a market builder, in the order it was recorded. **/
 export type MarketIntent =
   | { kind: "action"; action: GipMarketAction }
-  | { kind: "bundle"; bundle: Bundle };
+  | { kind: "bundle"; bundle: Bundle }
+  /** {@link MarketBuilder.addRwaPeriphery}, resolved when compiling. **/
+  | { kind: "rwaPeriphery" };

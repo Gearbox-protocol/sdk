@@ -1083,8 +1083,16 @@ IRM, loss policy and rate keeper defaults are available through the public permi
 entry. `MarketActionOf<T>` selects a built-in action by type, and
 `GipRegistry.marketAction(type)` retains the concrete definition for a built-in type.
 
-`planRwaPeripheryActions` takes chain lookups and returns the periphery actions a new
-Securitize RWA market is missing. `reconcileRwaPeripheryActions` and
+`market.addRwaPeriphery()` records the periphery a Securitize RWA market needs —
+its Degen NFT registered and, for a default underlying, its zapper deployed and
+registered — and resolves it against the chain when the builder compiles, after the
+actions recorded before it. It adds nothing for an ordinary underlying or a complete
+setup, and replaces a legacy author-derived zapper, so it both sets up a new market
+(`session.newMarket(params).addRwaPeriphery()`) and repairs an existing draft.
+
+Without a session, `planRwaPeripheryActions` takes chain lookups and returns the
+periphery actions a new Securitize RWA market is missing;
+`completeRwaPeripheryActions`, `reconcileRwaPeripheryActions` and
 `insertRwaZapperDeployment` repair action lists without mutating their inputs.
 
 Deployment schemas define supported versions. Legacy adapters belong to application

@@ -590,6 +590,44 @@ export function reconcileRwaPeripheryActions(args: {
 }
 
 /**
+ * One market's actions with its Securitize RWA periphery setup completed: the
+ * Degen NFT registration and, for `RWA_UNDERLYING::DEFAULT`, the zapper
+ * deployment and registration are added in executable order when missing, and
+ * a legacy author-derived zapper is replaced (see
+ * {@link reconcileRwaPeripheryActions}).
+ *
+ * The actions come back unchanged for ordinary and non-Securitize underlyings
+ * and for a complete setup.
+ **/
+export async function completeRwaPeripheryActions<A extends GipMarketAction>(
+  args: RwaPeripheryLookups & {
+    actions: readonly A[];
+    underlying: Address;
+    /**
+     * Pool the zapper is built for: the previewed address while the market is
+     * being created, the market address afterwards.
+     **/
+    pool: Address;
+    /** Actions queued for the other markets of the same GIP. **/
+    otherActions?: readonly GipMarketAction[];
+  },
+): Promise<A[]> {
+  const { actions, otherActions = [] } = args;
+  const plan = await planRwaPeripheryRequirements(args, args, [
+    ...actions,
+    ...otherActions,
+  ]);
+  if (!plan || plan.missing.length === 0) return [...actions];
+  return reconcileRwaPeripheryActions({
+    actions: actions as readonly GipMarketAction[] as readonly MarketActions[],
+    missing: plan.missing,
+    pool: args.pool,
+    zapper: plan.zapper,
+    otherActions: otherActions as readonly MarketActions[],
+  }) as GipMarketAction[] as A[];
+}
+
+/**
  * Inserts an RWA zapper deployment right before the registration it serves.
  *
  * `MARKET::addPeripheryContract` reverts unless the zapper is already deployed,

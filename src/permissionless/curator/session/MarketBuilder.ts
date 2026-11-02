@@ -26,6 +26,7 @@ import {
   type MarketExecution,
   MarketExecutor,
 } from "../executor/MarketExecutor.js";
+import { completeRwaPeripheryActions } from "../rwaPeripherySetup.js";
 import { getMarketState } from "../state/market/getMarketState.js";
 import type { MarketState } from "../state/market/types.js";
 import { batchMarketTransactions } from "../transactions/batchMarketTransactions.js";
@@ -46,6 +47,7 @@ import {
 } from "./collectGipDiagnostics.js";
 import { collectPredictedDeployments } from "./collectPredictedDeployments.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
+import { rwaPeripheryLookups } from "./rwaPeripheryLookups.js";
 import {
   type ScopeCompilation,
   ScopedBuilder,
@@ -296,6 +298,20 @@ export class MarketBuilder extends ScopedBuilder<
     });
   }
 
+  /**
+   * Records the periphery a Securitize RWA market needs, added after what was
+   * recorded so far in executable order: its Degen NFT registered and, for an
+   * `RWA_UNDERLYING::DEFAULT` underlying, its zapper deployed and registered.
+   * A legacy author-derived zapper is replaced.
+   *
+   * Resolved against the chain when the builder compiles, like a bundle. It
+   * adds nothing for an ordinary underlying or a complete setup, so it can be
+   * recorded for every new market.
+   **/
+  addRwaPeriphery(): this {
+    return this.record({ kind: "rwaPeriphery" });
+  }
+
   protected async compile(
     intents: readonly MarketIntent[],
     eta: number,
@@ -425,6 +441,14 @@ export class MarketBuilder extends ScopedBuilder<
         actions = addMarketAction(actions, intent.action, registry);
         continue;
       }
+      if (intent.kind === "rwaPeriphery") {
+        actions = await this.#completeRwaPeriphery(
+          actions,
+          initialState,
+          executor,
+        );
+        continue;
+      }
       if (actions.length === 0 && initialState === undefined) {
         throw new Error(
           "A bundle cannot be applied before the market exists: record the createMarket action first",
@@ -475,6 +499,35 @@ export class MarketBuilder extends ScopedBuilder<
     }
 
     return { actions, bundleApplications, suiteIds };
+  }
+
+  /** `actions` with the market's RWA periphery setup completed. **/
+  async #completeRwaPeriphery(
+    actions: GipMarketAction[],
+    initialState: MarketState | undefined,
+    executor: MarketExecutor,
+  ): Promise<GipMarketAction[]> {
+    const [first] = actions;
+    const underlying =
+      initialState?.underlyingAsset ??
+      (first?.type === "MARKET::createMarket"
+        ? first.params.underlying
+        : undefined);
+    if (!underlying) {
+      throw new Error(
+        "RWA periphery cannot be added before the market exists: record the createMarket action first",
+      );
+    }
+    // @dev the zapper is built for the pool: a new market's is predicted
+    const pool =
+      this.#pool ??
+      (await executor.project(initialState, actions)).after.address;
+    return completeRwaPeripheryActions({
+      ...rwaPeripheryLookups(this.runtime),
+      actions,
+      underlying,
+      pool,
+    });
   }
 
   /** The state the actions start from; `undefined` for a market being created. **/
