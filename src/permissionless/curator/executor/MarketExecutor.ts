@@ -148,7 +148,7 @@ export class MarketExecutor {
     const run = await this.#run(before, actions);
     return {
       ...projection(run),
-      txs: run.steps.map(step => this.#encode(step)),
+      txs: run.steps.map((step, index) => this.#encode(step, index)),
     };
   }
 
@@ -309,7 +309,7 @@ export class MarketExecutor {
     return { ...state, periphery: [...own, ...this.#periphery] };
   }
 
-  #encode(step: ActionStep): ParsedMarketTx {
+  #encode(step: ActionStep, actionIndex: number): ParsedMarketTx {
     const { action, definition, resolved, after } = step;
     const { params } = action;
     const tx: RawTx = definition.encode({
@@ -325,6 +325,7 @@ export class MarketExecutor {
     return {
       tx,
       action,
+      actionIndex,
       ...(newContract ? { newContract } : {}),
       estimatedGas: definition.gas({ params, after, env: this.env }),
       touchedFeeds:

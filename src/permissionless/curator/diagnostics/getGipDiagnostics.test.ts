@@ -45,4 +45,29 @@ describe("GIP diagnostic checks", () => {
     expect(diagnostics[2]).toMatchObject({ market, assets: [asset] });
     expect(diagnostics[3]).toMatchObject({ market, degenNFT: nft });
   });
+
+  it("counts a Degen NFT registration queued by another market", async () => {
+    const suite = {
+      type: "MARKET::createCreditSuite",
+      params: { whitelistPolicy: nft },
+    } as unknown as GipMarketAction;
+    const registration = {
+      type: "MARKET::addPeripheryContract",
+      params: { peripheryContract: nft, domain: "DEGEN_NFT" },
+    } as unknown as GipMarketAction;
+    const diagnostics = await getGipDiagnostics({
+      markets: [
+        { address: pool, underlyingAsset: asset, transactions: [suite] },
+        {
+          address: nft,
+          underlyingAsset: asset,
+          transactions: [registration],
+        },
+      ],
+      balanceOf: async () => 0n,
+      incompleteRwaSetups: async () => [],
+      registeredPeripheryContracts: async () => [],
+    });
+    expect(diagnostics).toEqual([]);
+  });
 });

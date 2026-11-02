@@ -1062,6 +1062,9 @@ and each sees the periphery the earlier ones deployed or registered. A market wa
 for the markets providing periphery it requires (a deployment before its
 registration, a Degen NFT registration before a suite or facade using it), and a
 periphery call listed by several markets runs once; a conflicting one is blocked.
+A market keeps such a call in its `inputActions` even where it does not run, so
+`blockedAt`, `actionDiagnostics[].actionIndex` and `txs[].actionIndex` index the
+market's whole action list, and a list persisted from a preview loses nothing.
 `preview.executionOrder` names the pools in the order their calls execute, and
 `preview.batches` holds every call of the proposal.
 

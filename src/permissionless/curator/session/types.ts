@@ -123,12 +123,18 @@ export interface MarketPreview extends GipPreviewBase {
   creationState?: MarketState;
   after: MarketState;
   /**
-   * Executable inputs after merging and shared-call deduplication, before
-   * resolving suite references. Indices match txs and actionDiagnostics.
-   * Safe to persist when editing a preview without freezing predicted addresses.
+   * The market's action list: recorded actions merged and bundles applied,
+   * before suite references resolve. In a merged GIP it keeps periphery calls
+   * an earlier market already makes, though they do not run again here.
+   * `blockedAt`, `actionDiagnostics[].actionIndex` and `txs[].actionIndex`
+   * index it. Safe to persist when editing a preview without freezing
+   * predicted addresses.
    **/
   inputActions: readonly GipMarketAction[];
-  /** Actions after bundle merges and credit-manager resolution. **/
+  /**
+   * {@link inputActions} with credit-manager references resolved to
+   * addresses, as far as the actions ran; the rest as recorded.
+   **/
   resolvedActions: readonly GipMarketAction[];
   bundles: readonly BundleApplication[];
   predictedDeployments: readonly PredictedDeployment[];

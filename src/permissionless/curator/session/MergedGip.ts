@@ -179,9 +179,14 @@ async function compile(
   for (const index of order) {
     const { provides, requires } = footprints[index];
     const uses = new Set([...provides, ...requires].map(sharedContract));
-    const actions = prepared[index].actions.filter(action => {
+    // @dev positions of the actions that run: a periphery call an earlier
+    // market made is skipped, but stays in the market's action list
+    const kept: number[] = [];
+    const actions = prepared[index].actions.filter((action, position) => {
       const call = peripheryCall(action);
-      return call === undefined || !performed.has(call);
+      if (call !== undefined && performed.has(call)) return false;
+      kept.push(position);
+      return true;
     });
     const executor = new MarketExecutor(runtime.ctx, {
       ...runtime.executorOptions(eta),
@@ -193,7 +198,10 @@ async function compile(
       prepared[index].initialState,
       actions,
     );
-    executed[index] = { prepared: { ...prepared[index], actions }, changes };
+    executed[index] = {
+      prepared: prepared[index],
+      changes: reindexExecution(changes, prepared[index].actions, kept),
+    };
 
     for (const entry of changes.after.periphery ?? [])
       periphery.set(lowerAddress(entry.address), entry);
@@ -246,6 +254,53 @@ async function compile(
       incompleteChecks: found.incompleteChecks,
     }),
     payloadCalls: txs.map(({ tx }) => tx),
+  };
+}
+
+/**
+ * A market's execution with every index pointing into its whole action list
+ * rather than into the actions that ran: `kept[i]` is the position of the
+ * i-th action that ran. Skipped calls count as resolved, so the resolved list
+ * stays aligned with `actions` up to the blocked action.
+ **/
+function reindexExecution(
+  changes: MarketExecution,
+  actions: readonly GipMarketAction[],
+  kept: readonly number[],
+): MarketExecution {
+  if (kept.length === actions.length) return changes;
+  const position = (index: number): number => kept[index];
+  const resolvedActions: GipMarketAction[] = [];
+  for (const [index, action] of changes.resolvedActions.entries()) {
+    while (resolvedActions.length < position(index))
+      resolvedActions.push(actions[resolvedActions.length]);
+    resolvedActions.push(action);
+  }
+  const ran = changes.blockedAt ?? changes.resolvedActions.length;
+  const end = ran < kept.length ? position(ran) : actions.length;
+  while (resolvedActions.length < end)
+    resolvedActions.push(actions[resolvedActions.length]);
+  return {
+    ...changes,
+    resolvedActions,
+    txs: changes.txs.map(tx => ({
+      ...tx,
+      actionIndex: position(tx.actionIndex),
+    })),
+    diagnostics: changes.diagnostics.map(diagnostic => ({
+      ...diagnostic,
+      actionIndex: position(diagnostic.actionIndex),
+    })),
+    incompleteChecks: changes.incompleteChecks.map(({ check, reason }) => ({
+      check: check.replace(
+        /^action:(\d+):/,
+        (_, index: string) => `action:${position(Number(index))}:`,
+      ),
+      reason,
+    })),
+    ...(changes.blockedAt !== undefined
+      ? { blockedAt: position(changes.blockedAt) }
+      : {}),
   };
 }
 

@@ -246,9 +246,47 @@ describe("merged GIP", () => {
       ])
       .preview();
     expect(executedActions(preview)).toEqual(["BCR::deployContract"]);
-    expect(preview.markets[1].resolvedActions).toHaveLength(0);
+    // @dev the second market keeps its call, which it does not run again
     expect(preview.markets[0].inputActions).toEqual([NFT_DEPLOYMENT]);
-    expect(preview.markets[1].inputActions).toHaveLength(0);
+    expect(preview.markets[1].inputActions).toHaveLength(1);
+    expect(preview.markets[1].resolvedActions).toHaveLength(1);
+    expect(preview.markets[1].txs).toHaveLength(0);
+  });
+
+  it("indexes a market by its whole action list when a shared call is skipped", async () => {
+    const { sdk } = await createTestSdk({ client: nftClient() });
+    const preview = await sdk
+      .merge([
+        sdk
+          .market({ initialState: marketState() })
+          .addActions([NFT_REGISTRATION, NFT_SUITE]),
+        sdk
+          .market({ initialState: { ...marketState(), address: SECOND } })
+          .addActions([
+            NFT_REGISTRATION,
+            { ...NFT_SUITE, params: { ...NFT_SUITE.params, name: "Second" } },
+            // @dev a no-op: the limit is already 1M
+            setTotalDebtLimit(1_000_000),
+          ]),
+      ])
+      .preview();
+    const [first, second] = preview.markets;
+    expect(first.txs.map(tx => tx.actionIndex)).toEqual([0, 1]);
+    expect(second.inputActions.map(action => action.type)).toEqual([
+      "MARKET::addPeripheryContract",
+      "MARKET::createCreditSuite",
+      "POOL::setTotalDebtLimit",
+    ]);
+    expect(second.txs.map(tx => tx.actionIndex)).toEqual([1]);
+    expect(second.blockedAt).toBe(2);
+    expect(second.actionDiagnostics).toMatchObject([
+      { actionIndex: 2, code: "NO_OP" },
+    ]);
+    expect(second.resolvedActions).toHaveLength(3);
+    // @dev both suites use the NFT that the first market registers
+    expect(
+      preview.diagnostics.filter(d => d.type === "degenNFTIsNotRegistered"),
+    ).toEqual([]);
   });
 
   it("blocks a conflicting declaration of a shared deployment", async () => {

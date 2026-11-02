@@ -152,10 +152,14 @@ function outdatedAdapterVersionDiagnostics<TMarket extends DiagnosticMarket>(
     : [];
 }
 
-/** A whitelisted credit suite needs its Degen NFT registered as periphery. **/
+/**
+ * A whitelisted credit suite needs its Degen NFT registered as periphery, on
+ * chain or by an action anywhere in the GIP: the registry is configurator-wide.
+ **/
 function unregisteredDegenNftDiagnostics<TMarket extends DiagnosticMarket>(
   market: TMarket,
   registered: PeripheryRegistryEntry[],
+  queuedActions: readonly GipMarketAction[],
 ): GipDiagnostic<TMarket>[] {
   const degenNfts = market.transactions
     .filter(
@@ -170,7 +174,7 @@ function unregisteredDegenNftDiagnostics<TMarket extends DiagnosticMarket>(
           address: degenNFT,
           domain: "DEGEN_NFT",
           registered,
-          queuedActions: market.transactions,
+          queuedActions,
         }),
     );
   return [...new Set(degenNfts)].map(degenNFT => ({
@@ -215,9 +219,10 @@ export async function getGipDiagnostics<
   }
 
   const registered = await args.registeredPeripheryContracts();
+  const queued = markets.flatMap(market => market.transactions);
   diagnostics.push(
     ...markets.flatMap(market =>
-      unregisteredDegenNftDiagnostics(market, registered),
+      unregisteredDegenNftDiagnostics(market, registered, queued),
     ),
   );
 
