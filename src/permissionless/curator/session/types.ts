@@ -3,6 +3,8 @@ import type { RawTx } from "../../../onchain/index.js";
 import type { SafeTx } from "../../bindings/governance/types.js";
 import type { TimelockTxs } from "../../utils/governance/types.js";
 import type { GipActionDiagnostic } from "../actions/actionDiagnostics.js";
+import type { CreateCreditSuiteAction } from "../actions/createCreditSuiteActionData.js";
+import type { CreditManagerTarget } from "../actions/creditManagerTargets.js";
 import type { GipMarketAction } from "../actions/types.js";
 import type { Bundle } from "../bundles/Bundle.js";
 import type { ConfiguratorTx } from "../configurator-actions/ConfiguratorTx.js";
@@ -238,4 +240,23 @@ export type MarketIntent =
   | { kind: "action"; action: GipMarketAction }
   | { kind: "bundle"; bundle: Bundle }
   /** {@link MarketBuilder.addRwaPeriphery}, resolved when compiling. **/
-  | { kind: "rwaPeriphery" };
+  | { kind: "rwaPeriphery" }
+  /** {@link MarketBuilder.replaceCreditSuite}. **/
+  | {
+      kind: "replaceCreditSuite";
+      creditManager: CreditManagerTarget;
+      suite: CreateCreditSuiteAction;
+    }
+  /** {@link MarketBuilder.copyCreditSuite}. **/
+  | {
+      kind: "copyCreditSuite";
+      creditManager: CreditManagerTarget;
+      name: string;
+    }
+  /** {@link MarketBuilder.removeAdapter}. **/
+  | {
+      kind: "removeAdapter";
+      creditManager: CreditManagerTarget;
+      target: Address;
+      keepAllowTx: boolean;
+    };

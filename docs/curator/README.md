@@ -366,6 +366,16 @@ same either way. An action recorded once by address and once by reference merges
 like any other repeated action. Since ids differ, the same suite recorded twice is
 two deployments, and the second is a `CREDIT_MANAGER_EXISTS` error.
 
+Because the market's suites are named by reference, editing one predicts no
+address. `market.replaceCreditSuite(creditManager, suite)` swaps a suite's
+params and keeps its id, so everything configuring it follows;
+`market.copyCreditSuite(creditManager, name)` adds a copy with id `<id>#<name>`
+and copies of the actions configuring it; `market.removeAdapter(creditManager,
+target, { keepAllowTx })` drops an adapter's actions. Each takes the suite's
+predicted address, as a preview shows it, or its reference, and resolves when the
+builder compiles; replacing or copying anything but a suite of the market is a
+`GipBuilderError` (`CREDIT_SUITE_NOT_FOUND`).
+
 ### Adding actions
 
 `addMarketAction(actions, action)` (and `addConfiguratorAction`) is how every

@@ -4,10 +4,12 @@ import type { DeployCreateSuiteParams } from "../actions/actionTypes.js";
 import type { GipMarketAction } from "../actions/types.js";
 import { MarketExecutor } from "../executor/MarketExecutor.js";
 import {
+  CM,
   CM2,
   createTestSdk,
   marketState,
   SOURCE_TIMESTAMP,
+  WBTC,
 } from "../testing/sdkHarness.js";
 
 const suite: DeployCreateSuiteParams = {
@@ -113,6 +115,71 @@ describe("credit suite references", () => {
     expect(preview.inputActions).toEqual([
       createSuite({ id: "New CM" }),
       debtLimit("suite:New CM", 2_000),
+    ]);
+  });
+
+  it("replaces a suite named by its address and keeps what configures it", async () => {
+    const { sdk } = await createTestSdk({ marketSuite: null });
+    const preview = await sdk
+      .market({ initialState: emptyMarket() })
+      .addActions([createSuite(), debtLimit(CM2, 1_000)])
+      .replaceCreditSuite(
+        CM2,
+        createSuite({ name: "Renamed", feeInterest: 30 }),
+      )
+      .preview();
+    expect(preview.inputActions).toEqual([
+      createSuite({ id: "New CM", name: "Renamed", feeInterest: 30 }),
+      debtLimit("suite:New CM", 1_000),
+    ]);
+  });
+
+  it("copies a suite with what configures it under a new id", async () => {
+    const { sdk } = await createTestSdk({ marketSuite: null });
+    const preview = await sdk
+      .market({ initialState: emptyMarket() })
+      .addActions([createSuite(), debtLimit(CM2, 1_000)])
+      .copyCreditSuite("suite:New CM", "Copy")
+      .preview();
+    expect(preview.inputActions).toEqual([
+      createSuite({ id: "New CM" }),
+      debtLimit("suite:New CM", 1_000),
+      createSuite({ id: "New CM#Copy", name: "Copy" }),
+      debtLimit("suite:New CM#Copy", 1_000),
+    ]);
+  });
+
+  it("refuses to edit a credit manager the GIP does not deploy", async () => {
+    const { sdk } = await createTestSdk({ marketSuite: null });
+    await expect(
+      sdk
+        .market({ initialState: marketState() })
+        .copyCreditSuite(CM, "Copy")
+        .preview(),
+    ).rejects.toMatchObject({
+      name: "GipBuilderError",
+      code: "CREDIT_SUITE_NOT_FOUND",
+    });
+  });
+
+  it("removes an adapter of a suite named by its address", async () => {
+    const { sdk } = await createTestSdk({ marketSuite: null });
+    const allowAdapter = (creditManager: string) =>
+      ({
+        type: "CREDIT::allowAdapter",
+        params: {
+          creditManager,
+          adapter: { type: "MELLOW_ERC4626_VAULT", version: 310, target: WBTC },
+        },
+      }) as GipMarketAction;
+    const preview = await sdk
+      .market({ initialState: emptyMarket() })
+      .addActions([createSuite(), allowAdapter(CM2), debtLimit(CM2, 1_000)])
+      .removeAdapter(CM2, WBTC)
+      .preview();
+    expect(preview.inputActions).toEqual([
+      createSuite({ id: "New CM" }),
+      debtLimit("suite:New CM", 1_000),
     ]);
   });
 });

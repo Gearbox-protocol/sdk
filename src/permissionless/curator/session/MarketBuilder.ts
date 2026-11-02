@@ -3,6 +3,7 @@ import { GipActionError } from "../actions/actionDiagnostics.js";
 import type { CreateCreditSuiteAction } from "../actions/createCreditSuiteActionData.js";
 import {
   type CreditManagerTarget,
+  type CreditSuiteRef,
   creditSuiteRef,
   isCreditSuiteRef,
   retargetCreditManager,
@@ -23,6 +24,12 @@ import {
   type BundleCustomization,
   customizeBundle,
 } from "../bundles/customizeBundle.js";
+import { GipBuilderError } from "../bundles/GipBuilderError.js";
+import {
+  copyCmActionsForMarket,
+  removeAdapterActions,
+  replaceCmActions,
+} from "../editing/actionListOperations.js";
 import { addMarketAction } from "../editing/addAction.js";
 import {
   type MarketExecution,
@@ -109,6 +116,10 @@ function creditSuiteActions(
       action.type === "MARKET::createCreditSuite",
   );
 }
+
+/** A target as recorded: references as written, addresses lowercased. **/
+const normalizeTarget = (target: CreditManagerTarget): CreditManagerTarget =>
+  isCreditSuiteRef(target) ? target : lowerAddress(target);
 
 const isCreateMarket = (action: GipMarketAction | undefined): boolean =>
   action?.type === "MARKET::createMarket";
@@ -322,6 +333,65 @@ export class MarketBuilder extends ScopedBuilder<
     return this.record({ kind: "rwaPeriphery" });
   }
 
+  /**
+   * Replaces a credit suite this GIP deploys with `suite`; the actions that
+   * configure it follow it, since they name it by reference.
+   *
+   * `creditManager` is the suite's predicted address — what a preview shows —
+   * or its `suite:<id>` reference; the suite keeps its id. Resolved when the
+   * builder compiles: naming anything but a suite of this market is a
+   * `GipBuilderError` (`CREDIT_SUITE_NOT_FOUND`).
+   **/
+  replaceCreditSuite(
+    creditManager: CreditManagerTarget,
+    suite: CreateCreditSuiteAction,
+  ): this {
+    const parsed = parseMarketScopedAction(suite, this.runtime.registry);
+    if (parsed.type !== "MARKET::createCreditSuite") {
+      throw new GipBuilderError(
+        "CREATE_CREDIT_SUITE_ACTION_NOT_FOUND",
+        "A credit suite is replaced by a MARKET::createCreditSuite action",
+      );
+    }
+    return this.record({
+      kind: "replaceCreditSuite",
+      creditManager: normalizeTarget(creditManager),
+      suite: snapshot(parsed),
+    });
+  }
+
+  /**
+   * Adds a copy of a credit suite this GIP deploys, named `name`, with copies
+   * of every action configuring it. The copy's id is `<id>#<name>`.
+   *
+   * `creditManager` is named as in {@link replaceCreditSuite}.
+   **/
+  copyCreditSuite(creditManager: CreditManagerTarget, name: string): this {
+    return this.record({
+      kind: "copyCreditSuite",
+      creditManager: normalizeTarget(creditManager),
+      name,
+    });
+  }
+
+  /**
+   * Drops everything recorded for one adapter of a credit manager: the
+   * adapter's own actions and, unless `keepAllowTx`, the action allowing it.
+   * A credit suite of this GIP may be named by its predicted address.
+   **/
+  removeAdapter(
+    creditManager: CreditManagerTarget,
+    target: Address,
+    options: { keepAllowTx?: boolean } = {},
+  ): this {
+    return this.record({
+      kind: "removeAdapter",
+      creditManager: normalizeTarget(creditManager),
+      target: lowerAddress(target),
+      keepAllowTx: options.keepAllowTx ?? false,
+    });
+  }
+
   protected async compile(
     intents: readonly MarketIntent[],
     eta: number,
@@ -451,6 +521,19 @@ export class MarketBuilder extends ScopedBuilder<
         actions = addMarketAction(actions, intent.action, registry);
         continue;
       }
+      if (
+        intent.kind === "replaceCreditSuite" ||
+        intent.kind === "copyCreditSuite" ||
+        intent.kind === "removeAdapter"
+      ) {
+        actions = await this.#editCreditSuite(
+          intent,
+          actions,
+          initialState,
+          executor,
+        );
+        continue;
+      }
       if (intent.kind === "rwaPeriphery") {
         actions = await this.#completeRwaPeriphery(
           actions,
@@ -539,8 +622,24 @@ export class MarketBuilder extends ScopedBuilder<
     initialState: MarketState | undefined,
     executor: MarketExecutor,
   ): Promise<GipMarketAction[]> {
+    return (await this.#suiteReferences(actions, initialState, executor))
+      .actions;
+  }
+
+  /**
+   * {@link #referenceSuites}, with the reference of every suite the market
+   * deploys by its predicted address.
+   **/
+  async #suiteReferences(
+    actions: GipMarketAction[],
+    initialState: MarketState | undefined,
+    executor: MarketExecutor,
+  ): Promise<{
+    actions: GipMarketAction[];
+    refs: ReadonlyMap<Address, CreditSuiteRef>;
+  }> {
     if (!actions.some(action => action.type === "MARKET::createCreditSuite"))
-      return actions;
+      return { actions, refs: new Map() };
     const { creditSuites } = await executor.project(initialState, actions);
     const refs = new Map(
       Object.entries(creditSuites).map(([id, address]) => [
@@ -559,12 +658,84 @@ export class MarketBuilder extends ScopedBuilder<
       rewritten = true;
       return retargetCreditManager(action, target, ref);
     });
-    if (!rewritten) return actions;
+    if (!rewritten) return { actions, refs };
     const { registry } = this.runtime;
-    return referenced.reduce<GipMarketAction[]>(
-      (merged, action) => addMarketAction(merged, action, registry),
-      [],
+    return {
+      actions: referenced.reduce<GipMarketAction[]>(
+        (merged, action) => addMarketAction(merged, action, registry),
+        [],
+      ),
+      refs,
+    };
+  }
+
+  /**
+   * Applies a credit suite edit to `actions`, once every action names the
+   * market's suites by reference: the edit then never predicts an address.
+   **/
+  async #editCreditSuite(
+    intent: Extract<
+      MarketIntent,
+      { kind: "replaceCreditSuite" | "copyCreditSuite" | "removeAdapter" }
+    >,
+    actions: GipMarketAction[],
+    initialState: MarketState | undefined,
+    executor: MarketExecutor,
+  ): Promise<GipMarketAction[]> {
+    const { actions: referenced, refs } = await this.#suiteReferences(
+      actions,
+      initialState,
+      executor,
     );
+    const list = referenced as MarketActions[];
+    const ref = isCreditSuiteRef(intent.creditManager)
+      ? intent.creditManager
+      : refs.get(lowerAddress(intent.creditManager));
+
+    if (intent.kind === "removeAdapter") {
+      return removeAdapterActions({
+        actions: list,
+        // @dev an existing credit manager keeps its address
+        creditManager: ref ?? intent.creditManager,
+        target: intent.target,
+        keepAllowTx: intent.keepAllowTx,
+      });
+    }
+
+    const index = list.findIndex(
+      action =>
+        action.type === "MARKET::createCreditSuite" &&
+        action.params.id !== undefined &&
+        creditSuiteRef(action.params.id) === ref,
+    );
+    const suite = list[index];
+    if (!ref || suite?.type !== "MARKET::createCreditSuite") {
+      throw new GipBuilderError(
+        "CREDIT_SUITE_NOT_FOUND",
+        `Credit manager ${intent.creditManager} is not a credit suite this GIP deploys`,
+      );
+    }
+    const id = suite.params.id as string;
+
+    if (intent.kind === "replaceCreditSuite") {
+      return replaceCmActions({
+        actions: list,
+        index,
+        replacement: {
+          ...intent.suite,
+          params: { ...intent.suite.params, id },
+        },
+        oldCm: ref,
+        newCm: ref,
+      });
+    }
+    return copyCmActionsForMarket({
+      actions: list,
+      index,
+      name: intent.name,
+      oldCm: ref,
+      newCm: creditSuiteRef(`${id}#${intent.name}`),
+    });
   }
 
   /** `actions` with the market's RWA periphery setup completed. **/
