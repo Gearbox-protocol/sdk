@@ -1,159 +1,73 @@
-import type { MarketScore, ScoredFeed } from "./types.js";
+import type { GroupImpact } from "./types.js";
+
+/** What every source of a group is made to answer, as a multiple of now. */
+export const SCORE_MULTIPLIER = 5;
 
 /**
- * How well a market guards an asset's price, from its two feeds alone.
+ * The score of a price that stops answering under the lie.
  *
- * Two questions, and the points are lost for each separately:
- *
- * - Would the reserve disagree with a main feed that has gone wrong? Only if
- *   it is a second feed on other sources. A missing reserve, a
- *   `ZeroPriceFeed`, the main feed again, and a different feed on the same
- *   sources all answer no.
- * - Is either feed bounded? A `BoundedPriceFeed` caps the answer from above,
- *   and a Gearbox LP feed clamps its exchange rate to a window.
- *
- * Independence costs more than the bound, 6 points against 5, because it is
- * the broader protection: a bounded feed caps only from above, and an LP
- * feed's window holds only its rate, not the price of what the rate is in.
- * Either failure alone lands a market at 4 or 5; both together at 0.
+ * Half marks: nobody can borrow against a wrong number, but nobody can be
+ * liquidated either until the feed is replaced.
  */
-export const INDEPENDENCE_WEIGHT = 6;
-export const BOUND_WEIGHT = 5;
+export const REVERT_SCORE = 5;
 
 /**
- * The feed types that bound what they answer: the `BoundedPriceFeed`, and
- * every Gearbox LP feed, all of which clamp the rate they read.
+ * 0 to 10 by how far the final price moved, on a log scale against the lie
+ * itself: 10 for a price that did not move, 0 for one that moved by the full
+ * {@link SCORE_MULTIPLIER} or more, either way. Rounded to a half point.
+ *
+ * A bound holding a price within a few percent keeps a 10; a price that let
+ * half the lie through, ×√5, scores 5.
  */
-const BOUNDED_TYPE =
-  /::(BOUNDED|ERC4626|CURVE_\w+|WSTETH|YEARN|MELLOW\w*|BALANCER\w*)$/;
-
-const ZERO_TYPE = "PRICE_FEED::ZERO";
-
-/** A source, as the overlap between two feeds is counted. */
-export interface ScoreSource {
-  /** What two feeds have to share to be on the same source. */
-  key: string;
-  /** What a reader is told. */
-  name: string;
-  /** A source the classifier named, rather than one grouped alone. */
-  identified: boolean;
+export function scoreOfFactor(factor: number | null): number {
+  if (factor === null || !Number.isFinite(factor) || factor <= 0) {
+    return REVERT_SCORE;
+  }
+  const moved = Math.abs(Math.log(factor)) / Math.log(SCORE_MULTIPLIER);
+  return Math.round(10 * Math.max(0, 1 - moved) * 2) / 2;
 }
 
 /**
- * The share of the two sides' sources that are not shared, by key.
- *
- * Nothing on either side — two hardcoded prices — is 0, because a reserve is
- * there to be a second opinion and neither of them is one.
+ * The price a market settles on: the lower of main and reserve, or the main
+ * feed's alone where there is no reserve to compare it with. `null` where a
+ * feed it needs does not answer.
  */
-function independenceOf(main: ScoreSource[], reserve: ScoreSource[]): number {
-  const a = new Set(main.map(source => source.key));
-  const b = new Set(reserve.map(source => source.key));
-  const union = new Set([...a, ...b]);
-  if (union.size === 0) {
-    return 0;
+export function finalPrice(
+  main: bigint | null,
+  reserve: bigint | null | undefined,
+): bigint | null {
+  if (main === null || reserve === null) {
+    return null;
   }
-  const shared = [...a].filter(key => b.has(key)).length;
-  return 1 - shared / union.size;
+  if (reserve === undefined) {
+    return main;
+  }
+  return main < reserve ? main : reserve;
 }
 
-/** Down to the half point, so that a score is never rounded up into a band. */
-function toHalf(value: number): number {
-  return Math.floor(value * 2 + 1e-9) / 2;
+/** `stressed / base` as a float, `null` where the stressed price is gone. */
+export function factorOf(base: bigint, stressed: bigint | null): number | null {
+  if (stressed === null) {
+    return null;
+  }
+  return Number(stressed) / Number(base);
 }
 
 /**
- * One market's score for one asset.
- *
- * `reserve` is `null` where the market holds no reserve for the asset at all.
- * A source is passed per side and keyed by the caller, which is where it is
- * decided that an unnamed source is its own contract and a named one is its
- * group.
+ * The market's score and the group it comes from: the lowest of its groups,
+ * ties going to the group that moved the price further. 10 where no source
+ * feeds the price at all, since nothing can be made to lie about it.
  */
-export function scoreMarket(
-  market: Omit<
-    MarketScore,
-    | "main"
-    | "reserve"
-    | "hasReserve"
-    | "independence"
-    | "bounded"
-    | "sharedSources"
-    | "unverified"
-    | "score"
-    | "reasons"
-  >,
-  main: { feed: Omit<ScoredFeed, "sources">; sources: ScoreSource[] },
-  reserve: { feed: Omit<ScoredFeed, "sources">; sources: ScoreSource[] } | null,
-): MarketScore {
-  const reasons: string[] = [];
-
-  let hasReserve = true;
-  if (reserve === null) {
-    hasReserve = false;
-    reasons.push("no reserve feed");
-  } else if (reserve.feed.contractType === ZERO_TYPE) {
-    hasReserve = false;
-    reasons.push("reserve is a ZeroPriceFeed");
-  } else if (reserve.feed.feed.toLowerCase() === main.feed.feed.toLowerCase()) {
-    hasReserve = false;
-    reasons.push("reserve is the main feed");
-  }
-
-  const reserveSources = hasReserve && reserve ? reserve.sources : [];
-  const independence = hasReserve
-    ? independenceOf(main.sources, reserveSources)
-    : 0;
-
-  const reserveKeys = new Set(reserveSources.map(source => source.key));
-  const mainKeys = new Set(main.sources.map(source => source.key));
-  const shared = main.sources.filter(source => reserveKeys.has(source.key));
-  // Two distinct sources can go by one name (two Chainlink aggregators).
-  const names = (sources: ScoreSource[]) => [
-    ...new Set(sources.map(source => source.name)),
-  ];
-  if (hasReserve && independence < 1) {
-    reasons.push(
-      shared.length > 0
-        ? `main and reserve share ${names(shared).join(", ")}`
-        : "neither feed reads a price source",
-    );
-  }
-
-  // An unnamed source that only one side has is what the independence above
-  // is built on; one both sides have is the same contract, already shared.
-  const unverified =
-    hasReserve &&
-    [
-      ...main.sources.filter(source => !reserveKeys.has(source.key)),
-      ...reserveSources.filter(source => !mainKeys.has(source.key)),
-    ].some(source => !source.identified);
-
-  const bounded =
-    BOUNDED_TYPE.test(main.feed.contractType) ||
-    (reserve !== null && BOUNDED_TYPE.test(reserve.feed.contractType));
-  if (!bounded) {
-    reasons.push("neither feed is bounded");
-  }
-
-  const score = toHalf(
-    Math.max(
-      0,
-      10 -
-        INDEPENDENCE_WEIGHT * (1 - independence) -
-        BOUND_WEIGHT * (bounded ? 0 : 1),
-    ),
+export function worstOf(impacts: GroupImpact[]): {
+  score: number;
+  impacts: GroupImpact[];
+  worst: GroupImpact | null;
+} {
+  const distance = (impact: GroupImpact) =>
+    impact.factor === null ? Infinity : Math.abs(Math.log(impact.factor));
+  const sorted = [...impacts].sort(
+    (a, b) => a.score - b.score || distance(b) - distance(a),
   );
-
-  return {
-    ...market,
-    main: { ...main.feed, sources: names(main.sources) },
-    reserve: reserve ? { ...reserve.feed, sources: names(reserve.sources) } : null,
-    hasReserve,
-    independence,
-    bounded,
-    sharedSources: names(shared),
-    unverified,
-    score,
-    reasons,
-  };
+  const worst = sorted[0] ?? null;
+  return { score: worst?.score ?? 10, impacts: sorted, worst };
 }

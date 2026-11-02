@@ -10,17 +10,49 @@ export interface ScoredFeed {
   /** Gearbox contract type of the feed itself, `""` for one it never deployed. */
   contractType: string;
   /**
-   * Every price source beneath the feed, by name: `"Chainlink"`, `"Lido"`, or
-   * the description of a source nothing could name.
+   * Every source group beneath the feed: `"Chainlink"`, `"Lido"`, or the
+   * description of a source nothing could name.
    */
   sources: string[];
 }
 
 /**
+ * What one source group, lying, does to the price a market holds for an
+ * asset.
+ **/
+export interface GroupImpact {
+  group: string;
+  /** The group was recognised rather than inferred from one feed's name. */
+  identified: boolean;
+  /**
+   * The group's sources this market's feeds read, by what they say they are:
+   * `"stETH / ETH"`, `"ETH / USD"`.
+   */
+  feeds: string[];
+  /** Which of the market's feeds read the group. */
+  reaches: "main" | "reserve" | "both";
+  /**
+   * The final price under the lie over the final price now, in USD. `null` is
+   * a price that stopped answering.
+   */
+  factor: number | null;
+  /**
+   * The same, against the market's own underlying: what an account is
+   * valued by. A lie that moves collateral and underlying alike leaves it at
+   * 1. `null` where either price stopped answering.
+   */
+  ratioFactor: number | null;
+  /** 0 to 10, by {@link scoreOfFactor}. */
+  score: number;
+}
+
+/**
  * How well one market guards one asset's price, out of 10.
  *
- * `score = max(0, 10 − 6·(1 − independence) − 5·(1 − bounded))`, rounded down
- * to a half point.
+ * Every source group behind the asset's feeds is made, one group at a time,
+ * to answer {@link SCORE_MULTIPLIER} times what it answers now. The market
+ * scores by the group that moves its final price — `min(main, reserve)` —
+ * the furthest.
  **/
 export interface MarketScore {
   market: Address;
@@ -31,31 +63,28 @@ export interface MarketScore {
   /** `null` where the market holds no reserve for the asset at all. */
   reserve: ScoredFeed | null;
   /**
-   * The reserve is a second feed: present, not a `ZeroPriceFeed`, and not
-   * the main feed again.
+   * The final price is `min(main, reserve)`: a reserve is present, is not a
+   * `ZeroPriceFeed`, and answers. Where it is not, the final price is the
+   * main feed's alone.
    */
   hasReserve: boolean;
+  /** The final price now, in USD. */
+  price: number;
+  /** Every group behind the two feeds, the most damaging first. */
+  impacts: GroupImpact[];
+  /** The group the score comes from; `null` where no source feeds the price. */
+  worst: GroupImpact | null;
   /**
-   * The share of the two feeds' sources they do not have in common:
-   * `1 − |shared| / |all|`. 1 for feeds with nothing in common, 0 for feeds
-   * on the same sources — and 0 where {@link hasReserve} is false.
-   */
-  independence: number;
-  /** Main or reserve is a `BoundedPriceFeed` or a Gearbox LP feed. */
-  bounded: boolean;
-  /** The sources the two feeds have in common, by name. */
-  sharedSources: string[];
-  /**
-   * The independence counted here rests on a source nothing could name.
+   * The score rests on a source nothing could name.
    *
-   * Such a source counts as its own, so two of them look independent even
-   * if one operator stands behind both. The same unnamed source on both
-   * sides — the same contract — is still counted as shared.
+   * Such a source is a group of its own and is perturbed alone, so where one
+   * feed reads it and the other does not, the other is taken to hold — which
+   * it would not if one operator stood behind both.
    */
   unverified: boolean;
   score: number;
-  /** What cost the market its points, for a reader to act on. Empty at 10. */
-  reasons: string[];
+  /** How the market is set up, where that explains its score. */
+  notes: string[];
 }
 
 /**

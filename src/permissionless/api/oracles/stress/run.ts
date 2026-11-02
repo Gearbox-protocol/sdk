@@ -210,14 +210,28 @@ export async function readRateTargets(
  * scenario rather than a round trip per feed. A feed that reverts comes back
  * `null`, which is an outcome and not an error.
  */
-async function readUnder(
+export async function readUnder(
   client: PublicClient<Transport, Chain>,
   feeds: Address[],
   sources: StressSource[],
   multiplier: number,
   updatedAt: bigint,
+  /**
+   * Sources re-answered as they stand, under a fresh timestamp: a pull feed
+   * nobody has pushed to lately is stale, and a feed over it reverts on that
+   * before anything about the price is learnt. `sources` win where the two
+   * overlap.
+   */
+  freshen: StressSource[] = [],
 ): Promise<Map<Address, bigint | null>> {
-  const overrides = groupOverride(sources, multiplier, updatedAt);
+  const driven = groupOverride(sources, multiplier, updatedAt);
+  const taken = new Set(driven.map(override => override.address.toLowerCase()));
+  const overrides = [
+    ...groupOverride(freshen, 1, updatedAt).filter(
+      override => !taken.has(override.address.toLowerCase()),
+    ),
+    ...driven,
+  ];
 
   const results = await client.multicall({
     contracts: feeds.map(address => ({

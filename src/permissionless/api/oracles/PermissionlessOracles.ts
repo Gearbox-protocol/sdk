@@ -525,17 +525,17 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
   /**
    * Every asset's score out of 10 for how its markets guard its price.
    *
-   * A market scores 10 when its reserve feed is a second feed on other
-   * sources than the main one, and one of the two is bounded — a
-   * `BoundedPriceFeed` or a Gearbox LP feed. It loses 6 points as the two
-   * feeds' sources overlap — all of them if there is no reserve, it is a
-   * `ZeroPriceFeed`, or it is the main feed again — and 5 if neither is
-   * bounded. An asset scores its worst running market that takes it as
-   * collateral.
+   * Each source group behind an asset's feeds — Chainlink, Redstone, Lido and
+   * so on — is made in turn to answer five times what it answers now, and a
+   * market scores by how far that moves its final price, `min(main,
+   * reserve)`: 10 for not at all, 0 for the full five times, on a log scale.
+   * A price that stops answering scores 5. An asset scores its worst running
+   * market that takes it as collateral.
    *
-   * Read off the chain, one multicall of feed trees per chain, so the score
-   * is of the trees as they stand rather than as last indexed. A chain with
-   * no client configured is left out with a warning rather than failing the
+   * Simulated on the chain as it stands, through state overrides in
+   * `eth_call`: one call per source group per chain, so the node behind the
+   * client has to accept overrides. A chain with no client configured, or
+   * whose node refuses, is left out with a warning rather than failing the
    * rest.
    *
    * ```ts

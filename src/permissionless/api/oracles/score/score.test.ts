@@ -1,201 +1,115 @@
-import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
-import { type ScoreSource, scoreMarket } from "./formula.js";
+import {
+  factorOf,
+  finalPrice,
+  REVERT_SCORE,
+  scoreOfFactor,
+  worstOf,
+} from "./formula.js";
+import type { GroupImpact } from "./types.js";
 
-const MARKET = {
-  market: "0x00000000000000000000000000000000000000aa" as Address,
-  marketName: "WETH Market",
-  marketConfigurator: "0x00000000000000000000000000000000000000bb" as Address,
-  curatorName: "kpk",
-};
-
-const named = (name: string): ScoreSource => ({
-  key: `group:${name}`,
-  name,
+const impact = (
+  group: string,
+  factor: number | null,
+  reaches: GroupImpact["reaches"] = "main",
+): GroupImpact => ({
+  group,
   identified: true,
+  feeds: [`${group} feed`],
+  reaches,
+  factor,
+  ratioFactor: factor,
+  score: scoreOfFactor(factor),
 });
 
-const unnamed = (target: string, name = "Some adapter"): ScoreSource => ({
-  key: `contract:${target}`,
-  name,
-  identified: false,
+describe("scoreOfFactor", () => {
+  it("scores 10 for a price that did not move", () => {
+    expect(scoreOfFactor(1)).toBe(10);
+  });
+
+  it("keeps a 10 for a price a bound holds within a few percent", () => {
+    expect(scoreOfFactor(1.02)).toBe(10);
+  });
+
+  it("scores 0 for the full lie, and past it", () => {
+    expect(scoreOfFactor(5)).toBe(0);
+    // Two legs of a composite on one provider: 5 × 5.
+    expect(scoreOfFactor(25)).toBe(0);
+  });
+
+  it("scores 5 for half the lie on a log scale", () => {
+    expect(scoreOfFactor(Math.sqrt(5))).toBe(5);
+  });
+
+  it("is symmetric: a price driven down as far scores the same", () => {
+    expect(scoreOfFactor(1 / 5)).toBe(0);
+    expect(scoreOfFactor(1 / Math.sqrt(5))).toBe(5);
+  });
+
+  it("scores a price that stopped answering at half marks", () => {
+    expect(scoreOfFactor(null)).toBe(REVERT_SCORE);
+  });
 });
 
-function side(
-  feed: string,
-  contractType: string,
-  sources: ScoreSource[],
-): { feed: { feed: Address; name: string; contractType: string }; sources: ScoreSource[] } {
-  return {
-    feed: { feed: feed as Address, name: feed, contractType },
-    sources,
-  };
-}
+describe("finalPrice", () => {
+  it("takes the lower of main and reserve", () => {
+    expect(finalPrice(100n, 120n)).toBe(100n);
+    expect(finalPrice(500n, 120n)).toBe(120n);
+  });
 
-const COMPOSITE = "PRICE_FEED::COMPOSITE";
-const BOUNDED = "PRICE_FEED::BOUNDED";
-const WSTETH = "PRICE_FEED::WSTETH";
+  it("takes main alone where there is no reserve", () => {
+    expect(finalPrice(500n, undefined)).toBe(500n);
+  });
 
-describe("scoreMarket", () => {
-  it("scores 10 for independent sources with a bound", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [named("Chainlink")]),
-      side("0x02", COMPOSITE, [named("Redstone")]),
-    );
+  it("has no price where a feed it needs does not answer", () => {
+    expect(finalPrice(null, 100n)).toBeNull();
+    expect(finalPrice(100n, null)).toBeNull();
+  });
+});
+
+describe("the screenshot's case", () => {
+  // Main a composite of Lido × a median of Chronicle, Redstone and Chainlink;
+  // reserve Chainlink alone. Chainlink ×5 moves the reserve and, the median
+  // holding, not the main — so min() stays put. With the reserve on Chainlink
+  // as well as the main's only leg, min() follows both up.
+  it("holds when only one side moves", () => {
+    const before = finalPrice(2000n, 2200n) as bigint;
+    const after = finalPrice(2000n, 11000n);
+    expect(scoreOfFactor(factorOf(before, after))).toBe(10);
+  });
+
+  it("breaks when both sides move", () => {
+    const before = finalPrice(2000n, 2200n) as bigint;
+    const after = finalPrice(10000n, 11000n);
+    expect(factorOf(before, after)).toBe(5);
+    expect(scoreOfFactor(factorOf(before, after))).toBe(0);
+  });
+});
+
+describe("worstOf", () => {
+  it("scores by the most damaging group and names it", () => {
+    const result = worstOf([
+      impact("Redstone", 1),
+      impact("Chainlink", 5, "both"),
+      impact("Lido", 1.02),
+    ]);
+    expect(result.score).toBe(0);
+    expect(result.worst?.group).toBe("Chainlink");
+    expect(result.impacts.map(it => it.group)).toEqual([
+      "Chainlink",
+      "Lido",
+      "Redstone",
+    ]);
+  });
+
+  it("breaks a tie towards the group that moved the price further", () => {
+    const result = worstOf([impact("A", 5), impact("B", 25)]);
+    expect(result.worst?.group).toBe("B");
+  });
+
+  it("scores 10 where no source feeds the price", () => {
+    const result = worstOf([]);
     expect(result.score).toBe(10);
-    expect(result.reasons).toEqual([]);
-    expect(result.unverified).toBe(false);
-  });
-
-  it("counts an LP feed as bounded", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", WSTETH, [named("Lido"), named("Chainlink")]),
-      side("0x02", COMPOSITE, [named("Redstone")]),
-    );
-    expect(result.bounded).toBe(true);
-    expect(result.score).toBe(10);
-  });
-
-  it("scores 8 when one source in three is shared", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", WSTETH, [named("Lido"), named("Chainlink")]),
-      side("0x02", COMPOSITE, [named("Lido"), named("Redstone")]),
-    );
-    // Shared Lido of {Lido, Chainlink, Redstone}: one in three.
-    expect(result.independence).toBeCloseTo(2 / 3);
-    expect(result.score).toBe(8);
-    expect(result.sharedSources).toEqual(["Lido"]);
-  });
-
-  it("names two shared sources of one provider once", () => {
-    const aggregator = (group: string): ScoreSource => ({
-      key: `group:${group}`,
-      name: "Chainlink",
-      identified: true,
-    });
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [aggregator("eth-usd"), aggregator("steth-eth")]),
-      side("0x02", COMPOSITE, [aggregator("eth-usd"), aggregator("steth-eth")]),
-    );
-    expect(result.reasons).toEqual(["main and reserve share Chainlink"]);
-    expect(result.sharedSources).toEqual(["Chainlink"]);
-  });
-
-  it("scores 5 for independent sources without a bound", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", COMPOSITE, [named("Chainlink")]),
-      side("0x02", COMPOSITE, [named("Redstone")]),
-    );
-    expect(result.score).toBe(5);
-    expect(result.reasons).toEqual(["neither feed is bounded"]);
-  });
-
-  it("scores 4 for two feeds of the same provider with a bound", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [named("Chainlink")]),
-      side("0x02", COMPOSITE, [named("Chainlink")]),
-    );
-    expect(result.independence).toBe(0);
-    expect(result.score).toBe(4);
-    expect(result.reasons).toEqual(["main and reserve share Chainlink"]);
-  });
-
-  it.each([
-    ["no reserve at all", null, "no reserve feed"],
-    [
-      "a ZeroPriceFeed reserve",
-      side("0x02", "PRICE_FEED::ZERO", []),
-      "reserve is a ZeroPriceFeed",
-    ],
-    [
-      "the main feed again",
-      side("0x01", BOUNDED, [named("Chainlink")]),
-      "reserve is the main feed",
-    ],
-  ])("scores 4 for %s with a bound", (_, reserve, reason) => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [named("Chainlink")]),
-      reserve,
-    );
-    expect(result.hasReserve).toBe(false);
-    expect(result.score).toBe(4);
-    expect(result.reasons).toEqual([reason]);
-  });
-
-  it("scores 0 for no reserve and no bound", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", COMPOSITE, [named("Chainlink")]),
-      null,
-    );
-    expect(result.score).toBe(0);
-  });
-
-  it("scores 0 for one provider and no bound", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", COMPOSITE, [named("Chainlink")]),
-      side("0x02", COMPOSITE, [named("Chainlink")]),
-    );
-    expect(result.score).toBe(0);
-  });
-
-  it("counts an unnamed source as its own, and flags it", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [named("Chainlink")]),
-      side("0x02", COMPOSITE, [unnamed("0xa1")]),
-    );
-    expect(result.score).toBe(10);
-    expect(result.unverified).toBe(true);
-  });
-
-  it("treats the same unnamed contract on both sides as shared, unflagged", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [unnamed("0xa1")]),
-      side("0x02", COMPOSITE, [unnamed("0xa1")]),
-    );
-    expect(result.independence).toBe(0);
-    expect(result.score).toBe(4);
-    expect(result.unverified).toBe(false);
-  });
-
-  it("does not merge two unnamed contracts that share a description", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", BOUNDED, [unnamed("0xa1", "X / USD")]),
-      side("0x02", COMPOSITE, [unnamed("0xa2", "X / USD")]),
-    );
-    expect(result.independence).toBe(1);
-    expect(result.unverified).toBe(true);
-  });
-
-  it("gives two hardcoded prices no independence", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", "PRICE_FEED::CONSTANT", []),
-      side("0x02", "PRICE_FEED::CONSTANT", []),
-    );
-    expect(result.independence).toBe(0);
-    expect(result.score).toBe(0);
-    expect(result.reasons).toContain("neither feed reads a price source");
-  });
-
-  it("does not take a bound from a ZeroPriceFeed reserve", () => {
-    const result = scoreMarket(
-      MARKET,
-      side("0x01", COMPOSITE, [named("Chainlink")]),
-      side("0x02", "PRICE_FEED::ZERO", []),
-    );
-    expect(result.bounded).toBe(false);
-    expect(result.score).toBe(0);
+    expect(result.worst).toBeNull();
   });
 });
