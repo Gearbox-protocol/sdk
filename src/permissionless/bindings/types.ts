@@ -81,3 +81,33 @@ export enum AccessMode {
 }
 
 export type PeripheryDomain = "ZAPPER" | "DEGEN_NFT";
+
+/**
+ * Emergency admin of a market configurator, as seen by the SDK
+ * - `direct`: emergency admin is an EOA or Safe that calls the market configurator itself
+ * - `killSwitch`: emergency admin is a `KILL_SWITCH_PROXY`, `caller` executes emergency calls
+ *   via `proxyCall` until `owner` kills the proxy
+ */
+export type EmergencyAdmin =
+  | {
+      type: "direct";
+      address: Address;
+      /**
+       * Address that must send emergency transactions
+       */
+      executor: Address;
+    }
+  | {
+      type: "killSwitch";
+      /**
+       * Address of the kill switch proxy
+       */
+      address: Address;
+      caller: Address;
+      owner: Address;
+      isKilled: boolean;
+      /**
+       * Address that must send emergency transactions, i.e. proxy caller
+       */
+      executor: Address;
+    };

@@ -27,11 +27,15 @@ import { normalizeSignature } from "../utils/signature.js";
 
 const abi = iBytecodeRepositoryAbi;
 
-interface ComputeAddressArgs {
+export interface ComputeAddressArgs {
   contractType: string;
   version: number;
   encodedParams: Hex;
   salt: Hex;
+  /**
+   * Deployer, i.e. address that will call `deploy` on the bytecode repository.
+   * It is mixed into the salt, so it is not necessarily the owner of the deployed contract
+   */
   owner: Address;
 }
 
@@ -64,6 +68,21 @@ export class BytecodeRepositoryContract extends BaseContract<typeof abi> {
     return await this.contract.read.getLatestVersion([
       stringToHex(type_, { size: 32 }),
     ]);
+  }
+
+  /**
+   * Returns the latest allowed patch version of the contract type within given minor version
+   * @throws if no bytecode of this contract type and minor version is allowed
+   */
+  async getLatestPatchVersion(
+    type_: string,
+    minorVersion: number,
+  ): Promise<number> {
+    const version = await this.contract.read.getLatestPatchVersion([
+      stringToHex(type_, { size: 32 }),
+      BigInt(minorVersion),
+    ]);
+    return Number(version);
   }
 
   async getAllowedBytecodeHash(type_: string, version: number): Promise<Hex> {
