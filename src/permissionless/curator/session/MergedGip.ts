@@ -1,6 +1,5 @@
 import type { Address } from "viem";
 import type { RawTx } from "../../../onchain/index.js";
-import { GipActionError } from "../actions/actionDiagnostics.js";
 import type { GipMarketAction } from "../actions/types.js";
 import { sharedContract } from "../actions/utils/actionKeys.js";
 import {
@@ -17,6 +16,7 @@ import { batchMarketTransactions } from "../transactions/batchMarketTransactions
 import type { BatchTxs } from "../types.js";
 import { isSameAddress, lowerAddress } from "../utils/addressUtils.js";
 import { stableStringify } from "../utils/objectUtils.js";
+import { assertNotBlocked } from "./assertNotBlocked.js";
 import {
   buildPlanTransactions,
   type GipPlanTransactions,
@@ -247,14 +247,6 @@ async function compile(
     }),
     payloadCalls: txs.map(({ tx }) => tx),
   };
-}
-
-/** The first blocked market rejects the whole proposal. **/
-function assertNotBlocked(preview: MergedGipPreview): void {
-  const blocked = preview.markets.find(
-    market => market.blockedAt !== undefined,
-  );
-  if (blocked) throw new GipActionError([...blocked.actionDiagnostics]);
 }
 
 /** The configurator-wide resources a market provides and requires. **/

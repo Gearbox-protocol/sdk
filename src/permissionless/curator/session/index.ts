@@ -9,6 +9,7 @@ export {
   parseConfiguratorScopedAction,
   parseMarketScopedAction,
 } from "./actionScope.js";
+export { assertNotBlocked } from "./assertNotBlocked.js";
 export { ConfiguratorBuilder } from "./ConfiguratorBuilder.js";
 export {
   CuratorSession,

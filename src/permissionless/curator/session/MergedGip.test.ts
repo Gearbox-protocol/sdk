@@ -1,6 +1,7 @@
 import { type Address, getAddress, stringToHex } from "viem";
 import { describe, expect, it } from "vitest";
 import {
+  assertNotBlocked,
   ConfigurationExecutor,
   type CreateMarketParams,
   GipRegistry,
@@ -378,6 +379,41 @@ describe("merged GIP", () => {
     await expect(
       gip.build({ eta: SOURCE_TIMESTAMP, author: TREASURY }),
     ).rejects.toMatchObject({ name: "GipActionError" });
+  });
+
+  it("throws the build error of a blocked preview of every shape", async () => {
+    const { sdk } = await createTestSdk();
+    const blockedMarket = () =>
+      sdk
+        .market({ initialState: marketState() })
+        .addAction(setTotalDebtLimit(1_000_000));
+    const openMarket = () =>
+      sdk
+        .market({ initialState: { ...marketState(), address: SECOND } })
+        .addAction(setTotalDebtLimit(2_000_000));
+    const blockedConfigurator = sdk
+      .configurator({
+        initialState: { ...configuratorState(), pausableAdmins: [TREASURY] },
+      })
+      .addAction({
+        type: "CONFIGURATOR::addAdmin",
+        params: { role: "PAUSABLE_ADMIN", admin: TREASURY },
+      });
+
+    for (const preview of [
+      await blockedMarket().preview(),
+      await blockedConfigurator.preview(),
+      await sdk.merge([openMarket(), blockedMarket()]).preview(),
+    ])
+      expect(() => assertNotBlocked(preview)).toThrow(
+        expect.objectContaining({
+          name: "GipActionError",
+          code: "NO_OP",
+          actionIndex: 0,
+        }),
+      );
+    const open = await openMarket().preview();
+    expect(() => assertNotBlocked(open)).not.toThrow();
   });
 });
 

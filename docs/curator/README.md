@@ -41,7 +41,9 @@ market.addAction(parseMarketScopedAction(JSON.parse(body)));
 
 `addAction` runs the action's Zod schema, so a typed call and a JSON payload
 produce identical, normalized parameters (percentages rounded, defaults
-applied) and invalid parameters are rejected on the spot.
+applied) and invalid parameters are rejected on the spot, with a
+`GipScopeError` (`INVALID_ACTION_PARAMS`) that names the action and lists every
+rejected param in `invalidParams`.
 
 Bundle payloads are also parsed and normalized when they satisfy their
 schemas. For compatibility with legacy catalog entries, an older parameter that
@@ -586,7 +588,8 @@ preview.blockedAt; // 3
 - An **error** stops the projection at that action, as the batch would revert
   there: `preview.after` is the state right before it, and `build()` and
   `simulate()` reject with a `GipActionError` (`code`, `actionIndex`,
-  `actionType`, `path`, `diagnostics`).
+  `actionType`, `path`, `diagnostics`). `assertNotBlocked(preview)` throws the
+  same error for a preview of any scope, or a merged GIP, without building it.
 - A **warning** is reported and the projection goes on, e.g.
   `RAMP_START_CLAMPED` for a ramp starting in the past, which the credit
   configurator moves to execution time.
