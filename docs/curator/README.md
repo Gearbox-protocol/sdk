@@ -356,6 +356,16 @@ reference to a suite no earlier action deploys is an `UNKNOWN_CREDIT_SUITE`
 error. `retargetCreditManager`, `copyCmActions` and `copyCmActionsForMarket`
 move or copy actions between targets of either kind.
 
+A market builder gives a suite recorded without an `id` one — its name, suffixed
+with `#2`, `#3`… when an earlier suite of the builder already uses it — and, when it
+compiles, rewrites every action that names a suite of the market by its predicted
+address to the suite's reference. `preview.inputActions` therefore names the
+market's own suites by reference however they were recorded, so a list persisted
+from a preview and recorded again keeps following its suites; the payload is the
+same either way. An action recorded once by address and once by reference merges
+like any other repeated action. Since ids differ, the same suite recorded twice is
+two deployments, and the second is a `CREDIT_MANAGER_EXISTS` error.
+
 ### Adding actions
 
 `addMarketAction(actions, action)` (and `addConfiguratorAction`) is how every

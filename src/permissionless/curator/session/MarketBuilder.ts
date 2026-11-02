@@ -5,6 +5,8 @@ import {
   type CreditManagerTarget,
   creditSuiteRef,
   isCreditSuiteRef,
+  retargetCreditManager,
+  targetOf,
 } from "../actions/creditManagerTargets.js";
 import type {
   GipMarketAction,
@@ -224,6 +226,8 @@ export class MarketBuilder extends ScopedBuilder<
   readonly #pool?: Address;
   readonly #initialState?: MarketState;
   readonly #provenance: StateProvenance;
+  /** Ids of the credit suites recorded so far, see {@link addAction}. **/
+  readonly #suiteIds = new Set<string>();
 
   constructor(init: MarketBuilderInit) {
     super(init.runtime, init.intents ?? []);
@@ -254,15 +258,21 @@ export class MarketBuilder extends ScopedBuilder<
    * adapter plugin the SDK was created with is any `ADAPTER::…` action to the
    * compiler — build it with `createAction` for a typed one — and is
    * validated at runtime by its plugin, like every other action.
+   *
+   * A credit suite recorded without an `id` gets one: its name, suffixed when
+   * an earlier suite of this builder already uses it. Later actions can then
+   * name it `suite:<id>`, and actions naming its predicted address are
+   * rewritten to that reference when the builder compiles.
    **/
   addAction<const A extends MarketScopedAction>(
     action: A & ValidMarketAction<A>,
   ): this {
     // Scope-checked and normalized through the processor's Zod schema, so a
     // typed call and a JSON payload end up with identical parameters.
+    const parsed = parseMarketScopedAction(action, this.runtime.registry);
     return this.record({
       kind: "action",
-      action: snapshot(parseMarketScopedAction(action, this.runtime.registry)),
+      action: snapshot(this.#withSuiteId(parsed)),
     });
   }
 
@@ -498,7 +508,63 @@ export class MarketBuilder extends ScopedBuilder<
       suiteIds.push(suiteId);
     }
 
+    actions = await this.#referenceSuites(actions, initialState, executor);
     return { actions, bundleApplications, suiteIds };
+  }
+
+  /** A credit suite with an id, see {@link addAction}; other actions as is. **/
+  #withSuiteId(action: GipMarketAction): GipMarketAction {
+    if (action.type !== "MARKET::createCreditSuite") return action;
+    const given = action.params.id;
+    if (given !== undefined) {
+      this.#suiteIds.add(given);
+      return action;
+    }
+    const base = action.params.name.trim() || "suite";
+    let id = base;
+    for (let n = 2; this.#suiteIds.has(id); n++) id = `${base}#${n}`;
+    this.#suiteIds.add(id);
+    return { ...action, params: { ...action.params, id } };
+  }
+
+  /**
+   * `actions` with every credit manager target that is the predicted address
+   * of a suite this market deploys spelled as that suite's reference, so a
+   * persisted list keeps following the suite when its params change. The list
+   * is merged again when anything was rewritten, so an action recorded once by
+   * address and once by reference counts once.
+   **/
+  async #referenceSuites(
+    actions: GipMarketAction[],
+    initialState: MarketState | undefined,
+    executor: MarketExecutor,
+  ): Promise<GipMarketAction[]> {
+    if (!actions.some(action => action.type === "MARKET::createCreditSuite"))
+      return actions;
+    const { creditSuites } = await executor.project(initialState, actions);
+    const refs = new Map(
+      Object.entries(creditSuites).map(([id, address]) => [
+        lowerAddress(address),
+        creditSuiteRef(id),
+      ]),
+    );
+    let rewritten = false;
+    const referenced = actions.map(action => {
+      const target = targetOf(action.params);
+      const ref =
+        target === undefined || isCreditSuiteRef(target)
+          ? undefined
+          : refs.get(lowerAddress(target));
+      if (!target || !ref) return action;
+      rewritten = true;
+      return retargetCreditManager(action, target, ref);
+    });
+    if (!rewritten) return actions;
+    const { registry } = this.runtime;
+    return referenced.reduce<GipMarketAction[]>(
+      (merged, action) => addMarketAction(merged, action, registry),
+      [],
+    );
   }
 
   /** `actions` with the market's RWA periphery setup completed. **/
