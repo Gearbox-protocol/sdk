@@ -1,4 +1,5 @@
 import { BaseError } from "viem";
+import type { ZodError } from "zod/v4";
 import type { GipMarketAction } from "../actions/types.js";
 import type { ConfiguratorActions } from "../configurator-actions/types.js";
 import { GipRegistry } from "../GipRegistry.js";
@@ -36,9 +37,20 @@ export function getActionScope(
 export type GipScopeErrorCode =
   | "UNKNOWN_ACTION_TYPE"
   | "WRONG_SCOPE"
-  | "INVALID_ACTION_SHAPE";
+  | "INVALID_ACTION_SHAPE"
+  | "INVALID_ACTION_PARAMS";
 
-/** Raised when an action does not belong to the builder it was handed to. **/
+/** One rejected param of an `INVALID_ACTION_PARAMS` {@link GipScopeError}. **/
+export interface InvalidActionParam {
+  /** Path of the param inside the action, e.g. `["params", "limit"]`. **/
+  path: readonly (string | number)[];
+  message: string;
+}
+
+/**
+ * Raised when an action does not belong to the builder it was handed to, or
+ * its params do not match the action's schema.
+ **/
 export class GipScopeError extends BaseError {
   override name = "GipScopeError";
   /** Type of the action that was rejected, when it had one. **/
@@ -47,6 +59,8 @@ export class GipScopeError extends BaseError {
   readonly expected?: ActionScope;
   /** Scope the action belongs to, when it is known. **/
   readonly actual?: ActionScope;
+  /** Every rejected param of an `INVALID_ACTION_PARAMS` error. **/
+  readonly invalidParams?: readonly InvalidActionParam[];
 
   constructor(
     public readonly code: GipScopeErrorCode,
@@ -55,12 +69,15 @@ export class GipScopeError extends BaseError {
       type?: string;
       expected?: ActionScope;
       actual?: ActionScope;
+      invalidParams?: readonly InvalidActionParam[];
     } = {},
   ) {
     super(message);
     if (context.type !== undefined) this.actionType = context.type;
     if (context.expected !== undefined) this.expected = context.expected;
     if (context.actual !== undefined) this.actual = context.actual;
+    if (context.invalidParams !== undefined)
+      this.invalidParams = context.invalidParams;
   }
 }
 
@@ -122,7 +139,33 @@ function parseScopedAction(
   const { type, params } = readActionShape(input);
   assertScope(type, scope, registry);
   // `assertScope` only passes for registered types, so a schema exists.
-  return { type, params: findParamsSchema(type, registry)!.parse(params) };
+  const parsed = findParamsSchema(type, registry)!.safeParse(params);
+  if (!parsed.success) throw invalidParams(type, parsed.error);
+  return { type, params: parsed.data };
+}
+
+/** Names the action and every param its schema rejected. **/
+function invalidParams(type: string, error: ZodError): GipScopeError {
+  const invalidParams: InvalidActionParam[] = error.issues.map(failure => ({
+    path: [
+      "params",
+      ...failure.path.filter(
+        (key): key is string | number => typeof key !== "symbol",
+      ),
+    ],
+    message: failure.message,
+  }));
+  const described = invalidParams
+    .map(
+      ({ path, message }) =>
+        `${path.slice(1).join(".") || "params"}: ${message}`,
+    )
+    .join("; ");
+  return new GipScopeError(
+    "INVALID_ACTION_PARAMS",
+    `Invalid params of ${type}: ${described}`,
+    { type, invalidParams },
+  );
 }
 
 /**

@@ -4,6 +4,7 @@ export {
   GipScopeError,
   type GipScopeErrorCode,
   getActionScope,
+  type InvalidActionParam,
   type MarketScopedAction,
   parseConfiguratorScopedAction,
   parseMarketScopedAction,
