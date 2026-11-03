@@ -4,10 +4,12 @@ export {
   GipScopeError,
   type GipScopeErrorCode,
   getActionScope,
+  type InvalidActionParam,
   type MarketScopedAction,
   parseConfiguratorScopedAction,
   parseMarketScopedAction,
 } from "./actionScope.js";
+export { assertNotBlocked } from "./assertNotBlocked.js";
 export { ConfiguratorBuilder } from "./ConfiguratorBuilder.js";
 export {
   CuratorSession,
@@ -20,6 +22,11 @@ export {
   MarketBuilder,
   type MarketBundleOptions,
 } from "./MarketBuilder.js";
+export {
+  MergedGip,
+  type MergedGipPlan,
+  type MergedGipPreview,
+} from "./MergedGip.js";
 export { deserializeGipPlan, serializeGipPlan } from "./serializeGipPlan.js";
 export type {
   BundleApplication,

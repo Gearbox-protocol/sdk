@@ -4,6 +4,7 @@
  **/
 export * from "./analytics/index.js";
 export * from "./chains/index.js";
+export * from "./configurators/index.js";
 export * from "./curator/index.js";
 export * from "./deploy/index.js";
 export * from "./errors.js";

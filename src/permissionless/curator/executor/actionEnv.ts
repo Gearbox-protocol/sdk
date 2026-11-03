@@ -3,6 +3,8 @@ import { GipRegistry } from "../GipRegistry.js";
 import type { ResolveCache } from "./ResolveCache.js";
 
 export interface ExecutorOptions {
+  /** Skip preflight only when inspecting historical calls; session builders always check. */
+  checkActions?: boolean;
   /**
    * Unix time (seconds) the state model derives time-dependent fields at.
    * Defaults to the wall clock; the SDK passes its source block's timestamp.

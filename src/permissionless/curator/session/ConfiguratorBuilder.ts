@@ -74,11 +74,10 @@ export class ConfiguratorBuilder extends ScopedBuilder<
     // Recorded actions are added the way every caller adds them: a later
     // action merges into an earlier one with the same key.
     const actions = addConfiguratorActions([], recorded, runtime.registry);
-    const executor = new ConfigurationExecutor(runtime.ctx, {
-      timestamp: this.executionTimestamp(eta),
-      resolveCache: runtime.resolveCache,
-      registry: runtime.registry,
-    });
+    const executor = new ConfigurationExecutor(
+      runtime.ctx,
+      runtime.executorOptions(eta),
+    );
     const changes = await executor.execute(
       await this.#resolveInitialState(),
       actions,
@@ -87,6 +86,7 @@ export class ConfiguratorBuilder extends ScopedBuilder<
     const preview = snapshot<ConfiguratorPreview>({
       scope: "configurator",
       source: runtime.source,
+      txs: changes.txs,
       eta,
       stateProvenance: this.#provenance,
       before: changes.before,

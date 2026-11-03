@@ -41,7 +41,9 @@ market.addAction(parseMarketScopedAction(JSON.parse(body)));
 
 `addAction` runs the action's Zod schema, so a typed call and a JSON payload
 produce identical, normalized parameters (percentages rounded, defaults
-applied) and invalid parameters are rejected on the spot.
+applied) and invalid parameters are rejected on the spot, with a
+`GipScopeError` (`INVALID_ACTION_PARAMS`) that names the action and lists every
+rejected param in `invalidParams`.
 
 Bundle payloads are also parsed and normalized when they satisfy their
 schemas. For compatibility with legacy catalog entries, an older parameter that
@@ -354,6 +356,26 @@ reference to a suite no earlier action deploys is an `UNKNOWN_CREDIT_SUITE`
 error. `retargetCreditManager`, `copyCmActions` and `copyCmActionsForMarket`
 move or copy actions between targets of either kind.
 
+A market builder gives a suite recorded without an `id` one — its name, suffixed
+with `#2`, `#3`… when an earlier suite of the builder already uses it — and, when it
+compiles, rewrites every action that names a suite of the market by its predicted
+address to the suite's reference. `preview.inputActions` therefore names the
+market's own suites by reference however they were recorded, so a list persisted
+from a preview and recorded again keeps following its suites; the payload is the
+same either way. An action recorded once by address and once by reference merges
+like any other repeated action. Since ids differ, the same suite recorded twice is
+two deployments, and the second is a `CREDIT_MANAGER_EXISTS` error.
+
+Because the market's suites are named by reference, editing one predicts no
+address. `market.replaceCreditSuite(creditManager, suite)` swaps a suite's
+params and keeps its id, so everything configuring it follows;
+`market.copyCreditSuite(creditManager, name)` adds a copy with id `<id>#<name>`
+and copies of the actions configuring it; `market.removeAdapter(creditManager,
+target, { keepAllowTx })` drops an adapter's actions. Each takes the suite's
+predicted address, as a preview shows it, or its reference, and resolves when the
+builder compiles; replacing or copying anything but a suite of the market is a
+`GipBuilderError` (`CREDIT_SUITE_NOT_FOUND`).
+
 ### Adding actions
 
 `addMarketAction(actions, action)` (and `addConfiguratorAction`) is how every
@@ -586,7 +608,8 @@ preview.blockedAt; // 3
 - An **error** stops the projection at that action, as the batch would revert
   there: `preview.after` is the state right before it, and `build()` and
   `simulate()` reject with a `GipActionError` (`code`, `actionIndex`,
-  `actionType`, `path`, `diagnostics`).
+  `actionType`, `path`, `diagnostics`). `assertNotBlocked(preview)` throws the
+  same error for a preview of any scope, or a merged GIP, without building it.
 - A **warning** is reported and the projection goes on, e.g.
   `RAMP_START_CLAMPED` for a ramp starting in the past, which the credit
   configurator moves to execution time.
@@ -1038,3 +1061,67 @@ To add a GIP, write its module next to the others — `timelockTxHashes` and
 `priceUpdates` come from the TimeLock's `ExecuteTransaction` logs and the
 execution transactions — list it in `src/e2e/curator/executedGips.ts`, and
 record its fixture.
+
+## One GIP over several markets
+
+`session.merge(builders)` merges market builders of one session into one GIP with
+the same `preview()`, `build()` and `simulate()` as a single builder:
+
+```ts
+const usdc = session.market({ pool: USDC_POOL }).addAction(registerNft);
+const rwa = session.newMarket(rwaParams).addAction(suiteUsingNft);
+const gip = session.merge([usdc, rwa]);
+
+const preview = await gip.preview({ eta });  // preview.markets[i] is builders[i]'s MarketPreview
+const plan = await gip.build({ author, eta });
+const result = await gip.simulate();         // session created with fork: { rpcUrl }
+```
+
+Markets share nothing but configurator periphery, so they execute one after another
+and each sees the periphery the earlier ones deployed or registered. A market waits
+for the markets providing periphery it requires (a deployment before its
+registration, a Degen NFT registration before a suite or facade using it), and a
+periphery call listed by several markets runs once; a conflicting one is blocked.
+A market keeps such a call in its `inputActions` even where it does not run, so
+`blockedAt`, `actionDiagnostics[].actionIndex` and `txs[].actionIndex` index the
+market's whole action list, and a list persisted from a preview loses nothing.
+`preview.executionOrder` names the pools in the order their calls execute, and
+`preview.batches` holds every call of the proposal.
+
+Each market is compiled even when another one is blocked, so a preview reports every
+problem at once; `build()` and `simulate()` reject while any market is blocked. The
+builders stay live: each call compiles what they have recorded by then. The merged
+plan is separate from the single-scope versioned plan serialization.
+
+## Integration API
+
+Market and configurator `preview()` results also expose the compiled `txs`, including
+per-action decoded calls, without performing a second execution.
+
+Action definitions and parameter types, concrete adapter parameter/state types, and
+IRM, loss policy and rate keeper defaults are available through the public permissionless
+entry. `MarketActionOf<T>` selects a built-in action by type, and
+`GipRegistry.marketAction(type)` retains the concrete definition for a built-in type.
+
+`market.addRwaPeriphery()` records the periphery a Securitize RWA market needs —
+its Degen NFT registered and, for a default underlying, its zapper deployed and
+registered — and resolves it against the chain when the builder compiles, after the
+actions recorded before it. It adds nothing for an ordinary underlying or a complete
+setup, and replaces a legacy author-derived zapper, so it both sets up a new market
+(`session.newMarket(params).addRwaPeriphery()`) and repairs an existing draft.
+
+Without a session, `planRwaPeripheryActions` takes chain lookups and returns the
+periphery actions a new Securitize RWA market is missing;
+`completeRwaPeripheryActions`, `reconcileRwaPeripheryActions` and
+`insertRwaZapperDeployment` repair action lists without mutating their inputs.
+
+Deployment schemas define supported versions. Legacy adapters belong to application
+compatibility registries; they are not made available to new users by this API.
+
+For historical transaction inspection, `MarketExecutor` and `ConfigurationExecutor`
+accept `{ checkActions: false }`: they resolve, project and encode the recorded calls
+without applying current source-block preflight checks to already executed calls.
+Session previews and plans always enforce their normal checks.
+
+External plugins and UI validation can reuse `adapterPluginKit.checkCollateralTokens`
+and `adapterPluginKit.getCurveTargetCoins` without duplicating the protocol checks.

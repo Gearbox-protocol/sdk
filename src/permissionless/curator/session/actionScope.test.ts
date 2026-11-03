@@ -156,6 +156,27 @@ describe("JSON input validation", () => {
     );
   });
 
+  it("names the action and every rejected param", () => {
+    let error: unknown;
+    try {
+      parseMarketScopedAction({
+        type: "POOL::setTotalDebtLimit",
+        params: { limit: "abc" },
+      });
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(GipScopeError);
+    expect(error).toMatchObject({
+      code: "INVALID_ACTION_PARAMS",
+      actionType: "POOL::setTotalDebtLimit",
+      invalidParams: [{ path: ["params", "limit"] }],
+    });
+    expect((error as GipScopeError).shortMessage).toMatch(
+      /^Invalid params of POOL::setTotalDebtLimit: limit: /,
+    );
+  });
+
   it("rejects malformed and unknown input", () => {
     expect(() => parseMarketScopedAction(null)).toThrow(/must be an object/);
     expect(() => parseMarketScopedAction({ params: {} })).toThrow(

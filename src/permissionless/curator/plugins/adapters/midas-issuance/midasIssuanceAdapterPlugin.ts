@@ -24,7 +24,7 @@ export type MidasIssuanceAdapterState = AdapterStateBase & {
 
 export interface MidasIssuanceAdapterDeployParams {
   type: "MIDAS_ISSUANCE_VAULT";
-  version: 310 | 311;
+  version: 311;
   target: Address;
   reffererId: string;
 }

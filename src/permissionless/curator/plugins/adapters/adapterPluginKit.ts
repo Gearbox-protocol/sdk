@@ -53,6 +53,10 @@ import {
   pairKey,
   plainAdapterStateSchema,
 } from "./adapterStateSchema.js";
+import {
+  checkCollateralTokens,
+  getCurveTargetCoins,
+} from "./adapterValidation.js";
 import { defineAdapterPlugin } from "./defineAdapterPlugin.js";
 
 export const adapterPluginKit = {
@@ -82,6 +86,8 @@ export const adapterPluginKit = {
   readAddress,
   readAddresses,
   resolveTargetTokens,
+  checkCollateralTokens,
+  getCurveTargetCoins,
 
   // Params schemas
   addressSchema,

@@ -1,18 +1,14 @@
 import { type Address, erc20Abi } from "viem";
-import { BytecodeRepositoryContract } from "../../bindings/bytecode-repository.js";
-import { BYTECODE_REPOSITORY } from "../../utils/literals.js";
 import type { GipMarketAction } from "../actions/types.js";
 import type { PeripheryRegistryEntry } from "../actions/utils/isPeripheryContractAdded.js";
 import {
   type GipDiagnostic,
   getGipDiagnostics,
 } from "../diagnostics/getGipDiagnostics.js";
-import {
-  contractReaderFromClient,
-  findIncompleteRwaPeripherySetups,
-} from "../rwaPeripherySetup.js";
+import { findIncompleteRwaPeripherySetups } from "../rwaPeripherySetup.js";
 import { errorMessage } from "../utils/errorMessage.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
+import { rwaPeripheryLookups } from "./rwaPeripheryLookups.js";
 import type { IncompleteCheck } from "./types.js";
 
 /** A market as the diagnostic checks see it. **/
@@ -41,7 +37,7 @@ export async function collectGipDiagnostics(args: {
   if (markets.length === 0) return { diagnostics: [], incompleteChecks };
 
   const client = runtime.readClient;
-  const mc = runtime.marketConfigurator;
+  const lookups = rwaPeripheryLookups(runtime);
 
   const fail = (check: string, error: unknown): never => {
     incompleteChecks.push({ check, reason: errorMessage(error) });
@@ -50,21 +46,10 @@ export async function collectGipDiagnostics(args: {
 
   const getRegistered = async (): Promise<PeripheryRegistryEntry[]> => {
     try {
-      const byDomain = await mc.getPeripheryContracts();
-      return Object.entries(byDomain).flatMap(([domain, addresses]) =>
-        (addresses as Address[]).map(address => ({ address, domain })),
-      );
+      return [...(await lookups.getRegistered())];
     } catch (error) {
       return fail("registeredPeripheryContracts", error);
     }
-  };
-
-  const bytecodeRepository = async (): Promise<BytecodeRepositoryContract> => {
-    const addressProvider = await mc.getAddressProvider();
-    return new BytecodeRepositoryContract(
-      await addressProvider.getAddressOrRevert(BYTECODE_REPOSITORY),
-      client,
-    );
   };
 
   try {
@@ -87,24 +72,8 @@ export async function collectGipDiagnostics(args: {
       incompleteRwaSetups: async () => {
         try {
           return await findIncompleteRwaPeripherySetups<DiagnosticMarketInput>({
+            ...lookups,
             markets,
-            read: contractReaderFromClient(client),
-            // @dev governance executes every payload call through
-            // `MarketConfigurator.admin()` (the TimeLock), so the TimeLock is
-            // the Bytecode Repository's `msg.sender`.
-            getDeployer: () => runtime.timelockAdmin(),
-            computeZapperAddress: async params =>
-              (await bytecodeRepository()).computeAddress({
-                contractType: params.contractType,
-                version: params.version,
-                encodedParams: params.encodedParams,
-                salt: params.salt,
-                owner: params.owner,
-              }),
-            isDeployed: async address => {
-              const code = await client.getCode({ address });
-              return !!code && code !== "0x";
-            },
             getRegistered,
           });
         } catch (error) {

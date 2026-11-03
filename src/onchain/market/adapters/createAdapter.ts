@@ -138,6 +138,7 @@ export function createAdapter(
       return new UpshiftVaultAdapterContract(sdk, data);
     case "ADAPTER::VELODROME_V2_ROUTER":
       return new VelodromeV2RouterAdapterContract(sdk, data);
+    // TODO: add treehouse adapters
     default: {
       if (isStrict) {
         throw new Error(

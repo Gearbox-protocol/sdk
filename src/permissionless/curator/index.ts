@@ -12,8 +12,15 @@ export * from "./editing/index.js";
 export * from "./executor/index.js";
 export { GipRegistry } from "./GipRegistry.js";
 export * from "./plugins/index.js";
+export * from "./rwaPeripherySetup.js";
 export * from "./session/index.js";
 export * from "./simulation/index.js";
 export * from "./state/index.js";
 export * from "./transactions/index.js";
+export type {
+  BatchTxs,
+  MarketStateChanges,
+  MarketTx,
+  ParsedMarketTx,
+} from "./types.js";
 export * from "./utils/index.js";

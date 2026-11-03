@@ -16,3 +16,4 @@ example-state.json
 .pnpm-store/
 .agents/
 .codex/
+gearbox-sdk-local.tgz

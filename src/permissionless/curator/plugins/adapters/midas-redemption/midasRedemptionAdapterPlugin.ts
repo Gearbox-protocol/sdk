@@ -24,7 +24,7 @@ export type MidasRedemptionAdapterState = AdapterStateBase & {
 
 export interface MidasRedemptionAdapterDeployParams {
   type: "MIDAS_REDEMPTION_VAULT";
-  version: 310 | 311;
+  version: 311;
   target: Address;
 }
 

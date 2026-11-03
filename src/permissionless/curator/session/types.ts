@@ -3,13 +3,16 @@ import type { RawTx } from "../../../onchain/index.js";
 import type { SafeTx } from "../../bindings/governance/types.js";
 import type { TimelockTxs } from "../../utils/governance/types.js";
 import type { GipActionDiagnostic } from "../actions/actionDiagnostics.js";
+import type { CreateCreditSuiteAction } from "../actions/createCreditSuiteActionData.js";
+import type { CreditManagerTarget } from "../actions/creditManagerTargets.js";
 import type { GipMarketAction } from "../actions/types.js";
 import type { Bundle } from "../bundles/Bundle.js";
+import type { ConfiguratorTx } from "../configurator-actions/ConfiguratorTx.js";
 import type { ConfiguratorActions } from "../configurator-actions/types.js";
 import type { GipDiagnostic } from "../diagnostics/getGipDiagnostics.js";
 import type { ConfiguratorState } from "../state/configurator/types.js";
 import type { MarketState } from "../state/market/types.js";
-import type { BatchTxs } from "../types.js";
+import type { BatchTxs, ParsedMarketTx } from "../types.js";
 import type { ActionScope } from "./actionScope.js";
 import type { DiagnosticMarketInput } from "./collectGipDiagnostics.js";
 
@@ -114,11 +117,26 @@ export interface GipPreviewBase {
 }
 
 export interface MarketPreview extends GipPreviewBase {
+  txs: readonly ParsedMarketTx[];
   scope: "market";
   pool?: Address;
   before?: MarketState;
+  /** State immediately after creation, before later actions; new markets only. **/
+  creationState?: MarketState;
   after: MarketState;
-  /** Actions after bundle merges and credit-manager resolution. **/
+  /**
+   * The market's action list: recorded actions merged and bundles applied,
+   * before suite references resolve. In a merged GIP it keeps periphery calls
+   * an earlier market already makes, though they do not run again here.
+   * `blockedAt`, `actionDiagnostics[].actionIndex` and `txs[].actionIndex`
+   * index it. Safe to persist when editing a preview without freezing
+   * predicted addresses.
+   **/
+  inputActions: readonly GipMarketAction[];
+  /**
+   * {@link inputActions} with credit-manager references resolved to
+   * addresses, as far as the actions ran; the rest as recorded.
+   **/
   resolvedActions: readonly GipMarketAction[];
   bundles: readonly BundleApplication[];
   predictedDeployments: readonly PredictedDeployment[];
@@ -128,6 +146,7 @@ export interface MarketPreview extends GipPreviewBase {
 }
 
 export interface ConfiguratorPreview extends GipPreviewBase {
+  txs: readonly ConfiguratorTx[];
   scope: "configurator";
   before: ConfiguratorState;
   after: ConfiguratorState;
@@ -219,4 +238,25 @@ export type GipPlan = MarketGipPlan | ConfiguratorGipPlan;
 /** Intent recorded by a market builder, in the order it was recorded. **/
 export type MarketIntent =
   | { kind: "action"; action: GipMarketAction }
-  | { kind: "bundle"; bundle: Bundle };
+  | { kind: "bundle"; bundle: Bundle }
+  /** {@link MarketBuilder.addRwaPeriphery}, resolved when compiling. **/
+  | { kind: "rwaPeriphery" }
+  /** {@link MarketBuilder.replaceCreditSuite}. **/
+  | {
+      kind: "replaceCreditSuite";
+      creditManager: CreditManagerTarget;
+      suite: CreateCreditSuiteAction;
+    }
+  /** {@link MarketBuilder.copyCreditSuite}. **/
+  | {
+      kind: "copyCreditSuite";
+      creditManager: CreditManagerTarget;
+      name: string;
+    }
+  /** {@link MarketBuilder.removeAdapter}. **/
+  | {
+      kind: "removeAdapter";
+      creditManager: CreditManagerTarget;
+      target: Address;
+      keepAllowTx: boolean;
+    };

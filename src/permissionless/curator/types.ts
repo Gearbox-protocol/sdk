@@ -12,6 +12,12 @@ export interface MarketTx {
 }
 
 export interface ParsedMarketTx extends MarketTx {
+  /**
+   * Position of the action this call executes in the market's action list:
+   * a preview's `inputActions`. A merged GIP runs a periphery call listed by
+   * several markets once, so a market's calls can skip positions.
+   **/
+  actionIndex: number;
   estimatedGas: number;
   /** Price feeds the call reads; see `MarketActionDefinition.touchedFeeds`. **/
   touchedFeeds: Address[];

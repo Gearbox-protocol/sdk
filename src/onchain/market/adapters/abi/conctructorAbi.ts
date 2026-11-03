@@ -82,6 +82,16 @@ export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
     310: BASIC_ADAPTER_ABI,
   },
 
+  [AdapterType.TREEHOUSE_FASTLANE]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.TREEHOUSE_GATEWAY]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.TREEHOUSE_ROUTER]: {
+    310: BASIC_ADAPTER_ABI,
+  },
+
   // Curve adapters
   // curve pattern [creditManager, target, lpToken, basePool, use256]
   [AdapterType.CURVE_V1_2ASSETS]: {
