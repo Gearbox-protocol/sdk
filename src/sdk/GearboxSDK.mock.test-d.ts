@@ -118,7 +118,6 @@ const mockSDK = {
   rewards: {
     list: notImplemented,
   },
-  notices: notImplemented,
 } as const satisfies IGearboxSDK<"both">;
 
 const annotated: IGearboxSDK<"both"> = mockSDK;
