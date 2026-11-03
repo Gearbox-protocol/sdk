@@ -516,4 +516,3 @@ export interface AssetsArgs {
   /** Omit for every chain the backend serves. */
   chainId?: number;
 }
-
