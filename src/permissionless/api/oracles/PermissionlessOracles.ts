@@ -40,8 +40,13 @@ import {
   priceFeedDetailsSchema,
   priceFeedStoresSchema,
 } from "./schemas.js";
-import { runAssetScores } from "./score/run.js";
-import type { AssetScore, AssetScoresArgs } from "./score/types.js";
+import { runAssetScores, runFeedPairScore } from "./score/run.js";
+import type {
+  AssetScore,
+  AssetScoresArgs,
+  FeedPairScore,
+  FeedPairScoreArgs,
+} from "./score/types.js";
 import { runStressTest } from "./stress/run.js";
 import type { StressReport, StressTestArgs } from "./stress/types.js";
 import type {
@@ -523,14 +528,16 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * three leaves anything to simulate.
    **/
   /**
-   * Every asset's score out of 10 for how its markets guard its price.
+   * Every asset's manipulation resistance: how far, from 1 to 10 times, a
+   * lying source can push the price its markets hold for it.
    *
    * Each source group behind an asset's feeds — Chainlink, Redstone, Lido and
-   * so on — is made in turn to answer five times what it answers now, and a
+   * so on — is made in turn to answer ten times what it answers now, and a
    * market scores by how far that moves its final price, `min(main,
-   * reserve)`: 10 for not at all, 0 for the full five times, on a log scale.
-   * A price that stops answering scores 5. An asset scores its worst running
-   * market that takes it as collateral.
+   * reserve)`, as a multiple either way: 1 for not at all, 1.04 for 4%, 10
+   * for the whole lie. A group under which the price stops answering moves
+   * nothing and is listed rather than scored. An asset scores its worst
+   * running market, underlying or collateral.
    *
    * Simulated on the chain as it stands, through state overrides in
    * `eth_call`: one call per source group per chain, so the node behind the
@@ -587,6 +594,48 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
       }),
     );
     return perChain.flat();
+  }
+
+  /**
+   * The manipulation resistance of any main feed and reserve on a chain,
+   * scored the way {@link assetScores} scores a market holding them — for
+   * trying a pair before any market does.
+   *
+   * ```ts
+   * const pair = await permissionless.oracles.feedPairScore({
+   *   chainId: 1,
+   *   main: "0x…",
+   *   reserve: "0x…",
+   * });
+   * ```
+   *
+   * Reads the chain directly, through state overrides in `eth_call`, so the
+   * client has to have attached and the node behind it has to accept them.
+   *
+   * @throws When the client has not attached, when the chain has no client or
+   * no PriceFeedCompressor, or when there is nothing to score: a feed the
+   * compressor cannot read, a `ZeroPriceFeed` main, or a final price that does
+   * not answer.
+   **/
+  public async feedPairScore({
+    chainId,
+    main,
+    reserve,
+  }: FeedPairScoreArgs): Promise<FeedPairScore> {
+    const client = this.#chains.client(chainId);
+    const compressor = await new AddressProviderContract(
+      Addresses.ADDRESS_PROVIDER,
+      client,
+    ).getLatestVersionAddress(AP_PRICE_FEED_COMPRESSOR);
+
+    return runFeedPairScore({
+      client,
+      chainId,
+      compressor,
+      main,
+      reserve,
+      logger: this.logger ?? undefined,
+    });
   }
 
   public async stressTest({

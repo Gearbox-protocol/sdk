@@ -5,7 +5,10 @@ import type { Address } from "viem";
  **/
 export interface ScoredFeed {
   feed: Address;
-  /** The store's name for the feed, `null` where it has none. */
+  /**
+   * The store's name for the feed, `null` where it has none or where the
+   * feed was named by address alone, as a pair to score is.
+   */
   name: string | null;
   /** Gearbox contract type of the feed itself, `""` for one it never deployed. */
   contractType: string;
@@ -36,31 +39,23 @@ export interface GroupImpact {
    * a price that stopped answering.
    */
   factor: number | null;
-  /**
-   * The same, against the market's own underlying: what an account is
-   * valued by. A lie that moves collateral and underlying alike leaves it at
-   * 1. `null` where either price stopped answering.
-   */
-  ratioFactor: number | null;
-  /** 0 to 10, by {@link scoreOfFactor}. */
-  score: number;
+  /** 1 to 10, by {@link scoreOfFactor}; `null` where the price stopped answering. */
+  score: number | null;
 }
 
 /**
- * How well one market guards one asset's price, out of 10.
+ * How far the price a main and a reserve feed give together can be pushed:
+ * their manipulation resistance, from 1 (does not move) to 10 (takes the
+ * whole lie).
  *
- * Every source group behind the asset's feeds is made, one group at a time,
- * to answer {@link SCORE_MULTIPLIER} times what it answers now. The market
- * scores by the group that moves its final price — `min(main, reserve)` —
- * the furthest.
+ * Every source group behind the two feeds is made, one group at a time, to
+ * answer {@link SCORE_MULTIPLIER} times what it answers now. The pair scores
+ * by the group that moves its final price — `min(main, reserve)` — the
+ * furthest, as a multiple either way.
  **/
-export interface MarketScore {
-  market: Address;
-  marketName: string | null;
-  marketConfigurator: Address;
-  curatorName: string | null;
+export interface FeedPairScore {
   main: ScoredFeed;
-  /** `null` where the market holds no reserve for the asset at all. */
+  /** `null` where there is no reserve at all. */
   reserve: ScoredFeed | null;
   /**
    * The final price is `min(main, reserve)`: a reserve is present, is not a
@@ -72,7 +67,7 @@ export interface MarketScore {
   price: number;
   /** Every group behind the two feeds, the most damaging first. */
   impacts: GroupImpact[];
-  /** The group the score comes from; `null` where no source feeds the price. */
+  /** The group the score comes from; `null` where no group moves the price. */
   worst: GroupImpact | null;
   /**
    * The score rests on a source nothing could name.
@@ -83,24 +78,29 @@ export interface MarketScore {
    */
   unverified: boolean;
   score: number;
-  /** How the market is set up, where that explains its score. */
+  /** How the pair is set up, where that explains its score. */
   notes: string[];
+}
+
+/** One market's price for one asset, scored as the pair of feeds it holds. */
+export interface MarketScore extends FeedPairScore {
+  market: Address;
+  marketName: string | null;
+  marketConfigurator: Address;
+  curatorName: string | null;
 }
 
 /**
  * One asset's score: its worst market's.
  *
- * The minimum, not an average, because the asset is only as well guarded as
- * the most exposed market that accepts it.
+ * The maximum, not an average, because the asset is only as well guarded as
+ * the most exposed market that prices it.
  **/
 export interface AssetScore {
   chainId: number;
   asset: Address;
   symbol: string | null;
-  /**
-   * `null` for an asset no running market accepts as collateral: every
-   * market has it switched off, or it is only ever a market's underlying.
-   */
+  /** `null` for an asset no running market prices: it is switched off in all. */
   score: number | null;
   /** Some market's score rests on a source nothing could name. */
   unverified: boolean;
@@ -113,4 +113,11 @@ export interface AssetScore {
 export interface AssetScoresArgs {
   /** Omitted scores every chain the backend serves markets for. */
   chainId?: number;
+}
+
+export interface FeedPairScoreArgs {
+  chainId: number;
+  main: Address;
+  /** Omitted scores the main feed alone, as a market with no reserve. */
+  reserve?: Address;
 }

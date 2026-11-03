@@ -5,9 +5,14 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
-import { classifySources, sourcesByFeed } from "../stress/classify.js";
+import {
+  classifySources,
+  sourcesByFeed,
+  type TreeNode,
+} from "../stress/classify.js";
 import {
   RATE_FEED_TYPE,
+  readFeedTrees,
   readForest,
   readRateTargets,
   readUnder,
@@ -21,65 +26,85 @@ import {
   scoreOfFactor,
   worstOf,
 } from "./formula.js";
-import type { AssetScore, GroupImpact, MarketScore } from "./types.js";
+import type {
+  AssetScore,
+  FeedPairScore,
+  GroupImpact,
+  MarketScore,
+  ScoredFeed,
+} from "./types.js";
 
 const ZERO_TYPE = "PRICE_FEED::ZERO";
 
 /** Groups simulated at once: one `eth_call` each, all against one node. */
 const CONCURRENCY = 6;
 
-/** A market's two slots for one token, and what the score makes of them. */
-interface Position {
-  main: PermissionlessMarketSlot;
-  reserve: PermissionlessMarketSlot | undefined;
+/** A main feed and the reserve its price is taken against, if any. */
+interface Pair {
+  main: Address;
   /** The reserve the final price is taken against, if it is taken against one. */
-  reserveFeed: Address | undefined;
+  reserve: Address | undefined;
   notes: string[];
 }
 
-const feedOf = (slot: PermissionlessMarketSlot) =>
-  slot.priceFeed.toLowerCase() as Address;
+/** What a pair scores, short of naming its feeds. */
+type Simulated = Omit<FeedPairScore, "main" | "reserve">;
+
+type Logger = { warn(message: string): void };
+
+const lower = (address: Address) => address.toLowerCase() as Address;
 
 /**
- * Every asset of one chain, scored by what each of its source groups can do
- * to the price its running markets hold for it.
+ * A main feed and the reserve a slot or a caller names for it, as the score
+ * takes them: a reserve that is a `ZeroPriceFeed` is no reserve.
+ */
+function pairOf(
+  main: Address,
+  reserve: Address | undefined,
+  nodes: Map<Address, TreeNode>,
+): Pair {
+  const notes: string[] = [];
+  if (!reserve) {
+    notes.push("no reserve feed");
+    return { main, reserve: undefined, notes };
+  }
+  if (nodes.get(reserve)?.contractType === ZERO_TYPE) {
+    notes.push("reserve is a ZeroPriceFeed");
+    return { main, reserve: undefined, notes };
+  }
+  if (reserve === main) {
+    notes.push("reserve is the main feed");
+  }
+  return { main, reserve, notes };
+}
+
+/**
+ * Every pair's final price under each source group lying, from one read of
+ * the LP feeds' rate contracts, one of every feed as it stands, and then one
+ * `eth_call` per source group with the group's sources overridden to answer
+ * {@link SCORE_MULTIPLIER} times what they answer now.
  *
- * One read of the oracles' feed trees, one of the LP feeds' rate contracts,
- * one of every market feed as it stands — then one `eth_call` per source
- * group, with the group's sources overridden to answer
- * {@link SCORE_MULTIPLIER} times what they answer now and every market feed
- * read under it.
- **/
-export async function runAssetScores({
+ * A pair whose final price does not answer as it stands comes back `null`:
+ * there is no price to move.
+ */
+async function simulatePairs({
   client,
   chainId,
-  slots,
-  compressor,
+  nodes,
+  answers,
+  pairs,
   logger,
 }: {
   client: PublicClient<Transport, Chain>;
   chainId: number;
-  slots: PermissionlessMarketSlot[];
-  compressor: Address;
-  logger?: { warn(message: string): void };
-}): Promise<AssetScore[]> {
-  // A shut down market prices nothing anyone can borrow against.
-  const running = slots.filter(slot => !slot.isShutdown);
-
-  const oracles = [
-    ...new Set(running.map(slot => slot.priceOracle.toLowerCase() as Address)),
-  ];
-  const { nodes, answers, unreadableOracles } = await readForest(
-    client,
-    compressor,
-    oracles,
-  );
-  for (const oracle of unreadableOracles) {
-    logger?.warn(
-      `price oracle ${oracle} of chain ${chainId} would not report its feed tree; the markets on it are not scored`,
-    );
-  }
-
+  nodes: Map<Address, TreeNode>;
+  answers: Map<Address, bigint | null>;
+  pairs: Pair[];
+  logger?: Logger;
+}): Promise<{
+  results: (Simulated | null)[];
+  sourcesOf: (feed: Address) => string[];
+}> {
   const { targets, baselines: rateBaselines } = await readRateTargets(
     client,
     [...nodes.values()]
@@ -98,79 +123,39 @@ export async function runAssetScores({
     );
   }
 
-  // Main and reserve are two slots of one position.
-  const slotsByPosition = new Map<
-    string,
-    { main?: PermissionlessMarketSlot; reserve?: PermissionlessMarketSlot }
-  >();
-  for (const slot of running) {
-    const key = `${slot.market.toLowerCase()}:${slot.token.toLowerCase()}`;
-    const entry = slotsByPosition.get(key) ?? {};
-    entry[slot.reserve ? "reserve" : "main"] = slot;
-    slotsByPosition.set(key, entry);
-  }
-
-  const positions: Position[] = [];
-  for (const { main, reserve } of slotsByPosition.values()) {
-    // A market's own underlying is left out: no market configures a reserve
-    // for it, so scoring it would mark every underlying down for how markets
-    // are built rather than for how the asset is curated.
-    if (!main || main.isUnderlying) {
-      continue;
-    }
-    const mainNode = nodes.get(feedOf(main));
-    // Missing is an oracle that would not report its tree; a zero main feed
-    // is a token switched off in the market, with no price left to guard.
-    if (!mainNode || mainNode.contractType === ZERO_TYPE) {
-      continue;
-    }
-
-    const notes: string[] = [];
-    let reserveFeed: Address | undefined;
-    if (!reserve) {
-      notes.push("no reserve feed");
-    } else if (nodes.get(feedOf(reserve))?.contractType === ZERO_TYPE) {
-      notes.push("reserve is a ZeroPriceFeed");
-    } else {
-      reserveFeed = feedOf(reserve);
-      if (reserveFeed === feedOf(main)) {
-        notes.push("reserve is the main feed");
-      }
-    }
-    positions.push({ main, reserve, reserveFeed, notes });
-  }
-
-  const priced = [
+  const roots = [
     ...new Set(
-      positions.flatMap(({ main, reserveFeed }) =>
-        reserveFeed ? [feedOf(main), reserveFeed] : [feedOf(main)],
-      ),
+      pairs.flatMap(({ main, reserve }) => (reserve ? [main, reserve] : [main])),
     ),
   ];
-  if (priced.length === 0) {
-    return [];
-  }
-  // Each market's underlying is read under the same lie, so the collateral's
-  // move can be put against the debt's.
-  const underlyingOf = (slot: PermissionlessMarketSlot) =>
-    slot.underlyingPriceFeed?.toLowerCase() as Address | undefined;
-  const roots = [
-    ...new Set([
-      ...priced,
-      ...positions
-        .map(({ main }) => underlyingOf(main))
-        .filter((feed): feed is Address => feed !== undefined),
-    ]),
-  ];
-
-  // Kept fresh in every override: a feed rejects an answer older than its
-  // staleness period, and that revert would read as the feed holding.
-  const updatedAt = BigInt(Math.floor(Date.now() / 1000));
+  const reach = sourcesByFeed(roots, nodes, sources);
+  const sourceByTarget = new Map(sources.map(source => [source.target, source]));
 
   // A constant feed has nothing publishing to it, and a silent one cannot be
   // made to say something else: neither is a source that can lie.
   const drivable = (source: StressSource | undefined): source is StressSource =>
     source !== undefined && source.perturbable && source.baseline !== null;
+
+  const groupsOf = (feed: Address | undefined): Map<string, StressSource[]> => {
+    const out = new Map<string, StressSource[]>();
+    for (const target of feed ? (reach.get(feed) ?? []) : []) {
+      const source = sourceByTarget.get(target);
+      if (drivable(source)) {
+        out.set(source.group, [...(out.get(source.group) ?? []), source]);
+      }
+    }
+    return out;
+  };
+  const sourcesOf = (feed: Address) => [...groupsOf(feed).keys()];
+
+  if (roots.length === 0) {
+    return { results: [], sourcesOf };
+  }
+
+  // Kept fresh in every override: a feed rejects an answer older than its
+  // staleness period, and that revert would read as the feed holding.
+  const updatedAt = BigInt(Math.floor(Date.now() / 1000));
+
   // A root that does not answer as it stands is read again with every price
   // feed source re-answering what it answers now under a fresh timestamp: a
   // pull feed nobody has pushed to lately is stale, and the feed over it
@@ -217,29 +202,24 @@ export async function runAssetScores({
   };
 
   // A reserve that does not answer now is not one the price can fall back on.
-  for (const position of positions) {
-    if (position.reserveFeed && (base.get(position.reserveFeed) ?? null) === null) {
-      position.reserveFeed = undefined;
-      position.notes.push("reserve does not answer");
-    }
-  }
-
-  const reach = sourcesByFeed(roots, nodes, sources);
-  const sourceByTarget = new Map(sources.map(source => [source.target, source]));
+  const effective = pairs.map(pair =>
+    pair.reserve && (base.get(pair.reserve) ?? null) === null
+      ? {
+          ...pair,
+          reserve: undefined,
+          notes: [...pair.notes, "reserve does not answer"],
+        }
+      : pair,
+  );
 
   const byGroup = new Map<string, StressSource[]>();
   for (const source of sources.filter(drivable)) {
     byGroup.set(source.group, [...(byGroup.get(source.group) ?? []), source]);
   }
-  // Only what moves a collateral's own feeds: a lie about the underlying alone
-  // is the underlying's to answer for.
   const reachedGroups = new Set<string>();
-  for (const root of priced) {
-    for (const target of reach.get(root) ?? []) {
-      const source = sourceByTarget.get(target);
-      if (drivable(source)) {
-        reachedGroups.add(source.group);
-      }
+  for (const root of roots) {
+    for (const group of groupsOf(root).keys()) {
+      reachedGroups.add(group);
     }
   }
 
@@ -253,87 +233,165 @@ export async function runAssetScores({
     );
   }
 
-  const groupsOf = (feed: Address | undefined): Map<string, StressSource[]> => {
-    const out = new Map<string, StressSource[]>();
-    for (const target of feed ? (reach.get(feed) ?? []) : []) {
-      const source = sourceByTarget.get(target);
-      if (drivable(source)) {
-        out.set(source.group, [...(out.get(source.group) ?? []), source]);
-      }
+  const results = effective.map(({ main, reserve, notes }): Simulated | null => {
+    const before = finalPrice(
+      base.get(main) ?? null,
+      reserve ? (base.get(reserve) ?? null) : undefined,
+    );
+    if (before === null || before <= 0n) {
+      return null;
     }
-    return out;
-  };
+
+    const onMain = groupsOf(main);
+    const onReserve = groupsOf(reserve);
+
+    const impacts: GroupImpact[] = [
+      ...new Set([...onMain.keys(), ...onReserve.keys()]),
+    ].map(group => {
+      const under = stressed.get(group) ?? new Map<Address, bigint | null>();
+      const after = finalPrice(
+        under.get(main) ?? null,
+        reserve ? (under.get(reserve) ?? null) : undefined,
+      );
+      const factor = factorOf(before, after);
+      const members = [
+        ...(onMain.get(group) ?? []),
+        ...(onReserve.get(group) ?? []),
+      ];
+      return {
+        group,
+        identified: members.every(source => source.identified),
+        feeds: [...new Set(members.map(source => source.description))],
+        reaches: onMain.has(group)
+          ? onReserve.has(group)
+            ? "both"
+            : "main"
+          : "reserve",
+        factor,
+        score: scoreOfFactor(factor),
+      };
+    });
+
+    return {
+      hasReserve: reserve !== undefined,
+      price: Number(formatUnits(before, 8)),
+      // Where one side holds against a lie only because the other reads a
+      // source nothing could name, the hold rests on that source standing
+      // alone.
+      unverified:
+        reserve !== undefined &&
+        impacts.some(impact => !impact.identified && impact.reaches !== "both"),
+      notes,
+      ...worstOf(impacts),
+    };
+  });
+
+  return { results, sourcesOf };
+}
+
+/**
+ * Every asset of one chain, scored by what each of its source groups can do
+ * to the price its running markets hold for it.
+ *
+ * One read of the oracles' feed trees, then the simulation of every market's
+ * main and reserve pair at once — see {@link simulatePairs}.
+ **/
+export async function runAssetScores({
+  client,
+  chainId,
+  slots,
+  compressor,
+  logger,
+}: {
+  client: PublicClient<Transport, Chain>;
+  chainId: number;
+  slots: PermissionlessMarketSlot[];
+  compressor: Address;
+  logger?: Logger;
+}): Promise<AssetScore[]> {
+  // A shut down market prices nothing anyone can borrow against.
+  const running = slots.filter(slot => !slot.isShutdown);
+
+  const oracles = [
+    ...new Set(running.map(slot => lower(slot.priceOracle))),
+  ];
+  const { nodes, answers, unreadableOracles } = await readForest(
+    client,
+    compressor,
+    oracles,
+  );
+  for (const oracle of unreadableOracles) {
+    logger?.warn(
+      `price oracle ${oracle} of chain ${chainId} would not report its feed tree; the markets on it are not scored`,
+    );
+  }
+
+  // Main and reserve are two slots of one position.
+  const slotsByPosition = new Map<
+    string,
+    { main?: PermissionlessMarketSlot; reserve?: PermissionlessMarketSlot }
+  >();
+  for (const slot of running) {
+    const key = `${lower(slot.market)}:${lower(slot.token)}`;
+    const entry = slotsByPosition.get(key) ?? {};
+    entry[slot.reserve ? "reserve" : "main"] = slot;
+    slotsByPosition.set(key, entry);
+  }
+
+  const positions: {
+    main: PermissionlessMarketSlot;
+    reserve: PermissionlessMarketSlot | undefined;
+  }[] = [];
+  for (const { main, reserve } of slotsByPosition.values()) {
+    if (!main) {
+      continue;
+    }
+    const mainNode = nodes.get(lower(main.priceFeed));
+    // Missing is an oracle that would not report its tree; a zero main feed
+    // is a token switched off in the market, with no price left to guard.
+    if (!mainNode || mainNode.contractType === ZERO_TYPE) {
+      continue;
+    }
+    positions.push({ main, reserve });
+  }
+
+  const { results, sourcesOf } = await simulatePairs({
+    client,
+    chainId,
+    nodes,
+    answers,
+    pairs: positions.map(({ main, reserve }) =>
+      pairOf(
+        lower(main.priceFeed),
+        reserve ? lower(reserve.priceFeed) : undefined,
+        nodes,
+      ),
+    ),
+    logger,
+  });
+
+  const side = (slot: PermissionlessMarketSlot): ScoredFeed => ({
+    feed: lower(slot.priceFeed),
+    name: slot.priceFeedName,
+    contractType: nodes.get(lower(slot.priceFeed))?.contractType ?? "",
+    sources: sourcesOf(lower(slot.priceFeed)),
+  });
 
   const byAsset = new Map<
     Address,
     { symbol: string | null; markets: MarketScore[] }
   >();
 
-  for (const { main, reserve, reserveFeed, notes } of positions) {
-    const mainFeed = feedOf(main);
-    const before = finalPrice(
-      base.get(mainFeed) ?? null,
-      reserveFeed ? (base.get(reserveFeed) ?? null) : undefined,
-    );
-    if (before === null || before <= 0n) {
+  positions.forEach(({ main, reserve }, i) => {
+    const result = results[i];
+    if (!result) {
       logger?.warn(
-        `feed ${mainFeed} of chain ${chainId} does not answer; ${main.tokenSymbol ?? main.token} in ${main.marketName ?? main.market} is not scored`,
+        `feed ${lower(main.priceFeed)} of chain ${chainId} does not answer; ${main.tokenSymbol ?? main.token} in ${main.marketName ?? main.market} is not scored`,
       );
-      continue;
+      return;
     }
 
-    const onMain = groupsOf(mainFeed);
-    const onReserve = groupsOf(reserveFeed);
-
-    const impacts: GroupImpact[] = [...new Set([...onMain.keys(), ...onReserve.keys()])].map(
-      group => {
-        const under = stressed.get(group) ?? new Map<Address, bigint | null>();
-        const after = finalPrice(
-          under.get(mainFeed) ?? null,
-          reserveFeed ? (under.get(reserveFeed) ?? null) : undefined,
-        );
-        const factor = factorOf(before, after);
-        const underlying = underlyingOf(main);
-        const debtBefore = underlying ? (base.get(underlying) ?? null) : null;
-        const debtFactor =
-          debtBefore === null || debtBefore <= 0n || !underlying
-            ? null
-            : factorOf(debtBefore, under.get(underlying) ?? null);
-        const ratioFactor =
-          factor === null || debtFactor === null || debtFactor === 0
-            ? null
-            : factor / debtFactor;
-        const members = [...(onMain.get(group) ?? []), ...(onReserve.get(group) ?? [])];
-        return {
-          group,
-          identified: members.every(source => source.identified),
-          feeds: [...new Set(members.map(source => source.description))],
-          reaches: onMain.has(group)
-            ? onReserve.has(group)
-              ? "both"
-              : "main"
-            : "reserve",
-          factor,
-          ratioFactor,
-          score: scoreOfFactor(factor),
-        };
-      },
-    );
-
-    // Where one side holds against a lie only because the other reads a
-    // source nothing could name, the hold rests on that source standing alone.
-    const unverified =
-      reserveFeed !== undefined &&
-      impacts.some(impact => !impact.identified && impact.reaches !== "both");
-
-    const side = (slot: PermissionlessMarketSlot) => ({
-      feed: feedOf(slot),
-      name: slot.priceFeedName,
-      contractType: nodes.get(feedOf(slot))?.contractType ?? "",
-      sources: [...groupsOf(feedOf(slot)).keys()],
-    });
-
-    const asset = main.token.toLowerCase() as Address;
+    const asset = lower(main.token);
     const entry = byAsset.get(asset) ?? { symbol: main.tokenSymbol, markets: [] };
     byAsset.set(asset, entry);
 
@@ -344,16 +402,12 @@ export async function runAssetScores({
       curatorName: main.curatorName,
       main: side(main),
       reserve: reserve ? side(reserve) : null,
-      hasReserve: reserveFeed !== undefined,
-      price: Number(formatUnits(before, 8)),
-      unverified,
-      notes,
-      ...worstOf(impacts),
+      ...result,
     });
-  }
+  });
 
   return [...byAsset].map(([asset, { symbol, markets }]) => {
-    const sorted = markets.sort((a, b) => a.score - b.score);
+    const sorted = markets.sort((a, b) => b.score - a.score);
     const worst = sorted[0] ?? null;
     return {
       chainId,
@@ -365,4 +419,85 @@ export async function runAssetScores({
       markets: sorted,
     };
   });
+}
+
+/**
+ * Any main feed and reserve on a chain, scored the way a market holding them
+ * would be — whether or not any market does yet.
+ *
+ * The two trees are read off the compressor by feed rather than by oracle,
+ * so a feed the curator has only just deployed scores as well as one in use.
+ *
+ * @throws Where there is nothing to score: the compressor cannot read a
+ * feed, the main feed is a `ZeroPriceFeed`, or the final price does not
+ * answer even with every pull feed under it freshened.
+ **/
+export async function runFeedPairScore({
+  client,
+  chainId,
+  compressor,
+  main,
+  reserve,
+  logger,
+}: {
+  client: PublicClient<Transport, Chain>;
+  chainId: number;
+  compressor: Address;
+  main: Address;
+  reserve?: Address;
+  logger?: Logger;
+}): Promise<FeedPairScore> {
+  const mainFeed = lower(main);
+  const reserveFeed = reserve ? lower(reserve) : undefined;
+
+  const feeds =
+    reserveFeed && reserveFeed !== mainFeed ? [mainFeed, reserveFeed] : [mainFeed];
+  const { nodes, answers } = await readFeedTrees(client, compressor, feeds).catch(
+    (cause: unknown) => {
+      throw new Error(
+        `the PriceFeedCompressor of chain ${chainId} would not read ${feeds.join(" and ")}: not a price feed it knows`,
+        { cause },
+      );
+    },
+  );
+  for (const feed of [mainFeed, reserveFeed]) {
+    if (feed && !nodes.has(feed)) {
+      throw new Error(
+        `feed ${feed} of chain ${chainId} is not one the PriceFeedCompressor can read`,
+      );
+    }
+  }
+  if (nodes.get(mainFeed)?.contractType === ZERO_TYPE) {
+    throw new Error(
+      `the main feed ${mainFeed} is a ZeroPriceFeed: it prices nothing, so nothing can move`,
+    );
+  }
+
+  const { results, sourcesOf } = await simulatePairs({
+    client,
+    chainId,
+    nodes,
+    answers,
+    pairs: [pairOf(mainFeed, reserveFeed, nodes)],
+    logger,
+  });
+  const result = results[0];
+  if (!result) {
+    throw new Error(
+      `the main feed ${mainFeed} of chain ${chainId} does not answer, so there is no price to move`,
+    );
+  }
+
+  const side = (feed: Address): ScoredFeed => ({
+    feed,
+    name: null,
+    contractType: nodes.get(feed)?.contractType ?? "",
+    sources: sourcesOf(feed),
+  });
+
+  return {
+    main: side(mainFeed),
+    reserve: reserveFeed ? side(reserveFeed) : null,
+    ...result,
+  };
 }

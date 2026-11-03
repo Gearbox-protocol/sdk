@@ -1,30 +1,23 @@
 import type { GroupImpact } from "./types.js";
 
 /** What every source of a group is made to answer, as a multiple of now. */
-export const SCORE_MULTIPLIER = 5;
+export const SCORE_MULTIPLIER = 10;
 
 /**
- * The score of a price that stops answering under the lie.
+ * How far the final price moved, as a multiple of where it was, either way:
+ * 1 for a price that did not move, 1.04 for one 4% off, and
+ * {@link SCORE_MULTIPLIER} for one that took the whole lie — the most it can
+ * take from one leg, and where a price over two legs of one group, moved
+ * further, is held too.
  *
- * Half marks: nobody can borrow against a wrong number, but nobody can be
- * liquidated either until the feed is replaced.
+ * `null` for a price that stopped answering, which is not a move.
  */
-export const REVERT_SCORE = 5;
-
-/**
- * 0 to 10 by how far the final price moved, on a log scale against the lie
- * itself: 10 for a price that did not move, 0 for one that moved by the full
- * {@link SCORE_MULTIPLIER} or more, either way. Rounded to a half point.
- *
- * A bound holding a price within a few percent keeps a 10; a price that let
- * half the lie through, ×√5, scores 5.
- */
-export function scoreOfFactor(factor: number | null): number {
+export function scoreOfFactor(factor: number | null): number | null {
   if (factor === null || !Number.isFinite(factor) || factor <= 0) {
-    return REVERT_SCORE;
+    return null;
   }
-  const moved = Math.abs(Math.log(factor)) / Math.log(SCORE_MULTIPLIER);
-  return Math.round(10 * Math.max(0, 1 - moved) * 2) / 2;
+  const move = factor >= 1 ? factor : 1 / factor;
+  return Math.min(SCORE_MULTIPLIER, move);
 }
 
 /**
@@ -54,20 +47,21 @@ export function factorOf(base: bigint, stressed: bigint | null): number | null {
 }
 
 /**
- * The market's score and the group it comes from: the lowest of its groups,
- * ties going to the group that moved the price further. 10 where no source
- * feeds the price at all, since nothing can be made to lie about it.
+ * The market's score and the group it comes from: the furthest any group
+ * moved its price. 1 where nothing moved it — no group did, or no source
+ * feeds the price at all.
+ *
+ * A group under which the price stops answering moves nothing and does not
+ * set the score; it is listed after those that do, for a reader to see.
  */
 export function worstOf(impacts: GroupImpact[]): {
   score: number;
   impacts: GroupImpact[];
   worst: GroupImpact | null;
 } {
-  const distance = (impact: GroupImpact) =>
-    impact.factor === null ? Infinity : Math.abs(Math.log(impact.factor));
   const sorted = [...impacts].sort(
-    (a, b) => a.score - b.score || distance(b) - distance(a),
+    (a, b) => (b.score ?? 0) - (a.score ?? 0),
   );
-  const worst = sorted[0] ?? null;
-  return { score: worst?.score ?? 10, impacts: sorted, worst };
+  const worst = sorted.find(impact => impact.score !== null) ?? null;
+  return { score: worst?.score ?? 1, impacts: sorted, worst };
 }

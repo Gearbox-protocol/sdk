@@ -1,5 +1,7 @@
 import {
   type Address,
+  BaseError,
+  CallExecutionError,
   type Chain,
   formatUnits,
   hexToString,
@@ -113,33 +115,72 @@ export async function readForest(
     }
 
     const { priceFeedTree } = state.result as unknown as {
-      priceFeedTree: ReadonlyArray<{
-        baseParams: { addr: Address; version: bigint; contractType: `0x${string}` };
-        description: string;
-        underlyingFeeds: readonly Address[];
-        answer: { price: bigint; success: boolean };
-      }>;
+      priceFeedTree: readonly CompressorTreeNode[];
     };
-
-    for (const node of priceFeedTree) {
-      const address = node.baseParams.addr.toLowerCase() as Address;
-      if (nodes.has(address)) {
-        continue;
-      }
-      nodes.set(address, {
-        address,
-        contractType: typeName(node.baseParams.contractType),
-        version: Number(node.baseParams.version),
-        description: node.description,
-        underlyingFeeds: node.underlyingFeeds.map(
-          feed => feed.toLowerCase() as Address,
-        ),
-      });
-      answers.set(address, node.answer.success ? node.answer.price : null);
-    }
+    addTree(priceFeedTree, nodes, answers);
   });
 
   return { nodes, answers, unreadableOracles };
+}
+
+/**
+ * The trees under a handful of feeds, flattened, whether or not any oracle
+ * holds them.
+ *
+ * One call for all of them: the compressor walks the feeds it is given the
+ * way it walks an oracle's, and answers with the same nodes.
+ */
+export async function readFeedTrees(
+  client: PublicClient<Transport, Chain>,
+  compressor: Address,
+  feeds: Address[],
+): Promise<{
+  nodes: Map<Address, TreeNode>;
+  answers: Map<Address, bigint | null>;
+}> {
+  const tree = await client.readContract({
+    address: compressor,
+    abi: priceFeedCompressorAbi,
+    functionName: "loadPriceFeedTree",
+    args: [feeds],
+  });
+
+  const nodes = new Map<Address, TreeNode>();
+  const answers = new Map<Address, bigint | null>();
+  addTree(tree as unknown as readonly CompressorTreeNode[], nodes, answers);
+  return { nodes, answers };
+}
+
+/** A node as the compressor reports it, with only what this test reads. */
+interface CompressorTreeNode {
+  baseParams: { addr: Address; version: bigint; contractType: `0x${string}` };
+  description: string;
+  underlyingFeeds: readonly Address[];
+  answer: { price: bigint; success: boolean };
+}
+
+/** A tree's nodes into the flattened forest, the first copy of each kept. */
+function addTree(
+  tree: readonly CompressorTreeNode[],
+  nodes: Map<Address, TreeNode>,
+  answers: Map<Address, bigint | null>,
+): void {
+  for (const node of tree) {
+    const address = node.baseParams.addr.toLowerCase() as Address;
+    if (nodes.has(address)) {
+      continue;
+    }
+    nodes.set(address, {
+      address,
+      contractType: typeName(node.baseParams.contractType),
+      version: Number(node.baseParams.version),
+      description: node.description,
+      underlyingFeeds: node.underlyingFeeds.map(
+        feed => feed.toLowerCase() as Address,
+      ),
+    });
+    answers.set(address, node.answer.success ? node.answer.price : null);
+  }
 }
 
 /**
@@ -202,6 +243,23 @@ export async function readRateTargets(
   return { targets, baselines, bounds };
 }
 
+/** Tries after the first before a refused read is given up on. */
+const READ_RETRIES = 3;
+
+/**
+ * A multicall failure that is the node's and not the feed's.
+ *
+ * A call that reverted inside the multicall is decoded from its own return
+ * data and carries no error of the `eth_call` around it; a chunk the node
+ * refused carries exactly that, for every call in the chunk.
+ */
+function isRefusal(error: unknown): boolean {
+  return (
+    error instanceof BaseError &&
+    error.walk(cause => cause instanceof CallExecutionError) !== null
+  );
+}
+
 /**
  * What every feed answers with one group's sources overridden.
  *
@@ -233,16 +291,43 @@ export async function readUnder(
     ...driven,
   ];
 
-  const results = await client.multicall({
-    contracts: feeds.map(address => ({
-      address,
-      abi: aggregatorAbi,
-      functionName: "latestRoundData" as const,
-    })),
-    allowFailure: true,
-    // An empty list is not an override, and some nodes reject it as one.
-    stateOverride: overrides.length > 0 ? overrides : undefined,
-  });
+  const readOnce = () =>
+    client.multicall({
+      contracts: feeds.map(address => ({
+        address,
+        abi: aggregatorAbi,
+        functionName: "latestRoundData" as const,
+      })),
+      allowFailure: true,
+      // An empty list is not an override, and some nodes reject it as one.
+      stateOverride: overrides.length > 0 ? overrides : undefined,
+    });
+
+  // With failures allowed, a chunk of the multicall the node refused — rate
+  // limited, timed out — comes back as every call in it failing, which would
+  // read as those feeds reverting. That is retried, and in the end thrown:
+  // a read that never came back says nothing about the feeds.
+  let results: Awaited<ReturnType<typeof readOnce>> = [];
+  for (let attempt = 0; ; attempt++) {
+    results = await readOnce();
+    const refused = results.find(
+      result => result.status === "failure" && isRefusal(result.error),
+    );
+    if (!refused) {
+      break;
+    }
+    if (attempt >= READ_RETRIES) {
+      const reason =
+        refused.error instanceof BaseError
+          ? (refused.error.walk() as BaseError).shortMessage
+          : String(refused.error);
+      throw new Error(
+        `the node would not answer a read of ${feeds.length} feeds after ${READ_RETRIES + 1} tries: ${reason}`,
+        { cause: refused.error },
+      );
+    }
+    await new Promise(resolve => setTimeout(resolve, 500 * 2 ** attempt));
+  }
 
   return new Map(
     feeds.map((feed, i) => {

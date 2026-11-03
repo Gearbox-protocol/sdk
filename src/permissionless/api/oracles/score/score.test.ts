@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  factorOf,
-  finalPrice,
-  REVERT_SCORE,
-  scoreOfFactor,
-  worstOf,
-} from "./formula.js";
+import { factorOf, finalPrice, scoreOfFactor, worstOf } from "./formula.js";
 import type { GroupImpact } from "./types.js";
 
 const impact = (
@@ -18,36 +12,32 @@ const impact = (
   feeds: [`${group} feed`],
   reaches,
   factor,
-  ratioFactor: factor,
   score: scoreOfFactor(factor),
 });
 
 describe("scoreOfFactor", () => {
-  it("scores 10 for a price that did not move", () => {
-    expect(scoreOfFactor(1)).toBe(10);
+  it("is 1 for a price that did not move", () => {
+    expect(scoreOfFactor(1)).toBe(1);
   });
 
-  it("keeps a 10 for a price a bound holds within a few percent", () => {
-    expect(scoreOfFactor(1.02)).toBe(10);
+  it("is the move itself in between", () => {
+    expect(scoreOfFactor(1.04)).toBeCloseTo(1.04);
+    expect(scoreOfFactor(3)).toBe(3);
   });
 
-  it("scores 0 for the full lie, and past it", () => {
-    expect(scoreOfFactor(5)).toBe(0);
-    // Two legs of a composite on one provider: 5 × 5.
-    expect(scoreOfFactor(25)).toBe(0);
+  it("is 10 for the whole lie, and holds there past it", () => {
+    expect(scoreOfFactor(10)).toBe(10);
+    // Two legs of a composite on one provider: 10 × 10.
+    expect(scoreOfFactor(100)).toBe(10);
   });
 
-  it("scores 5 for half the lie on a log scale", () => {
-    expect(scoreOfFactor(Math.sqrt(5))).toBe(5);
+  it("counts a price driven down as far the same", () => {
+    expect(scoreOfFactor(1 / 1.04)).toBeCloseTo(1.04);
+    expect(scoreOfFactor(0.1)).toBeCloseTo(10);
   });
 
-  it("is symmetric: a price driven down as far scores the same", () => {
-    expect(scoreOfFactor(1 / 5)).toBe(0);
-    expect(scoreOfFactor(1 / Math.sqrt(5))).toBe(5);
-  });
-
-  it("scores a price that stopped answering at half marks", () => {
-    expect(scoreOfFactor(null)).toBe(REVERT_SCORE);
+  it("has no score for a price that stopped answering", () => {
+    expect(scoreOfFactor(null)).toBeNull();
   });
 });
 
@@ -69,31 +59,30 @@ describe("finalPrice", () => {
 
 describe("the screenshot's case", () => {
   // Main a composite of Lido × a median of Chronicle, Redstone and Chainlink;
-  // reserve Chainlink alone. Chainlink ×5 moves the reserve and, the median
+  // reserve Chainlink alone. Chainlink ×10 moves the reserve and, the median
   // holding, not the main — so min() stays put. With the reserve on Chainlink
   // as well as the main's only leg, min() follows both up.
   it("holds when only one side moves", () => {
     const before = finalPrice(2000n, 2200n) as bigint;
-    const after = finalPrice(2000n, 11000n);
-    expect(scoreOfFactor(factorOf(before, after))).toBe(10);
+    const after = finalPrice(2000n, 22000n);
+    expect(scoreOfFactor(factorOf(before, after))).toBe(1);
   });
 
   it("breaks when both sides move", () => {
     const before = finalPrice(2000n, 2200n) as bigint;
-    const after = finalPrice(10000n, 11000n);
-    expect(factorOf(before, after)).toBe(5);
-    expect(scoreOfFactor(factorOf(before, after))).toBe(0);
+    const after = finalPrice(20000n, 22000n);
+    expect(scoreOfFactor(factorOf(before, after))).toBe(10);
   });
 });
 
 describe("worstOf", () => {
-  it("scores by the most damaging group and names it", () => {
+  it("scores by the group that moves the price furthest and names it", () => {
     const result = worstOf([
       impact("Redstone", 1),
-      impact("Chainlink", 5, "both"),
+      impact("Chainlink", 10, "both"),
       impact("Lido", 1.02),
     ]);
-    expect(result.score).toBe(0);
+    expect(result.score).toBe(10);
     expect(result.worst?.group).toBe("Chainlink");
     expect(result.impacts.map(it => it.group)).toEqual([
       "Chainlink",
@@ -102,14 +91,15 @@ describe("worstOf", () => {
     ]);
   });
 
-  it("breaks a tie towards the group that moved the price further", () => {
-    const result = worstOf([impact("A", 5), impact("B", 25)]);
-    expect(result.worst?.group).toBe("B");
+  it("does not score a group the price stops answering under, but lists it last", () => {
+    const result = worstOf([impact("Lido", null), impact("Chainlink", 1.03)]);
+    expect(result.score).toBeCloseTo(1.03);
+    expect(result.worst?.group).toBe("Chainlink");
+    expect(result.impacts.map(it => it.group)).toEqual(["Chainlink", "Lido"]);
   });
 
-  it("scores 10 where no source feeds the price", () => {
-    const result = worstOf([]);
-    expect(result.score).toBe(10);
-    expect(result.worst).toBeNull();
+  it("is 1 where no group moves the price", () => {
+    expect(worstOf([]).score).toBe(1);
+    expect(worstOf([impact("Lido", null)]).worst).toBeNull();
   });
 });
