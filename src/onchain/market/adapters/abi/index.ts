@@ -4,4 +4,5 @@ export * from "./conctructorAbi.js";
 export * from "./midas/index.js";
 export * from "./securitize/index.js";
 export * from "./targetContractAbi.js";
+export * from "./treehouse/index.js";
 export * from "./utils.js";
