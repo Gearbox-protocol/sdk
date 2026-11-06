@@ -179,9 +179,10 @@ export interface PermissionlessMarketSlot
 /**
  * One feed of the store, with everywhere the store lets it be used.
  *
- * Feeds a tree carries but the store never added have no identity to report —
- * no status history, hence no name or staleness — so the read throws for them
- * rather than answering a half-filled row.
+ * Feeds a tree carries but the store never added have no identity to report
+ * here — no status history, hence no name or staleness — so the backend does
+ * not answer for them; the SDK reads them off the chain instead, see
+ * {@link PermissionlessPriceFeedDetails.inStore}.
  **/
 export interface PermissionlessIndexedPriceFeedDetails {
   chainId: number;
@@ -201,6 +202,14 @@ export interface PermissionlessIndexedPriceFeedDetails {
 export interface PermissionlessPriceFeedDetails
   extends PermissionlessIndexedPriceFeedDetails {
   markets: PermissionlessPriceFeedMarket[];
+  /**
+   * Whether the answer is the store's.
+   *
+   * `false` is a deployed feed the store never added, read off the chain
+   * instead: `deployedBy` is the zero address, `stalenessPeriod` is 0, and
+   * `assets` and `markets` are empty, because all of them are store rows.
+   */
+  inStore: boolean;
 }
 
 /**

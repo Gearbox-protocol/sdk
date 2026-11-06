@@ -109,6 +109,7 @@ describe("oracles.feed", () => {
     });
 
     expect(details).toMatchObject(DETAILS);
+    expect(details.inStore).toBe(true);
     expect(details.markets[0]?.reserve).toBe(true);
     expect(details.markets[0]?.isUnderlying).toBe(true);
   });

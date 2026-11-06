@@ -4,11 +4,13 @@ import {
   erc20Abi,
   type PublicClient,
   type Transport,
+  zeroAddress,
 } from "viem";
 import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import type { PriceFeedData } from "../../../model/opportunities.js";
 import { priceFeedDataSchema } from "../../../model/opportunities.schema.js";
 import { AbstractOffchainNamespace } from "../../../offchain/AbstractOffchainNamespace.js";
+import { OffchainStatusError } from "../../../offchain/errors/OffchainStatusError.js";
 import type { NetworkType } from "../../../onchain/index.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
@@ -33,6 +35,7 @@ import {
   toCap,
   totalQuotas,
 } from "./enrich.js";
+import { onchainPriceFeed } from "./onchain-feed.js";
 import {
   assetDetailsSchema,
   assetSummariesSchema,
@@ -47,7 +50,8 @@ import type {
   FeedPairScore,
   FeedPairScoreArgs,
 } from "./score/types.js";
-import { runStressTest } from "./stress/run.js";
+import type { TreeNode } from "./stress/classify.js";
+import { readFeedTrees, runStressTest } from "./stress/run.js";
 import type { StressReport, StressTestArgs } from "./stress/types.js";
 import type {
   AssetArgs,
@@ -58,6 +62,7 @@ import type {
   PermissionlessAssetDetails,
   PermissionlessAssetQuota,
   PermissionlessAssetSummary,
+  PermissionlessIndexedPriceFeedDetails,
   PermissionlessMarketSlot,
   PermissionlessPriceFeedDetails,
   PermissionlessPriceFeedStore,
@@ -85,6 +90,11 @@ function slotKey(oracle: Address, token: Address, reserve: boolean): string {
 /** An unknown thrown value, as something a log line can carry. */
 function describe(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
+}
+
+/** The backend answered that it has no such feed. */
+function isNotFound(e: unknown): boolean {
+  return e instanceof OffchainStatusError && e.status === 404;
 }
 
 /**
@@ -216,18 +226,41 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * oracle holds for the slot, read off the chain here — see
    * {@link PermissionlessPriceFeedMarket.marketStalenessPeriod}.
    *
-   * @throws When the store does not carry the feed. A private draft is not
-   * here — it lives in whichever app wrote it.
+   * A feed the store does not carry is read off the chain instead, through
+   * the PriceFeedCompressor, and answered with `inStore: false`: its type,
+   * version and description are the chain's, while what only the store knows
+   * — who deployed it, its staleness period, the assets it may price and the
+   * markets it fills — is answered as unknown or empty.
+   *
+   * @throws When neither the store nor the chain knows the feed. A private
+   * draft is not here — it lives in whichever app wrote it.
    **/
   public async feed({
     chainId,
     address,
   }: PriceFeedArgs): Promise<PermissionlessPriceFeedDetails> {
     const feed = address.toLowerCase() as Address;
-    const indexed = await this.getData({
-      path: `/pfs/${chainId}/price-feed/${address}`,
-      schema: priceFeedDetailsSchema,
-    });
+    let indexed: PermissionlessIndexedPriceFeedDetails;
+    try {
+      indexed = await this.getData({
+        path: `/pfs/${chainId}/price-feed/${address}`,
+        schema: priceFeedDetailsSchema,
+      });
+    } catch (e) {
+      const node = isNotFound(e)
+        ? await this.#onchainNode(chainId, feed)
+        : undefined;
+      if (!node) {
+        throw e;
+      }
+      return {
+        chainId,
+        priceFeed: onchainPriceFeed(node),
+        assets: [],
+        markets: [],
+        inStore: false,
+      };
+    }
 
     const periods = await this.#stalenessPeriods(
       chainId,
@@ -244,7 +277,39 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
             slotKey(market.priceOracle, market.token, market.reserve),
           ) ?? null,
       })),
+      inStore: true,
     };
+  }
+
+  /**
+   * One feed as the PriceFeedCompressor reads it, or nothing when the chain
+   * cannot be read or the compressor does not know the feed.
+   *
+   * Failures are warnings and not errors: this only ever stands in for a
+   * store that did not have the feed, and the caller reports that miss
+   * rather than whatever kept the chain from answering in its place.
+   */
+  async #onchainNode(
+    chainId: number,
+    feed: Address,
+  ): Promise<TreeNode | undefined> {
+    try {
+      const client = this.#chains.client(chainId);
+      const compressor = await new AddressProviderContract(
+        Addresses.ADDRESS_PROVIDER,
+        client,
+      ).getLatestVersionAddress(AP_PRICE_FEED_COMPRESSOR);
+      if (compressor === zeroAddress) {
+        return undefined;
+      }
+      const { nodes } = await readFeedTrees(client, compressor, [feed]);
+      return nodes.get(feed);
+    } catch (e) {
+      this.logger?.warn(
+        `could not read price feed ${feed} off chain ${chainId}: ${describe(e)}`,
+      );
+      return undefined;
+    }
   }
 
   /**
