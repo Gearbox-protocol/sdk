@@ -23,6 +23,16 @@ const latestRoundDataAbi = [
   },
 ] as const;
 
+const decimalsAbi = [
+  {
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
 function getLatestRoundDataCall(priceFeed: Address) {
   return {
     address: priceFeed,
@@ -30,6 +40,90 @@ function getLatestRoundDataCall(priceFeed: Address) {
     functionName: "latestRoundData" as const,
     args: [] as const,
   };
+}
+
+/**
+ * The scale each feed's answer is in, in one multicall.
+ *
+ * Part of the Chainlink interface every feed in a Gearbox tree implements,
+ * and the only way to read an answer that is not an oracle's own: a feed an
+ * oracle holds reports 8 decimals by construction, while the feeds beneath a
+ * composite are whatever was deployed — an ETH/USD aggregator at 8 and a
+ * rate leg at 18 sit under the same parent.
+ *
+ * `null` is a feed that would not answer, which a caller should treat as
+ * unknown rather than defaulting it to 8.
+ */
+export async function getFeedDecimals({
+  client,
+  priceFeeds,
+}: {
+  client: PublicClient;
+  priceFeeds: Address[];
+}): Promise<Record<Address, number | null>> {
+  if (priceFeeds.length === 0) {
+    return {};
+  }
+
+  const results = await client.multicall({
+    contracts: priceFeeds.map(priceFeed => ({
+      address: priceFeed,
+      abi: decimalsAbi,
+      functionName: "decimals" as const,
+      args: [] as const,
+    })),
+    allowFailure: true,
+  });
+
+  return Object.fromEntries(
+    priceFeeds.map((priceFeed, index): [Address, number | null] => {
+      const result = results[index];
+      return [
+        priceFeed,
+        result?.status === "success" ? Number(result.result) : null,
+      ];
+    }),
+  ) as Record<Address, number | null>;
+}
+
+/**
+ * What the feeds report as they stand, in one multicall.
+ *
+ * What {@link getPrices} does without the part that makes it expensive: no
+ * `OnchainSDK` to attach and no update transactions to assemble, which is the
+ * whole cost of that call and is wasted on a feed that answers already. A feed
+ * that needs a fresh answer before it will be read comes back `null` here, so
+ * a caller that must price those falls back to {@link getPrices} for them and
+ * pays once for the few rather than once for all.
+ *
+ * `null` is also a feed whose read reverted for any other reason, which is not
+ * a zero.
+ */
+export async function getLatestPrices({
+  client,
+  priceFeeds,
+}: {
+  client: PublicClient;
+  priceFeeds: Address[];
+}): Promise<Record<Address, bigint | null>> {
+  if (priceFeeds.length === 0) {
+    return {};
+  }
+
+  const results = await client.multicall({
+    contracts: priceFeeds.map(getLatestRoundDataCall),
+    allowFailure: true,
+  });
+
+  return Object.fromEntries(
+    priceFeeds.map((priceFeed, index): [Address, bigint | null] => {
+      const result = results[index];
+      return [
+        priceFeed,
+        result?.status === "success" ? result.result[1] : null,
+      ];
+    }),
+  ) as Record<Address, bigint | null>;
 }
 
 async function getPricesChunk({

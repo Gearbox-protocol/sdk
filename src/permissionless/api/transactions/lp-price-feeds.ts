@@ -94,16 +94,25 @@ export async function updateBounds(
   return txs;
 }
 
+/** An LP feed found in a feed tree, with what it calls itself on chain. */
+export interface LPFeed {
+  address: Address;
+  description: string;
+}
+
 /**
  * Of the whole feed tree behind `feeds`, the ones that are LP feeds: the
  * probe keeps whatever answers `getLPExchangeRate`.
+ *
+ * The trees reach past `feeds` themselves, so an LP feed read inside one of
+ * them is among the results whether or not it is one of `feeds`.
  **/
 export async function getFeedsToUpdate(
   client: PublicClient,
   pfCompressor: Address,
   feeds: Address[],
-): Promise<Address[]> {
-  const updateableFeeds = new Set<Address>();
+): Promise<LPFeed[]> {
+  const updateableFeeds = new Map<Address, string>();
   const { data } = await client.call({
     to: pfCompressor,
     data: encodeFunctionData({
@@ -119,10 +128,13 @@ export async function getFeedsToUpdate(
     data: data ?? "0x",
   }) as PriceFeedTreeNode[];
   for (const tree of trees) {
-    updateableFeeds.add(tree.baseParams.addr.toLowerCase() as Address);
+    updateableFeeds.set(
+      tree.baseParams.addr.toLowerCase() as Address,
+      tree.description,
+    );
   }
 
-  const candidates = Array.from(updateableFeeds);
+  const candidates = Array.from(updateableFeeds.keys());
 
   const { results } = await simulateMulticall(client, {
     contracts: candidates.map(feed => ({
@@ -133,5 +145,10 @@ export async function getFeedsToUpdate(
     allowFailure: true,
   });
 
-  return candidates.filter((_, index) => results[index]?.status === "success");
+  return candidates
+    .filter((_, index) => results[index]?.status === "success")
+    .map(address => ({
+      address,
+      description: updateableFeeds.get(address) ?? "",
+    }));
 }

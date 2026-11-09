@@ -1,0 +1,71 @@
+export const iKillSwitchProxyAbi = [
+  {
+    type: "constructor",
+    inputs: [
+      { name: "_owner", internalType: "address", type: "address" },
+      { name: "_caller", internalType: "address", type: "address" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "caller",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "contractType",
+    outputs: [{ name: "", internalType: "bytes32", type: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "isKilled",
+    outputs: [{ name: "", internalType: "bool", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "kill",
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "owner",
+    outputs: [{ name: "", internalType: "address", type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    inputs: [
+      { name: "target", internalType: "address", type: "address" },
+      { name: "data", internalType: "bytes", type: "bytes" },
+    ],
+    name: "proxyCall",
+    outputs: [{ name: "result", internalType: "bytes", type: "bytes" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    inputs: [],
+    name: "version",
+    outputs: [{ name: "", internalType: "uint256", type: "uint256" }],
+    stateMutability: "view",
+  },
+  { type: "event", anonymous: false, inputs: [], name: "Killed" },
+  {
+    type: "error",
+    inputs: [{ name: "caller", internalType: "address", type: "address" }],
+    name: "CallerIsNotOwnerException",
+  },
+  { type: "error", inputs: [], name: "KilledException" },
+  { type: "error", inputs: [], name: "OnlyCallerException" },
+  { type: "error", inputs: [], name: "OwnerSameAsCallerException" },
+] as const;

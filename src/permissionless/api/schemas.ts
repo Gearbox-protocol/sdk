@@ -1,4 +1,4 @@
-import { type Address, type Hex, isAddress, isHex } from "viem";
+import { type Address, isAddress } from "viem";
 import { z } from "zod/v4";
 
 /**
@@ -14,12 +14,6 @@ import { z } from "zod/v4";
 export const addressSchema = z.custom<Address>(
   value => typeof value === "string" && isAddress(value, { strict: false }),
   { message: "invalid address" },
-);
-
-/** A `0x`-prefixed hex string, as viem's `Hex`. */
-export const hexSchema = z.custom<Hex>(
-  value => typeof value === "string" && isHex(value),
-  { message: "invalid hex string" },
 );
 
 /**

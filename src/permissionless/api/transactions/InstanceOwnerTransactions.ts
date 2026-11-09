@@ -223,14 +223,33 @@ export class InstanceOwnerTransactions {
 
     const pfCompressor = await this.#priceFeedCompressor(batch.client);
     const known = await batch.store.getKnownPriceFeeds();
+    const isKnown = new Set(known.map(lower));
     const feeds = await getFeedsToUpdate(batch.client, pfCompressor, known);
 
+    const addTxs: RawTx[] = [];
+    const added: Address[] = [];
     const configureTxs: RawTx[] = [];
     for (const feed of feeds) {
-      configureTxs.push(...(await updateBounds(batch.client, feed)));
+      const boundTxs = await updateBounds(batch.client, feed.address);
+      if (boundTxs.length === 0) {
+        continue;
+      }
+      // `configurePriceFeeds` reverts the whole batch for a target the store
+      // does not know, and an LP feed read inside a known one usually is not:
+      // the store owns it but never added it. Adding it lets the call through,
+      // and it stays in the store afterwards. The period is 0 because an LP
+      // feed skips the staleness check, and the store refuses any other.
+      if (!isKnown.has(feed.address)) {
+        addTxs.push(
+          batch.store.addPriceFeedTx(feed.address, 0, feed.description),
+        );
+        added.push(feed.address);
+      }
+      configureTxs.push(...boundTxs);
     }
 
     const txs = [
+      ...addTxs,
       batch.store.configurePriceFeeds(
         configureTxs.map(tx => ({ target: tx.to, callData: tx.callData })),
       ),
@@ -241,8 +260,8 @@ export class InstanceOwnerTransactions {
       author: owner,
       name: "update-bounds",
       txs,
-      // The limiter does not read a price either.
-      touchedFeeds: [],
+      // The limiter does not read a price, but adding a feed does.
+      touchedFeeds: added,
     });
   }
 
