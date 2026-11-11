@@ -5,18 +5,14 @@ import {
   type Chain,
   formatUnits,
   hexToString,
-  parseAbi,
   type PublicClient,
+  parseAbi,
   type Transport,
 } from "viem";
 import { priceFeedCompressorAbi } from "../../../../abi/compressors/priceFeedCompressor.js";
 import type { PermissionlessMarketSlot } from "../types.js";
 import { classifySources, sourcesByFeed, type TreeNode } from "./classify.js";
-import {
-  groupOverride,
-  UNBOUNDED_DOWN,
-  UNBOUNDED_UP,
-} from "./override.js";
+import { groupOverride, UNBOUNDED_DOWN, UNBOUNDED_UP } from "./override.js";
 import { scoreGroup, verdictOf } from "./score.js";
 import type {
   BreakingPoint,
@@ -440,7 +436,9 @@ function outcomeOf(
       isUnderlying: slot.isUnderlying,
       feed,
       ratioFactor:
-        feed.factor === null || underlyingFactor === null || underlyingFactor === 0
+        feed.factor === null ||
+        underlyingFactor === null ||
+        underlyingFactor === 0
           ? null
           : feed.factor / underlyingFactor,
       quotaUsedUsd: quotaUsd.get(slotKey(slot)) ?? null,
@@ -476,8 +474,7 @@ function outcomeOf(
       slot => slot.feed.stressed === null && slot.feed.base !== null,
     ).length,
     deadSlots: out.filter(slot => slot.feed.base === null).length,
-    valueAtRisk:
-      chainTotalUsd > 0 ? movedUsd / chainTotalUsd : 0,
+    valueAtRisk: chainTotalUsd > 0 ? movedUsd / chainTotalUsd : 0,
   };
 }
 

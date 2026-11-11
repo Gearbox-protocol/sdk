@@ -59,9 +59,7 @@ export function worstOf(impacts: GroupImpact[]): {
   impacts: GroupImpact[];
   worst: GroupImpact | null;
 } {
-  const sorted = [...impacts].sort(
-    (a, b) => (b.score ?? 0) - (a.score ?? 0),
-  );
+  const sorted = [...impacts].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   const worst = sorted.find(impact => impact.score !== null) ?? null;
   return { score: worst?.score ?? 1, impacts: sorted, worst };
 }

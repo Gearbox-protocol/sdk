@@ -1,4 +1,4 @@
-import type { ChainId, NoticeSubject } from "../model/index.js";
+import type { ChainId } from "../model/index.js";
 import { GearboxAPI } from "../offchain/index.js";
 import type {
   ILogger,
@@ -23,7 +23,6 @@ import { RewardsNamespace } from "./rewards/index.js";
 import type {
   GearboxSDKOptions,
   IGearboxSDK,
-  INoticesByMode,
   Mode,
   NamespaceOptions,
   OffchainByMode,
@@ -92,13 +91,6 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
    * Namespace for claimable rewards. Absent in `offchain` mode.
    **/
   public readonly rewards: IRewardsByMode[M];
-  /**
-   * The banners the backend attaches to a pool opportunity or a strategy
-   * position, see {@link Notice}. Top-level because the subject is either
-   * kind of entity, so neither namespace owns it. Backend-only, hence gated
-   * by mode like every other backend read: absent in `onchain` mode.
-   **/
-  public readonly notices: INoticesByMode[M];
 
   readonly #attachOptions?: MultichainAttachOptions;
   readonly #onchain?: MultichainSDK;
@@ -217,12 +209,6 @@ export class GearboxSDK<const M extends Mode = Mode> implements IGearboxSDK<M> {
         ? new RewardsNamespace(this.#onchain, rewards, namespaceOptions)
         : undefined
     ) as IRewardsByMode[M];
-    const backend = this.#offchain;
-    this.notices = (
-      backend
-        ? (subject: NoticeSubject) => backend.notices.list(subject)
-        : undefined
-    ) as INoticesByMode[M];
   }
 
   /**
