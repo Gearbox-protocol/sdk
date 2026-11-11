@@ -1,5 +1,6 @@
 import type {
   ChainId,
+  OpenAavePositionPreview,
   OperationPreview,
   PreviewOperationInput,
   PreviewOperationOptions,
@@ -37,6 +38,18 @@ export interface IPreview {
     input: PreviewOperationInput,
     options?: PreviewOperationOptions,
   ): Promise<SDKReturn<OperationPreview, PreviewOperationError>>;
+  /**
+   * Decodes an Aave Horizon opening and reports both halves of it: the
+   * credit account the position is built in while the mint settles, and the
+   * position it becomes on Aave after that.
+   *
+   * Calldata that is not an account opening is refused with
+   * `unsupportedOperation`.
+   **/
+  openAavePosition(
+    input: PreviewOperationInput,
+    options?: PreviewOperationOptions,
+  ): Promise<SDKReturn<OpenAavePositionPreview, PreviewOperationError>>;
   /**
    * Whether a parsed operation may be signed by `sender`: protocol state first,
    * then what the wallet has to approve, hold or sign.

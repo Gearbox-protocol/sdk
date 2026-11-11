@@ -48,6 +48,8 @@ import type {
   LeverageBand,
   LpResult,
   LpState,
+  OpenAavePositionResult,
+  OpenAavePositionState,
   OpenStrategyResult,
   StrategyResult,
   StrategyRoutesResult,
@@ -116,6 +118,31 @@ describe("every prepare method names exactly its own errors", () => {
           | CreditAccountNotEmptyError
         ) &
           WithPartialState<OpenStrategyState>
+      >
+    >();
+  });
+
+  it("openAavePosition: the same codes as openNewStrategy, whose opening it is", () => {
+    expectTypeOf<Awaited<ReturnType<P["openAavePosition"]>>>().toEqualTypeOf<
+      SDKReturn<
+        OpenAavePositionResult,
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | InsufficientBalanceError
+          | UnexpectedFailureError
+          | DebtOutOfRangeError
+          | LeverageOutOfRangeError
+          | UnsupportedTokenPairError
+          | InsufficientPoolLiquidityError
+          | NoStrategyTargetCollateralError
+          | CreditAccountNotFoundError
+          | CreditAccountNotEmptyError
+        ) &
+          WithPartialState<OpenAavePositionState>
       >
     >();
   });

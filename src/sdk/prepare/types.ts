@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AavePositionProjection,
   Bps,
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
@@ -122,6 +123,20 @@ export type OpenFlowError =
   | InsufficientCollateralError
   | InsufficientBalanceError
   | UnexpectedFailureError;
+
+/**
+ * What opening a leveraged position can answer with: the open-flow guards plus
+ * the opening's own codes.
+ **/
+export type OpenStrategyError =
+  | OpenFlowError
+  | DebtOutOfRangeError
+  | LeverageOutOfRangeError
+  | UnsupportedTokenPairError
+  | InsufficientPoolLiquidityError
+  | NoStrategyTargetCollateralError
+  | CreditAccountNotFoundError
+  | CreditAccountNotEmptyError;
 
 /**
  * What every error of a two-route request carries on top of its own code,
@@ -331,6 +346,24 @@ export interface OpenStrategyResult {
   blockNumber: number;
   /** Unix seconds of {@link blockNumber}. */
   timestamp: Timestamp;
+}
+
+/**
+ * Where an Aave Horizon opening arrives: the credit account the position is
+ * built in while the mint settles, as {@link OpenStrategyState} describes it,
+ * and the position it becomes on Aave after that.
+ **/
+export interface OpenAavePositionState extends OpenStrategyState {
+  /** The position once it has moved to Aave. */
+  aave: AavePositionProjection;
+}
+
+/**
+ * What opening a leveraged position on Aave Horizon comes to: the transaction
+ * is the same opening, so it is built from this result the same way.
+ **/
+export interface OpenAavePositionResult extends OpenStrategyResult {
+  state: OpenAavePositionState;
 }
 
 /**
@@ -771,17 +804,25 @@ export interface IOpportunitiesPrepare {
   ): Promise<
     SDKReturn<
       OpenStrategyResult,
-      (
-        | OpenFlowError
-        | DebtOutOfRangeError
-        | LeverageOutOfRangeError
-        | UnsupportedTokenPairError
-        | InsufficientPoolLiquidityError
-        | NoStrategyTargetCollateralError
-        | CreditAccountNotFoundError
-        | CreditAccountNotEmptyError
-      ) &
-        WithPartialState<OpenStrategyState>
+      OpenStrategyError & WithPartialState<OpenStrategyState>
+    >
+  >;
+
+  /**
+   * Opening a leveraged position on Aave Horizon from wallet collateral.
+   *
+   * The RWA collateral is minted asynchronously, so the opening itself is the
+   * one {@link openNewStrategy} prepares: a Gearbox credit account borrows and
+   * subscribes to the mint. Once the mint settles the position moves to Aave,
+   * and `state.aave` describes it there.
+   **/
+  openAavePosition(
+    strategy: StrategyInput,
+    params: OpenStrategyParams,
+  ): Promise<
+    SDKReturn<
+      OpenAavePositionResult,
+      OpenStrategyError & WithPartialState<OpenAavePositionState>
     >
   >;
 

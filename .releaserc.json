@@ -9,6 +9,11 @@
       "prerelease": "next"
     },
     {
+      "name": "aave",
+      "channel": "aave",
+      "prerelease": "aave"
+    },
+    {
       "name": "+([0-9])?(.{+([0-9]),x}).x"
     }
   ],

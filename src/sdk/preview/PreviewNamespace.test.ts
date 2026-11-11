@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
+  AavePositionProjection,
   OperationPreview,
   PreviewOperationInput,
 } from "../../model/index.js";
@@ -10,6 +11,7 @@ import type {
   OnchainSDK,
   OperationState,
 } from "../../onchain/index.js";
+import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
 import { previewOperation } from "../../onchain/preview/preview/previewOperation.js";
 import { checkOperation } from "../../onchain/validation/checkOperation.js";
 import { checkSimulation } from "../../onchain/validation/checkSimulation.js";
@@ -17,6 +19,9 @@ import { PreviewNamespace } from "./PreviewNamespace.js";
 
 vi.mock("../../onchain/preview/preview/previewOperation.js", () => ({
   previewOperation: vi.fn(),
+}));
+vi.mock("../../onchain/positions/projectAavePosition.js", () => ({
+  projectAavePosition: vi.fn(),
 }));
 vi.mock("../../onchain/validation/checkOperation.js", () => ({
   checkOperation: vi.fn(),
@@ -26,6 +31,7 @@ vi.mock("../../onchain/validation/checkSimulation.js", () => ({
 }));
 
 const previewOperationMock = vi.mocked(previewOperation);
+const projectAavePositionMock = vi.mocked(projectAavePosition);
 const checkOperationMock = vi.mocked(checkOperation);
 const checkSimulationMock = vi.mocked(checkSimulation);
 
@@ -128,6 +134,51 @@ describe("PreviewNamespace.previewOperation", () => {
       blockNumber: 99n,
     });
     expect(order).toEqual(["fresh", "preview"]);
+  });
+});
+
+describe("PreviewNamespace.openAavePosition", () => {
+  const CREDIT_MANAGER =
+    "0x0000000000000000000000000000000000000003" as Address;
+  const TARGET = "0x0000000000000000000000000000000000000004" as Address;
+  const amountOf = (address: Address, value: bigint) => ({
+    token: { address },
+    value,
+  });
+  const opening = {
+    operation: "OpenCreditAccount",
+    creditManager: CREDIT_MANAGER,
+    estAssets: [amountOf(TARGET, 300n)],
+    quotas: [amountOf(TARGET, 270n)],
+    totalDebt: amountOf(TO, 200n),
+    estTotalValue: amountOf(TO, 300n),
+  } as unknown as OperationPreview;
+  const aave = { healthFactor: 11_000 } as AavePositionProjection;
+
+  it("reports the opening with the Aave half projected from its floor balances", async () => {
+    previewOperationMock.mockResolvedValue(sdkOk(opening));
+    projectAavePositionMock.mockReturnValue(aave);
+
+    const ns = new PreviewNamespace(onchain, { maxOffchainLagSeconds: 0 });
+    const result = await ns.openAavePosition(input);
+
+    expect(result.ok && result.data).toEqual({ ...opening, aave });
+    expect(projectAavePositionMock).toHaveBeenCalledWith(chainSdk, {
+      creditManager: CREDIT_MANAGER,
+      assets: [{ token: TARGET, balance: 300n }],
+      quotas: [{ token: TARGET, balance: 270n }],
+      totalDebt: 200n,
+      totalValue: 300n,
+    });
+  });
+
+  it("refuses calldata that is not an account opening", async () => {
+    const ns = new PreviewNamespace(onchain, { maxOffchainLagSeconds: 0 });
+    const result = await ns.openAavePosition(input);
+
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("unsupportedOperation");
+    expect(projectAavePositionMock).not.toHaveBeenCalled();
   });
 });
 

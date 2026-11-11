@@ -41,6 +41,7 @@ const mockSDK = {
       redeem: notImplemented,
       openEmptyCreditAccount: notImplemented,
       openNewStrategy: notImplemented,
+      openAavePosition: notImplemented,
       borrow: notImplemented,
       depositStrategy: notImplemented,
       withdrawStrategy: notImplemented,
@@ -110,6 +111,7 @@ const mockSDK = {
   },
   preview: {
     previewOperation: notImplemented,
+    openAavePosition: notImplemented,
     checkOperation: notImplemented,
     checkSimulation: notImplemented,
   },

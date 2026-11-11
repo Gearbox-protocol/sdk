@@ -66,6 +66,7 @@ import {
   toToken,
 } from "../../onchain/index.js";
 import { DEFAULT_QUOTA_BUFFER_BPS } from "../../onchain/market/math.js";
+import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
 import { IntentPreviewError } from "../../onchain/validation/raise.js";
 import type { EnsureFreshChains } from "../types.js";
 import type {
@@ -90,8 +91,10 @@ import type {
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
-  NoStrategyTargetCollateralError,
+  OpenAavePositionResult,
+  OpenAavePositionState,
   OpenFlowError,
+  OpenStrategyError,
   OpenStrategyParams,
   OpenStrategyResult,
   PoolInput,
@@ -482,17 +485,7 @@ export class PrepareApi
   ): Promise<
     SDKReturn<
       OpenStrategyResult,
-      (
-        | OpenFlowError
-        | DebtOutOfRangeError
-        | LeverageOutOfRangeError
-        | UnsupportedTokenPairError
-        | InsufficientPoolLiquidityError
-        | NoStrategyTargetCollateralError
-        | CreditAccountNotFoundError
-        | CreditAccountNotEmptyError
-      ) &
-        WithPartialState<OpenStrategyState>
+      OpenStrategyError & WithPartialState<OpenStrategyState>
     >
   > {
     const state: Partial<OpenStrategyState> = {};
@@ -532,6 +525,40 @@ export class PrepareApi
         }),
         at,
       );
+    } catch (e) {
+      return refused(unexpectedFailure(e), state);
+    }
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesPrepare.openAavePosition}
+   **/
+  public async openAavePosition(
+    strategy: StrategyInput,
+    params: OpenStrategyParams,
+  ): Promise<
+    SDKReturn<
+      OpenAavePositionResult,
+      OpenStrategyError & WithPartialState<OpenAavePositionState>
+    >
+  > {
+    const opened = await this.openNewStrategy(strategy, params);
+    if (!opened.ok) {
+      return opened;
+    }
+    const { state } = opened.data;
+    try {
+      const aave = projectAavePosition(this.sdk.chain(strategy.chainId), {
+        creditManager: state.creditManager,
+        assets: state.averageAssets.map(a => ({
+          token: a.token.address,
+          balance: a.value,
+        })),
+        quotas: state.averageQuota,
+        totalDebt: state.totalDebt.value,
+        totalValue: state.totalValue.value,
+      });
+      return sdkOk({ ...opened.data, state: { ...state, aave } });
     } catch (e) {
       return refused(unexpectedFailure(e), state);
     }

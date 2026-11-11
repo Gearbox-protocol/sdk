@@ -641,6 +641,48 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ).toEqual([{ token: POS, balance: 60000000000n }]);
   });
 
+  it("openAavePosition is the same opening, with the Aave half beside it", async () => {
+    const { api, strategy } = buildStrategyApi();
+    const params = {
+      collateral: [{ token: UND, balance: 20000000000n }],
+      leverage: 300n,
+    };
+
+    const { state: gearbox } = plan(
+      await api.openNewStrategy(strategy, params),
+    );
+    const prepared = plan(await api.openAavePosition(strategy, params));
+
+    const { aave, ...rest } = prepared.state;
+    expect(rest).toEqual(gearbox);
+    expect(aave.assets).toEqual(gearbox.averageAssets);
+    expect(aave.mintPeriodInterest.value).toBe(
+      (gearbox.totalDebt.value *
+        BigInt(gearbox.borrowRate.totalOnDebt) *
+        BigInt(aave.mintDuration)) /
+        (10000n * 365n * 24n * 3600n),
+    );
+    expect(aave.totalDebt.value).toBe(
+      gearbox.totalDebt.value + aave.mintPeriodInterest.value,
+    );
+    expect(aave.netValue.value).toBe(
+      gearbox.totalValue.value - aave.totalDebt.value,
+    );
+    expect(aave.estLiveAt).toBe(prepared.timestamp + aave.mintDuration);
+  });
+
+  it("openAavePosition refuses whatever openNewStrategy refuses", async () => {
+    const { api, strategy } = buildStrategyApi();
+
+    const result = await api.openAavePosition(strategy, {
+      collateral: [],
+      leverage: 300n,
+    });
+
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("insufficientBalance");
+  });
+
   it("depositStrategy keeps leverage while the position grows", async () => {
     const { api, position } = buildStrategyApi();
 

@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { AavePositionProjection } from "./aave.js";
 import type { Curator } from "./curators.js";
 import type { DelayedIntent } from "./delayed-intents.js";
 import type { UnpriceableTokenError } from "./errors/index.js";
@@ -467,6 +468,21 @@ export interface OpenStrategyPositionPreview
    * flow.
    */
   midasGreenlistsAccount?: boolean;
+}
+
+/**
+ * What an Aave Horizon opening that already exists would do — the counterpart
+ * of `prepare.openAavePosition`, read off calldata rather than planned into it.
+ *
+ * The fields it shares with {@link OpenStrategyPositionPreview} describe the
+ * Gearbox credit account the position is built in while the mint settles.
+ **/
+export interface OpenAavePositionPreview extends OpenStrategyPositionPreview {
+  /**
+   * The position once it has moved to Aave. Built from the same floor balances
+   * as the `est` fields, so it is the worst case the opening can settle at.
+   */
+  aave: AavePositionProjection;
 }
 
 /**

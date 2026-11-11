@@ -1,3 +1,4 @@
+export * from "./aave.js";
 export * from "./analytics.js";
 export * from "./analytics.schema.js";
 export * from "./charts.js";
