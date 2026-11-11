@@ -1,49 +1,13 @@
 import type { Address } from "viem";
+import type { AssetType } from "../../../model/primitives.js";
 import type { PriceFeed } from "../../core/index.js";
+import type { PermissionlessChain } from "../chains/types.js";
 
 /**
- * One asset of a chain, with the feeds allowed for it. The backend indexes
- * the chain, so every feed listed here is one the PriceFeedStore carries and
- * allows for the asset.
- **/
-export interface PermissionlessAsset {
-  address: Address;
-  symbol: string;
-  name: string;
-  decimals: number;
-  owner: Address;
-  priceFeeds: PriceFeed[];
-}
-
-/**
- * The PriceFeedStore of one chain as the backend has indexed it: the assets
- * it prices, the feeds it carries, and which feed is allowed on which asset.
- **/
-export interface PermissionlessPriceFeedStore {
-  chainId: number;
-  name: string;
-  isPublic: boolean;
-  isActivated: boolean;
-  explorerUrl: string;
-  assets: PermissionlessAsset[];
-  priceFeeds: PriceFeed[];
-}
-
-/**
- * A price per feed, and a market cap per feed and the asset it prices.
- * `null` is a price the backend could not read, not a zero.
- **/
-export interface PermissionlessPrices {
-  prices: Record<Address, string | null>;
-  marketCaps: Record<Address, Record<Address, string | null>>;
-  time: number;
-}
-
-/**
- * An asset the PriceFeedStore currently allows one feed to price.
+ * What identifies an asset, which is all a feed's own listing of one says.
  *
- * Narrower than {@link PermissionlessAsset} on purpose: this hangs off the
- * feed, so listing the feeds allowed for it would just name the feed back.
+ * Used on its own where the asset hangs off something else — a feed's assets,
+ * say, where listing the feeds allowed for each would only name the feed back.
  **/
 export interface PermissionlessPriceFeedAsset {
   address: Address;
@@ -53,13 +17,39 @@ export interface PermissionlessPriceFeedAsset {
 }
 
 /**
- * One token a market prices with the feed.
- *
- * A row per `(market, token, role)` rather than per market: the same feed can
- * be the main feed of one token and the reserve feed of another in the very
- * same market, and both are reported.
+ * One asset of a chain, with the feeds allowed for it. The backend indexes
+ * the chain, so every feed listed here is one the PriceFeedStore carries and
+ * allows for the asset.
  **/
-export interface PermissionlessPriceFeedMarket {
+export interface PermissionlessAsset extends PermissionlessPriceFeedAsset {
+  owner: Address;
+  priceFeeds: PriceFeed[];
+}
+
+/**
+ * The PriceFeedStore of one chain as the backend has indexed it: the assets
+ * it prices, the feeds it carries, and which feed is allowed on which asset.
+ *
+ * A store is a chain's, so it is described by the same fields the chain list
+ * answers with, plus what it holds.
+ **/
+export interface PermissionlessPriceFeedStore extends PermissionlessChain {
+  assets: PermissionlessAsset[];
+  priceFeeds: PriceFeed[];
+}
+
+/**
+ * What names a market, whichever side it is being listed from.
+ *
+ * A feed's markets and an asset's markets are different reads, but what they
+ * say about the market is the same: who curates it, what it is denominated in
+ * and how much of its quota is taken. Only the thing the row is about differs,
+ * which is what each of the two below adds.
+ *
+ * "This token" throughout means whatever the extending row is about — the
+ * token the feed prices, or the asset the market holds as collateral.
+ **/
+export interface PermissionlessMarket {
   market: Address;
   marketConfigurator: Address;
   /** The configurator's own name, as the backend's sync recorded it. */
@@ -69,17 +59,12 @@ export interface PermissionlessPriceFeedMarket {
    * of the backend calls a market by as well.
    */
   marketName: string | null;
-  token: Address;
-  /** `null` for a token the backend has no metadata row for. */
-  tokenSymbol: string | null;
   /**
    * Symbol of the market's underlying, which is both what the market is
-   * pictured by and what its quota limit is denominated in.
+   * pictured by and what its quota figures are denominated in.
    */
   underlyingSymbol: string | null;
-  /** The feed is the market's reserve feed for this token, not its main one. */
-  reserve: boolean;
-  /** The token is the market's underlying. */
+  /** This token is the market's own underlying, so it is not quota-managed. */
   isUnderlying: boolean;
   /**
    * What the pool will take of this token, in units of the market's
@@ -104,30 +89,102 @@ export interface PermissionlessPriceFeedMarket {
    * holds no entry for at all.
    */
   quotaUsed: number | null;
+}
+
+/**
+ * One token a market prices with the feed.
+ *
+ * A row per `(market, token, role)` rather than per market: the same feed can
+ * be the main feed of one token and the reserve feed of another in the very
+ * same market, and both are reported.
+ **/
+export interface PermissionlessIndexedPriceFeedMarket
+  extends PermissionlessMarket {
+  token: Address;
+  /** `null` for a token the backend has no metadata row for. */
+  tokenSymbol: string | null;
+  /** The feed is the market's reserve feed for this token, not its main one. */
+  reserve: boolean;
+  /**
+   * The price oracle holding the slot, which is what the period is read from.
+   *
+   * The oracle and not the market: a market that has switched oracles has
+   * rows under each, and the period lives on whichever one holds the slot now.
+   */
+  priceOracle: Address;
+}
+
+/**
+ * The same slot with the period its oracle holds for it.
+ *
+ * Read off the chain rather than served, because it is not indexed: a
+ * curator sets one per slot in their price oracle, and nothing obliges it to
+ * agree with the period the PriceFeedStore carries for the feed. A reader
+ * comparing the two is comparing two contracts, which is why both are
+ * reported.
+ **/
+export interface PermissionlessPriceFeedMarket
+  extends PermissionlessIndexedPriceFeedMarket {
   /**
    * Staleness period this market's own price oracle holds for the slot, in
    * seconds.
    *
-   * The market's figure rather than the store's: a curator sets one per slot
-   * in their price oracle, and nothing obliges it to agree with the period the
-   * PriceFeedStore carries for the feed. A reader comparing the two is
-   * comparing two contracts, which is why both are reported.
-   *
-   * Read off the oracle when the route is answered rather than taken from the
-   * index — the slot's period is not indexed — so `null` means the oracle
-   * would not answer, not that it holds no period.
+   * `null` means the oracle would not answer, or that it names another feed
+   * for the slot — in which case the slot has moved on since it was indexed
+   * and the period it holds is not this feed's to report.
    */
   marketStalenessPeriod: number | null;
 }
 
 /**
+ * One `(market, token, role)` slot of a chain, with the feed holding it.
+ *
+ * The same row {@link PermissionlessIndexedPriceFeedMarket} is, read from the
+ * chain's end rather than from one feed's: the feed is a column here because
+ * it is no longer what was asked for, and the chain is named because the read
+ * spans several.
+ *
+ * Unpivoted — a token's main and reserve feeds are two rows. What reads them
+ * this way is analysis over every slot at once, where the two roles of a
+ * token are the pair being compared and folding them together would hide it.
+ **/
+export interface PermissionlessMarketSlot
+  extends PermissionlessIndexedPriceFeedMarket {
+  chainId: number;
+  /** The market's underlying, which its quota figures are denominated in. */
+  underlyingToken: Address;
+  /**
+   * The market has been shut down: no new borrowing, but its open accounts
+   * are quoting all the same.
+   */
+  isShutdown: boolean;
+  /** The feed in force for the slot. */
+  priceFeed: Address;
+  /** Display name the store recorded, or `null` for a feed it never had. */
+  priceFeedName: string | null;
+  /**
+   * Whether the PriceFeedStore still carries that feed.
+   *
+   * `false` is the case worth looking at: the market goes on pricing with
+   * something the store has removed, or never had.
+   */
+  priceFeedInStore: boolean;
+  /**
+   * The feed the market prices its own underlying with, which is what
+   * converts this row's quota figures. `null` for a market that has none.
+   */
+  underlyingPriceFeed: Address | null;
+}
+
+/**
  * One feed of the store, with everywhere the store lets it be used.
  *
- * Feeds a tree carries but the store never added have no identity to report —
- * no status history, hence no name or staleness — so the read throws for them
- * rather than answering a half-filled row.
+ * Feeds a tree carries but the store never added have no identity to report
+ * here — no status history, hence no name or staleness — so the backend does
+ * not answer for them; the SDK reads them off the chain instead, see
+ * {@link PermissionlessPriceFeedDetails.inStore}.
  **/
-export interface PermissionlessPriceFeedDetails {
+export interface PermissionlessIndexedPriceFeedDetails {
   chainId: number;
   priceFeed: PriceFeed;
   assets: PermissionlessPriceFeedAsset[];
@@ -136,7 +193,23 @@ export interface PermissionlessPriceFeedDetails {
    * ahead of the reserve ones — the grouping a reader wants, so a caller
    * rendering a table does not have to sort it again.
    */
+  markets: PermissionlessIndexedPriceFeedMarket[];
+}
+
+/**
+ * The same feed with each slot's staleness period read off its oracle.
+ **/
+export interface PermissionlessPriceFeedDetails
+  extends PermissionlessIndexedPriceFeedDetails {
   markets: PermissionlessPriceFeedMarket[];
+  /**
+   * Whether the answer is the store's.
+   *
+   * `false` is a deployed feed the store never added, read off the chain
+   * instead: `deployedBy` is the zero address, `stalenessPeriod` is 0, and
+   * `assets` and `markets` are empty, because all of them are store rows.
+   */
+  inStore: boolean;
 }
 
 /**
@@ -171,24 +244,20 @@ export interface PermissionlessAssetMarketFeed {
  * columns of the same market's row, and the quota is the market's whatever
  * feed holds which slot.
  **/
-export interface PermissionlessAssetMarket {
-  market: Address;
-  marketConfigurator: Address;
-  /** The configurator's own name, as the backend's sync recorded it. */
-  curatorName: string | null;
-  /** The market's own name, which is the name of its pool token. */
-  marketName: string | null;
+export interface PermissionlessAssetMarket extends PermissionlessMarket {
   /** The market's underlying, which its quota figures are denominated in. */
   underlyingToken: Address;
-  /** `null` for an underlying the backend has no metadata row for. */
-  underlyingSymbol: string | null;
-  /** The asset is this market's own underlying, so it is not quota-managed. */
-  isUnderlying: boolean;
+  /**
+   * The feed the market prices its own underlying with, which is what converts
+   * this row's quota figures. `null` for a market that has no main feed for
+   * its underlying, whose figures therefore cannot be converted at all.
+   */
+  underlyingPriceFeed: Address | null;
   /**
    * The market has been shut down.
    *
    * Still reported, and still counted in {@link
-   * PermissionlessAssetDetails.quotaUsedUsd}: a shut down market carries no
+   * PermissionlessQuotaTotals.quotaUsedUsd}: a shut down market carries no
    * new borrowing but its open accounts are quoting all the same.
    */
   isShutdown: boolean;
@@ -196,16 +265,6 @@ export interface PermissionlessAssetMarket {
   mainFeed: PermissionlessAssetMarketFeed | null;
   /** The feed the market falls back to, or `null` if it has none. */
   reserveFeed: PermissionlessAssetMarketFeed | null;
-  /**
-   * What the pool will take of the asset, in units of {@link underlyingToken}.
-   *
-   * `null` for an asset the quota keeper was never told a limit for, which the
-   * market's own underlying always is. A zero is a limit set to zero, and the
-   * two are different answers.
-   */
-  quotaLimit: number | null;
-  /** How much of {@link quotaLimit} is actually taken, in the same units. */
-  quotaUsed: number | null;
 }
 
 /**
@@ -215,7 +274,7 @@ export interface PermissionlessAssetMarket {
  * The counterpart of {@link PermissionlessPriceFeedDetails} — the same corner
  * of the chain read from the asset's end instead of the feed's.
  **/
-export interface PermissionlessAssetDetails {
+export interface PermissionlessIndexedAssetDetails {
   chainId: number;
   asset: PermissionlessPriceFeedAsset;
   /**
@@ -227,65 +286,226 @@ export interface PermissionlessAssetDetails {
   priceFeeds: PriceFeed[];
   /** Ordered by curator, then by market. */
   markets: PermissionlessAssetMarket[];
+}
+
+/**
+ * The same asset with its quotas totalled, which is what a reader gets.
+ *
+ * The totals are over the very rows {@link markets} reports, converted at the
+ * price each market's own oracle holds for its underlying, so the header and
+ * the table under it cannot disagree.
+ **/
+export interface PermissionlessAssetDetails
+  extends PermissionlessIndexedAssetDetails,
+    PermissionlessQuotaTotals {}
+
+/**
+ * One asset of the PriceFeedStore, with what its markets make of it.
+ *
+ * Everything a list of assets renders and nothing else: the store's own read
+ * carries each asset's feeds too, which is several times this payload and not
+ * what a reader scanning for the big positions is looking at.
+ *
+ * The quota rows are the ones {@link PermissionlessAssetDetails} heads an
+ * asset's own page with, off the same query, so the list and the page a row of
+ * it opens are totalling the very same figures.
+ *
+ * What a reader gets is {@link PermissionlessAssetSummary}, this plus what the
+ * SDK makes of the asset.
+ **/
+export interface PermissionlessIndexedAssetSummary {
+  chainId: number;
+  /** Lowercased, as everything addressed in these payloads is. */
+  address: Address;
+  symbol: string;
   /**
-   * Total quota limit across the markets still running, in USD.
+   * How many markets still running are underlain by this asset.
    *
-   * In USD and not in token units because there is no token to state it in: a
-   * limit is denominated in its own market's underlying, and an asset is
-   * routinely collateral in markets underlain by different tokens, so the
-   * figures are not comparable until each is priced. Each market's limit is
-   * converted at the price that market's own oracle holds for its underlying.
-   *
-   * Shut down markets are left out — their limits are not borrowable — and so
-   * are markets whose underlying could not be priced, which makes this a floor
-   * rather than an estimate. `null` when no market contributed at all.
+   * What makes an asset central rather than merely listed: a token several
+   * markets borrow against is the one a reader opens the list for. Shut down
+   * markets are left out for the reason their limits are — they are no longer
+   * a place anything happens.
    */
+  underlyingMarketCount: number;
+  /**
+   * What each market holding the asset has committed to it, unconverted.
+   *
+   * One entry per market, in that market's own underlying — see
+   * {@link PermissionlessAssetQuota}. Totalling them is
+   * {@link PermissionlessAssetSummary}'s two USD figures, which is why they
+   * are carried rather than summed: the sum needs a price, and a price needs
+   * the chain.
+   */
+  marketQuotas: PermissionlessAssetQuota[];
+}
+
+/**
+ * One market's commitment to an asset, in that market's own underlying.
+ *
+ * Unconverted on purpose: a limit is denominated in its market's underlying,
+ * and an asset is routinely collateral in markets underlain by different
+ * tokens — WETH is collateral in USDC, WETH and wstETH markets at once on
+ * mainnet — so the figures are not comparable until each is priced. The feed
+ * that prices the underlying is named here so that whoever totals them knows
+ * what to ask the chain.
+ **/
+export interface PermissionlessAssetQuota {
+  /**
+   * What the pool will take of the asset, in units of the market's underlying.
+   *
+   * `null` for a token the quota keeper was never told a limit for, which the
+   * market's own underlying always is — it is not quota-managed. A zero is a
+   * limit the curator has actually set to zero, and the two are different
+   * answers.
+   */
+  quotaLimit: number | null;
+  /** How much of that limit is taken, in the same units. */
+  quotaUsed: number | null;
+  /** The market has been shut down, so its limit is no longer borrowable. */
+  isShutdown: boolean;
+  /**
+   * The feed the market prices its own underlying with.
+   *
+   * `null` for a market with no main feed for its underlying, whose figures
+   * therefore cannot be converted at all.
+   */
+  underlyingPriceFeed: Address | null;
+}
+
+/**
+ * Totals of {@link PermissionlessAssetQuota}, converted to USD.
+ *
+ * Limits count only the markets still running, because a shut down market's
+ * limit is not borrowable; what is already quoted counts everywhere, because
+ * debt outstanding is exposure either way. A market whose underlying could not
+ * be priced is skipped, which makes both figures floors, and `null` is nothing
+ * to total rather than a zero.
+ **/
+export interface PermissionlessQuotaTotals {
+  /** Total quota limit across the markets still running, in USD. */
   quotaLimitUsd: number | null;
-  /**
-   * Total quota actually taken across every market, in USD, converted the same
-   * way as {@link quotaLimitUsd}.
-   *
-   * Every market, including the shut down ones: debt outstanding is exposure
-   * whether or not the market still takes new borrowers.
-   */
+  /** Total quota actually taken across every market, in USD. */
   quotaUsedUsd: number | null;
 }
 
 /**
- * What each of one asset's feeds says the asset is worth, and what the market
- * values the asset at through each.
+ * The same asset with what this SDK makes of it.
  *
- * Keyed by the lowercased feed address throughout. The asset is the one asked
- * for, so a cap here is that feed's price times the asset's supply — the same
- * figure {@link PermissionlessPriceFeedMarketCaps} answers from the other
- * side, and the reason both exist is that a page shows one row per feed or one
- * row per asset, never the full cross product.
- *
- * `null` is a read that failed, not a zero.
+ * Two things the backend does not answer for. What the asset is comes off this
+ * package's curated tables, because a backend consulting them could only
+ * answer from whichever version it was built against — a reader on a newer SDK
+ * than the deployment it talks to still classifies by the newer tables. The
+ * quota totals come off the chain, because converting a market's own
+ * denomination needs a price and the chain is where prices are.
  **/
-export interface PermissionlessAssetPrices {
-  prices: Record<Address, string | null>;
-  marketCaps: Record<Address, string | null>;
-  /** When the backend computed the figures; they are read live, not indexed. */
-  time: number;
+export interface PermissionlessAssetSummary
+  extends PermissionlessIndexedAssetSummary,
+    PermissionlessQuotaTotals {
+  /**
+   * What the asset is, where the tables say so.
+   *
+   * `null` for anything they do not name, which is most of a store: they
+   * classify the tokens markets are built on, and a store carries everything
+   * those markets will take as collateral. A filter over this sorts the
+   * assets worth sorting and leaves the rest in one heap, which is the honest
+   * answer rather than a guess from the symbol.
+   */
+  assetType: AssetType | null;
+  /**
+   * Whether the asset stands for something outside the chain.
+   *
+   * A flag rather than a value of {@link assetType}, because the two answer
+   * different questions and an asset can be both: a tokenised treasury is a
+   * real-world asset and may still be the stable a market is built on. Unlike
+   * {@link assetType} there is no third state — the curated list naming it is
+   * the whole of what makes an asset one, so not being on it is a real `false`
+   * rather than something unknown.
+   */
+  isRwa: boolean;
 }
 
 /**
- * Market caps of one feed's assets, keyed by the lowercased asset address.
+ * One feed of a chain, named so it can be read alongside another chain's.
  *
- * Scoped to the feed rather than to the chain, which is what
- * {@link PermissionlessOracles.prices} answers. A cap is
- * `price × totalSupply`, so the chain-wide read pays for one `totalSupply` per
- * asset of every market on it; a screen showing one feed's handful of rows
- * should not.
+ * An address alone does not identify a feed: the same aggregator is deployed
+ * to several chains, and reading it on the wrong one answers the wrong price.
+ **/
+export interface PriceFeedRef {
+  chainId: number;
+  address: Address;
+}
+
+/**
+ * The price one feed reports, as {@link PermissionlessOracles.getPrices}
+ * answers.
  *
- * `null` for an asset whose price or supply could not be read — not a zero,
+ * `price` is `null` for a feed whose read reverted, which is not a zero, and
+ * is in the 8 decimals every Gearbox feed reports.
+ **/
+export interface PriceFeedPrice extends PriceFeedRef {
+  price: bigint | null;
+}
+
+/**
+ * How many decimals a feed's answer carries, as
+ * {@link PermissionlessOracles.getDecimals} answers.
+ *
+ * Its own call rather than a field of {@link PriceFeedPrice}, because the two
+ * are not read on the same schedule: a price is the figure that moves and is
+ * re-read for it, while a deployed feed's decimals never change, so a caller
+ * reads these once and keeps them.
+ *
+ * Needed wherever the feeds are not only the ones a market reads. Every
+ * Gearbox feed an oracle holds reports 8, which is why most of this namespace
+ * can assume it — but a composite's own dependencies are whatever the
+ * aggregator underneath happens to be, and a rate leg of one is routinely 18.
+ *
+ * `null` is a feed that would not answer `decimals()` at all, which a caller
+ * showing the figure should treat as unknown rather than as 8.
+ **/
+export interface PriceFeedDecimals extends PriceFeedRef {
+  decimals: number | null;
+}
+
+/**
+ * One asset with the feeds to value it through.
+ *
+ * The asset's side of {@link PermissionlessOracles.getMarketCap} — the shape a
+ * screen showing one asset's feeds asks with.
+ **/
+export interface AssetCap {
+  chainId: number;
+  asset: Address;
+  priceFeeds: Address[];
+}
+
+/**
+ * One feed with the assets to value through it.
+ *
+ * The feed's side of the same call. Both exist because a screen shows one row
+ * per feed or one row per asset, never the full cross product.
+ **/
+export interface FeedCap {
+  chainId: number;
+  priceFeed: Address;
+  assets: Address[];
+}
+
+/**
+ * What one feed values one asset's supply at, in USD.
+ *
+ * `price × totalSupply`, as a decimal string: the product of an 8-decimal
+ * price and a supply in the asset's own decimals does not fit a JS number
+ * without losing the small end of it.
+ *
+ * `null` for a pair whose price or supply could not be read — not a zero,
  * since an asset nobody could price is not an asset worth nothing.
- */
-export interface PermissionlessPriceFeedMarketCaps {
-  marketCaps: Record<Address, string | null>;
-  /** When the backend computed the figures; they are read live, not indexed. */
-  time: number;
+ **/
+export interface MarketCap {
+  chainId: number;
+  priceFeed: Address;
+  asset: Address;
+  cap: string | null;
 }
 
 /** Args of a read scoped to one feed. */
@@ -300,13 +520,8 @@ export interface AssetArgs {
   address: Address;
 }
 
-/** Args of {@link PermissionlessOracles.getPrices}. */
-export interface GetPricesArgs {
-  chainId: number;
-  /**
-   * The feeds to price. Any address answering `latestRoundData` works — the
-   * store does not have to carry it, which is the point of reading the chain
-   * rather than asking the backend.
-   **/
-  priceFeeds: Address[];
+/** Args of {@link PermissionlessOracles.assets}. */
+export interface AssetsArgs {
+  /** Omit for every chain the backend serves. */
+  chainId?: number;
 }
