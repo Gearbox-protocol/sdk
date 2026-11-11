@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { classifySources, sourcesByFeed, type TreeNode } from "./classify.js";
 import { groupOverride, perturb, rateStub, roundDataStub } from "./override.js";
 import { scoreGroup, slotHarm } from "./score.js";
-import type { GroupScenarioOutcome, SlotOutcome, StressSource } from "./types.js";
+import type {
+  GroupScenarioOutcome,
+  SlotOutcome,
+  StressSource,
+} from "./types.js";
 
 const addr = (n: number): Address =>
   `0x${n.toString(16).padStart(40, "0")}` as Address;
@@ -219,9 +223,7 @@ describe("sourcesByFeed", () => {
     [addr(2), node({ address: addr(2), underlyingFeeds: [leaf] })],
     [leaf, node({ address: leaf })],
   ]);
-  const sources = [
-    { feed: leaf, target: leaf } as StressSource,
-  ];
+  const sources = [{ feed: leaf, target: leaf } as StressSource];
 
   it("reaches a source at any depth under the root", () => {
     const reach = sourcesByFeed([addr(1)], nodes, sources);
@@ -235,16 +237,18 @@ describe("sourcesByFeed", () => {
       [leaf, node({ address: leaf })],
     ]);
 
-    expect([...(sourcesByFeed([addr(1)], cyclic, sources).get(addr(1)) ?? [])]).toEqual(
-      [leaf],
-    );
+    expect([
+      ...(sourcesByFeed([addr(1)], cyclic, sources).get(addr(1)) ?? []),
+    ]).toEqual([leaf]);
   });
 });
 
 describe("perturb", () => {
   it("keeps all of a multiplier twelve orders of magnitude up", () => {
     // The naive `BigInt(Math.round(m * 1e9))` loses the bottom of this.
-    expect(perturb(228_130_000_000n, 1e12)).toBe(228_130_000_000_000_000_000_000n);
+    expect(perturb(228_130_000_000n, 1e12)).toBe(
+      228_130_000_000_000_000_000_000n,
+    );
   });
 
   it("keeps all of one twelve orders down", () => {
@@ -272,12 +276,12 @@ describe("the stubs", () => {
     // the front reads 8, which is the decimals every Gearbox feed reports.
     expect(code.startsWith(`0x7f${"8".padStart(64, "0")}600052`)).toBe(true);
     expect(code.endsWith("60a06000f3")).toBe(true);
-    expect(code).toContain((42n).toString(16).padStart(64, "0"));
+    expect(code).toContain(42n.toString(16).padStart(64, "0"));
   });
 
   it("answers a rate in one word", () => {
     expect(rateStub(7n)).toBe(
-      `0x7f${(7n).toString(16).padStart(64, "0")}60005260206000f3`,
+      `0x7f${7n.toString(16).padStart(64, "0")}60005260206000f3`,
     );
   });
 
@@ -354,7 +358,9 @@ describe("slotHarm", () => {
   it("counts a feed that stopped answering as half a mispricing", () => {
     expect(
       slotHarm(
-        slot({ feed: { feed: addr(3), base: 1n, stressed: null, factor: null } }),
+        slot({
+          feed: { feed: addr(3), base: 1n, stressed: null, factor: null },
+        }),
       ),
     ).toBe(0.5);
   });

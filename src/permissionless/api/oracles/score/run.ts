@@ -125,11 +125,15 @@ async function simulatePairs({
 
   const roots = [
     ...new Set(
-      pairs.flatMap(({ main, reserve }) => (reserve ? [main, reserve] : [main])),
+      pairs.flatMap(({ main, reserve }) =>
+        reserve ? [main, reserve] : [main],
+      ),
     ),
   ];
   const reach = sourcesByFeed(roots, nodes, sources);
-  const sourceByTarget = new Map(sources.map(source => [source.target, source]));
+  const sourceByTarget = new Map(
+    sources.map(source => [source.target, source]),
+  );
 
   // A constant feed has nothing publishing to it, and a silent one cannot be
   // made to say something else: neither is a source that can lie.
@@ -177,7 +181,9 @@ async function simulatePairs({
     roots.map(root => [root, asIs.get(root) ?? freshened.get(root) ?? null]),
   );
   const asIsRoots = roots.filter(root => (asIs.get(root) ?? null) !== null);
-  const freshRoots = stale.filter(root => (freshened.get(root) ?? null) !== null);
+  const freshRoots = stale.filter(
+    root => (freshened.get(root) ?? null) !== null,
+  );
 
   /** Every root under a lie, each read the way its base was. */
   const readLying = async (
@@ -233,58 +239,62 @@ async function simulatePairs({
     );
   }
 
-  const results = effective.map(({ main, reserve, notes }): Simulated | null => {
-    const before = finalPrice(
-      base.get(main) ?? null,
-      reserve ? (base.get(reserve) ?? null) : undefined,
-    );
-    if (before === null || before <= 0n) {
-      return null;
-    }
-
-    const onMain = groupsOf(main);
-    const onReserve = groupsOf(reserve);
-
-    const impacts: GroupImpact[] = [
-      ...new Set([...onMain.keys(), ...onReserve.keys()]),
-    ].map(group => {
-      const under = stressed.get(group) ?? new Map<Address, bigint | null>();
-      const after = finalPrice(
-        under.get(main) ?? null,
-        reserve ? (under.get(reserve) ?? null) : undefined,
+  const results = effective.map(
+    ({ main, reserve, notes }): Simulated | null => {
+      const before = finalPrice(
+        base.get(main) ?? null,
+        reserve ? (base.get(reserve) ?? null) : undefined,
       );
-      const factor = factorOf(before, after);
-      const members = [
-        ...(onMain.get(group) ?? []),
-        ...(onReserve.get(group) ?? []),
-      ];
-      return {
-        group,
-        identified: members.every(source => source.identified),
-        feeds: [...new Set(members.map(source => source.description))],
-        reaches: onMain.has(group)
-          ? onReserve.has(group)
-            ? "both"
-            : "main"
-          : "reserve",
-        factor,
-        score: scoreOfFactor(factor),
-      };
-    });
+      if (before === null || before <= 0n) {
+        return null;
+      }
 
-    return {
-      hasReserve: reserve !== undefined,
-      price: Number(formatUnits(before, 8)),
-      // Where one side holds against a lie only because the other reads a
-      // source nothing could name, the hold rests on that source standing
-      // alone.
-      unverified:
-        reserve !== undefined &&
-        impacts.some(impact => !impact.identified && impact.reaches !== "both"),
-      notes,
-      ...worstOf(impacts),
-    };
-  });
+      const onMain = groupsOf(main);
+      const onReserve = groupsOf(reserve);
+
+      const impacts: GroupImpact[] = [
+        ...new Set([...onMain.keys(), ...onReserve.keys()]),
+      ].map(group => {
+        const under = stressed.get(group) ?? new Map<Address, bigint | null>();
+        const after = finalPrice(
+          under.get(main) ?? null,
+          reserve ? (under.get(reserve) ?? null) : undefined,
+        );
+        const factor = factorOf(before, after);
+        const members = [
+          ...(onMain.get(group) ?? []),
+          ...(onReserve.get(group) ?? []),
+        ];
+        return {
+          group,
+          identified: members.every(source => source.identified),
+          feeds: [...new Set(members.map(source => source.description))],
+          reaches: onMain.has(group)
+            ? onReserve.has(group)
+              ? "both"
+              : "main"
+            : "reserve",
+          factor,
+          score: scoreOfFactor(factor),
+        };
+      });
+
+      return {
+        hasReserve: reserve !== undefined,
+        price: Number(formatUnits(before, 8)),
+        // Where one side holds against a lie only because the other reads a
+        // source nothing could name, the hold rests on that source standing
+        // alone.
+        unverified:
+          reserve !== undefined &&
+          impacts.some(
+            impact => !impact.identified && impact.reaches !== "both",
+          ),
+        notes,
+        ...worstOf(impacts),
+      };
+    },
+  );
 
   return { results, sourcesOf };
 }
@@ -312,9 +322,7 @@ export async function runAssetScores({
   // A shut down market prices nothing anyone can borrow against.
   const running = slots.filter(slot => !slot.isShutdown);
 
-  const oracles = [
-    ...new Set(running.map(slot => lower(slot.priceOracle))),
-  ];
+  const oracles = [...new Set(running.map(slot => lower(slot.priceOracle)))];
   const { nodes, answers, unreadableOracles } = await readForest(
     client,
     compressor,
@@ -392,7 +400,10 @@ export async function runAssetScores({
     }
 
     const asset = lower(main.token);
-    const entry = byAsset.get(asset) ?? { symbol: main.tokenSymbol, markets: [] };
+    const entry = byAsset.get(asset) ?? {
+      symbol: main.tokenSymbol,
+      markets: [],
+    };
     byAsset.set(asset, entry);
 
     entry.markets.push({
@@ -451,15 +462,19 @@ export async function runFeedPairScore({
   const reserveFeed = reserve ? lower(reserve) : undefined;
 
   const feeds =
-    reserveFeed && reserveFeed !== mainFeed ? [mainFeed, reserveFeed] : [mainFeed];
-  const { nodes, answers } = await readFeedTrees(client, compressor, feeds).catch(
-    (cause: unknown) => {
-      throw new Error(
-        `the PriceFeedCompressor of chain ${chainId} would not read ${feeds.join(" and ")}: not a price feed it knows`,
-        { cause },
-      );
-    },
-  );
+    reserveFeed && reserveFeed !== mainFeed
+      ? [mainFeed, reserveFeed]
+      : [mainFeed];
+  const { nodes, answers } = await readFeedTrees(
+    client,
+    compressor,
+    feeds,
+  ).catch((cause: unknown) => {
+    throw new Error(
+      `the PriceFeedCompressor of chain ${chainId} would not read ${feeds.join(" and ")}: not a price feed it knows`,
+      { cause },
+    );
+  });
   for (const feed of [mainFeed, reserveFeed]) {
     if (feed && !nodes.has(feed)) {
       throw new Error(

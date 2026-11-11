@@ -136,7 +136,9 @@ export function groupOverride(
     overrides.push({
       address: source.target,
       code:
-        source.kind === "rate" ? rateStub(value) : roundDataStub(value, updatedAt),
+        source.kind === "rate"
+          ? rateStub(value)
+          : roundDataStub(value, updatedAt),
     });
   }
 

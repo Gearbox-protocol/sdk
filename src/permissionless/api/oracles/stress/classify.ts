@@ -93,9 +93,17 @@ const DESCRIPTION_RULES: Array<{
   { via: "description names Redstone", match: /redstone/i, group: "Redstone" },
   { via: "description names Pyth", match: /\bpyth\b/i, group: "Pyth" },
   { via: "description names Pendle", match: /pendle/i, group: "Pendle" },
-  { via: "description names Chronicle", match: /chronicle/i, group: "Chronicle" },
+  {
+    via: "description names Chronicle",
+    match: /chronicle/i,
+    group: "Chronicle",
+  },
   { via: "description names API3", match: /\bapi3\b/i, group: "API3" },
-  { via: "description names Chaos", match: /chaos\s*labs/i, group: "Chaos Labs" },
+  {
+    via: "description names Chaos",
+    match: /chaos\s*labs/i,
+    group: "Chaos Labs",
+  },
   {
     // Midas issues a family of tokenised funds under one naming convention and
     // one oracle operator, so they fail together: mTBILL, mBASIS, mEDGE,
@@ -163,7 +171,12 @@ function classifyLeaf(node: TreeNode): {
   // type, which beats anything their description could be read for.
   if (type === "REDSTONE" || type === "PYTH" || type === "CHAINLINK") {
     return {
-      group: type === "PYTH" ? "Pyth" : type === "REDSTONE" ? "Redstone" : "Chainlink",
+      group:
+        type === "PYTH"
+          ? "Pyth"
+          : type === "REDSTONE"
+            ? "Redstone"
+            : "Chainlink",
       identified: true,
       via: "Gearbox feed type",
     };

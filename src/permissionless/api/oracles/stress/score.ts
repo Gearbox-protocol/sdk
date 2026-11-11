@@ -124,17 +124,16 @@ export function verdictOf(
   }
 
   const broken = Math.max(...outcomes.map(o => o.brokenSlots), 0);
-  const inflation = Math.max(
-    ...outcomes.map(o => o.worstInflation ?? 1),
-    1,
-  );
+  const inflation = Math.max(...outcomes.map(o => o.worstInflation ?? 1), 1);
   const deflation = Math.min(...outcomes.map(o => o.worstDeflation ?? 1), 1);
 
   // Both ends, because they are different attacks: an inflated ratio is
   // borrowed against, a deflated one liquidates somebody solvent.
   const ends = [
     inflation > 1.01 ? `${inflation.toExponential(1)}× too high` : null,
-    deflation < 0.99 ? `${deflation.toExponential(1)}× of what it should be` : null,
+    deflation < 0.99
+      ? `${deflation.toExponential(1)}× of what it should be`
+      : null,
   ].filter((end): end is string => end !== null);
 
   const dead = Math.max(...outcomes.map(o => o.deadSlots), 0);
