@@ -1,4 +1,6 @@
 export * from "./erc4626ReferralAdapter.js";
+export * from "./iAaveHorizonBridgeAdapter.js";
+export * from "./iAaveV3PoolAdapter.js";
 export * from "./iBalancerV3RouterAdapter.js";
 export * from "./iBalancerV3WrapperAdapter.js";
 export * from "./iCamelotV3Adapter.js";

@@ -908,6 +908,18 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(prepared.state.quotas).toEqual([]);
   });
 
+  it("moveToAave reaches the engine, which finds no Aave adapters on this market", async () => {
+    const { api, position } = buildStrategyApi();
+
+    const result = await api.moveToAave(position, { token: POS });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsupportedCollateralToken");
+    // refused by the walk, so the market it was walked in is reported
+    expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
+  });
+
   it("adjustLeverage retargets the debt and quotes both routes", async () => {
     const { api, position } = buildStrategyApi();
 

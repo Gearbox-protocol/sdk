@@ -28,6 +28,7 @@ import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
   DepositStrategyIntent,
+  MoveToAaveIntent,
   RepayStrategyIntent,
   UpdateQuotaIntent,
   WithdrawAssetIntent,
@@ -105,7 +106,14 @@ export type Step =
    * is skipped. `quota` is the target in underlying units; `undefined` sizes
    * it to the balance.
    */
-  | { kind: "updateQuota"; token: Address; quota: bigint | undefined };
+  | { kind: "updateQuota"; token: Address; quota: bigint | undefined }
+  /** Supplies `amount` of `token` to the Aave pool, for its aToken. */
+  | { kind: "aaveSupply"; token: Address; amount: bigint }
+  /**
+   * Hands every aToken of `token` the account holds to its owner through the
+   * Horizon bridge, which borrows `borrow` of the underlying into the account.
+   */
+  | { kind: "aaveOpenPosition"; token: Address; borrow: bigint };
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
@@ -293,6 +301,57 @@ export function planRepay(
     // (`DebtToZeroWithActiveQuotasException`), so a settlement drops them.
     ...(repaid === view.debt ? [clearQuotas()] : []),
     repay(repaid),
+  ];
+}
+
+/**
+ * The position leaves for Aave Horizon: the RWA is supplied to the Aave pool,
+ * its aTokens go to the owner with a loan against them, and that loan settles
+ * the account's own.
+ *
+ * Aave lends the debt plus the {@link SETTLE_MARGIN} headroom, since the facade
+ * is told to repay everything outstanding by the time the transaction lands;
+ * what it does not take stays on the account.
+ */
+export function planMoveToAave(
+  intent: Omit<MoveToAaveIntent, "type">,
+  view: AccountView,
+): Step[] {
+  const amount = view.balanceOf(intent.token);
+  if (eq(intent.token, view.underlying) || isZeroBalance(amount)) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
+      `moveToAave: ${intent.token} is the underlying or not held by the account`,
+    );
+  }
+  if (view.debt <= 0n) {
+    throw new IntentPreviewError(
+      debtOutOfRange({
+        requested: toTokenAmount(view.sdk, view.underlying, view.debt),
+        minDebt: toTokenAmount(
+          view.sdk,
+          view.underlying,
+          view.debtLimits.minDebt,
+        ),
+        maxDebt: toTokenAmount(
+          view.sdk,
+          view.underlying,
+          view.debtLimits.maxDebt,
+        ),
+      }),
+      "moveToAave: the account owes nothing",
+    );
+  }
+  return [
+    { kind: "aaveSupply", token: intent.token, amount },
+    {
+      kind: "aaveOpenPosition",
+      token: intent.token,
+      borrow: withMargin(view.debt),
+    },
+    // `DebtToZeroWithActiveQuotasException`, as in planRepay.
+    clearQuotas(),
+    repay(view.debt),
   ];
 }
 

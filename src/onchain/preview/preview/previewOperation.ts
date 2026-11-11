@@ -31,6 +31,7 @@ import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
 import { detectDelayedOperation } from "./detectDelayedOperation.js";
 import { estimateClaimableAt } from "./estimateClaimableAt.js";
+import { loadAdapterReplayState } from "./loadAdapterReplayState.js";
 import { previewAdjustStrategyPosition } from "./previewAdjustStrategyPosition.js";
 import { previewExitOrRepayStrategyPosition } from "./previewExitOrRepayStrategyPosition.js";
 import { previewOpenStrategyPosition } from "./previewOpenStrategyPosition.js";
@@ -82,6 +83,10 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
 
   if (isPoolOperation(operation)) {
     return previewPoolPositionOperation(sdk, operation, options);
+  }
+
+  if ("multicall" in operation) {
+    await loadAdapterReplayState(sdk, operation.multicall);
   }
 
   if (

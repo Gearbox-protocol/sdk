@@ -557,6 +557,12 @@ export const chains: Record<NetworkType, GearboxChain> = {
   }),
   Lisk: defineChain({
     ...lisk,
+    rpcUrls: {
+      ...lisk.rpcUrls,
+      tenderly: {
+        http: ["https://lisk.gateway.tenderly.co"],
+      },
+    },
     network: "Lisk",
     defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
       "0x25778dbf0e56b7feb8358c4aa2f6f9e19a1c145a": "Re7",

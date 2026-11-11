@@ -123,6 +123,16 @@ export class OperationLedger {
           this.#add(out.token, out.amount);
         }
         break;
+      case "aaveSupply":
+        this.#add(op.token, -op.amount);
+        this.#add(op.aToken, op.amount);
+        break;
+      // The Aave loan is the owner's, not the account's: what it borrowed
+      // lands as a balance and the account's own debt does not move.
+      case "aaveOpenPosition":
+        this.#add(op.aToken, -op.aTokenAmount);
+        this.#add(op.debtToken, op.borrowAmount);
+        break;
       default: {
         const _exhaustive: never = op;
         void _exhaustive;

@@ -13,6 +13,7 @@ import type {
   MultiCall,
   OnchainSDK,
 } from "../../../index.js";
+import type { IAdapterContract } from "../../../market/adapters/index.js";
 import { CreditSuite } from "../../../market/credit/CreditSuite.js";
 import { CreditSuiteStrategy } from "../../../market/credit/CreditSuiteStrategy.js";
 import { calcMaxLeverage } from "../../../market/math.js";
@@ -206,6 +207,8 @@ interface BuildMockSdkArgs {
    * keeps the projected state and the amounts in the calls one number.
    */
   routeFloor?: (amount: bigint) => bigint;
+  /** Adapters the credit manager lists; none when omitted. */
+  adapters?: IAdapterContract[];
 }
 
 /** One redemption venue of the mock compressor. */
@@ -409,6 +412,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
       maxEnabledTokens: args.maxEnabledTokens ?? 4,
       maxLeverage: (collateral: Address, targetHF?: Bps) =>
         calcMaxLeverage(liquidationThresholds.get(collateral) ?? 0, targetHF),
+      adapters: { values: () => args.adapters ?? [] },
     },
     creditFacade: {
       address: args.creditFacade,

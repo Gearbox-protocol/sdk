@@ -4,11 +4,15 @@ import {
   multipleDelayedWithdrawals,
   noDelayedRoute,
   type OperationLimitOptions,
+  unsupportedCollateralToken,
   withdrawalInProgress,
 } from "../../../model/index.js";
 import { getDirectTransferToken } from "../../chain/chains.js";
 import { PERCENTAGE_FACTOR_1KK } from "../../constants/math.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
+import { AaveHorizonBridgeAdapterContract } from "../../market/adapters/contracts/AaveHorizonBridgeAdapterContract.js";
+import { AaveV3PoolAdapterContract } from "../../market/adapters/contracts/AaveV3PoolAdapterContract.js";
+import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
@@ -22,6 +26,8 @@ import {
 } from "./guards.js";
 import {
   type AccountCalculatorOperation,
+  buildAaveOpenPositionOperation,
+  buildAaveSupplyOperation,
   buildAddCollateralOperation,
   buildClaimDelayedWithdrawalOperation,
   buildCloseSwapOperation,
@@ -540,6 +546,41 @@ export async function realize(
         break;
       }
 
+      case "aaveSupply": {
+        assertHolds(step.token, step.amount, "aaveSupply");
+        const adapter = aavePoolAdapter(sdk, suite, step.token);
+        push(
+          buildAaveSupplyOperation({
+            adapter,
+            token: step.token,
+            aToken: await adapter.aToken(step.token),
+            amount: step.amount,
+          }),
+        );
+        break;
+      }
+
+      case "aaveOpenPosition": {
+        const aToken = await aavePoolAdapter(sdk, suite, step.token).aToken(
+          step.token,
+        );
+        const aTokenAmount = ledger.balanceOf(aToken);
+        assertHolds(aToken, aTokenAmount, "aaveOpenPosition");
+        push(
+          buildAaveOpenPositionOperation({
+            adapter: aaveBridgeAdapter(sdk, suite, step.token, {
+              aToken,
+              debtToken: underlying,
+            }),
+            aToken,
+            aTokenAmount,
+            debtToken: underlying,
+            borrowAmount: step.borrow,
+          }),
+        );
+        break;
+      }
+
       default: {
         const _exhaustive: never = step;
         void _exhaustive;
@@ -750,6 +791,54 @@ async function delayedConfig(
     );
   }
   return assets[0];
+}
+
+/** The credit manager's Aave pool adapter that lists `token`. */
+function aavePoolAdapter(
+  sdk: OnchainSDK,
+  suite: CreditSuite,
+  token: Address,
+): AaveV3PoolAdapterContract {
+  const adapter = suite.creditManager.adapters
+    .values()
+    .find(
+      (a): a is AaveV3PoolAdapterContract =>
+        a instanceof AaveV3PoolAdapterContract && a.isAssetAllowed(token),
+    );
+  if (!adapter) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(sdk, token)),
+      `aaveSupply: no Aave pool adapter lists ${token}`,
+    );
+  }
+  return adapter;
+}
+
+/**
+ * The credit manager's Horizon bridge adapter that takes `aToken` and lends
+ * `debtToken`. Refused on `token`, the collateral the aToken stands for.
+ */
+function aaveBridgeAdapter(
+  sdk: OnchainSDK,
+  suite: CreditSuite,
+  token: Address,
+  pair: { aToken: Address; debtToken: Address },
+): AaveHorizonBridgeAdapterContract {
+  const adapter = suite.creditManager.adapters
+    .values()
+    .find(
+      (a): a is AaveHorizonBridgeAdapterContract =>
+        a instanceof AaveHorizonBridgeAdapterContract &&
+        a.isATokenAllowed(pair.aToken) &&
+        a.isDebtTokenAllowed(pair.debtToken),
+    );
+  if (!adapter) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(sdk, token)),
+      `aaveOpenPosition: no Horizon bridge adapter takes ${pair.aToken} against ${pair.debtToken}`,
+    );
+  }
+  return adapter;
 }
 
 const callsOf = (operations: AccountCalculatorOperation[]): MultiCall[] =>

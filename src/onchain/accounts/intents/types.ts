@@ -454,6 +454,26 @@ export interface RepayStrategyIntent {
 }
 
 /**
+ * Moves a position whose RWA collateral has been minted from the account to
+ * Aave Horizon, and settles the Gearbox loan with what Aave lends against it.
+ *
+ * The whole balance of `token` is supplied to the Aave pool, the aTokens it
+ * mints are handed to the account owner through the Horizon bridge, which
+ * borrows the underlying on the owner's behalf into the account, and the loan
+ * is repaid in full with its quotas. The bridge borrows the debt plus a 10bps
+ * margin for the interest of the blocks still to come; whatever the facade
+ * does not take stays on the account.
+ *
+ * The bridge borrows as the owner, so the owner must have delegated credit on
+ * the Aave variable debt token to the bridge beforehand.
+ */
+export interface MoveToAaveIntent {
+  type: "MOVE_TO_AAVE";
+  /** RWA collateral on the account, as the Aave pool lists it. */
+  token: Address;
+}
+
+/**
  * Intent 2.1 — withdraw part of the position's net value at fixed leverage.
  *
  * The requested amount leaves the account, and debt is repaid in the same
@@ -581,6 +601,7 @@ export type StartIntent =
   | AdjustLeverageIntent
   | DepositStrategyIntent
   | RepayStrategyIntent
+  | MoveToAaveIntent
   | WithdrawStrategyIntent
   | UpdateQuotaIntent;
 

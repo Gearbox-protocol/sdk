@@ -6,6 +6,7 @@ import {
   type AccountView,
   planAdjustLeverage,
   planDeposit,
+  planMoveToAave,
   planRepay,
   planUpdateQuota,
   planWithdraw,
@@ -285,6 +286,39 @@ describe("planRepay — funding in, debt down, position untouched", () => {
   it("an account that owes nothing has nothing to repay", () => {
     const v = view({ debt: 0n, balances: { [T]: 2_000n } });
     expect(() => planRepay({ token: U, amount: 400n }, v)).toThrowError(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: "debtOutOfRange" }),
+      }),
+    );
+  });
+});
+
+describe("planMoveToAave — the position leaves, Aave settles the loan", () => {
+  it("supplies the whole balance, borrows the debt plus 10bps, drops quotas, repays", () => {
+    expect(planMoveToAave({ token: T }, twoX)).toEqual([
+      { kind: "aaveSupply", token: T, amount: 2_000n },
+      { kind: "aaveOpenPosition", token: T, borrow: 1_001n },
+      { kind: "clearQuotas" },
+      { kind: "repay", amount: 1_000n },
+    ]);
+  });
+
+  it("refuses the underlying and a token the account does not hold", () => {
+    const v = view({ debt: 1_000n, balances: { [T]: 2_000n, [U]: 500n } });
+    for (const token of [U, RWA]) {
+      expect(() => planMoveToAave({ token }, v)).toThrowError(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            code: "unsupportedCollateralToken",
+          }),
+        }),
+      );
+    }
+  });
+
+  it("refuses an account with zero debt", () => {
+    const v = view({ debt: 0n, balances: { [T]: 2_000n } });
+    expect(() => planMoveToAave({ token: T }, v)).toThrowError(
       expect.objectContaining({
         error: expect.objectContaining({ code: "debtOutOfRange" }),
       }),

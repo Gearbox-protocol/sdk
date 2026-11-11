@@ -215,6 +215,15 @@ export class AbstractAdapterContract<
   }
 
   /**
+   * Reads from the chain whatever {@link replayOutOfBracketCall} needs to
+   * replay this call and the calldata does not carry, so the replay itself
+   * stays synchronous.
+   *
+   * Base implementation reads nothing.
+   */
+  public async loadReplayState(_calldata: Hex): Promise<void> {}
+
+  /**
    * {@inheritDoc IAdapterContract.openingCalls}
    */
   public async openingCalls(): Promise<MultiCall[]> {

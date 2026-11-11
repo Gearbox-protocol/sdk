@@ -1,3 +1,4 @@
+export * from "./aave/index.js";
 export * from "./actionAbi.js";
 export * from "./adapters/index.js";
 export * from "./conctructorAbi.js";

@@ -495,6 +495,11 @@ export interface RepayStrategyParams extends PrepareOptions {
   value?: bigint;
 }
 
+export interface MoveToAaveParams {
+  /** RWA collateral on the account; its whole balance moves to Aave. */
+  token: Address;
+}
+
 export interface AdjustLeverageParams extends PrepareOptions {
   /**
    * Target total leverage scaled by `LEVERAGE_DECIMALS` (300n = 3x); 100n means
@@ -1026,6 +1031,40 @@ export interface IOpportunitiesPrepare {
    * the SDK does not hold.
    **/
   maxRepay(position: PositionInput): Promise<bigint>;
+
+  /**
+   * The second half of an {@link openAavePosition}: once the RWA collateral
+   * has been minted, the position leaves the credit account for Aave Horizon.
+   *
+   * One transaction: the whole balance of `token` is supplied to the Aave
+   * pool, the aTokens go to the account owner through the Horizon bridge,
+   * which borrows the underlying on the owner's behalf into the account, and
+   * the Gearbox loan is repaid in full with its quotas. Aave lends the debt
+   * plus a 10bps margin for the interest still to come; whatever the facade
+   * does not take stays on the account. The state answered is the credit
+   * account's: owing nothing, holding that remainder.
+   *
+   * The bridge borrows as the owner, so the transaction reverts unless the
+   * owner has delegated credit on Aave's variable debt token to the bridge.
+   *
+   * Refused with `unsupportedCollateralToken` when `token` is not on the
+   * account or the credit manager has no Aave adapters that take it, and with
+   * `debtOutOfRange` when the account owes nothing.
+   **/
+  moveToAave(
+    position: PositionInput,
+    params: MoveToAaveParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+      ) &
+        WithPartialState<OperationState>
+    >
+  >;
 
   /**
    * Retargeting leverage at fixed collateral: debt moves, own funds do not.

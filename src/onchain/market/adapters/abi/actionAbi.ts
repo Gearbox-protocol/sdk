@@ -11,6 +11,9 @@ export const adapterActionSignatures: PartialRecord<
   AdapterType,
   Record<number, string | string[]>
 > = {
+  [AdapterType.AAVE_V3_POOL]: {
+    311: "function setAssetStatusBatch((address,bool)[])",
+  },
   [AdapterType.BALANCER_V3_ROUTER]: {
     310: "function setPoolStatusBatch(address[],bool[])",
     311: "function setPoolStatusBatch((address,uint8)[])",

@@ -20,6 +20,12 @@ import {
  */
 export const adapterConstructorAbi: Record<AdapterType, VersionedAbi> = {
   // DEX and protocol adapters - basic pattern [creditManager, target]
+  [AdapterType.AAVE_HORIZON_BRIDGE]: {
+    311: BASIC_ADAPTER_ABI,
+  },
+  [AdapterType.AAVE_V3_POOL]: {
+    311: UINT_REFERRAL_ADAPTER_ABI,
+  },
   [AdapterType.ACCOUNT_MIGRATOR]: {
     310: BASIC_ADAPTER_ABI,
   },

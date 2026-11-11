@@ -17,6 +17,8 @@ export interface IAdapterContract extends IBaseContract {
 export type VersionedAbi = Record<number, readonly AbiParameter[]>;
 
 export type AdapterContractType =
+  | "ADAPTER::AAVE_HORIZON_BRIDGE"
+  | "ADAPTER::AAVE_V3_POOL"
   | "ADAPTER::ACCOUNT_MIGRATOR"
   | "ADAPTER::BALANCER_V3_ROUTER"
   | "ADAPTER::BALANCER_V3_WRAPPER"
@@ -60,6 +62,8 @@ export type AdapterContractType =
   | "ADAPTER::VELODROME_V2_ROUTER";
 
 export enum AdapterType {
+  AAVE_HORIZON_BRIDGE = "AAVE_HORIZON_BRIDGE",
+  AAVE_V3_POOL = "AAVE_V3_POOL",
   ACCOUNT_MIGRATOR = "ACCOUNT_MIGRATOR",
   BALANCER_V3_ROUTER = "BALANCER_V3_ROUTER",
   BALANCER_V3_WRAPPER = "BALANCER_V3_WRAPPER",

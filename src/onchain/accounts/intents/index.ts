@@ -45,6 +45,7 @@ import {
   planAdjustLeverage,
   planAdjustLeverageDelayed,
   planDeposit,
+  planMoveToAave,
   planRepay,
   planUpdateQuota,
   planWithdraw,
@@ -202,6 +203,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
               return planDeposit(intent, view);
             case "REPAY":
               return planRepay(intent, view);
+            case "MOVE_TO_AAVE":
+              return planMoveToAave(intent, view);
             case "WITHDRAW":
               return planWithdraw(intent, view);
             case "UPDATE_QUOTA":

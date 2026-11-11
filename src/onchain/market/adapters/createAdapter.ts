@@ -4,6 +4,8 @@ import type { RelaxedBaseParams } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { bytes32ToString } from "../../utils/index.js";
 import {
+  AaveHorizonBridgeAdapterContract,
+  AaveV3PoolAdapterContract,
   AbstractAdapterContract,
   AccountMigratorAdapterContract,
   BalancerV3RouterAdapterContract,
@@ -65,6 +67,10 @@ export function createAdapter(
   ) as AdapterContractType;
 
   switch (adapterType) {
+    case "ADAPTER::AAVE_HORIZON_BRIDGE":
+      return new AaveHorizonBridgeAdapterContract(sdk, data);
+    case "ADAPTER::AAVE_V3_POOL":
+      return new AaveV3PoolAdapterContract(sdk, data);
     case "ADAPTER::ACCOUNT_MIGRATOR":
       return new AccountMigratorAdapterContract(sdk, data);
     case "ADAPTER::BALANCER_V3_ROUTER":

@@ -88,6 +88,7 @@ import type {
   LpState,
   MaxBorrowParams,
   MaxWithdrawCollateralOptions,
+  MoveToAaveParams,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -733,6 +734,35 @@ export class PrepareApi
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
     return service(sdk).maxRepay({ creditAccount, sdk });
+  }
+
+  /**
+   * {@inheritDoc IOpportunitiesPrepare.moveToAave}
+   **/
+  public async moveToAave(
+    position: PositionInput,
+    params: MoveToAaveParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+      ) &
+        WithPartialState<OperationState>
+    >
+  > {
+    return this.#startIntent<
+      DebtOutOfRangeError | UnsupportedCollateralTokenError
+    >(
+      position,
+      {},
+      {
+        type: "MOVE_TO_AAVE",
+        token: params.token,
+      },
+    );
   }
 
   /**

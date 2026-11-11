@@ -1,3 +1,5 @@
+export * from "./AaveHorizonBridgeAdapterContract.js";
+export * from "./AaveV3PoolAdapterContract.js";
 export * from "./AbstractAdapter.js";
 export * from "./AccountMigratorAdapterContract.js";
 export * from "./BalancerV3RouterAdapterContract.js";

@@ -18,8 +18,11 @@ import {
   type OnchainSDK,
 } from "../../index.js";
 import { iMidasGatewayAdapterV311Abi } from "../../market/adapters/abi/adapters/iMidasGatewayAdapterV311.js";
+import { AaveHorizonBridgeAdapterContract } from "../../market/adapters/contracts/AaveHorizonBridgeAdapterContract.js";
+import { AaveV3PoolAdapterContract } from "../../market/adapters/contracts/AaveV3PoolAdapterContract.js";
 import type { InnerOperation } from "../parse/index.js";
 import { CreditAccountState } from "./CreditAccountState.js";
+import { loadAdapterReplayState } from "./loadAdapterReplayState.js";
 import {
   makeReplayState,
   type ReplayState,
@@ -486,6 +489,76 @@ describe("replayInnerOperations on malformed multicalls", () => {
     );
     expect(error).toBeUndefined();
     expect(state.account.balances.size).toBe(0);
+  });
+
+  it("replays the Aave Horizon move once the pool adapter has read its aToken", async () => {
+    const A_WSTETH = getAddress("0x6666666666666666666666666666666666666666");
+    const AAVE_POOL = getAddress("0x7777777777777777777777777777777777777777");
+    const BRIDGE = getAddress("0x8888888888888888888888888888888888888888");
+    const BRIDGE_ADAPTER = getAddress(
+      "0x9999999999999999999999999999999999999999",
+    );
+    const chain = {
+      client: { readContract: async () => A_WSTETH },
+    } as unknown as OnchainSDK;
+    const pool = new AaveV3PoolAdapterContract(chain, {
+      baseParams: {
+        addr: ADAPTER,
+        version: 311n,
+        contractType: "ADAPTER::AAVE_V3_POOL",
+        serializedParams: encodeAbiParameters(
+          [
+            { type: "address" },
+            { type: "address" },
+            { type: "address" },
+            { type: "uint16" },
+            { type: "address[]" },
+          ],
+          [CREDIT_MANAGER, AAVE_POOL, AAVE_POOL, 0, [WSTETH]],
+        ),
+      },
+    });
+    const bridge = new AaveHorizonBridgeAdapterContract(chain, {
+      baseParams: {
+        addr: BRIDGE_ADAPTER,
+        version: 311n,
+        contractType: "ADAPTER::AAVE_HORIZON_BRIDGE",
+        serializedParams: encodeAbiParameters(
+          [
+            { type: "address" },
+            { type: "address" },
+            { type: "address" },
+            { type: "address[]" },
+            { type: "address[]" },
+          ],
+          [CREDIT_MANAGER, BRIDGE, BRIDGE, [A_WSTETH], [USDC]],
+        ),
+      },
+    });
+    const sdk = stubSdk({ [ADAPTER]: pool, [BRIDGE_ADAPTER]: bridge });
+    const multicall: InnerOperation[] = [
+      execute(ADAPTER, pool.supplyCall(WSTETH, 2000n).callData),
+      execute(
+        BRIDGE_ADAPTER,
+        bridge.openPositionCall(A_WSTETH, USDC, 2000n, 1101n).callData,
+      ),
+      { operation: "UpdateQuota", token: WSTETH, change: -2000n },
+      { operation: "DecreaseBorrowedAmount", token: USDC, amount: MAX_UINT256 },
+    ];
+
+    await loadAdapterReplayState(sdk, multicall);
+    const { state, error } = apply(
+      multicall,
+      seededState([{ token: WSTETH, balance: 2000n }], 1000n, 100n),
+      sdk,
+    );
+
+    expect(error).toBeUndefined();
+    expect(state.account.balances.getOrZero(WSTETH)).toBe(0n);
+    expect(state.account.balances.getOrZero(A_WSTETH)).toBe(0n);
+    // borrowed 1101 against a total debt of 1100
+    expect(state.account.balances.getOrZero(USDC)).toBe(1n);
+    expect(state.account.totalDebt).toBe(0n);
   });
 
   it("reports an error on an out-of-bracket Midas gateway call that is not receiveGreenlist", async () => {

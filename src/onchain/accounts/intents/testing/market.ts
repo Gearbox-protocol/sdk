@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { OnchainSDK } from "../../../index.js";
 import { toBN } from "../../../index.js";
+import type { IAdapterContract } from "../../../market/adapters/index.js";
 import type { CreditAccountSlice } from "../types.js";
 import {
   buildMockSdk,
@@ -153,6 +154,8 @@ export interface MarketSdkExtras {
   /** What a routed swap returns; linear when omitted. */
   routeQuote?: (amount: bigint) => bigint;
   routeFloor?: (amount: bigint) => bigint;
+  /** Adapters the credit manager lists. */
+  adapters?: IAdapterContract[];
 }
 
 /** Mock SDK on the shared fixture market. */
@@ -187,6 +190,7 @@ export function buildMarketSdk(extras?: MarketSdkExtras): OnchainSDK {
     debtLimitAvailable: extras?.debtLimitAvailable,
     maxDebtPerBlockMultiplier: extras?.maxDebtPerBlockMultiplier,
     forbiddenTokens: extras?.forbiddenTokens,
+    adapters: extras?.adapters,
     strategyTargetCollateral: POS,
   });
 }

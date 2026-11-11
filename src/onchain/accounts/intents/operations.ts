@@ -1,6 +1,10 @@
 import type { Address } from "viem";
 import { MAX_UINT256 } from "../../constants/math.js";
 import type { Asset, MultiCall, OnchainSDK } from "../../index.js";
+import type {
+  AaveHorizonBridgeAdapterContract,
+  AaveV3PoolAdapterContract,
+} from "../../market/adapters/index.js";
 import type { calcQuotaUpdate } from "../quota-utils.js";
 import type { EncodableCreditAccountOperation } from "../types.js";
 import type {
@@ -28,7 +32,9 @@ export type AccountCalculatorOperation =
   | WrapRwaCollateralOperation
   | UnwrapRwaCollateralOperation
   | StartDelayedWithdrawalOperation
-  | ClaimDelayedWithdrawalOperation;
+  | ClaimDelayedWithdrawalOperation
+  | AaveSupplyOperation
+  | AaveOpenPositionOperation;
 
 /**
  * Compile-time proof that the engine's operations really are the SDK's own
@@ -417,6 +423,71 @@ export function buildClaimDelayedWithdrawalOperation(input: {
       creditFacade: input.creditAccount.creditFacade,
       claimableNow: claimable,
     }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Aave Horizon — a minted RWA position leaves the account for Aave
+// ---------------------------------------------------------------------------
+
+/** Supplies an asset to the Aave pool; the aTokens are minted one for one. */
+export interface AaveSupplyOperation {
+  type: "aaveSupply";
+  token: Address;
+  aToken: Address;
+  amount: bigint;
+  calls: MultiCall[];
+}
+
+export function buildAaveSupplyOperation(input: {
+  adapter: AaveV3PoolAdapterContract;
+  token: Address;
+  aToken: Address;
+  amount: bigint;
+}): AaveSupplyOperation {
+  return {
+    type: "aaveSupply",
+    token: input.token,
+    aToken: input.aToken,
+    amount: input.amount,
+    calls: [input.adapter.supplyCall(input.token, input.amount)],
+  };
+}
+
+/**
+ * Hands the aTokens to the account owner and borrows against them on the
+ * owner's Aave position, into the account.
+ */
+export interface AaveOpenPositionOperation {
+  type: "aaveOpenPosition";
+  aToken: Address;
+  aTokenAmount: bigint;
+  debtToken: Address;
+  borrowAmount: bigint;
+  calls: MultiCall[];
+}
+
+export function buildAaveOpenPositionOperation(input: {
+  adapter: AaveHorizonBridgeAdapterContract;
+  aToken: Address;
+  aTokenAmount: bigint;
+  debtToken: Address;
+  borrowAmount: bigint;
+}): AaveOpenPositionOperation {
+  return {
+    type: "aaveOpenPosition",
+    aToken: input.aToken,
+    aTokenAmount: input.aTokenAmount,
+    debtToken: input.debtToken,
+    borrowAmount: input.borrowAmount,
+    calls: [
+      input.adapter.openPositionCall(
+        input.aToken,
+        input.debtToken,
+        input.aTokenAmount,
+        input.borrowAmount,
+      ),
+    ],
   };
 }
 
