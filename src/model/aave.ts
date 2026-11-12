@@ -1,5 +1,16 @@
+import type { Address } from "viem";
 import type { AccountProjection } from "./previews.js";
 import type { Timestamp, TokenAmount } from "./primitives.js";
+
+/**
+ * A loan the Horizon bridge takes on Aave as the credit account owner. Aave
+ * lends it only up to what the owner delegated to the bridge on the variable
+ * debt token of the borrowed token (`approveDelegation`).
+ **/
+export interface AaveBridgeBorrow {
+  bridge: Address;
+  amount: TokenAmount;
+}
 
 /**
  * Where an opening lands once it has moved to Aave Horizon.
@@ -41,4 +52,9 @@ export interface AavePositionProjection
    * finalizer bot moves it a block after the mint settles at the earliest.
    **/
   estLiveAt: Timestamp;
+  /**
+   * Horizon bridge that borrows `totalDebt` as the owner when the position
+   * moves, see {@link AaveBridgeBorrow}.
+   **/
+  bridge: Address;
 }

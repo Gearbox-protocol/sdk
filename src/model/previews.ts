@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem";
-import type { AavePositionProjection } from "./aave.js";
+import type { AaveBridgeBorrow, AavePositionProjection } from "./aave.js";
 import type { Curator } from "./curators.js";
 import type { DelayedIntent } from "./delayed-intents.js";
 import type { UnpriceableTokenError } from "./errors/index.js";
@@ -522,6 +522,11 @@ export interface AdjustStrategyPositionPreview
    */
   intent?: DelayedIntent;
   /**
+   * Loans the Horizon bridge takes as the account owner in this transaction;
+   * absent when it takes none.
+   */
+  aaveBorrows?: AaveBridgeBorrow[];
+  /**
    * The oracle could not price a token; it contributes nothing to the values.
    */
   warning?: UnpriceableTokenError;
@@ -616,6 +621,11 @@ export interface RepayStrategyPositionPreview extends EstimatedProjection {
    * multicall claims a delayed withdrawal
    */
   intent?: DelayedIntent;
+  /**
+   * Loans the Horizon bridge takes as the account owner in this transaction,
+   * the ones a move to Aave repays with; absent when it takes none.
+   */
+  aaveBorrows?: AaveBridgeBorrow[];
   /**
    * The oracle could not price a token; it contributes nothing to the values.
    */

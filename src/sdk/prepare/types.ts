@@ -505,6 +505,13 @@ export interface RepayStrategyParams extends PrepareOptions {
 export interface MoveToAaveParams {
   /** RWA collateral on the account; its whole balance moves to Aave. */
   token: Address;
+  /**
+   * The matured mint of `token`, from `sdk.positions.getCurrentWithdrawals()`:
+   * claimed in the same transaction ahead of the supply, so what it brings
+   * moves too. Needed while the account still holds the mint's withdrawal
+   * phantom token rather than `token`.
+   **/
+  claimable?: PositionClaimableWithdrawal;
 }
 
 export interface AdjustLeverageParams extends PrepareOptions {
@@ -1079,7 +1086,8 @@ export interface IOpportunitiesPrepare {
    * account the bot has not reached. It makes the bot's adapter calls, but the
    * debt is read here rather than in the transaction, hence the margin.
    *
-   * One transaction: the whole balance of `token` is supplied to the Aave
+   * One transaction: a matured mint passed as `claimable` is claimed first,
+   * the whole balance of `token` is supplied to the Aave
    * pool, the aTokens go to the account owner through the Horizon bridge,
    * which borrows the underlying on the owner's behalf into the account, and
    * the Gearbox loan is repaid in full with its quotas. Aave lends the debt
@@ -1088,11 +1096,14 @@ export interface IOpportunitiesPrepare {
    * account's: owing nothing, holding that remainder.
    *
    * The bridge borrows as the owner, so the transaction reverts unless the
-   * owner has delegated credit on Aave's variable debt token to the bridge.
+   * owner has delegated credit on Aave's variable debt token to the bridge;
+   * `checkOperation` reports a missing delegation as
+   * `insufficientBorrowAllowance`.
    *
-   * Refused with `unsupportedCollateralToken` when `token` is not on the
-   * account or the credit manager has no Aave adapters that take it, and with
-   * `debtOutOfRange` when the account owes nothing.
+   * Refused with `unsupportedCollateralToken` when `token` is neither on the
+   * account nor brought by `claimable`, or the credit manager has no Aave
+   * adapters that take it, and with `debtOutOfRange` when the account owes
+   * nothing.
    **/
   moveToAave(
     position: PositionInput,

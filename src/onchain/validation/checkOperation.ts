@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type { OperationPreview } from "../../model/index.js";
 import type { OnchainSDK } from "../OnchainSDK.js";
+import { checkAaveDelegation } from "./bundles/checkAaveDelegation.js";
 import { checkCollateralFunding } from "./bundles/checkCollateralFunding.js";
 import type { CreditOperationError } from "./bundles/checkCreditOperation.js";
 import { checkCreditOperation } from "./bundles/checkCreditOperation.js";
@@ -76,13 +77,21 @@ export async function checkOperation(
         blockNumber,
         ...thresholds,
       });
-    case "RepayCreditAccount":
+    case "RepayCreditAccount": {
+      const [funding, ...delegations] = await Promise.all([
+        checkCollateralFunding({ ...wallet, preview }),
+        ...(preview.aaveBorrows ?? []).map(borrow =>
+          checkAaveDelegation({ ...wallet, owner: sender, borrow }),
+        ),
+      ]);
       return [
         ...checkMarket(
           sdk.marketRegister.findCreditManager(preview.creditManager),
         ),
-        ...(await checkCollateralFunding({ ...wallet, preview })),
+        ...funding,
+        ...delegations.flat(),
       ];
+    }
     case "CloseCreditAccount":
       return checkMarket(
         sdk.marketRegister.findCreditManager(preview.creditManager),

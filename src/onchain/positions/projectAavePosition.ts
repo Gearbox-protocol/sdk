@@ -137,13 +137,13 @@ export async function projectAavePosition(
       batchSize: 0,
     });
 
-  const bridged = adapters.some(
-    b =>
+  const bridgeAdapter = adapters.find(
+    (b): b is AaveHorizonBridgeAdapterContract =>
       b instanceof AaveHorizonBridgeAdapterContract &&
       b.isATokenAllowed(rwaReserve.aTokenAddress) &&
       b.isDebtTokenAllowed(underlying),
   );
-  if (!bridged) {
+  if (!bridgeAdapter) {
     return undefined;
   }
 
@@ -256,6 +256,7 @@ export async function projectAavePosition(
       mintPeriodInterest: market.toUnderlyingAmount(interest),
       mintDuration,
       estLiveAt: Number(sdk.timestamp) + mintDuration,
+      bridge: bridgeAdapter.bridge,
     },
     maxDebt:
       borrowableBase > debtBase

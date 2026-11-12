@@ -17,9 +17,10 @@ import {
   CREDIT_MANAGER,
   caToken,
   POS,
+  POS2,
   UND,
 } from "../testing/market.js";
-import { CA_OP_CALLS } from "../testing/sdk-mock.js";
+import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
 
 /**
@@ -199,5 +200,46 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
 
   it("refuses an account that owes nothing", async () => {
     expectPreviewError(await run({ totalDebt: 0n }), "debtOutOfRange");
+  });
+
+  it("claims a matured mint first and moves what it brings", async () => {
+    // `POS2` plays the mint's withdrawal phantom, as in the tail specs.
+    const PHANTOM = POS2;
+    const sdk = buildMarketSdk({ adapters: [poolAdapter(), bridgeAdapter()] });
+    const result = await new CreditAccountOperationsService(sdk).startIntent({
+      intent: {
+        type: "MOVE_TO_AAVE",
+        token: POS,
+        claimable: {
+          token: UND,
+          withdrawalPhantomToken: PHANTOM,
+          withdrawalTokenSpent: HELD_POS,
+          outputs: [{ token: POS, amount: HELD_POS, isDelayed: false }],
+          claimCalls: [MOCK_CLAIM_CALL],
+        },
+      },
+      creditAccount: buildFixtureCreditAccount({
+        totalDebt: DEBT,
+        tokens: [caToken(PHANTOM, HELD_POS, QUOTA_POS)],
+      }),
+      sdk,
+      quotaReserve: undefined,
+      slippage: undefined,
+    });
+    if (!result.ok) {
+      throw new Error(`expected a preview, got ${result.error.code}`);
+    }
+
+    expect(result.operations.map(op => op.type)).toEqual([
+      "claimDelayedWithdrawal",
+      "aaveSupply",
+      "aaveOpenPosition",
+      "changeQuota",
+      "decreaseDebt",
+    ]);
+    expect(result.operations[1]).toMatchObject({ amount: HELD_POS });
+    expect(result.calls[0]).toEqual(MOCK_CLAIM_CALL);
+    expect(assetBalance(result.state.assets, PHANTOM)).toBe(0n);
+    expect(assetBalance(result.state.assets, UND)).toBe(MARGIN);
   });
 });

@@ -13,6 +13,7 @@ import type {
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
+import { aaveBridgeBorrows } from "./aaveBridgeBorrows.js";
 import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
 
@@ -62,6 +63,11 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
     market.underlying,
   );
   const snap = account.toSnapshot(priced.value);
+  const aaveBorrows = aaveBridgeBorrows(
+    sdk,
+    operation.creditManager,
+    operation.multicall,
+  );
 
   return sdkOk({
     operation: "AdjustCreditAccount",
@@ -101,6 +107,7 @@ export function previewAdjustStrategyPosition<P extends PluginsMap>(
     assetsChange: assetsChange.map(a =>
       oracle.toTokenAmount(a.token, a.balance),
     ),
+    ...(aaveBorrows.length > 0 ? { aaveBorrows } : {}),
     warning: priced.error,
   });
 }

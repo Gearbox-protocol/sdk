@@ -517,6 +517,35 @@ export function insufficientAllowance(
 }
 
 /**
+ * `owner` has not delegated `spender` enough credit on an Aave variable debt
+ * token for what the operation borrows as the owner — the `approveDelegation`
+ * counterpart of {@link InsufficientAllowanceError}.
+ **/
+export interface InsufficientBorrowAllowanceError extends IGearboxError {
+  code: "insufficientBorrowAllowance";
+  owner: Address;
+  /** The Horizon bridge, which borrows as `owner`. */
+  spender: Address;
+  /** The variable debt token `approveDelegation` is called on. */
+  debtToken: Address;
+  /** In the borrowed token. */
+  required: TokenAmount;
+  /** What is delegated today. */
+  allowed: TokenAmount;
+}
+
+/** {@inheritDoc InsufficientBorrowAllowanceError} */
+export function insufficientBorrowAllowance(
+  args: Omit<InsufficientBorrowAllowanceError, "code" | "message">,
+): InsufficientBorrowAllowanceError {
+  return {
+    code: "insufficientBorrowAllowance",
+    message: `${args.required.value} of ${args.required.token.symbol} borrowing must be delegated to ${args.spender} on ${args.debtToken}, ${args.allowed.value} is.`,
+    ...args,
+  };
+}
+
+/**
  * The RWA protocol still wants something from the borrower before this token
  * can be opened on.
  **/

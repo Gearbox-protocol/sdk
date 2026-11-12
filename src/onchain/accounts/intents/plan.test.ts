@@ -2,6 +2,7 @@ import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { LEVERAGE_DECIMALS, MAX_UINT256 } from "../../constants/math.js";
+import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   type AccountView,
   planAdjustLeverage,
@@ -323,6 +324,55 @@ describe("planMoveToAave — the position leaves, Aave settles the loan", () => 
         error: expect.objectContaining({ code: "debtOutOfRange" }),
       }),
     );
+  });
+
+  describe("a matured mint", () => {
+    const PHANTOM = "0x5555555555555555555555555555555555555555" as Address;
+    const minted = (token: Address, amount: bigint): ClaimableWithdrawal => ({
+      token: U,
+      withdrawalPhantomToken: PHANTOM,
+      withdrawalTokenSpent: amount,
+      outputs: [{ token, amount, isDelayed: false }],
+      claimCalls: [],
+    });
+
+    it("is claimed first, and what it brings moves along", () => {
+      const claimable = minted(RWA, 1_500n);
+      const v = view({ debt: 1_000n, balances: { [PHANTOM]: 1_500n } });
+      expect(planMoveToAave({ token: RWA, claimable }, v)).toEqual([
+        { kind: "claim", claimable },
+        { kind: "aaveSupply", token: RWA, amount: 1_500n },
+        { kind: "aaveOpenPosition", token: RWA, borrow: 1_001n },
+        { kind: "clearQuotas" },
+        { kind: "repay", amount: 1_000n },
+      ]);
+    });
+
+    it("adds to the balance already on the account", () => {
+      const claimable = minted(RWA, 1_500n);
+      const v = view({
+        debt: 1_000n,
+        balances: { [RWA]: 500n, [PHANTOM]: 1_500n },
+      });
+      expect(planMoveToAave({ token: RWA, claimable }, v)[1]).toEqual({
+        kind: "aaveSupply",
+        token: RWA,
+        amount: 2_000n,
+      });
+    });
+
+    it("refuses a claim that brings another token", () => {
+      const v = view({ debt: 1_000n, balances: { [PHANTOM]: 1_500n } });
+      expect(() =>
+        planMoveToAave({ token: RWA, claimable: minted(T, 1_500n) }, v),
+      ).toThrowError(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            code: "unsupportedCollateralToken",
+          }),
+        }),
+      );
+    });
   });
 });
 

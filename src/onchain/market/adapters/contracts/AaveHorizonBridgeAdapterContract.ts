@@ -119,6 +119,23 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   }
 
   /**
+   * What an opening call borrows on the owner's behalf: `debtToken` and
+   * `borrowAmount`. `undefined` for a call that borrows nothing.
+   */
+  public parseBorrow(
+    calldata: Hex,
+  ): { debtToken: Address; amount: bigint } | undefined {
+    const decoded = decodeFunctionData({ abi, data: calldata });
+    switch (decoded.functionName) {
+      case "openPosition":
+      case "openPositionDiff":
+        return { debtToken: decoded.args[1], amount: decoded.args[3] };
+      default:
+        return undefined;
+    }
+  }
+
+  /**
    * Every account on this credit manager is finished by the Horizon finalizer
    * bot a block after its own transaction, so opening one grants the bot its
    * permissions. The bot is the one the market configurator lists among its

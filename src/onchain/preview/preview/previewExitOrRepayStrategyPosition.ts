@@ -15,6 +15,7 @@ import type {
   MulticallOperation,
   RWAMulticallOperation,
 } from "../parse/index.js";
+import { aaveBridgeBorrows } from "./aaveBridgeBorrows.js";
 import { classifyCloseOrRepay } from "./detectCloseOrRepay.js";
 import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
@@ -143,6 +144,11 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     market.underlying,
   );
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
+  const aaveBorrows = aaveBridgeBorrows(
+    sdk,
+    operation.creditManager,
+    operation.multicall,
+  );
 
   return sdkOk({
     operation: "RepayCreditAccount",
@@ -162,6 +168,7 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     collateralWithdrawn: after.collateralWithdrawn
       .toAssets()
       .map(a => market.priceOracle.toTokenAmount(a.token, a.balance)),
+    ...(aaveBorrows.length > 0 ? { aaveBorrows } : {}),
     warning: priced.error,
   });
 }

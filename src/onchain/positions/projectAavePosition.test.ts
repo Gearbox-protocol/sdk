@@ -15,6 +15,7 @@ const POOL = "0x0000000000000000000000000000000000000a00" as Address;
 const PROVIDER = "0x0000000000000000000000000000000000000b00" as Address;
 const ORACLE = "0x0000000000000000000000000000000000000d00" as Address;
 const OWNER = "0x0000000000000000000000000000000000000e00" as Address;
+const BRIDGE = "0x0000000000000000000000000000000000000f00" as Address;
 
 const RWA_RESERVE_ID = 3;
 
@@ -129,6 +130,7 @@ function poolAdapter(): AaveV3PoolAdapterContract {
 
 function bridgeAdapter(aToken = A_RWA): AaveHorizonBridgeAdapterContract {
   return Object.create(AaveHorizonBridgeAdapterContract.prototype, {
+    bridge: { value: BRIDGE },
     isATokenAllowed: { value: (t: Address) => isAddressEqual(t, aToken) },
     isDebtTokenAllowed: { value: (t: Address) => isAddressEqual(t, UND) },
   });
@@ -159,6 +161,7 @@ describe("projectAavePosition", () => {
       // 6.5% on the debt, 650 × 750 / 1050 on the position
       borrowRate: { base: 650, totalOnDebt: 650, total: 464, quotas: [] },
       leverage: 3.5,
+      bridge: BRIDGE,
     });
     // 1050 × 88%
     expect(projected?.maxDebt).toBe(924_000_000n);

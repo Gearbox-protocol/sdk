@@ -480,6 +480,11 @@ export interface MoveToAaveIntent {
   type: "MOVE_TO_AAVE";
   /** RWA collateral on the account, as the Aave pool lists it. */
   token: Address;
+  /**
+   * Matured mint of `token`, claimed ahead of the supply; what it brings
+   * moves along with the balance already on the account.
+   */
+  claimable?: ClaimableWithdrawal;
 }
 
 /**

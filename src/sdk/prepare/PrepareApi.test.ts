@@ -13,6 +13,7 @@ import type {
   SDKReturn,
   TokenAmount,
 } from "../../model/index.js";
+import { CreditAccountOperationsService } from "../../onchain/accounts/intents/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -973,6 +974,42 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     expect(result.error.code).toBe("unsupportedCollateralToken");
     // refused by the walk, so the market it was walked in is reported
     expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
+  });
+
+  it("moveToAave hands the engine the matured mint in the compressor's shape", async () => {
+    const { api, position } = buildStrategyApi();
+    const startIntent = vi.spyOn(
+      CreditAccountOperationsService.prototype,
+      "startIntent",
+    );
+
+    await api.moveToAave(position, {
+      token: POS,
+      claimable: {
+        sourceToken: amount(UND, 0n).token,
+        withdrawalPhantomToken: amount(POS2, 10000000000n),
+        outputs: [{ ...amount(POS, 10000000000n), isDelayed: false }],
+        claimCall: { to: POS2, callData: "0x" },
+      },
+    });
+
+    expect(startIntent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intent: {
+          type: "MOVE_TO_AAVE",
+          token: POS,
+          claimable: {
+            token: UND,
+            withdrawalPhantomToken: POS2,
+            withdrawalTokenSpent: 10000000000n,
+            outputs: [{ token: POS, amount: 10000000000n, isDelayed: false }],
+            claimCalls: [{ target: POS2, callData: "0x" }],
+            redeemer: undefined,
+          },
+        },
+      }),
+    );
+    startIntent.mockRestore();
   });
 
   it("adjustLeverage retargets the debt and quotes both routes", async () => {

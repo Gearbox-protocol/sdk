@@ -24,6 +24,7 @@ import {
   debtForLeverage,
   proportionalDebt,
 } from "./math.js";
+import { instantOutput } from "./operations.js";
 import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
@@ -350,7 +351,17 @@ export function planMoveToAave(
   intent: Omit<MoveToAaveIntent, "type">,
   view: AccountView,
 ): Step[] {
-  const amount = view.balanceOf(intent.token);
+  const { claimable } = intent;
+  const claimed = claimable
+    ? instantOutput(claimable.outputs, intent.token)
+    : undefined;
+  if (claimable && !claimed) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
+      `moveToAave: the claim brings no ${intent.token}`,
+    );
+  }
+  const amount = view.balanceOf(intent.token) + (claimed?.amount ?? 0n);
   if (eq(intent.token, view.underlying) || isZeroBalance(amount)) {
     throw new IntentPreviewError(
       unsupportedCollateralToken(toToken(view.sdk, intent.token)),
@@ -376,6 +387,7 @@ export function planMoveToAave(
     );
   }
   return [
+    ...(claimable ? [claim(claimable)] : []),
     { kind: "aaveSupply", token: intent.token, amount },
     {
       kind: "aaveOpenPosition",

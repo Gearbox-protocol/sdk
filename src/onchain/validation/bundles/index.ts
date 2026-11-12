@@ -1,3 +1,4 @@
+export * from "./checkAaveDelegation.js";
 export * from "./checkAccountQuotas.js";
 export * from "./checkCollateralFunding.js";
 export * from "./checkCreditOperation.js";

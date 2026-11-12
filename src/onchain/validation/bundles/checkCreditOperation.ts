@@ -1,11 +1,14 @@
 import type { Address } from "viem";
 import type {
+  AaveBridgeBorrow,
   AccountNotMidasGreenlistedError,
   AdjustStrategyPositionPreview,
   DebtOutOfRangeError,
   ForbiddenTokenError,
+  InsufficientBorrowAllowanceError,
   InsufficientCollateralError,
   InsufficientPoolLiquidityError,
+  OpenAavePositionPreview,
   OpenStrategyPositionPreview,
   QuotaAboveMaxError,
   QuotaCountExceededError,
@@ -15,6 +18,7 @@ import type {
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { checkDebtLimits } from "../checks/index.js";
 import { toToken } from "../helpers/index.js";
+import { checkAaveDelegation } from "./checkAaveDelegation.js";
 import { checkAccountQuotas } from "./checkAccountQuotas.js";
 import { checkCollateralFunding } from "./checkCollateralFunding.js";
 import type { HealthFactorThresholds } from "./checkHealthFactors.js";
@@ -40,7 +44,8 @@ export type CreditOperationError =
   | InsufficientCollateralError
   | WalletFundingError
   | RWAOpenRequirementsError
-  | AccountNotMidasGreenlistedError;
+  | AccountNotMidasGreenlistedError
+  | InsufficientBorrowAllowanceError;
 
 /** The two previews that carry a position for the thresholds to weigh. */
 export type CreditOperationPreview =
@@ -106,9 +111,29 @@ export async function checkCreditOperation(
     ),
   ];
 
-  const [funding, rwa] = await Promise.all([
+  const [funding, rwa, ...delegations] = await Promise.all([
     checkCollateralFunding({ sdk, preview, sender, blockNumber }),
     isOpening ? checkRWAOpening({ sdk, preview, sender }) : [],
+    ...aaveBorrows(preview).map(borrow =>
+      checkAaveDelegation({ sdk, owner: sender, borrow, blockNumber }),
+    ),
   ]);
-  return [...protocol, ...funding, ...rwa];
+  return [...protocol, ...funding, ...rwa, ...delegations.flat()];
 }
+
+/**
+ * What the Horizon bridge borrows as the owner: the whole debt when an Aave
+ * opening moves, or the loans an adjustment takes itself.
+ */
+function aaveBorrows(preview: CreditOperationPreview): AaveBridgeBorrow[] {
+  if (isAaveOpening(preview)) {
+    return [{ bridge: preview.aave.bridge, amount: preview.aave.totalDebt }];
+  }
+  return preview.operation === "AdjustCreditAccount"
+    ? (preview.aaveBorrows ?? [])
+    : [];
+}
+
+const isAaveOpening = (
+  preview: CreditOperationPreview,
+): preview is OpenAavePositionPreview => "aave" in preview;
