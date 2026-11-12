@@ -7,6 +7,8 @@ import {
 } from "../../dev/createAnvilClient.js";
 import { registerSecuritizeInvestor } from "../../dev/kycUtils.js";
 import { claimDSToken } from "../../dev/securitizeUtils.js";
+import { CreditAccountOperationsService } from "../../onchain/accounts/intents/index.js";
+import { toCreditAccountSlice } from "../../onchain/accounts/intents/utils/credit-account-slice.js";
 import {
   chains,
   MAX_UINT256,
@@ -173,6 +175,51 @@ describe.skipIf(!!process.env.CI)("rwa credit account (securitize)", () => {
         eventName: "OpenCreditAccount",
       });
       expect(logs.length, `OpenCreditAccount not emitted for ${label}`).toBe(1);
+      const creditAccount = logs[0].args.creditAccount;
+      const before = await sdk.accounts.getCreditAccountData(creditAccount);
+      if (!before) throw new Error("missing credit account");
+      const block = await sdk.client.getBlock({ blockTag: "latest" });
+      await sdk.syncState({
+        blockNumber: block.number,
+        timestamp: block.timestamp,
+        ignoreUpdateablePrices: true,
+      });
+      const amount = parseUnits("1000", 6);
+      const balance = () =>
+        sdk.client.readContract({
+          address: USDC,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [investor],
+        });
+      const held = await balance();
+      const result = await new CreditAccountOperationsService(sdk).startIntent({
+        sdk,
+        creditAccount: toCreditAccountSlice(before),
+        intent: { type: "BORROW_AND_WITHDRAW", amount, to: before.owner },
+        slippage: undefined,
+        quotaReserve: undefined,
+      });
+      if (!result.ok) throw new Error(result.error.code);
+      const update = await sdk.accounts.executeCaUpdate(before, result.calls, {
+        ethAmount: 0n,
+      });
+      const updated = await sdk.client.waitForTransactionReceipt({
+        hash: await sendRawTx(wallet, { tx: update, gas: GAS_LIMIT }),
+        pollingInterval: 100,
+      });
+      expect(updated.status).toBe("success");
+      expect(await balance()).toBe(held + amount);
+      const after = await sdk.accounts.getCreditAccountData(creditAccount);
+      if (!after) throw new Error("missing updated account");
+      expect(after.debt).toBe(before.debt + amount);
+      for (const token of before.tokens) {
+        expect(
+          after.tokens.find(
+            t => t.token.toLowerCase() === token.token.toLowerCase(),
+          )?.balance ?? 0n,
+        ).toBe(token.balance);
+      }
     },
     300_000,
   );

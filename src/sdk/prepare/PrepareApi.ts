@@ -73,6 +73,7 @@ import type {
   AccountFlowError,
   AddCollateralParams,
   AdjustLeverageParams,
+  BorrowAndWithdrawParams,
   BorrowParams,
   BorrowResult,
   CreditAccountNotEmptyError,
@@ -86,6 +87,7 @@ import type {
   LpRedeemParams,
   LpResult,
   LpState,
+  MaxBorrowAndWithdrawOptions,
   MaxBorrowParams,
   MaxWithdrawCollateralOptions,
   MoveToAaveParams,
@@ -817,9 +819,51 @@ export class PrepareApi
     });
   }
 
+  /** {@inheritDoc IOpportunitiesPrepare.maxBorrowAndWithdraw} */
+  public async maxBorrowAndWithdraw(
+    position: PositionInput,
+    options?: MaxBorrowAndWithdrawOptions,
+  ): Promise<bigint> {
+    const sdk = await this.#chain(position.chainId);
+    const creditAccount = await this.#account(sdk, position);
+    return service(sdk).maxBorrowAndWithdraw({
+      sdk,
+      creditAccount,
+      ...options,
+    });
+  }
+
   /**
-   * {@inheritDoc IOpportunitiesPrepare.withdrawCollateral}
+   * {@inheritDoc IOpportunitiesPrepare.borrowAndWithdraw}
    **/
+  public async borrowAndWithdraw(
+    position: PositionInput,
+    params: BorrowAndWithdrawParams,
+  ): Promise<
+    SDKReturn<
+      StrategyResult,
+      (
+        | AccountFlowError
+        | DebtOutOfRangeError
+        | InsufficientPoolLiquidityError
+      ) &
+        WithPartialState<OperationState>
+    >
+  > {
+    return this.#startIntent<
+      DebtOutOfRangeError | InsufficientPoolLiquidityError
+    >(
+      position,
+      {},
+      {
+        type: "BORROW_AND_WITHDRAW",
+        amount: params.amount,
+        to: params.to,
+      },
+    );
+  }
+
+  /** {@inheritDoc IOpportunitiesPrepare.withdrawCollateral} */
   public async withdrawCollateral(
     position: PositionInput,
     params: WithdrawCollateralParams,

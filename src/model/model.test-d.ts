@@ -81,8 +81,6 @@ import type {
   liquidationPositionSchema,
   receivedAssetSchema,
 } from "./liquidations.schema.js";
-import type { Notice } from "./notices.js";
-import type { noticeSchema } from "./notices.schema.js";
 import type {
   ApyBreakdown,
   Opportunity,
@@ -524,8 +522,7 @@ describe("model schemas match model types", () => {
     >().toEqualTypeOf<PositionWithdrawals>();
   });
 
-  it("notices", () => {
-    expectTypeOf<z.infer<typeof noticeSchema>>().toEqualTypeOf<Notice>();
+  it("position keys", () => {
     expectTypeOf<
       z.infer<typeof poolPositionKeySchema>
     >().toEqualTypeOf<PoolPositionKey>();
