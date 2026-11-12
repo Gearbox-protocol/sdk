@@ -1,10 +1,12 @@
 import type { Address } from "viem";
 import { iBotListV310Abi } from "../../../abi/310/generated.js";
+import { peripheryCompressorAbi } from "../../../abi/compressors/peripheryCompressor.js";
 import { SDKConstruct } from "../../base/index.js";
 import {
   AP_PERIPHERY_COMPRESSOR,
   VERSION_RANGE_310,
 } from "../../constants/index.js";
+import { AddressMap } from "../../utils/index.js";
 import { iBotAbi } from "./abi.js";
 import { PeripheryCompressorV310Contract } from "./PeripheryCompressorV310Contract.js";
 import type {
@@ -16,6 +18,7 @@ import type {
   GetConnectedBotsResponse,
   GetConnectedBotsResult,
   GetConnectedMigrationBotsResult,
+  MarketBot,
   SetBotProps,
   SetBotResult,
 } from "./types.js";
@@ -27,6 +30,41 @@ import type {
  * and builds the transactions that connect or disconnect one.
  **/
 export class AccountBotsService extends SDKConstruct {
+  readonly #marketBots = new AddressMap<Promise<readonly MarketBot[]>>(
+    undefined,
+    "marketBots",
+  );
+
+  /**
+   * The bots a market configurator lists among its periphery contracts.
+   *
+   * Read once per configurator and kept for the service's lifetime: the list
+   * changes only when the curator adds or removes a bot. A failed read is not
+   * kept, so the next call tries again.
+   *
+   * @param marketConfigurator - Configurator to list the bots of.
+   **/
+  public getMarketBots(
+    marketConfigurator: Address,
+  ): Promise<readonly MarketBot[]> {
+    let bots = this.#marketBots.get(marketConfigurator);
+    if (!bots) {
+      bots = this.client
+        .readContract({
+          address: this.#compressor.address,
+          abi: peripheryCompressorAbi,
+          functionName: "getBots",
+          args: [marketConfigurator],
+        })
+        .catch((e: unknown) => {
+          this.#marketBots.delete(marketConfigurator);
+          throw e;
+        });
+      this.#marketBots.upsert(marketConfigurator, bots);
+    }
+    return bots;
+  }
+
   /**
    * Reads the bots connected to each of the given credit accounts.
    *

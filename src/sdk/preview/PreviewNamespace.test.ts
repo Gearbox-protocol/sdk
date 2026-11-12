@@ -12,6 +12,8 @@ import type {
   OperationState,
 } from "../../onchain/index.js";
 import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
+import { parseOperationCalldata } from "../../onchain/preview/parse/parseOperationCalldata.js";
+import type { Operation } from "../../onchain/preview/parse/types.js";
 import { previewOperation } from "../../onchain/preview/preview/previewOperation.js";
 import { checkOperation } from "../../onchain/validation/checkOperation.js";
 import { checkSimulation } from "../../onchain/validation/checkSimulation.js";
@@ -23,6 +25,9 @@ vi.mock("../../onchain/preview/preview/previewOperation.js", () => ({
 vi.mock("../../onchain/positions/projectAavePosition.js", () => ({
   projectAavePosition: vi.fn(),
 }));
+vi.mock("../../onchain/preview/parse/parseOperationCalldata.js", () => ({
+  parseOperationCalldata: vi.fn(),
+}));
 vi.mock("../../onchain/validation/checkOperation.js", () => ({
   checkOperation: vi.fn(),
 }));
@@ -32,6 +37,7 @@ vi.mock("../../onchain/validation/checkSimulation.js", () => ({
 
 const previewOperationMock = vi.mocked(previewOperation);
 const projectAavePositionMock = vi.mocked(projectAavePosition);
+const parseOperationCalldataMock = vi.mocked(parseOperationCalldata);
 const checkOperationMock = vi.mocked(checkOperation);
 const checkSimulationMock = vi.mocked(checkSimulation);
 
@@ -154,22 +160,62 @@ describe("PreviewNamespace.openAavePosition", () => {
     estTotalValue: amountOf(TO, 300n),
   } as unknown as OperationPreview;
   const aave = { healthFactor: 11_000 } as AavePositionProjection;
+  const OWNER = "0x0000000000000000000000000000000000000005" as Address;
+  const snapshot = {
+    creditManager: CREDIT_MANAGER,
+    assets: [{ token: TARGET, balance: 300n }],
+    quotas: [{ token: TARGET, balance: 270n }],
+    totalDebt: 200n,
+    totalValue: 300n,
+  };
 
-  it("reports the opening with the Aave half projected from its floor balances", async () => {
+  it("reports the opening with the Aave half projected from its floor balances, for its onBehalfOf", async () => {
     previewOperationMock.mockResolvedValue(sdkOk(opening));
-    projectAavePositionMock.mockReturnValue(aave);
+    parseOperationCalldataMock.mockReturnValue(
+      sdkOk({ operation: "OpenCreditAccount", onBehalfOf: OWNER } as Operation),
+    );
+    projectAavePositionMock.mockResolvedValue({ aave, maxDebt: 1000n });
 
     const ns = new PreviewNamespace(onchain, { maxOffchainLagSeconds: 0 });
     const result = await ns.openAavePosition(input);
 
     expect(result.ok && result.data).toEqual({ ...opening, aave });
-    expect(projectAavePositionMock).toHaveBeenCalledWith(chainSdk, {
-      creditManager: CREDIT_MANAGER,
-      assets: [{ token: TARGET, balance: 300n }],
-      quotas: [{ token: TARGET, balance: 270n }],
-      totalDebt: 200n,
-      totalValue: 300n,
-    });
+    expect(projectAavePositionMock).toHaveBeenCalledWith(
+      chainSdk,
+      snapshot,
+      OWNER,
+    );
+  });
+
+  it("weighs a reopening against the sender's Aave position, its owner", async () => {
+    previewOperationMock.mockResolvedValue(sdkOk(opening));
+    parseOperationCalldataMock.mockReturnValue(
+      sdkOk({ operation: "MultiCall" } as Operation),
+    );
+    projectAavePositionMock.mockResolvedValue({ aave, maxDebt: 1000n });
+
+    const ns = new PreviewNamespace(onchain, { maxOffchainLagSeconds: 0 });
+    await ns.openAavePosition(input);
+
+    expect(projectAavePositionMock).toHaveBeenCalledWith(
+      chainSdk,
+      snapshot,
+      SENDER,
+    );
+  });
+
+  it("refuses an opening on a credit manager that cannot move it to Aave", async () => {
+    previewOperationMock.mockResolvedValue(sdkOk(opening));
+    parseOperationCalldataMock.mockReturnValue(
+      sdkOk({ operation: "OpenCreditAccount", onBehalfOf: OWNER } as Operation),
+    );
+    projectAavePositionMock.mockResolvedValue(undefined);
+
+    const ns = new PreviewNamespace(onchain, { maxOffchainLagSeconds: 0 });
+    const result = await ns.openAavePosition(input);
+
+    if (result.ok) throw new Error("unreachable");
+    expect(result.error.code).toBe("unsupportedOperation");
   });
 
   it("refuses calldata that is not an account opening", async () => {

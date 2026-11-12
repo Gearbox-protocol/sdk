@@ -1,11 +1,12 @@
 import type { Address } from "viem";
 import { decodeFunctionData } from "viem";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../abi/310/generated.js";
 import type {
+  AavePositionProjection,
   DelayedIntent,
   IGearboxError,
   PositionClaimableWithdrawal,
@@ -37,8 +38,19 @@ import {
   TEST_FACADE_ADDRESS,
 } from "../../onchain/market/credit/CreditFacadeV310Contract.mock.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
+import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
 import { ExecuteApi } from "../execute/ExecuteApi.js";
 import { PrepareApi } from "./PrepareApi.js";
+
+vi.mock("../../onchain/positions/projectAavePosition.js", () => ({
+  projectAavePosition: vi.fn(),
+}));
+
+const projectAavePositionMock = vi.mocked(projectAavePosition);
+
+beforeEach(() => {
+  projectAavePositionMock.mockReset();
+});
 
 /**
  * What a preparation came to, or the refusal named as the test's failure — the
@@ -641,46 +653,89 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ).toEqual([{ token: POS, balance: 60000000000n }]);
   });
 
-  it("openAavePosition is the same opening, with the Aave half beside it", async () => {
-    const { api, strategy } = buildStrategyApi();
+  describe("openAavePosition", () => {
     const params = {
       collateral: [{ token: UND, balance: 20000000000n }],
       leverage: 300n,
+      wallet: WALLET,
     };
+    const aaveDebt = (value: bigint) =>
+      ({ totalDebt: { value } }) as AavePositionProjection;
 
-    const { state: gearbox } = plan(
-      await api.openNewStrategy(strategy, params),
-    );
-    const prepared = plan(await api.openAavePosition(strategy, params));
+    it("is the same opening, with the Aave half of the wallet's position beside it", async () => {
+      const { api, sdk, strategy } = buildStrategyApi();
+      const { state: gearbox } = plan(
+        await api.openNewStrategy(strategy, params),
+      );
+      const aave = aaveDebt(gearbox.totalDebt.value);
+      projectAavePositionMock.mockResolvedValueOnce({
+        aave,
+        maxDebt: gearbox.totalDebt.value,
+      });
 
-    const { aave, ...rest } = prepared.state;
-    expect(rest).toEqual(gearbox);
-    expect(aave.assets).toEqual(gearbox.averageAssets);
-    expect(aave.mintPeriodInterest.value).toBe(
-      (gearbox.totalDebt.value *
-        BigInt(gearbox.borrowRate.totalOnDebt) *
-        BigInt(aave.mintDuration)) /
-        (10000n * 365n * 24n * 3600n),
-    );
-    expect(aave.totalDebt.value).toBe(
-      gearbox.totalDebt.value + aave.mintPeriodInterest.value,
-    );
-    expect(aave.netValue.value).toBe(
-      gearbox.totalValue.value - aave.totalDebt.value,
-    );
-    expect(aave.estLiveAt).toBe(prepared.timestamp + aave.mintDuration);
-  });
+      const prepared = plan(await api.openAavePosition(strategy, params));
 
-  it("openAavePosition refuses whatever openNewStrategy refuses", async () => {
-    const { api, strategy } = buildStrategyApi();
-
-    const result = await api.openAavePosition(strategy, {
-      collateral: [],
-      leverage: 300n,
+      const { aave: projected, ...rest } = prepared.state;
+      expect(rest).toEqual(gearbox);
+      expect(projected).toBe(aave);
+      expect(projectAavePositionMock).toHaveBeenCalledWith(
+        sdk,
+        {
+          creditManager: CREDIT_MANAGER,
+          assets: gearbox.averageAssets.map(a => ({
+            token: a.token.address,
+            balance: a.value,
+          })),
+          quotas: gearbox.averageQuota,
+          totalDebt: gearbox.totalDebt.value,
+          totalValue: gearbox.totalValue.value,
+        },
+        WALLET,
+      );
     });
 
-    if (result.ok) throw new Error("unreachable");
-    expect(result.error.code).toBe("insufficientBalance");
+    it("refuses a debt above what Aave lends against the collateral", async () => {
+      const { api, strategy } = buildStrategyApi();
+      projectAavePositionMock.mockResolvedValueOnce({
+        aave: aaveDebt(MIN_DEBT * 3n),
+        maxDebt: MIN_DEBT * 2n,
+      });
+
+      const result = await api.openAavePosition(strategy, params);
+
+      if (result.ok) throw new Error("unreachable");
+      if (result.error.code !== "debtOutOfRange") {
+        throw new Error(result.error.code);
+      }
+      expect(result.error.requested.value).toBe(MIN_DEBT * 3n);
+      expect(result.error.maxDebt.value).toBe(MIN_DEBT * 2n);
+      expect(result.error.minDebt.value).toBe(MIN_DEBT);
+      // the opening itself was planned, so its state comes along
+      expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
+    });
+
+    it("refuses a market that cannot move its target collateral to Aave", async () => {
+      const { api, strategy } = buildStrategyApi();
+      projectAavePositionMock.mockResolvedValueOnce(undefined);
+
+      const result = await api.openAavePosition(strategy, params);
+
+      if (result.ok) throw new Error("unreachable");
+      expect(result.error.code).toBe("unsupportedCollateralToken");
+    });
+
+    it("refuses whatever openNewStrategy refuses, before reading Aave", async () => {
+      const { api, strategy } = buildStrategyApi();
+
+      const result = await api.openAavePosition(strategy, {
+        ...params,
+        collateral: [],
+      });
+
+      if (result.ok) throw new Error("unreachable");
+      expect(result.error.code).toBe("insufficientBalance");
+      expect(projectAavePositionMock).not.toHaveBeenCalled();
+    });
   });
 
   it("depositStrategy keeps leverage while the position grows", async () => {

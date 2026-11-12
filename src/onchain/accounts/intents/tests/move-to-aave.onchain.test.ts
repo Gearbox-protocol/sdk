@@ -118,8 +118,9 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
   it("supplies, hands the aTokens over with a loan, drops quotas, repays in full", async () => {
     const pool = poolAdapter();
     const bridge = bridgeAdapter();
-    const supply = pool.supplyCall(POS, HELD_POS);
-    const open = bridge.openPositionCall(A_POS, UND, HELD_POS, DEBT + MARGIN);
+    // Both calls name no amount, as the finalizer bot's do.
+    const supply = pool.supplyDiffCall(POS, 0n);
+    const open = bridge.openPositionDiffCall(A_POS, UND, 0n, DEBT + MARGIN);
 
     const result = await run({ adapters: [pool, bridge] });
     const state = expectAdjustPreview(result, {

@@ -122,11 +122,12 @@ describe("every prepare method names exactly its own errors", () => {
     >();
   });
 
-  it("openAavePosition: the same codes as openNewStrategy, whose opening it is", () => {
+  it("openAavePosition: openNewStrategy's codes, plus a market that cannot move to Aave", () => {
     expectTypeOf<Awaited<ReturnType<P["openAavePosition"]>>>().toEqualTypeOf<
       SDKReturn<
         OpenAavePositionResult,
         (
+          | UnsupportedCollateralTokenError
           | CreditManagerPausedError
           | MarketExpiredError
           | ForbiddenTokenError

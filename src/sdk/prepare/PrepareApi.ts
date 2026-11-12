@@ -23,11 +23,13 @@ import type {
 import {
   creditAccountNotEmpty,
   creditAccountNotFound,
+  debtOutOfRange,
   noRecordedIntent,
   noStrategyTargetCollateral,
   sdkErr,
   sdkOk,
   unexpectedFailure,
+  unsupportedCollateralToken,
   unsupportedTokenPair,
 } from "../../model/index.js";
 import { resolveQuotaUpdate } from "../../onchain/accounts/intents/resolveQuotaUpdate.js";
@@ -94,6 +96,7 @@ import type {
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
+  OpenAavePositionParams,
   OpenAavePositionResult,
   OpenAavePositionState,
   OpenFlowError,
@@ -538,11 +541,12 @@ export class PrepareApi
    **/
   public async openAavePosition(
     strategy: StrategyInput,
-    params: OpenStrategyParams,
+    params: OpenAavePositionParams,
   ): Promise<
     SDKReturn<
       OpenAavePositionResult,
-      OpenStrategyError & WithPartialState<OpenAavePositionState>
+      (OpenStrategyError | UnsupportedCollateralTokenError) &
+        WithPartialState<OpenAavePositionState>
     >
   > {
     const opened = await this.openNewStrategy(strategy, params);
@@ -551,16 +555,48 @@ export class PrepareApi
     }
     const { state } = opened.data;
     try {
-      const aave = projectAavePosition(this.sdk.chain(strategy.chainId), {
-        creditManager: state.creditManager,
-        assets: state.averageAssets.map(a => ({
-          token: a.token.address,
-          balance: a.value,
-        })),
-        quotas: state.averageQuota,
-        totalDebt: state.totalDebt.value,
-        totalValue: state.totalValue.value,
-      });
+      const sdk = this.sdk.chain(strategy.chainId);
+      const projected = await projectAavePosition(
+        sdk,
+        {
+          creditManager: state.creditManager,
+          assets: state.averageAssets.map(a => ({
+            token: a.token.address,
+            balance: a.value,
+          })),
+          quotas: state.averageQuota,
+          totalDebt: state.totalDebt.value,
+          totalValue: state.totalValue.value,
+        },
+        params.wallet,
+      );
+      const suite = sdk.marketRegister.findCreditManager(
+        strategy.creditManager,
+      );
+      if (!projected) {
+        const target = params.targetToken ?? suite.strategy?.targetCollateral;
+        return refused(
+          target
+            ? unsupportedCollateralToken(toToken(sdk, target))
+            : noStrategyTargetCollateral(strategy.creditManager),
+          state,
+        );
+      }
+      const { aave, maxDebt } = projected;
+      if (aave.totalDebt.value > maxDebt) {
+        const market = sdk.marketRegister.findByCreditManager(
+          strategy.creditManager,
+        );
+        const { creditFacade } = suite;
+        return refused(
+          debtOutOfRange({
+            requested: aave.totalDebt,
+            minDebt: market.toUnderlyingAmount(creditFacade.minDebt),
+            maxDebt: market.toUnderlyingAmount(maxDebt),
+          }),
+          state,
+        );
+      }
       return sdkOk({ ...opened.data, state: { ...state, aave } });
     } catch (e) {
       return refused(unexpectedFailure(e), state);

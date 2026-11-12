@@ -86,12 +86,12 @@ describe("AaveV3PoolAdapterContract — serialized params and calls", () => {
     expect(adapter.isAssetAllowed(OTHER)).toBe(false);
   });
 
-  it("supplyCall targets the adapter with the asset and amount, nothing else", () => {
+  it("supplyDiffCall targets the adapter with the asset and the leftover", () => {
     const { adapter } = poolAdapter();
 
-    expect(adapter.supplyCall(RWA, 100n)).toEqual({
+    expect(adapter.supplyDiffCall(RWA, 0n)).toEqual({
       target: ADAPTER,
-      callData: call("supply", 100n),
+      callData: diffCall("supplyDiff", 0n),
     });
   });
 

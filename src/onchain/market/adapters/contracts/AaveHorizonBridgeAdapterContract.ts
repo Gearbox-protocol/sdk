@@ -4,11 +4,12 @@ import {
   decodeFunctionData,
   encodeFunctionData,
   type Hex,
+  stringToHex,
 } from "viem";
 import { MissingSerializedParamsError } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
 import type { MultiCall } from "../../../types/index.js";
-import type { AssetsMap } from "../../../utils/index.js";
+import { type AssetsMap, hexEq } from "../../../utils/index.js";
 import { iAaveHorizonBridgeAbi } from "../abi/aave/index.js";
 import { iAaveHorizonBridgeAdapterAbi } from "../abi/adapters/index.js";
 import type { ConcreteAdapterContractOptions } from "./AbstractAdapter.js";
@@ -19,6 +20,28 @@ type abi = typeof abi;
 
 const protocolAbi = iAaveHorizonBridgeAbi;
 type protocolAbi = typeof protocolAbi;
+
+const FINALIZER_BOT_TYPE = stringToHex("BOT::AAVE_HORIZON_FINALIZER", {
+  size: 32,
+});
+
+/**
+ * The bridge a finalizer bot serves, from its `serialize()`:
+ * `abi.encode(pool, bridge)`. `undefined` where the bot did not serialize.
+ */
+function finalizerBridge(serializedParams: Hex): Address | undefined {
+  if (serializedParams === "0x") {
+    return undefined;
+  }
+  const [, bridge] = decodeAbiParameters(
+    [
+      { type: "address", name: "pool" },
+      { type: "address", name: "bridge" },
+    ],
+    serializedParams,
+  );
+  return bridge;
+}
 
 export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   abi,
@@ -75,24 +98,59 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   }
 
   /**
-   * Facade call handing `aTokenAmount` of `aToken` to the account owner and
-   * borrowing `borrowAmount` of `debtToken` on the owner's behalf into the
-   * account.
+   * Facade call handing every `aToken` the account holds above
+   * `leftoverAmount` to the account owner and borrowing `borrowAmount` of
+   * `debtToken` on the owner's behalf into the account.
    */
-  public openPositionCall(
+  public openPositionDiffCall(
     aToken: Address,
     debtToken: Address,
-    aTokenAmount: bigint,
+    leftoverAmount: bigint,
     borrowAmount: bigint,
   ): MultiCall {
     return {
       target: this.address,
       callData: encodeFunctionData({
         abi,
-        functionName: "openPosition",
-        args: [aToken, debtToken, aTokenAmount, borrowAmount],
+        functionName: "openPositionDiff",
+        args: [aToken, debtToken, leftoverAmount, borrowAmount],
       }),
     };
+  }
+
+  /**
+   * Every account on this credit manager is finished by the Horizon finalizer
+   * bot a block after its own transaction, so opening one grants the bot its
+   * permissions. The bot is the one the market configurator lists among its
+   * periphery contracts for this adapter's bridge, the latest version where
+   * there are several; nothing where it lists none.
+   */
+  public override async openingCalls(): Promise<MultiCall[]> {
+    const { configurator } = this.sdk.marketRegister.findByCreditManager(
+      this.creditManager,
+    );
+    const bots = await this.sdk.accounts.bots.getMarketBots(
+      configurator.address,
+    );
+    const [bot] = bots
+      .filter(
+        ({ baseParams }) =>
+          hexEq(baseParams.contractType, FINALIZER_BOT_TYPE) &&
+          hexEq(finalizerBridge(baseParams.serializedParams), this.bridge),
+      )
+      .sort((a, b) => Number(b.baseParams.version - a.baseParams.version));
+    if (!bot) {
+      return [];
+    }
+    const { creditFacade } = this.sdk.marketRegister.findCreditManager(
+      this.creditManager,
+    );
+    return [
+      creditFacade.prepareSetBotPermissions(
+        bot.baseParams.addr,
+        bot.requiredPermissions,
+      ),
+    ];
   }
 
   public override stateHuman(raw?: boolean) {
@@ -107,13 +165,13 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   }
 
   /**
-   * Opening and closing a position are legal outside a bracket: both amounts
-   * are named in the calldata and the bridge moves exactly those, so there is
-   * nothing for an on-chain comparison to enforce.
+   * Opening and closing a position are legal outside a bracket: the bridge
+   * moves exactly the amounts the calldata names, or the balance above the
+   * named leftover, so there is nothing for an on-chain comparison to enforce.
    *
-   * Opening hands `aTokenAmount` of the aToken to the account owner and brings
-   * `borrowAmount` of the debt token in; closing sends `repayAmount` of the
-   * debt token out and brings the aTokens back.
+   * Opening hands the aTokens to the account owner and brings `borrowAmount`
+   * of the debt token in; closing sends `repayAmount` of the debt token out and
+   * brings the aTokens back.
    */
   public override replayOutOfBracketCall(
     balances: AssetsMap,
@@ -125,6 +183,15 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
         const [aToken, debtToken, aTokenAmount, borrowAmount] = decoded.args;
         balances.dec(aToken, aTokenAmount);
         balances.inc(debtToken, borrowAmount);
+        return true;
+      }
+      case "openPositionDiff": {
+        const [aToken, debtToken, leftoverAmount, borrowAmount] = decoded.args;
+        const balance = balances.getOrZero(aToken);
+        if (balance > leftoverAmount) {
+          balances.dec(aToken, balance - leftoverAmount);
+          balances.inc(debtToken, borrowAmount);
+        }
         return true;
       }
       case "closePosition": {

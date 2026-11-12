@@ -5,7 +5,6 @@ import {
   decodeFunctionData,
   encodeFunctionData,
   type Hex,
-  zeroAddress,
 } from "viem";
 import { MissingSerializedParamsError } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
@@ -109,17 +108,16 @@ export class AaveV3PoolAdapterContract extends AbstractAdapterContract<
   }
 
   /**
-   * Facade call supplying `amount` of `asset` from the credit account. The
-   * adapter mints the aTokens to the account whatever `onBehalfOf` says, so
-   * neither it nor the referral code is sent.
+   * Facade call supplying every `asset` the credit account holds above
+   * `leftoverAmount`.
    */
-  public supplyCall(asset: Address, amount: bigint): MultiCall {
+  public supplyDiffCall(asset: Address, leftoverAmount: bigint): MultiCall {
     return {
       target: this.address,
       callData: encodeFunctionData({
         abi,
-        functionName: "supply",
-        args: [asset, amount, zeroAddress, 0],
+        functionName: "supplyDiff",
+        args: [asset, leftoverAmount],
       }),
     };
   }

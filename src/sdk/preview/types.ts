@@ -43,8 +43,10 @@ export interface IPreview {
    * credit account the position is built in while the mint settles, and the
    * position it becomes on Aave after that.
    *
-   * Calldata that is not an account opening is refused with
-   * `unsupportedOperation`.
+   * Calldata that is not an account opening, or opens on a credit manager
+   * that cannot move it to Aave, is refused with `unsupportedOperation`. The
+   * Aave position is the one of the opening's `onBehalfOf`, or of the sender
+   * where the calldata names no owner.
    **/
   openAavePosition(
     input: PreviewOperationInput,

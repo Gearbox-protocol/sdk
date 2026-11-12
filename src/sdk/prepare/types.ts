@@ -578,6 +578,15 @@ export interface OpenStrategyParams extends PrepareOptions {
   creditAccount?: Address;
 }
 
+export interface OpenAavePositionParams extends OpenStrategyParams {
+  /**
+   * Wallet the account is opened for. The Aave position is this wallet's own,
+   * so what it already holds and owes on the Horizon pool counts towards the
+   * health factor and the debt Aave lends.
+   **/
+  wallet: Address;
+}
+
 export interface BorrowParams extends PrepareOptions {
   /**
    * Token the wallet puts up as collateral. Must be a collateral token of the
@@ -830,18 +839,34 @@ export interface IOpportunitiesPrepare {
   /**
    * Opening a leveraged position on Aave Horizon from wallet collateral.
    *
-   * The RWA collateral is minted asynchronously, so the opening itself is the
-   * one {@link openNewStrategy} prepares: a Gearbox credit account borrows and
-   * subscribes to the mint. Once the mint settles the position moves to Aave,
-   * and `state.aave` describes it there.
+   * The RWA collateral may be minted asynchronously, so the opening itself is
+   * the one {@link openNewStrategy} prepares: a Gearbox credit account borrows
+   * and subscribes to the mint. Once the mint settles — at once where the
+   * withdrawal compressor lists no delayed operation for the RWA — the
+   * position moves to Aave, and `state.aave` describes it there.
+   *
+   * The move is the finalizer bot's: the facade refuses to change an
+   * account's debt twice in a block, so it cannot ride on the opening even
+   * when the mint is instant. The opening grants the bot its permissions on
+   * every credit manager with a Horizon bridge adapter, whichever of the two
+   * methods prepared it; the bot is the one the market configurator lists
+   * among its periphery contracts for that bridge, and with none listed the
+   * opening grants nothing and the move is left to {@link moveToAave}.
+   *
+   * The bot borrows the whole Gearbox debt on Aave or reverts, so an opening
+   * whose debt is above what Aave lends against the collateral at its LTV is
+   * refused with `debtOutOfRange`, `maxDebt` being that amount. A market whose
+   * target collateral cannot be moved to Aave is refused with
+   * `unsupportedCollateralToken`.
    **/
   openAavePosition(
     strategy: StrategyInput,
-    params: OpenStrategyParams,
+    params: OpenAavePositionParams,
   ): Promise<
     SDKReturn<
       OpenAavePositionResult,
-      OpenStrategyError & WithPartialState<OpenAavePositionState>
+      (OpenStrategyError | UnsupportedCollateralTokenError) &
+        WithPartialState<OpenAavePositionState>
     >
   >;
 
@@ -1049,6 +1074,10 @@ export interface IOpportunitiesPrepare {
   /**
    * The second half of an {@link openAavePosition}: once the RWA collateral
    * has been minted, the position leaves the credit account for Aave Horizon.
+   *
+   * The finalizer bot does this by itself; this is the manual path, for an
+   * account the bot has not reached. It makes the bot's adapter calls, but the
+   * debt is read here rather than in the transaction, hence the margin.
    *
    * One transaction: the whole balance of `token` is supplied to the Aave
    * pool, the aTokens go to the account owner through the Horizon bridge,

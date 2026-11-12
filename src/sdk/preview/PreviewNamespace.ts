@@ -20,6 +20,7 @@ import {
   type SimulationValidationError,
 } from "../../onchain/index.js";
 import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
+import { parseOperationCalldata } from "../../onchain/preview/parse/parseOperationCalldata.js";
 import type { EnsureFreshChains, NamespaceOptions } from "../types.js";
 import type { CheckOperationProps, IPreview } from "./types.js";
 
@@ -66,20 +67,38 @@ export class PreviewNamespace implements IPreview {
         operation: preview.operation,
       } satisfies UnsupportedOperationError);
     }
-    const aave = projectAavePosition(this.#onchain.chain(input.chainId), {
-      creditManager: preview.creditManager,
-      assets: preview.estAssets.map(a => ({
-        token: a.token.address,
-        balance: a.value,
-      })),
-      quotas: preview.quotas.map(q => ({
-        token: q.token.address,
-        balance: q.value,
-      })),
-      totalDebt: preview.totalDebt.value,
-      totalValue: preview.estTotalValue.value,
-    });
-    return sdkOk({ ...preview, aave });
+    const sdk = this.#onchain.chain(input.chainId);
+    // A reopening is the owner's own multicall; a fresh opening names its owner.
+    const parsed = parseOperationCalldata(sdk, input);
+    const owner =
+      parsed.ok && parsed.data.operation === "OpenCreditAccount"
+        ? parsed.data.onBehalfOf
+        : input.sender;
+    const projected = await projectAavePosition(
+      sdk,
+      {
+        creditManager: preview.creditManager,
+        assets: preview.estAssets.map(a => ({
+          token: a.token.address,
+          balance: a.value,
+        })),
+        quotas: preview.quotas.map(q => ({
+          token: q.token.address,
+          balance: q.value,
+        })),
+        totalDebt: preview.totalDebt.value,
+        totalValue: preview.estTotalValue.value,
+      },
+      owner,
+    );
+    if (!projected) {
+      return sdkErr({
+        code: "unsupportedOperation",
+        message: `credit manager ${preview.creditManager} cannot move this opening to Aave`,
+        operation: preview.operation,
+      } satisfies UnsupportedOperationError);
+    }
+    return sdkOk({ ...preview, aave: projected.aave });
   }
 
   /**

@@ -537,10 +537,10 @@ describe("replayInnerOperations on malformed multicalls", () => {
     });
     const sdk = stubSdk({ [ADAPTER]: pool, [BRIDGE_ADAPTER]: bridge });
     const multicall: InnerOperation[] = [
-      execute(ADAPTER, pool.supplyCall(WSTETH, 2000n).callData),
+      execute(ADAPTER, pool.supplyDiffCall(WSTETH, 0n).callData),
       execute(
         BRIDGE_ADAPTER,
-        bridge.openPositionCall(A_WSTETH, USDC, 2000n, 1101n).callData,
+        bridge.openPositionDiffCall(A_WSTETH, USDC, 0n, 1101n).callData,
       ),
       { operation: "UpdateQuota", token: WSTETH, change: -2000n },
       { operation: "DecreaseBorrowedAmount", token: USDC, amount: MAX_UINT256 },

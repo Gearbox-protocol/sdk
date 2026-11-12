@@ -1,4 +1,8 @@
-import type { Address, ContractFunctionParameters } from "viem";
+import type {
+  Address,
+  ContractFunctionParameters,
+  ContractFunctionReturnType,
+} from "viem";
 import type { iBotListV310Abi } from "../../../abi/310/generated.js";
 import type { peripheryCompressorAbi } from "../../../abi/compressors/peripheryCompressor.js";
 import type { ConnectedBotData } from "../../base/index.js";
@@ -18,6 +22,17 @@ export type ConnectedBotsCall = ContractFunctionParameters<
   "pure" | "view",
   "getConnectedBots"
 >;
+
+/**
+ * A bot a market configurator lists among its periphery contracts, as the
+ * periphery compressor's `getBots` reports it: the bot's own version, contract
+ * type and serialized state, and the permissions it requires.
+ **/
+export type MarketBot = ContractFunctionReturnType<
+  typeof peripheryCompressorAbi,
+  "pure" | "view",
+  "getBots"
+>[number];
 
 /**
  * @internal

@@ -4,7 +4,7 @@ import type { Timestamp, TokenAmount } from "./primitives.js";
 /**
  * Where an opening lands once it has moved to Aave Horizon.
  *
- * An RWA collateral is minted asynchronously, so the leverage is built in a
+ * An RWA collateral may be minted asynchronously, so the leverage is built in a
  * Gearbox credit account first; once the mint settles, the minted collateral is
  * supplied to Aave, the Gearbox debt is refinanced there with the interest it
  * accrued in the meantime, and the credit account closes. This is that second
@@ -32,11 +32,13 @@ export interface AavePositionProjection
    **/
   mintPeriodInterest: TokenAmount;
   /**
-   * How long the mint takes to settle, in seconds.
+   * How long the mint takes to settle, in seconds: the `withdrawalLength` of
+   * the RWA's delayed operation, `0` where the opening mints it outright.
    **/
   mintDuration: number;
   /**
-   * Estimated unix seconds at which the position is live on Aave.
+   * Estimated unix seconds at which the position is live on Aave. The
+   * finalizer bot moves it a block after the mint settles at the earliest.
    **/
   estLiveAt: Timestamp;
 }

@@ -150,6 +150,35 @@ export const iAaveHorizonBridgeAdapterAbi = [
     ],
   },
   {
+    name: "openPositionDiff",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        type: "address",
+        name: "aToken",
+      },
+      {
+        type: "address",
+        name: "debtToken",
+      },
+      {
+        type: "uint256",
+        name: "leftoverAmount",
+      },
+      {
+        type: "uint256",
+        name: "borrowAmount",
+      },
+    ],
+    outputs: [
+      {
+        type: "bool",
+        name: "useSafePrices",
+      },
+    ],
+  },
+  {
     name: "closePosition",
     type: "function",
     stateMutability: "nonpayable",

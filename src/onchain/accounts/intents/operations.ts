@@ -430,7 +430,11 @@ export function buildClaimDelayedWithdrawalOperation(input: {
 // Aave Horizon — a minted RWA position leaves the account for Aave
 // ---------------------------------------------------------------------------
 
-/** Supplies an asset to the Aave pool; the aTokens are minted one for one. */
+/**
+ * Supplies the whole balance of an asset to the Aave pool; the aTokens are
+ * minted one for one. The call names no amount, as the finalizer bot's does,
+ * and `amount` is the balance the projection was built on.
+ */
 export interface AaveSupplyOperation {
   type: "aaveSupply";
   token: Address;
@@ -450,13 +454,15 @@ export function buildAaveSupplyOperation(input: {
     token: input.token,
     aToken: input.aToken,
     amount: input.amount,
-    calls: [input.adapter.supplyCall(input.token, input.amount)],
+    calls: [input.adapter.supplyDiffCall(input.token, 0n)],
   };
 }
 
 /**
- * Hands the aTokens to the account owner and borrows against them on the
- * owner's Aave position, into the account.
+ * Hands every aToken on the account to its owner and borrows against them on
+ * the owner's Aave position, into the account. The call names no aToken
+ * amount, so a supply that minted a wei less does not revert it;
+ * `aTokenAmount` is what the projection was built on.
  */
 export interface AaveOpenPositionOperation {
   type: "aaveOpenPosition";
@@ -481,10 +487,10 @@ export function buildAaveOpenPositionOperation(input: {
     debtToken: input.debtToken,
     borrowAmount: input.borrowAmount,
     calls: [
-      input.adapter.openPositionCall(
+      input.adapter.openPositionDiffCall(
         input.aToken,
         input.debtToken,
-        input.aTokenAmount,
+        0n,
         input.borrowAmount,
       ),
     ],
