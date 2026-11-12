@@ -19,8 +19,14 @@ export function shortenHash(hash: string, chars: number = 4): string {
   return `${start}...${end}`;
 }
 
-export function convertPercent(percent: number) {
-  return Math.floor(percent * 100);
+/**
+ * Basis points of a percentage: `1.15` → `115`.
+ *
+ * Rounds rather than truncates: `1.15 * 100` is `114.99999999999999` in
+ * floating point, and truncating it would encode one basis point less.
+ **/
+export function convertPercent(percent: number): number {
+  return Math.round(percent * 100);
 }
 
 export function significantTrunc(x: number) {
