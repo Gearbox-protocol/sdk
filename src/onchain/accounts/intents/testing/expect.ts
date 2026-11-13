@@ -239,6 +239,35 @@ function matchOp(
         expectedCalls(expected),
       );
       break;
+    case "aaveClosePosition":
+      if (actual.type !== "aaveClosePosition") {
+        return;
+      }
+      expect(actual.aToken, `op[${index}].aToken`).toBe(expected.aToken);
+      expect(actual.aTokenAmount, `op[${index}].aTokenAmount`).toBe(
+        expected.aTokenAmount,
+      );
+      expect(actual.debtToken, `op[${index}].debtToken`).toBe(
+        expected.debtToken,
+      );
+      expect(actual.repayAmount, `op[${index}].repayAmount`).toBe(
+        expected.repayAmount,
+      );
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
+    case "aaveWithdraw":
+      if (actual.type !== "aaveWithdraw") {
+        return;
+      }
+      expect(actual.token, `op[${index}].token`).toBe(expected.token);
+      expect(actual.aToken, `op[${index}].aToken`).toBe(expected.aToken);
+      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
+      expect(actual.calls, `op[${index}].calls`).toEqual(
+        expectedCalls(expected),
+      );
+      break;
   }
 }
 

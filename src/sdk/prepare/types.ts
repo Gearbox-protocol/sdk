@@ -519,6 +519,13 @@ export interface MoveToAaveParams {
   claimable?: PositionClaimableWithdrawal;
 }
 
+export interface CloseAavePositionParams extends PrepareOptions {
+  /** RWA the account owner holds on Aave Horizon; all of it comes back. */
+  token: Address;
+  /** Wallet the exit sends what is left to, as the asset on an RWA market. */
+  to: Address;
+}
+
 export interface AdjustLeverageParams extends PrepareOptions {
   /**
    * Target total leverage scaled by `LEVERAGE_DECIMALS` (300n = 3x); 100n means
@@ -1125,6 +1132,61 @@ export interface IOpportunitiesPrepare {
         | AccountFlowError
         | DebtOutOfRangeError
         | UnsupportedCollateralTokenError
+      ) &
+        WithPartialState<OperationState>
+    >
+  >;
+
+  /**
+   * The way out of an {@link openAavePosition}, in one transaction: the
+   * account owner's Aave Horizon position in `token` comes back to the credit
+   * account and is redeemed through the RWA's redemption gateway, which
+   * settles after a delay.
+   *
+   * The request transaction: the account borrows what the owner owes on Aave,
+   * the Horizon bridge repays it and hands every aToken of `token` the owner
+   * holds to the account, the pool turns them back into `token`, and the
+   * account's whole balance of `token` is requested for redemption. On an RWA
+   * market Aave is repaid in the asset the underlying wraps, which the loan is
+   * unwrapped into. The request records an exit: once the redemption has
+   * matured, {@link finalize} — or the Horizon finalizer bot, where the account
+   * granted it its permissions — claims it, settles the loan and sends the rest
+   * to `to`.
+   *
+   * Aave debt grows every second and the bridge keeps whatever Aave does not
+   * take, so the repayment is the debt read now plus an hour of interest at the
+   * current rate. A transaction landing sooner leaves the bridge the interest
+   * of the time it did not take; one landing later reverts, as Aave will not
+   * release the aTokens of a position left with debt.
+   *
+   * `state` is where the exit ends, the account settled and empty; the account
+   * as the request leaves it — the redemption in flight, the loan borrowed — is
+   * `delayed.afterRequest`, and `delayed.claimableAt` is when the tail can run.
+   *
+   * The account has to be the owner's in a credit manager with Aave adapters
+   * for `token`, owing nothing and holding no quota — the one an opening left
+   * empty once the position moved to Aave qualifies. Refused with
+   * `creditAccountNotEmpty` otherwise, with `unsupportedCollateralToken` when
+   * the owner holds no aToken of `token` or no adapter takes it, with
+   * `debtOutOfRange` when the owner owes nothing on Aave or the loan is outside
+   * the facade's limits, and with `noDelayedRoute` when `token` has no
+   * redemption that can take a balance arriving in the same transaction.
+   **/
+  closeAavePosition(
+    position: PositionInput,
+    params: CloseAavePositionParams,
+  ): Promise<
+    SDKReturn<
+      DelayedStrategyResult,
+      (
+        | AccountFlowError
+        | CreditAccountNotEmptyError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | InsufficientPoolLiquidityError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
       ) &
         WithPartialState<OperationState>
     >

@@ -13,6 +13,7 @@ import {
   MAX_UINT256,
   PERCENTAGE_FACTOR,
 } from "../../constants/index.js";
+import { RAY, SECONDS_PER_YEAR } from "../../constants/math.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
@@ -29,6 +30,7 @@ import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
   BorrowAndWithdrawIntent,
+  CloseAavePositionIntent,
   DepositStrategyIntent,
   MoveToAaveIntent,
   RepayStrategyIntent,
@@ -118,7 +120,20 @@ export type Step =
    * Horizon bridge, which borrows `borrow`, in underlying units, into the
    * account: of the underlying, or of the asset an RWA underlying wraps.
    */
-  | { kind: "aaveOpenPosition"; token: Address; borrow: bigint };
+  | { kind: "aaveOpenPosition"; token: Address; borrow: bigint }
+  /**
+   * Repays `repay` of the owner's Aave debt out of the account, in the asset
+   * Aave lends, and brings `aTokenAmount` of the owner's aTokens of `token`
+   * back into the account through the Horizon bridge.
+   */
+  | {
+      kind: "aaveClosePosition";
+      token: Address;
+      repay: bigint;
+      aTokenAmount: bigint;
+    }
+  /** Withdraws `token` from the Aave pool for every aToken of it on the account. */
+  | { kind: "aaveWithdraw"; token: Address };
 
 /** What a planner is allowed to know about the account. */
 export interface AccountView {
@@ -404,6 +419,79 @@ export function planMoveToAave(
     clearQuotas(),
     repay(view.debt),
     { kind: "sweep", to: intent.to, token: view.underlying },
+  ];
+}
+
+/**
+ * The owner's Aave position comes back and leaves: the account borrows what
+ * the owner owes on Aave, the bridge repays it and returns the aTokens, the
+ * pool turns them back into the RWA, and the RWA is requested for redemption
+ * with an exit recorded for the tail — all in one transaction.
+ *
+ * The repayment is the debt plus {@link CLOSE_AAVE_WINDOW} of interest at the
+ * current rate, see {@link CloseAavePositionIntent}.
+ */
+export function planCloseAavePosition(
+  intent: Omit<CloseAavePositionIntent, "type">,
+  view: AccountView,
+): Step[] {
+  const { token, holdings } = intent;
+  const U = view.underlying;
+  if (eq(token, U) || isZeroBalance(holdings.supplied)) {
+    throw new IntentPreviewError(
+      unsupportedCollateralToken(toToken(view.sdk, token)),
+      `closeAavePosition: the owner holds no aToken of ${token} on Aave`,
+    );
+  }
+  if (holdings.owed <= 0n) {
+    throw new IntentPreviewError(
+      debtOutOfRange({
+        requested: toTokenAmount(view.sdk, U, 0n),
+        minDebt: toTokenAmount(view.sdk, U, view.debtLimits.minDebt),
+        maxDebt: toTokenAmount(view.sdk, U, view.debtLimits.maxDebt),
+      }),
+      "closeAavePosition: the owner owes nothing on Aave",
+    );
+  }
+  const repay =
+    holdings.owed +
+    ceilDiv(
+      holdings.owed * holdings.borrowRate * CLOSE_AAVE_WINDOW,
+      RAY * BigInt(SECONDS_PER_YEAR),
+    );
+  // The loan is borrowed in the underlying and handed to the bridge in the
+  // asset Aave lends, which an RWA underlying unwraps into: rounded up, so the
+  // unwrap always covers the repayment.
+  let borrowed = toTargetDecimals(repay, holdings.debtToken, U, view.sdk);
+  if (toTargetDecimals(borrowed, U, holdings.debtToken, view.sdk) < repay) {
+    borrowed += 1n;
+  }
+  assertDebtLimits(
+    view.sdk,
+    view.debt + borrowed,
+    view.debtLimits,
+    U,
+    view.limits,
+  );
+  return [
+    borrow(borrowed),
+    ...(eq(holdings.debtToken, U)
+      ? []
+      : [convert(U, holdings.debtToken, borrowed)]),
+    {
+      kind: "aaveClosePosition",
+      token,
+      repay,
+      aTokenAmount: holdings.supplied,
+    },
+    { kind: "aaveWithdraw", token },
+    {
+      kind: "request",
+      token,
+      amount: view.balanceOf(token) + holdings.supplied,
+      reserve: 0n,
+      record: { type: "CLOSE_ACCOUNT", to: intent.to },
+    },
   ];
 }
 
@@ -858,6 +946,13 @@ const clearQuotas = (): Step => ({ kind: "clearQuotas" });
 const SETTLE_MARGIN = 10n;
 const withMargin = (debt: bigint): bigint =>
   debt + (debt * SETTLE_MARGIN) / PERCENTAGE_FACTOR;
+/**
+ * Seconds of Aave interest a closing repays on top of the debt it read: the
+ * bridge keeps whatever Aave does not take, so this is paid for, unlike
+ * {@link SETTLE_MARGIN}, and an hour costs a fraction of a basis point.
+ */
+const CLOSE_AAVE_WINDOW = 3600n;
+const ceilDiv = (a: bigint, b: bigint): bigint => (a + b - 1n) / b;
 /** The amount that asks for all of it, whatever "all" turns out to be. */
 const everything = (amount: bigint): boolean => amount >= MAX_UINT256;
 const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);

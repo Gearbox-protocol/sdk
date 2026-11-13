@@ -122,6 +122,21 @@ export class AaveV3PoolAdapterContract extends AbstractAdapterContract<
     };
   }
 
+  /**
+   * Facade call withdrawing `asset` for every aToken of it the credit account
+   * holds above `leftoverAmount`.
+   */
+  public withdrawDiffCall(asset: Address, leftoverAmount: bigint): MultiCall {
+    return {
+      target: this.address,
+      callData: encodeFunctionData({
+        abi,
+        functionName: "withdrawDiff",
+        args: [asset, leftoverAmount],
+      }),
+    };
+  }
+
   public override stateHuman(raw?: boolean) {
     return {
       ...super.stateHuman(raw),

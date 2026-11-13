@@ -34,7 +34,9 @@ export type AccountCalculatorOperation =
   | StartDelayedWithdrawalOperation
   | ClaimDelayedWithdrawalOperation
   | AaveSupplyOperation
-  | AaveOpenPositionOperation;
+  | AaveOpenPositionOperation
+  | AaveClosePositionOperation
+  | AaveWithdrawOperation;
 
 /**
  * Compile-time proof that the engine's operations really are the SDK's own
@@ -494,6 +496,75 @@ export function buildAaveOpenPositionOperation(input: {
         input.borrowAmount,
       ),
     ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Aave Horizon — the owner's position comes back to the account
+// ---------------------------------------------------------------------------
+
+/**
+ * Repays `repayAmount` of the owner's Aave debt out of the account and brings
+ * `aTokenAmount` of the owner's aTokens into it, through the Horizon bridge.
+ */
+export interface AaveClosePositionOperation {
+  type: "aaveClosePosition";
+  aToken: Address;
+  aTokenAmount: bigint;
+  debtToken: Address;
+  repayAmount: bigint;
+  calls: MultiCall[];
+}
+
+export function buildAaveClosePositionOperation(input: {
+  adapter: AaveHorizonBridgeAdapterContract;
+  aToken: Address;
+  aTokenAmount: bigint;
+  debtToken: Address;
+  repayAmount: bigint;
+}): AaveClosePositionOperation {
+  return {
+    type: "aaveClosePosition",
+    aToken: input.aToken,
+    aTokenAmount: input.aTokenAmount,
+    debtToken: input.debtToken,
+    repayAmount: input.repayAmount,
+    calls: [
+      input.adapter.closePositionCall(
+        input.aToken,
+        input.debtToken,
+        input.repayAmount,
+        input.aTokenAmount,
+      ),
+    ],
+  };
+}
+
+/**
+ * Withdraws an asset from the Aave pool for every aToken of it on the account,
+ * one for one. The call names no amount, as the supply does, and `amount` is
+ * the balance the projection was built on.
+ */
+export interface AaveWithdrawOperation {
+  type: "aaveWithdraw";
+  token: Address;
+  aToken: Address;
+  amount: bigint;
+  calls: MultiCall[];
+}
+
+export function buildAaveWithdrawOperation(input: {
+  adapter: AaveV3PoolAdapterContract;
+  token: Address;
+  aToken: Address;
+  amount: bigint;
+}): AaveWithdrawOperation {
+  return {
+    type: "aaveWithdraw",
+    token: input.token,
+    aToken: input.aToken,
+    amount: input.amount,
+    calls: [input.adapter.withdrawDiffCall(input.token, 0n)],
   };
 }
 

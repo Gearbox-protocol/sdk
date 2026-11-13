@@ -46,6 +46,7 @@ import {
   planAdjustLeverage,
   planAdjustLeverageDelayed,
   planBorrowAndWithdraw,
+  planCloseAavePosition,
   planDeposit,
   planMoveToAave,
   planRepay,
@@ -55,10 +56,12 @@ import {
   planWithdrawDelayed,
   type Step,
 } from "./plan.js";
+import { readAaveHoldings } from "./readAaveHoldings.js";
 import { realize } from "./realize.js";
 import { strategyLimits } from "./strategyLimits.js";
 import { planTail, projectTail } from "./tail.js";
 import type {
+  AaveHoldings,
   ClaimRemainder,
   CreditAccountSlice,
   DelayableIntent,
@@ -69,6 +72,7 @@ import type {
   IntentPreviewResult,
   IntentRoutesResult,
   OperationState,
+  RedeemingIntent,
   RefusedIntent,
   RouteErrors,
   StartIntent,
@@ -85,9 +89,11 @@ export type {
   OpenStrategyState,
 } from "./open-strategy.js";
 export type {
+  AaveHoldings,
   AddCollateralIntent,
   AdjustLeverageIntent,
   ClaimRemainder,
+  CloseAavePositionIntent,
   DelayableIntent,
   DelayedRoute,
   DelayedStart,
@@ -100,6 +106,7 @@ export type {
   IntentRoutesResult,
   OperationState,
   PathLossRate,
+  RedeemingIntent,
   RefusedIntent,
   RepayStrategyIntent,
   ResumableIntent,
@@ -414,7 +421,7 @@ export class CreditAccountOperationsService extends SDKConstruct {
    * does not exist for the account at all
    */
   async startDelayedIntent(
-    props: StartIntentProps & { intent: DelayableIntent },
+    props: StartIntentProps & { intent: RedeemingIntent },
   ): Promise<DelayedStartResult> {
     const { intent } = props;
     const current = accountView(props.creditAccount, props.sdk);
@@ -449,11 +456,13 @@ export class CreditAccountOperationsService extends SDKConstruct {
             return planAdjustLeverageDelayed(intent, view);
           case "WITHDRAW":
             return planWithdrawDelayed(intent, view);
+          case "CLOSE_AAVE_POSITION":
+            return planCloseAavePosition(intent, view);
           default: {
             const _exhaustive: never = intent;
             void _exhaustive;
             throw new Error(
-              `${(intent as DelayableIntent).type} - cannot be delayed`,
+              `${(intent as RedeemingIntent).type} - cannot be delayed`,
             );
           }
         }
@@ -508,6 +517,40 @@ export class CreditAccountOperationsService extends SDKConstruct {
       // the half that could not be said, not the half already walked.
       return asRefused(e, result.state);
     }
+  }
+
+  /**
+   * Previews leaving `owner`'s Aave Horizon position in `token` in one
+   * transaction, see {@link CloseAavePositionIntent}.
+   *
+   * What the owner holds and owes on Aave is read here, at the block the SDK
+   * stands at; the rest is {@link startDelayedIntent}, tail included.
+   *
+   * @param props - Account slice, quota reserve and slippage, the RWA, the
+   * wallet the exit pays, and the owner the bridge resolves for the account:
+   * the investor of an RWA factory account, the borrower otherwise
+   * @returns The request transaction, the state the exit ends in and what it
+   * recorded for the tail, or `{ ok: false, error }`
+   */
+  async closeAavePositionIntent(
+    props: StartIntentProps & { token: Address; to: Address; owner: Address },
+  ): Promise<DelayedStartResult> {
+    const { token, to, owner, ...rest } = props;
+    let holdings: AaveHoldings;
+    try {
+      holdings = await readAaveHoldings(
+        rest.sdk,
+        rest.creditAccount.creditManager,
+        owner,
+        token,
+      );
+    } catch (e) {
+      return asRefused(e, rest.draft ?? {});
+    }
+    return this.startDelayedIntent({
+      ...rest,
+      intent: { type: "CLOSE_AAVE_POSITION", token, to, holdings },
+    });
   }
 
   /**

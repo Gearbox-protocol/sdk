@@ -3,12 +3,15 @@ import {
   type DecodeFunctionDataReturnType,
   decodeAbiParameters,
   decodeFunctionData,
+  encodeFunctionData,
   type Hex,
 } from "viem";
 import { MissingSerializedParamsError } from "../../../base/index.js";
 import type { OnchainSDK } from "../../../OnchainSDK.js";
+import type { MultiCall } from "../../../types/index.js";
 import type { AssetsMap } from "../../../utils/index.js";
 import { iSecuritizeRedemptionGatewayAdapterV311Abi } from "../abi/adapters/iSecuritizeRedemptionGatewayAdapterV311.js";
+import { iSecuritizeNAVProviderAbi } from "../abi/securitize/iSecuritizeNAVProvider.js";
 import { iSecuritizeRedemptionGatewayV311Abi } from "../abi/securitize/iSecuritizeRedemptionGatewayV311.js";
 import type {
   DelayedWithdrawalClaim,
@@ -83,16 +86,58 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
   }
 
   /**
-   * `redeem` (the only request call the withdrawal compressor emits) spends
-   * the DS token and mints the redemption phantom token; the stable coin is
-   * received when the redemption is claimed. The 2-arg overload carries the
-   * intent `extraData`.
+   * Facade call redeeming every DS token the credit account holds above
+   * `leftoverAmount` when it executes, with the intent `extraData` logged
+   * alongside. Names no amount, so it can redeem what an earlier call of the
+   * same multicall brings in.
+   */
+  public redeemDiffCall(leftoverAmount: bigint, extraData: Hex): MultiCall {
+    return {
+      target: this.address,
+      callData: encodeFunctionData({
+        abi,
+        functionName: "redeemDiff",
+        args: [leftoverAmount, extraData],
+      }),
+    };
+  }
+
+  /**
+   * Stable coin a redemption of `dsTokenAmount` started now is worth, at the
+   * NAV rate it would start at — what the redemption phantom token reports
+   * for it, and the amount the withdrawal compressor quotes.
+   */
+  public async redemptionValue(dsTokenAmount: bigint): Promise<bigint> {
+    const navProvider = await this.client.readContract({
+      address: this.targetContract,
+      abi: this.protocolAbi,
+      functionName: "navProvider",
+    });
+    const rate = await this.client.readContract({
+      address: navProvider,
+      abi: iSecuritizeNAVProviderAbi,
+      functionName: "rate",
+    });
+    const dsUnit = 10n ** BigInt(this.sdk.tokensMeta.decimals(this.dsToken));
+    const stableUnit =
+      10n ** BigInt(this.sdk.tokensMeta.decimals(this.stableCoinToken));
+    return (dsTokenAmount * stableUnit * rate) / (dsUnit * dsUnit);
+  }
+
+  /**
+   * `redeem` — the request call the withdrawal compressor emits — and
+   * `redeemDiff` spend the DS token and mint the redemption phantom token; the
+   * stable coin is received when the redemption is claimed. The 2-arg
+   * overloads carry the intent `extraData`.
    */
   public override parseDelayedWithdrawalRequest(
     calldata: Hex,
   ): DelayedWithdrawalRequest | undefined {
     const decoded = decodeFunctionData({ abi: this.abi, data: calldata });
-    if (decoded.functionName !== "redeem") {
+    if (
+      decoded.functionName !== "redeem" &&
+      decoded.functionName !== "redeemDiff"
+    ) {
       return undefined;
     }
     const [, extraData] = decoded.args;
@@ -128,8 +173,11 @@ export class SecuritizeRedemptionGatewayAdapterContract extends AbstractAdapterC
   ): void {
     switch (decoded.functionName) {
       // no-op:
-      // `redeem` is only emitted by the withdrawal compressor, and
-      // sdk now encodes the spent DS token amount as a negative storeExpectedBalances delta
+      // `redeem` is only emitted by the withdrawal compressor and `redeemDiff`
+      // only by a request for a balance arriving in the same multicall; both
+      // sit in a bracket whose negative storeExpectedBalances delta is the
+      // spent DS token amount
+      case "redeemDiff":
       case "redeem": {
         // const [dsTokenAmount] = decoded.args;
         // this.spendExact(balances, this.dsToken, dsTokenAmount);

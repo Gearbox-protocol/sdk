@@ -51,6 +51,7 @@ const mockSDK = {
       repayStrategy: notImplemented,
       maxRepay: notImplemented,
       moveToAave: notImplemented,
+      closeAavePosition: notImplemented,
       adjustLeverage: notImplemented,
       addCollateral: notImplemented,
       withdrawCollateral: notImplemented,

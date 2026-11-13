@@ -18,6 +18,7 @@ import {
   type AnvilClient,
   createAnvilClient,
 } from "../../dev/createAnvilClient.js";
+import type { PositionClaimableWithdrawal } from "../../model/index.js";
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   chains,
@@ -51,6 +52,12 @@ const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
 const VBILL: Address = "0x2255718832bC9fD3bE1CaF75084F4803DA14FF01";
 /** At 3x, the debt clears the market's 50 000 minimum. */
 const COLLATERAL = parseUnits("30000", 18);
+/**
+ * How long the position sits on Aave before it is closed. An hour at most:
+ * nothing refreshes the VBILL NAV feed on the fork, and the redemption
+ * reverts once the feed goes stale.
+ */
+const HOLD_SECONDS = 3_600;
 
 const approveDelegationAbi = [
   {
@@ -81,6 +88,27 @@ const finalizeOpenAbi = [
         ],
       },
       { name: "depositPhantomToken", type: "address" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+const finalizeCloseAbi = [
+  {
+    type: "function",
+    name: "finalizeClose",
+    inputs: [
+      { name: "creditAccount", type: "address" },
+      {
+        name: "claimCall",
+        type: "tuple",
+        components: [
+          { name: "target", type: "address" },
+          { name: "callData", type: "bytes" },
+        ],
+      },
+      { name: "withdrawPhantomToken", type: "address" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -407,5 +435,234 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
     });
 
     expect(await balanceOf(RLUSD, investor)).toBeGreaterThan(held);
+  }, 300_000);
+
+  /**
+   * Opens the 3x VBILL position, has the bot move it to Aave and holds it
+   * there for {@link HOLD_SECONDS}, so the exit repays the interest Aave
+   * accrued meanwhile.
+   */
+  async function openOnAave(): Promise<{
+    creditAccount: Address;
+    bot: Address;
+    borrowed: bigint;
+  }> {
+    const { creditAccount, bot } = await openPosition();
+    await mined(
+      await wallet.writeContract({
+        address: bot,
+        abi: finalizeOpenAbi,
+        functionName: "finalizeOpen",
+        args: [
+          creditAccount,
+          VBILL,
+          { target: zeroAddress, callData: "0x" },
+          zeroAddress,
+        ],
+        gas: GAS_LIMIT,
+      }),
+    );
+    const borrowed = await balanceOf(debtToken, investor);
+    await anvil.increaseTime({ seconds: HOLD_SECONDS });
+    await anvil.mine({ blocks: 1 });
+    return { creditAccount, bot, borrowed };
+  }
+
+  /** Prepares the exit from Aave at the current block and builds its transaction. */
+  async function prepareExit(creditAccount: Address) {
+    await sync();
+    const sim = await gearbox.opportunities.prepare.closeAavePosition(
+      { chainId: chains.Mainnet.id, creditAccount },
+      { token: VBILL, to: investor },
+    );
+    if (!sim.ok) throw new Error(`close sim failed: ${sim.error.code}`);
+    const tx = await gearbox.opportunities.execute.buildTx({
+      kind: "account",
+      chainId: chains.Mainnet.id,
+      creditAccount,
+      wallet: investor,
+      sim,
+    });
+    return { ...sim.data, tx };
+  }
+
+  /**
+   * Plays Securitize's part: pays the redemption out to its redeemer, which is
+   * all a claim waits for — the 90 days are only the estimate of when that
+   * happens. Returns the claim as positions report it.
+   */
+  async function payRedemption(
+    creditAccount: Address,
+  ): Promise<PositionClaimableWithdrawal> {
+    await sync();
+    const { pending } = await sdk.positions.getCurrentWithdrawals({
+      creditAccount,
+      creditManager: CREDIT_MANAGER,
+    });
+    expect(pending).toHaveLength(1);
+    const [{ redeemer, withdrawalPhantomToken }] = pending;
+    if (!redeemer) throw new Error("the compressor reports no redeemer");
+    await anvil.deal({
+      erc20: RLUSD,
+      account: redeemer,
+      amount: await balanceOf(withdrawalPhantomToken.address, creditAccount),
+    });
+    await sync();
+    const { claimable } = await sdk.positions.getCurrentWithdrawals({
+      creditAccount,
+      creditManager: CREDIT_MANAGER,
+    });
+    expect(claimable).toHaveLength(1);
+    return claimable[0];
+  }
+
+  /**
+   * Checks the tail settled the exit: the redemption claimed, the loan repaid
+   * out of it, and the rest paid to the investor in RLUSD.
+   */
+  async function expectSettled(
+    creditAccount: Address,
+    claimable: PositionClaimableWithdrawal,
+    held: bigint,
+  ): Promise<void> {
+    const after = await sdk.accounts.getCreditAccountData(creditAccount);
+    if (!after) throw new Error(`account ${creditAccount} not found`);
+    expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
+    expect(
+      await balanceOf(
+        claimable.withdrawalPhantomToken.token.address,
+        creditAccount,
+      ),
+    ).toBe(0n);
+    const paid = (await balanceOf(RLUSD, investor)) - held;
+    expect(paid).toBeGreaterThan(0n);
+    expect(paid).toBeLessThan(claimable.withdrawalPhantomToken.value);
+  }
+
+  it("closeAavePosition leaves Aave and starts redeeming in one transaction", async () => {
+    const { creditAccount, borrowed } = await openOnAave();
+    const supplied = await balanceOf(aToken, investor);
+    const owed = await balanceOf(debtToken, investor);
+    expect(supplied).toBeGreaterThan(0n);
+    expect(owed).toBeGreaterThan(borrowed);
+
+    const { delayed, state, tx } = await prepareExit(creditAccount);
+    expect(delayed.record).toEqual({ type: "CLOSE_ACCOUNT", to: investor });
+    expect(delayed.settlement).toBe("delayed");
+    expect(delayed.claimableAt).toBeGreaterThan(sdk.timestamp);
+    expect(delayed.afterRequest.totalDebt.value).toBeGreaterThan(owed);
+    expect(state.totalDebt.value).toBe(0n);
+
+    const preview = await previewOperation(sdk, {
+      chainId: sdk.chainId,
+      to: tx.to,
+      calldata: tx.callData,
+      sender: investor,
+      value: BigInt(tx.value),
+    });
+    if (!preview.ok) throw new Error(`preview failed: ${preview.error.code}`);
+    if (preview.data.operation !== "DelayedCreditAccountOperation") {
+      throw new Error(`previewed as ${preview.data.operation}`);
+    }
+    expect(preview.data.intent).toEqual(delayed.record);
+    expect(
+      await checkOperation({ sdk, preview: preview.data, sender: investor }),
+    ).toEqual([]);
+
+    // the repayment covers an hour of interest: a transaction landing within
+    // it closes the position, one landing past it leaves debt on Aave, and
+    // Aave refuses to release the aTokens of a position it would leave unsafe
+    for (const [seconds, status] of [
+      [1800, "success"],
+      [7200, "reverted"],
+    ] as const) {
+      const snap = (await anvil.snapshot()) as Hex;
+      await anvil.increaseTime({ seconds });
+      await anvil.mine({ blocks: 1 });
+      const { status: landed } = await sdk.client.waitForTransactionReceipt({
+        hash: await sendRawTx(wallet, { tx, gas: GAS_LIMIT }),
+        pollingInterval: 100,
+      });
+      expect(landed).toBe(status);
+      await anvil.revert({ id: snap });
+    }
+
+    await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
+
+    expect(await balanceOf(aToken, investor)).toBe(0n);
+    expect(await balanceOf(debtToken, investor)).toBe(0n);
+    const after = await sdk.accounts.getCreditAccountData(creditAccount);
+    if (!after) throw new Error(`account ${creditAccount} not found`);
+    expect(calcBorrowedAmountPlusInterestAndFees(after)).toBeGreaterThan(owed);
+    expect(await balanceOf(aToken, creditAccount)).toBe(0n);
+    expect(await balanceOf(VBILL, creditAccount)).toBe(0n);
+    const phantom = (
+      await sdk.withdrawalCompressor?.findWithdrawableAssets(
+        CREDIT_MANAGER,
+        VBILL,
+      )
+    )?.[0]?.withdrawalPhantomToken;
+    if (!phantom) throw new Error("no VBILL redemption");
+    // the redemption is worth what the preview queued for the claim
+    expect(await balanceOf(phantom, creditAccount)).toBeGreaterThanOrEqual(
+      delayed.claim?.amount ?? 1n,
+    );
+  }, 300_000);
+
+  it("finalize settles the exit once the redemption is paid out", async () => {
+    const { creditAccount } = await openOnAave();
+    const { tx } = await prepareExit(creditAccount);
+    await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
+    const claimable = await payRedemption(creditAccount);
+    expect(claimable.intent).toMatchObject({
+      type: "CLOSE_ACCOUNT",
+      to: investor,
+    });
+    const held = await balanceOf(RLUSD, investor);
+
+    const sim = await gearbox.opportunities.prepare.finalize(
+      { chainId: chains.Mainnet.id, creditAccount },
+      { claimable },
+    );
+    if (!sim.ok) throw new Error(`finalize sim failed: ${sim.error.code}`);
+    expect(sim.data.state.totalDebt.value).toBe(0n);
+    expect(sim.data.remainder).toBeUndefined();
+    const finalizeTx = await gearbox.opportunities.execute.buildTx({
+      kind: "account",
+      chainId: chains.Mainnet.id,
+      creditAccount,
+      wallet: investor,
+      sim,
+    });
+    await mined(await sendRawTx(wallet, { tx: finalizeTx, gas: GAS_LIMIT }));
+
+    await expectSettled(creditAccount, claimable, held);
+  }, 300_000);
+
+  it("the bot settles the exit once the redemption is paid out", async () => {
+    const { creditAccount, bot } = await openOnAave();
+    const { tx } = await prepareExit(creditAccount);
+    await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
+    const claimable = await payRedemption(creditAccount);
+    const held = await balanceOf(RLUSD, investor);
+
+    await mined(
+      await wallet.writeContract({
+        address: bot,
+        abi: finalizeCloseAbi,
+        functionName: "finalizeClose",
+        args: [
+          creditAccount,
+          {
+            target: claimable.claimCall.to,
+            callData: claimable.claimCall.callData,
+          },
+          claimable.withdrawalPhantomToken.token.address,
+        ],
+        gas: GAS_LIMIT,
+      }),
+    );
+
+    await expectSettled(creditAccount, claimable, held);
   }, 300_000);
 });

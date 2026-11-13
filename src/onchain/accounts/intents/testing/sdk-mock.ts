@@ -627,7 +627,7 @@ export function buildMockSdk(args: BuildMockSdkArgs): OnchainSDK {
     chainId: 1,
     networkType: "Mainnet",
     currentBlock: 1n,
-    timestamp: args.timestamp ?? 0,
+    timestamp: BigInt(args.timestamp ?? 0),
     withdrawalCompressor,
     tokensMeta: {
       get: (token: Address) => ({

@@ -133,6 +133,14 @@ export class OperationLedger {
         this.#add(op.aToken, -op.aTokenAmount);
         this.#add(op.debtToken, op.borrowAmount);
         break;
+      case "aaveClosePosition":
+        this.#add(op.debtToken, -op.repayAmount);
+        this.#add(op.aToken, op.aTokenAmount);
+        break;
+      case "aaveWithdraw":
+        this.#add(op.aToken, -op.amount);
+        this.#add(op.token, op.amount);
+        break;
       default: {
         const _exhaustive: never = op;
         void _exhaustive;

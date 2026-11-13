@@ -42,6 +42,7 @@ import type {
 } from "../../onchain/index.js";
 import type {
   BorrowResult,
+  DelayedStrategyResult,
   EmptyCreditAccountResult,
   FinalizeResult,
   IOpportunitiesPrepare,
@@ -219,6 +220,33 @@ describe("every prepare method names exactly its own errors", () => {
     >();
   });
 
+  it("closeAavePosition: the account-flow guards, the loan, the RWA and its redemption", () => {
+    expectTypeOf<Awaited<ReturnType<P["closeAavePosition"]>>>().toEqualTypeOf<
+      SDKReturn<
+        DelayedStrategyResult,
+        (
+          | CreditManagerPausedError
+          | MarketExpiredError
+          | ForbiddenTokenError
+          | QuotaLimitReachedError
+          | InsufficientCollateralError
+          | ReservePriceLimitedError
+          | InsufficientBalanceError
+          | CreditAccountNotFoundError
+          | UnexpectedFailureError
+          | CreditAccountNotEmptyError
+          | DebtOutOfRangeError
+          | UnsupportedCollateralTokenError
+          | InsufficientPoolLiquidityError
+          | NoDelayedRouteError
+          | MultipleDelayedWithdrawalsError
+          | WithdrawalInProgressError
+        ) &
+          WithPartialState<OperationState>
+      >
+    >();
+  });
+
   it("repayStrategy: the account-flow guards, debtLimits and the funding token", () => {
     expectTypeOf<Awaited<ReturnType<P["repayStrategy"]>>>().toEqualTypeOf<
       SDKReturn<
@@ -380,6 +408,7 @@ describe("the preview-only codes appear in no prepare union", () => {
     | ErrorOf<Awaited<ReturnType<P["depositStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["repayStrategy"]>>>
     | ErrorOf<Awaited<ReturnType<P["moveToAave"]>>>
+    | ErrorOf<Awaited<ReturnType<P["closeAavePosition"]>>>
     | ErrorOf<Awaited<ReturnType<P["addCollateral"]>>>
     | ErrorOf<Awaited<ReturnType<P["withdrawCollateral"]>>>
     | ErrorOf<Awaited<ReturnType<P["updateQuota"]>>>

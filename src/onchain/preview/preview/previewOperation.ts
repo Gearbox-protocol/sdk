@@ -203,7 +203,10 @@ async function resolveCreditAccount<P extends PluginsMap>(
  * best-effort preview of the state after the withdrawal is claimed.
  *
  * A reopening is reported as `OpenCreditAccount` and never as a delayed
- * withdrawal: an opening requests no redemption.
+ * withdrawal: an opening requests no redemption. A multicall that borrows on
+ * an empty account and does request one — the exit from Aave Horizon, which
+ * borrows to bring the position back and redeems it at once — is a delayed
+ * operation instead.
  */
 async function previewMulticallOperation<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
@@ -212,7 +215,14 @@ async function previewMulticallOperation<P extends PluginsMap>(
   replay: ReplayMulticallResult,
   blockNumber?: bigint,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
+  const detected = detectDelayedOperation(sdk, operation.multicall);
+  if (!detected.ok) {
+    return detected;
+  }
+  const delayed = detected.data;
+
   const isReopen =
+    !delayed &&
     replay.before.totalDebt === 0n &&
     replay.before.quotas.toAssets(0n).length === 0 &&
     replay.after.account.totalDebt > 0n;
@@ -249,11 +259,6 @@ async function previewMulticallOperation<P extends PluginsMap>(
     instantPreview = instant.data;
   }
 
-  const detected = detectDelayedOperation(sdk, operation.multicall);
-  if (!detected.ok) {
-    return detected;
-  }
-  const delayed = detected.data;
   if (!delayed) {
     // Not a delayed-withdrawal request; it may still be the claim ("tail")
     // part of a previously requested delayed withdrawal, in which case the

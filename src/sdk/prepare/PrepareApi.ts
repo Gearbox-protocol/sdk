@@ -43,6 +43,7 @@ import type {
   CreditAccountSlice,
   DelayableIntent,
   DelayedIntentExtended,
+  DelayedStartResult,
   FinishIntentResult,
   IntentPreviewResult,
   IntentRoutesResult,
@@ -78,8 +79,10 @@ import type {
   BorrowAndWithdrawParams,
   BorrowParams,
   BorrowResult,
+  CloseAavePositionParams,
   CreditAccountNotEmptyError,
   CreditAccountNotFoundError,
+  DelayedStrategyResult,
   DepositStrategyParams,
   EmptyCreditAccountResult,
   FinalizeParams,
@@ -806,6 +809,67 @@ export class PrepareApi
   }
 
   /**
+   * {@inheritDoc IOpportunitiesPrepare.closeAavePosition}
+   **/
+  public async closeAavePosition(
+    position: PositionInput,
+    params: CloseAavePositionParams,
+  ): Promise<
+    SDKReturn<
+      DelayedStrategyResult,
+      (
+        | AccountFlowError
+        | CreditAccountNotEmptyError
+        | DebtOutOfRangeError
+        | UnsupportedCollateralTokenError
+        | InsufficientPoolLiquidityError
+        | NoDelayedRouteError
+        | MultipleDelayedWithdrawalsError
+        | WithdrawalInProgressError
+      ) &
+        WithPartialState<OperationState>
+    >
+  > {
+    const state: Partial<OperationState> = {};
+    try {
+      const sdk = await this.#chain(position.chainId);
+      const at = stateBlock(sdk);
+      // Read whole rather than as a slice: the bridge repays and pays out as
+      // the account's owner, which the slice does not carry.
+      const data = await sdk.accounts.getCreditAccountData(
+        position.creditAccount,
+      );
+      if (!data) {
+        return refused(creditAccountNotFound(position.creditAccount), state);
+      }
+      const creditAccount = toCreditAccountSlice(data);
+      // The request records an exit, which settles everything the account
+      // holds, so it is only made on an account that holds nothing to settle.
+      if (
+        creditAccount.totalDebt > 0n ||
+        creditAccount.tokens.some(t => t.quota > 0n)
+      ) {
+        return refused(creditAccountNotEmpty(position.creditAccount), state);
+      }
+      return delayedStarted(
+        await service(sdk).closeAavePositionIntent({
+          creditAccount,
+          sdk,
+          token: params.token,
+          to: params.to,
+          owner: data.investor ?? data.owner,
+          slippage: params.slippage,
+          quotaReserve: params.quotaReserve,
+          draft: state,
+        }),
+        at,
+      );
+    } catch (e) {
+      return refused(unexpectedFailure(e), state);
+    }
+  }
+
+  /**
    * {@inheritDoc IOpportunitiesPrepare.adjustLeverage}
    **/
   public async adjustLeverage(
@@ -1429,6 +1493,23 @@ function finalized<E extends IGearboxError>(
   }
   const { operations, state, calls, remainder } = result;
   return sdkOk({ operations, state, calls, remainder, ...at });
+}
+
+/**
+ * {@inheritDoc planned}
+ *
+ * A request carries one thing an instant operation does not: what it recorded
+ * for the tail, and when that tail can run.
+ **/
+function delayedStarted<E extends IGearboxError>(
+  result: DelayedStartResult,
+  at: PreparedAt,
+): SDKReturn<DelayedStrategyResult, E> {
+  if (!result.ok) {
+    return methodError<E>(result);
+  }
+  const { operations, state, calls, delayed } = result;
+  return sdkOk({ operations, state, calls, delayed, ...at });
 }
 
 /**

@@ -123,6 +123,28 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   }
 
   /**
+   * Facade call repaying `repayAmount` of `debtToken` on the owner's Aave
+   * position out of the account and bringing `aTokenAmount` of the owner's
+   * `aToken` back into it. The bridge takes the whole `repayAmount` even where
+   * Aave settles less, and keeps what it did not.
+   */
+  public closePositionCall(
+    aToken: Address,
+    debtToken: Address,
+    repayAmount: bigint,
+    aTokenAmount: bigint,
+  ): MultiCall {
+    return {
+      target: this.address,
+      callData: encodeFunctionData({
+        abi,
+        functionName: "closePosition",
+        args: [aToken, debtToken, repayAmount, aTokenAmount],
+      }),
+    };
+  }
+
+  /**
    * What an opening call borrows on the owner's behalf: `debtToken` and
    * `borrowAmount`. `undefined` for a call that borrows nothing.
    */

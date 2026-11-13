@@ -492,6 +492,45 @@ export interface MoveToAaveIntent {
 }
 
 /**
+ * The owner's Horizon position in one RWA, as the pool reports it now.
+ */
+export interface AaveHoldings {
+  /** The pool's aToken of the RWA. */
+  aToken: Address;
+  /** Asset the owner owes: the underlying, or the asset an RWA underlying wraps. */
+  debtToken: Address;
+  /** The owner's aToken balance. */
+  supplied: bigint;
+  /** The owner's variable debt in {@link debtToken}, interest included. */
+  owed: bigint;
+  /** The reserve's current variable borrow rate, in ray per year. */
+  borrowRate: bigint;
+}
+
+/**
+ * Leaves the owner's Aave Horizon position in one transaction: the way out of
+ * what {@link MoveToAaveIntent} built.
+ *
+ * The account borrows the owner's Aave debt, the Horizon bridge repays it and
+ * hands every aToken of `token` the owner holds to the account, the pool turns
+ * them back into `token`, and the whole balance of `token` is requested for
+ * redemption at its gateway. The request records an exit, so once the
+ * redemption matures the tail settles the loan and sends the rest to `to`.
+ *
+ * Aave debt grows every second and the bridge keeps what Aave does not take,
+ * so the repayment covers an hour of interest at the current rate, and that
+ * much less of it is what the bridge keeps from a transaction landing sooner.
+ */
+export interface CloseAavePositionIntent {
+  type: "CLOSE_AAVE_POSITION";
+  /** RWA the owner holds on Aave, as the pool lists it. */
+  token: Address;
+  /** Wallet the exit sends what is left to. */
+  to: Address;
+  holdings: AaveHoldings;
+}
+
+/**
  * Intent 2.1 — withdraw part of the position's net value at fixed leverage.
  *
  * The requested amount leaves the account, and debt is repaid in the same
@@ -629,6 +668,12 @@ export type StartIntent =
  * that sell a position asset. The others buy one, and buying settles at once.
  */
 export type DelayableIntent = AdjustLeverageIntent | WithdrawStrategyIntent;
+
+/**
+ * The intents a redemption can start: the two that sell a position asset, and
+ * the exit from Aave, which always redeems the RWA it brings back.
+ */
+export type RedeemingIntent = DelayableIntent | CloseAavePositionIntent;
 
 /**
  * A delayed intent this engine knows how to finish — every one of them.

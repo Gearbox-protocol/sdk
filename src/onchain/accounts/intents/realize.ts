@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import {
+  type DelayedIntent,
   insufficientBalance,
   multipleDelayedWithdrawals,
   noDelayedRoute,
@@ -12,12 +13,17 @@ import { PERCENTAGE_FACTOR_1KK } from "../../constants/math.js";
 import type { MultiCall, OnchainSDK } from "../../index.js";
 import { AaveHorizonBridgeAdapterContract } from "../../market/adapters/contracts/AaveHorizonBridgeAdapterContract.js";
 import { AaveV3PoolAdapterContract } from "../../market/adapters/contracts/AaveV3PoolAdapterContract.js";
+import { SecuritizeRedemptionGatewayAdapterContract } from "../../market/adapters/contracts/SecuritizeRedemptionGatewayAdapterContract.js";
 import type { CreditSuite } from "../../market/credit/CreditSuite.js";
 import type { ConvertFn } from "../../market/oracle/types.js";
 import type { AccountSnapshot } from "../../positions/types.js";
 import { toToken, toTokenAmount } from "../../validation/helpers/token.js";
 import { IntentPreviewError } from "../../validation/raise.js";
-import type { WithdrawableAsset } from "../withdrawal-compressor/types.js";
+import { encodeDelayedIntent } from "../withdrawal-compressor/intent-codec.js";
+import type {
+  RequestableWithdrawal,
+  WithdrawableAsset,
+} from "../withdrawal-compressor/types.js";
 import {
   assertCanBorrow,
   assertCollateralised,
@@ -26,8 +32,10 @@ import {
 } from "./guards.js";
 import {
   type AccountCalculatorOperation,
+  buildAaveClosePositionOperation,
   buildAaveOpenPositionOperation,
   buildAaveSupplyOperation,
+  buildAaveWithdrawOperation,
   buildAddCollateralOperation,
   buildClaimDelayedWithdrawalOperation,
   buildCloseSwapOperation,
@@ -449,13 +457,26 @@ export async function realize(
           );
         }
 
-        const preview = await sdk.accounts.previewDelayedWithdrawal({
-          creditAccount: creditAccount.creditAccount,
-          token: step.token,
-          amount: step.amount,
-          withdrawalPhantomToken: asset.withdrawalPhantomToken,
-          intent: step.record,
-        });
+        const held =
+          creditAccount.tokens.find(t => eq(t.token, step.token))?.balance ??
+          0n;
+        const preview =
+          held >= step.amount
+            ? await sdk.accounts.previewDelayedWithdrawal({
+                creditAccount: creditAccount.creditAccount,
+                token: step.token,
+                amount: step.amount,
+                withdrawalPhantomToken: asset.withdrawalPhantomToken,
+                intent: step.record,
+              })
+            : await arrivingRedemption({
+                sdk,
+                suite,
+                asset,
+                amount: step.amount,
+                leftover: ledger.balanceOf(step.token) - step.amount,
+                record: step.record,
+              });
         push(
           buildStartDelayedWithdrawalOperation({ preview, creditAccount, sdk }),
         );
@@ -595,6 +616,44 @@ export async function realize(
           }),
         );
         raised = borrowAmount;
+        break;
+      }
+
+      case "aaveClosePosition": {
+        const aToken = await aavePoolAdapter(sdk, suite, step.token).aToken(
+          step.token,
+        );
+        const debtToken = rwaAsset ?? underlying;
+        assertHolds(debtToken, step.repay, "aaveClosePosition");
+        push(
+          buildAaveClosePositionOperation({
+            adapter: aaveBridgeAdapter(sdk, suite, step.token, {
+              aToken,
+              debtToken,
+            }),
+            aToken,
+            aTokenAmount: step.aTokenAmount,
+            debtToken,
+            repayAmount: step.repay,
+          }),
+        );
+        break;
+      }
+
+      case "aaveWithdraw": {
+        const adapter = aavePoolAdapter(sdk, suite, step.token);
+        const aToken = await adapter.aToken(step.token);
+        const amount = ledger.balanceOf(aToken);
+        assertHolds(aToken, amount, "aaveWithdraw");
+        push(
+          buildAaveWithdrawOperation({
+            adapter,
+            token: step.token,
+            aToken,
+            amount,
+          }),
+        );
+        raised = amount;
         break;
       }
 
@@ -808,6 +867,54 @@ async function delayedConfig(
     );
   }
   return assets[0];
+}
+
+/**
+ * The request for a redemption of a balance an earlier call of the same
+ * multicall brings in. The withdrawal compressor caps what it quotes at the
+ * balance the account holds before the transaction, so the request is built
+ * here instead: a diff call that names no amount, its phantom valued the way
+ * the gateway values it. Only a Securitize redemption gateway redeems that
+ * way; any other redemption is refused with `noDelayedRoute`.
+ */
+async function arrivingRedemption(input: {
+  sdk: OnchainSDK;
+  suite: CreditSuite;
+  asset: WithdrawableAsset;
+  amount: bigint;
+  leftover: bigint;
+  record: DelayedIntent;
+}): Promise<RequestableWithdrawal> {
+  const { sdk, suite, asset, amount } = input;
+  const adapter = suite.creditManager.adapters
+    .values()
+    .find(
+      (a): a is SecuritizeRedemptionGatewayAdapterContract =>
+        a instanceof SecuritizeRedemptionGatewayAdapterContract &&
+        eq(a.dsToken, asset.token) &&
+        eq(a.redemptionPhantomToken, asset.withdrawalPhantomToken),
+    );
+  if (!adapter) {
+    throw new IntentPreviewError(
+      noDelayedRoute(toToken(sdk, asset.token)),
+      `request: ${asset.token} arrives in this transaction, and only a Securitize gateway redeems it without a quote`,
+    );
+  }
+  return {
+    token: asset.token,
+    amountIn: amount,
+    outputs: [
+      {
+        token: asset.withdrawalPhantomToken,
+        isDelayed: true,
+        amount: await adapter.redemptionValue(amount),
+      },
+    ],
+    requestCalls: [
+      adapter.redeemDiffCall(input.leftover, encodeDelayedIntent(input.record)),
+    ],
+    claimableAt: sdk.timestamp + asset.withdrawalLength,
+  };
 }
 
 /** The credit manager's Aave pool adapter that lists `token`. */
