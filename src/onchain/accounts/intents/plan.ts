@@ -113,7 +113,8 @@ export type Step =
   | { kind: "aaveSupply"; token: Address; amount: bigint }
   /**
    * Hands every aToken of `token` the account holds to its owner through the
-   * Horizon bridge, which borrows `borrow` of the underlying into the account.
+   * Horizon bridge, which borrows `borrow`, in underlying units, into the
+   * account: of the underlying, or of the asset an RWA underlying wraps.
    */
   | { kind: "aaveOpenPosition"; token: Address; borrow: bigint };
 
@@ -394,6 +395,9 @@ export function planMoveToAave(
       token: intent.token,
       borrow: withMargin(view.debt),
     },
+    // Aave lends the asset an RWA underlying wraps; the loan is repaid in the
+    // wrapper.
+    ...(view.rwaAsset ? [convert(view.rwaAsset, view.underlying, RAISED)] : []),
     // `DebtToZeroWithActiveQuotasException`, as in planRepay.
     clearQuotas(),
     repay(view.debt),

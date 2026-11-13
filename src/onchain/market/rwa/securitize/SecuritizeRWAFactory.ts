@@ -215,6 +215,18 @@ export class SecuritizeRWAFactory
   }
 
   /**
+   * {@inheritDoc IRWAFactory.isAllowedBot}
+   *
+   * Factories below 3.12 keep no allowlist, and their wallets reject every bot.
+   */
+  public async isAllowedBot(bot: Address): Promise<boolean> {
+    if (this.version < 312) {
+      return false;
+    }
+    return this.contract.read.isAllowedBot([bot]);
+  }
+
+  /**
    * {@inheritDoc IRWAFactory.multicall}
    */
   public multicall(

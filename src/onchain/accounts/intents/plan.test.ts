@@ -304,6 +304,22 @@ describe("planMoveToAave — the position leaves, Aave settles the loan", () => 
     ]);
   });
 
+  it("on an RWA market wraps what Aave lends in the asset before repaying", () => {
+    const ASSET = "0x6666666666666666666666666666666666666666" as Address;
+    const v = view({
+      debt: 1_000n,
+      balances: { [T]: 2_000n },
+      rwaAsset: ASSET,
+    });
+    expect(planMoveToAave({ token: T }, v)).toEqual([
+      { kind: "aaveSupply", token: T, amount: 2_000n },
+      { kind: "aaveOpenPosition", token: T, borrow: 1_001n },
+      { kind: "convert", from: ASSET, to: U, amount: RAISED },
+      { kind: "clearQuotas" },
+      { kind: "repay", amount: 1_000n },
+    ]);
+  });
+
   it("refuses the underlying and a token the account does not hold", () => {
     const v = view({ debt: 1_000n, balances: { [T]: 2_000n, [U]: 500n } });
     for (const token of [U, RWA]) {

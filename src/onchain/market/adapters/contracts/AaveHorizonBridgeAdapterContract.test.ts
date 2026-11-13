@@ -51,7 +51,13 @@ function finalizerBot(args: {
  * The facade echoes what it was asked to encode, so a case reads the bot and
  * the permissions back rather than calldata.
  */
-function stubSdk(bots: readonly MarketBot[]): OnchainSDK {
+function stubSdk(
+  bots: readonly MarketBot[],
+  allowedBots?: readonly Address[],
+): OnchainSDK {
+  const rwaFactory = allowedBots && {
+    isAllowedBot: async (bot: Address) => allowedBots.includes(bot),
+  };
   return {
     accounts: {
       bots: {
@@ -76,16 +82,19 @@ function stubSdk(bots: readonly MarketBot[]): OnchainSDK {
               permissions,
             }),
           },
+          rwaFactory,
         };
       },
     },
   } as unknown as OnchainSDK;
 }
 
+/** `allowedBots` puts the credit manager behind an RWA factory allowing them. */
 function bridgeAdapter(
   bots: readonly MarketBot[] = [],
+  allowedBots?: readonly Address[],
 ): AaveHorizonBridgeAdapterContract {
-  return new AaveHorizonBridgeAdapterContract(stubSdk(bots), {
+  return new AaveHorizonBridgeAdapterContract(stubSdk(bots, allowedBots), {
     baseParams: {
       addr: ADAPTER,
       version: 311n,
@@ -173,6 +182,39 @@ describe("AaveHorizonBridgeAdapterContract.openingCalls", () => {
 
   it("adds no opening call where the market lists no finalizer", async () => {
     expect(await bridgeAdapter().openingCalls()).toEqual([]);
+  });
+
+  describe("behind an RWA factory", () => {
+    const SECURITIZE = "BOT::AAVE_HORIZON_SECURITIZE";
+
+    it("grants the Securitize finalizer the factory allows, not the plain one", async () => {
+      const adapter = bridgeAdapter(
+        [
+          finalizerBot({ addr: OTHER }),
+          finalizerBot({ contractType: SECURITIZE }),
+        ],
+        [BOT, OTHER],
+      );
+
+      expect(await adapter.openingCalls()).toEqual([
+        { target: FACADE, bot: BOT, permissions: 65636n },
+      ]);
+    });
+
+    it("adds no opening call where the factory does not allow the bot", async () => {
+      const adapter = bridgeAdapter(
+        [finalizerBot({ contractType: SECURITIZE })],
+        [],
+      );
+
+      expect(await adapter.openingCalls()).toEqual([]);
+    });
+
+    it("adds no opening call where the market lists only the plain finalizer", async () => {
+      expect(
+        await bridgeAdapter([finalizerBot({})], [BOT]).openingCalls(),
+      ).toEqual([]);
+    });
   });
 });
 

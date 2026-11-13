@@ -47,6 +47,13 @@ export const iSecuritizeRWAFactoryAbi = [
   },
   {
     type: "function",
+    name: "isAllowedBot",
+    inputs: [{ name: "bot", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isCreditAccount",
     inputs: [
       { name: "creditAccount", type: "address", internalType: "address" },

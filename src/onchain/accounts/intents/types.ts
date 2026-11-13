@@ -471,7 +471,8 @@ export interface RepayStrategyIntent {
  * borrows the underlying on the owner's behalf into the account, and the loan
  * is repaid in full with its quotas. The bridge borrows the debt plus a 10bps
  * margin for the interest of the blocks still to come; whatever the facade
- * does not take stays on the account.
+ * does not take stays on the account. On an RWA market Aave lends the asset
+ * the underlying wraps, which is wrapped before the repayment.
  *
  * The bridge borrows as the owner, so the owner must have delegated credit on
  * the Aave variable debt token to the bridge beforehand.

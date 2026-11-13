@@ -566,18 +566,26 @@ export async function realize(
         );
         const aTokenAmount = ledger.balanceOf(aToken);
         assertHolds(aToken, aTokenAmount, "aaveOpenPosition");
+        const debtToken = rwaAsset ?? underlying;
+        const borrowAmount = toTargetDecimals(
+          step.borrow,
+          underlying,
+          debtToken,
+          sdk,
+        );
         push(
           buildAaveOpenPositionOperation({
             adapter: aaveBridgeAdapter(sdk, suite, step.token, {
               aToken,
-              debtToken: underlying,
+              debtToken,
             }),
             aToken,
             aTokenAmount,
-            debtToken: underlying,
-            borrowAmount: step.borrow,
+            debtToken,
+            borrowAmount,
           }),
         );
+        raised = borrowAmount;
         break;
       }
 

@@ -24,6 +24,10 @@ type protocolAbi = typeof protocolAbi;
 const FINALIZER_BOT_TYPE = stringToHex("BOT::AAVE_HORIZON_FINALIZER", {
   size: 32,
 });
+const SECURITIZE_FINALIZER_BOT_TYPE = stringToHex(
+  "BOT::AAVE_HORIZON_SECURITIZE",
+  { size: 32 },
+);
 
 /**
  * The bridge a finalizer bot serves, from its `serialize()`:
@@ -136,32 +140,41 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   }
 
   /**
-   * Every account on this credit manager is finished by the Horizon finalizer
+   * Every account on this credit manager is finished by a Horizon finalizer
    * bot a block after its own transaction, so opening one grants the bot its
    * permissions. The bot is the one the market configurator lists among its
    * periphery contracts for this adapter's bridge, the latest version where
    * there are several; nothing where it lists none.
+   *
+   * An account opened through an RWA factory belongs to the factory's wallet,
+   * which needs the Securitize finalizer and grants only the bots the factory
+   * allows; nothing where it does not allow that bot.
    */
   public override async openingCalls(): Promise<MultiCall[]> {
     const { configurator } = this.sdk.marketRegister.findByCreditManager(
       this.creditManager,
     );
+    const { creditFacade, rwaFactory } =
+      this.sdk.marketRegister.findCreditManager(this.creditManager);
+    const botType = rwaFactory
+      ? SECURITIZE_FINALIZER_BOT_TYPE
+      : FINALIZER_BOT_TYPE;
     const bots = await this.sdk.accounts.bots.getMarketBots(
       configurator.address,
     );
     const [bot] = bots
       .filter(
         ({ baseParams }) =>
-          hexEq(baseParams.contractType, FINALIZER_BOT_TYPE) &&
+          hexEq(baseParams.contractType, botType) &&
           hexEq(finalizerBridge(baseParams.serializedParams), this.bridge),
       )
       .sort((a, b) => Number(b.baseParams.version - a.baseParams.version));
     if (!bot) {
       return [];
     }
-    const { creditFacade } = this.sdk.marketRegister.findCreditManager(
-      this.creditManager,
-    );
+    if (rwaFactory && !(await rwaFactory.isAllowedBot(bot.baseParams.addr))) {
+      return [];
+    }
     return [
       creditFacade.prepareSetBotPermissions(
         bot.baseParams.addr,

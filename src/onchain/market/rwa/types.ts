@@ -188,6 +188,12 @@ export interface IRWAFactory<T extends RWAFactoryType = RWAFactoryType>
    **/
   getWallet(creditAccount: Address): Promise<Address>;
   /**
+   * Whether the factory's wallets let a multicall grant `bot` permissions;
+   * they reject every other `setBotPermissions`.
+   * @param bot - bot address
+   **/
+  isAllowedBot(bot: Address): Promise<boolean>;
+  /**
    * Creates a raw transaction to perform operations on a credit account.
    * Similar to {@link CreditFacadeV310Contract.multicall}.
    *

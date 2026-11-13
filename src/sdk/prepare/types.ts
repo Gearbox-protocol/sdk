@@ -858,7 +858,10 @@ export interface IOpportunitiesPrepare {
    * every credit manager with a Horizon bridge adapter, whichever of the two
    * methods prepared it; the bot is the one the market configurator lists
    * among its periphery contracts for that bridge, and with none listed the
-   * opening grants nothing and the move is left to {@link moveToAave}.
+   * opening grants nothing and the move is left to {@link moveToAave}. An
+   * account opened through an RWA factory gets the Securitize finalizer
+   * instead, and only where the factory allows it: its wallet rejects any
+   * other bot.
    *
    * The bot borrows the whole Gearbox debt on Aave or reverts, so an opening
    * whose debt is above what Aave lends against the collateral at its LTV is
@@ -1092,7 +1095,8 @@ export interface IOpportunitiesPrepare {
    * which borrows the underlying on the owner's behalf into the account, and
    * the Gearbox loan is repaid in full with its quotas. Aave lends the debt
    * plus a 10bps margin for the interest still to come; whatever the facade
-   * does not take stays on the account. The state answered is the credit
+   * does not take stays on the account. On an RWA market Aave lends the
+   * asset the underlying wraps, and it is wrapped before the repayment. The state answered is the credit
    * account's: owing nothing, holding that remainder.
    *
    * The bridge borrows as the owner, so the transaction reverts unless the

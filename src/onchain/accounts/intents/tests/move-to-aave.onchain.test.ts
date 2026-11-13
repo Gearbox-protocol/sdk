@@ -18,6 +18,7 @@ import {
   caToken,
   POS,
   POS2,
+  RWA_ASSET,
   UND,
 } from "../testing/market.js";
 import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
@@ -200,6 +201,45 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
 
   it("refuses an account that owes nothing", async () => {
     expectPreviewError(await run({ totalDebt: 0n }), "debtOutOfRange");
+  });
+
+  it("RWA market: borrows the asset the underlying wraps, and wraps it to repay", async () => {
+    const sdk = buildMarketSdk({
+      adapters: [poolAdapter(), bridgeAdapter([RWA_ASSET])],
+      rwaAssets: { [UND]: RWA_ASSET },
+    });
+    const result = await new CreditAccountOperationsService(sdk).startIntent({
+      intent: { type: "MOVE_TO_AAVE", token: POS },
+      creditAccount: buildFixtureCreditAccount({
+        totalDebt: DEBT,
+        tokens: [caToken(POS, HELD_POS, QUOTA_POS)],
+      }),
+      sdk,
+      quotaReserve: undefined,
+      slippage: undefined,
+    });
+    if (!result.ok) {
+      throw new Error(`expected a preview, got ${result.error.code}`);
+    }
+
+    expect(result.operations.map(op => op.type)).toEqual([
+      "aaveSupply",
+      "aaveOpenPosition",
+      "wrapRwaCollateral",
+      "changeQuota",
+      "decreaseDebt",
+    ]);
+    expect(result.operations[1]).toMatchObject({
+      debtToken: RWA_ASSET,
+      borrowAmount: DEBT + MARGIN,
+    });
+    expect(result.operations[2]).toMatchObject({
+      tokenIn: RWA_ASSET,
+      amount: DEBT + MARGIN,
+      tokenOut: UND,
+    });
+    expect(assetBalance(result.state.assets, RWA_ASSET)).toBe(0n);
+    expect(assetBalance(result.state.assets, UND)).toBe(MARGIN);
   });
 
   it("claims a matured mint first and moves what it brings", async () => {
