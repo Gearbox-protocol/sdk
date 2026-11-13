@@ -52,6 +52,13 @@ export interface StartAnvilForkOptions {
   port?: number;
   /** Anvil RPC request timeout in ms (default: 120000) */
   timeout?: number;
+  /**
+   * Whether anvil writes the fork's state to its RPC cache (default: true).
+   * The cache is keyed by chain id and block number only, so a fork of a
+   * testnet that reports the chain id of the network it forked has to turn
+   * this off: its blocks would be cached as the real network's.
+   */
+  storageCaching?: boolean;
 }
 
 /**
@@ -277,9 +284,14 @@ export function startAnvil(options: StartAnvilOptions): Promise<AnvilInstance> {
 export function startAnvilFork(
   options: StartAnvilForkOptions,
 ): Promise<AnvilInstance> {
-  checkAnvilVersion(true);
-
-  const { forkUrl, forkBlockNumber, port = 8546, timeout = 480_000 } = options;
+  const {
+    forkUrl,
+    forkBlockNumber,
+    port = 8546,
+    timeout = 480_000,
+    storageCaching = true,
+  } = options;
+  checkAnvilVersion(storageCaching);
 
   return spawnAnvil(
     [
@@ -291,6 +303,7 @@ export function startAnvilFork(
       String(port),
       "--timeout",
       String(timeout),
+      ...(storageCaching ? [] : ["--no-storage-caching"]),
     ],
     port,
     60_000,

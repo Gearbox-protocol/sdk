@@ -98,6 +98,7 @@ export function useFixture(options: UseFixtureOptions): void {
 
 export function getAnvilWallet(
   sdk: OnchainSDK,
+  url: string = ANVIL_URL,
 ): WalletClient<Transport, Chain, PrivateKeyAccount> {
   // well-known private key for the first account in anvil
   const account = privateKeyToAccount(
@@ -105,7 +106,7 @@ export function getAnvilWallet(
   );
   return createWalletClient({
     chain: sdk.client.chain,
-    transport: http(ANVIL_URL, { timeout: 120_000 }),
+    transport: http(url, { timeout: 120_000 }),
     account,
     pollingInterval: 100,
   });
