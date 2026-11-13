@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AavePosition,
   ChainId,
   DataResponse,
   Position,
@@ -73,6 +74,33 @@ export type GetCurrentWithdrawalsProps<Multichain extends boolean = false> =
     WithMultichain<Multichain, { chainId: ChainId }>;
 
 /**
+ * Chain-independent part of {@link ListAavePositionsProps}.
+ **/
+export interface ListAavePositionsPropsBase {
+  /**
+   * Wallet whose Aave Horizon positions to describe: the account owner, or the
+   * investor of an RWA account.
+   **/
+  wallet: Address;
+}
+
+/**
+ * Props for {@link PositionsService.listAavePositions}.
+ **/
+export type ListAavePositionsProps<Multichain extends boolean = false> =
+  ListAavePositionsPropsBase &
+    WithBlock<Multichain> &
+    WithMultichain<
+      Multichain,
+      {
+        /**
+         * Chains to read. Defaults to every attached chain.
+         **/
+        chainIds?: ChainId[];
+      }
+    >;
+
+/**
  * Cross-chain reads of the positions namespace: everything a wallet holds.
  **/
 export interface IMultichainPositionsService {
@@ -87,6 +115,13 @@ export interface IMultichainPositionsService {
   getCurrentWithdrawals(
     props: GetCurrentWithdrawalsProps<true>,
   ): Promise<DataResponse<PositionWithdrawals>>;
+  /**
+   * Aave Horizon positions of a wallet on all queried chains, see
+   * {@link PositionsService.listAavePositions}.
+   **/
+  listAavePositions(
+    props: ListAavePositionsProps<true>,
+  ): Promise<DataResponse<AavePosition[]>>;
 }
 
 /**

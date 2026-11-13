@@ -547,6 +547,30 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
     expect(owed).toBeGreaterThan(borrowed);
 
     const { delayed, state, tx } = await prepareExit(creditAccount);
+    const { data: onAave } = await gearbox.positions.listAavePositions({
+      wallet: investor,
+    });
+    // the testnet wallet has emptied accounts of earlier runs in the credit
+    // manager, and the one Aave position is reported beside any of them
+    expect(onAave).toHaveLength(1);
+    const [position] = onAave;
+    expect(position?.kind).toBe("aave");
+    expect(
+      isAddressEqual(position?.creditManager ?? "0x", CREDIT_MANAGER),
+    ).toBe(true);
+    expect(position?.collaterals).toHaveLength(1);
+    const [collateral] = position?.collaterals ?? [];
+    expect(
+      isAddressEqual(collateral?.collateral.token.address ?? "0x", VBILL),
+    ).toBe(true);
+    expect(collateral?.collateral.value).toBe(supplied);
+    expect(position?.totalDebt.value).toBeGreaterThanOrEqual(owed);
+    expect(position?.totalValue.value).toBeGreaterThan(
+      position?.totalDebt.value ?? 0n,
+    );
+    expect(position?.healthFactor).toBeGreaterThan(10_000);
+    expect(position?.liquidationPrice).toBeGreaterThan(0n);
+
     expect(delayed.record).toEqual({ type: "CLOSE_ACCOUNT", to: investor });
     expect(delayed.settlement).toBe("delayed");
     expect(delayed.claimableAt).toBeGreaterThan(sdk.timestamp);
@@ -607,6 +631,11 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
     expect(await balanceOf(phantom, creditAccount)).toBeGreaterThanOrEqual(
       delayed.claim?.amount ?? 1n,
     );
+    await sync();
+    const { data: left } = await gearbox.positions.listAavePositions({
+      wallet: investor,
+    });
+    expect(left).toEqual([]);
   }, 300_000);
 
   it("finalize settles the exit once the redemption is paid out", async () => {

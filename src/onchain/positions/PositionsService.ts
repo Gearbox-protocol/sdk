@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AavePosition,
   AccountMetrics,
   AccountProjection,
   BorrowRateBreakdown,
@@ -51,10 +52,12 @@ import {
   soleNonUnderlyingCollateral,
 } from "./calcLiquidationPrice.js";
 import { calcTimeToLiquidationMs } from "./calcTimeToLiquidationMs.js";
+import { readAavePosition } from "./readAavePosition.js";
 import {
   type AccountSnapshot,
   accountSnapshotFromCreditAccountData,
   type GetCurrentWithdrawalsProps,
+  type ListAavePositionsProps,
   type ListPositionsProps,
   type ListStrategyPositionsProps,
 } from "./types.js";
@@ -164,6 +167,51 @@ export class PositionsService extends SDKConstruct {
     return accounts.map((ca, i) =>
       this.#toStrategyPosition(ca, withdrawals[i] ?? new AddressMap()),
     );
+  }
+
+  /**
+   * Describes the Aave Horizon positions of a wallet, see
+   * {@link readAavePosition}. Accounts are found as
+   * {@link listStrategyPositions} finds them, zero-debt ones included: an
+   * account whose position moved to Aave carries no debt.
+   *
+   * One Aave pool holds one position per owner, however many of the owner's
+   * accounts moved into it, so each is reported once. Its `creditAccount` is
+   * one the exit can run through — with no debt and no quota, as
+   * `prepare.closeAavePosition` requires — where the owner has one, and any
+   * of the accounts otherwise.
+   **/
+  public async listAavePositions(
+    props: ListAavePositionsProps,
+  ): Promise<AavePosition[]> {
+    const { wallet, blockNumber } = props;
+    const accounts = await this.sdk.accounts.getBorrowerCreditAccounts(
+      wallet,
+      { includeZeroDebt: true },
+      blockNumber,
+    );
+    const positions = await Promise.all(
+      accounts.map(ca => readAavePosition(this.sdk, ca, blockNumber)),
+    );
+    const byOwner = new Map<
+      string,
+      { position: AavePosition; exitable: boolean }
+    >();
+    positions.forEach((position, i) => {
+      const ca = accounts[i];
+      if (!position || !ca) {
+        return;
+      }
+      const key = `${position.pool}:${ca.investor ?? ca.owner}`.toLowerCase();
+      const exitable =
+        ca.debt + ca.accruedInterest + ca.accruedFees === 0n &&
+        ca.tokens.every(t => t.quota === 0n);
+      const known = byOwner.get(key);
+      if (!known || (exitable && !known.exitable)) {
+        byOwner.set(key, { position, exitable });
+      }
+    });
+    return [...byOwner.values()].map(p => p.position);
   }
 
   /**

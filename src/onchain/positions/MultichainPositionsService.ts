@@ -1,4 +1,5 @@
 import type {
+  AavePosition,
   DataResponse,
   Position,
   PositionWithdrawals,
@@ -8,6 +9,7 @@ import type { PluginsMap } from "../plugins/index.js";
 import type {
   GetCurrentWithdrawalsProps,
   IMultichainPositionsService,
+  ListAavePositionsProps,
   ListPositionsProps,
 } from "./types.js";
 
@@ -50,6 +52,25 @@ export class MultichainPositionsService<const Plugins extends PluginsMap = {}>
         sdk.positions.getCurrentWithdrawals({
           creditAccount: props.creditAccount,
           creditManager: props.creditManager,
+          blockNumber: block.blockNumber,
+        }),
+    });
+  }
+
+  /**
+   * Aave Horizon positions of a wallet on all queried chains, see
+   * {@link PositionsService.listAavePositions}.
+   **/
+  public async listAavePositions(
+    props: ListAavePositionsProps<true>,
+  ): Promise<DataResponse<AavePosition[]>> {
+    return this.queryChains({
+      chainIds: props.chainIds,
+      label: "list aave positions",
+      block: "latest",
+      run: (sdk, block) =>
+        sdk.positions.listAavePositions({
+          wallet: props.wallet,
           blockNumber: block.blockNumber,
         }),
     });

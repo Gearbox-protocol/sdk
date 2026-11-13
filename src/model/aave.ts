@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import type { StrategyPosition } from "./positions.js";
 import type { AccountProjection } from "./previews.js";
 import type { Timestamp, TokenAmount } from "./primitives.js";
 
@@ -55,6 +56,55 @@ export interface AavePositionProjection
   /**
    * Horizon bridge that borrows `totalDebt` as the owner when the position
    * moves, see {@link AaveBridgeBorrow}.
+   **/
+  bridge: Address;
+}
+
+/**
+ * A position that lives on Aave Horizon: the RWA the account owner supplied to
+ * the Aave pool and the loan the Horizon bridge took against it in the owner's
+ * name. The credit account it was built in stays open with no debt, and the
+ * exit runs through such an account again. One pool holds one position per
+ * owner, however many accounts moved into it.
+ *
+ * Shaped like {@link StrategyPosition} so the two are shown alike. The shared
+ * fields mean what they mean there, read on Aave for the owner (the investor
+ * of an RWA account):
+ *
+ * - `creditManager` and `creditAccount` are an account of the owner the exit
+ *   can run through, not necessarily the one the position was built in;
+ * - `collaterals` lists the RWA supplied to Aave in the RWA itself, not in its
+ *   aToken, which Aave mints one for one; `quota` is always zero, since Aave
+ *   charges none, and `withdrawals` is empty;
+ * - `totalDebt` is the variable debt owed on Aave, and `totalValue` the
+ *   collateral at the Aave oracle's prices, both in the underlying;
+ * - `healthFactor` is Aave's, of everything the owner holds on the pool;
+ * - `borrowApy` and `borrowRate` are the pool's variable borrow rate, with no
+ *   quota part.
+ **/
+export interface AavePosition
+  extends Omit<
+    StrategyPosition,
+    | "kind"
+    | "borrowApyAvg7D"
+    | "netApy"
+    | "netApyAvg7D"
+    | "borrowRateAvg7D"
+    | "pnl"
+    | "error"
+  > {
+  /**
+   * Tells this position from a credit account; not one of the
+   * {@link PositionKind}s `positions.list` returns.
+   **/
+  kind: "aave";
+  /**
+   * Aave pool the collateral is supplied to and the debt is owed on.
+   **/
+  pool: Address;
+  /**
+   * Horizon bridge that holds the owner's borrow delegation, see
+   * {@link AaveBridgeBorrow}.
    **/
   bridge: Address;
 }

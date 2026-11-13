@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AavePosition,
   ChartBundle,
   ChartRange,
   DataResponse,
@@ -17,6 +18,7 @@ import type { IOffchainPositions } from "../../offchain/index.js";
 import type {
   GetCurrentWithdrawalsProps,
   IMultichainPositionsService,
+  ListAavePositionsProps,
 } from "../../onchain/index.js";
 import type { Mode } from "../types.js";
 import type { FilterResult, ListMerger } from "../utils/index.js";
@@ -106,6 +108,15 @@ export interface IPositionsOnchainOnly {
   getCurrentWithdrawals(
     props: GetCurrentWithdrawalsProps<true>,
   ): Promise<DataResponse<PositionWithdrawals>>;
+  /**
+   * Aave Horizon positions of a wallet, each shaped like the strategy
+   * position of a credit account, see {@link AavePosition}.
+   * They are not part of {@link IPositionsBase.list}. Absent in `offchain`
+   * mode.
+   **/
+  listAavePositions(
+    props: ListAavePositionsProps<true>,
+  ): Promise<DataResponse<AavePosition[]>>;
 }
 
 /**

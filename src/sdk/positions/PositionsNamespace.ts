@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import type {
+  AavePosition,
   ChartBundle,
   ChartRange,
   DataResponse,
@@ -19,6 +20,7 @@ import { matchesPositionFilter } from "../../model/index.js";
 import type { GearboxAPI } from "../../offchain/index.js";
 import type {
   GetCurrentWithdrawalsProps,
+  ListAavePositionsProps,
   MultichainSDK,
 } from "../../onchain/index.js";
 import { AbstractNamespace } from "../AbstractNamespace.js";
@@ -135,5 +137,14 @@ export class PositionsNamespace
     props: GetCurrentWithdrawalsProps<true>,
   ): Promise<DataResponse<PositionWithdrawals>> {
     return this.onchain.getCurrentWithdrawals(props);
+  }
+
+  /**
+   * {@inheritDoc IPositionsOnchainOnly.listAavePositions}
+   **/
+  public async listAavePositions(
+    props: ListAavePositionsProps<true>,
+  ): Promise<DataResponse<AavePosition[]>> {
+    return this.onchain.listAavePositions(props);
   }
 }

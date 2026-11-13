@@ -37,6 +37,11 @@ describe("mode gates method existence", () => {
     expectTypeOf<IPositions<"offchain">>().not.toHaveProperty(
       "getCurrentWithdrawals",
     );
+    expectTypeOf<IPositions<"onchain">>().toHaveProperty("listAavePositions");
+    expectTypeOf<IPositions<"both">>().toHaveProperty("listAavePositions");
+    expectTypeOf<IPositions<"offchain">>().not.toHaveProperty(
+      "listAavePositions",
+    );
   });
 
   it("offchain-only reads exist with a backend and not without one", () => {

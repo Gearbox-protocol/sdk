@@ -92,9 +92,11 @@ const mockSDK = {
     charts: notImplemented,
     transactions: notImplemented,
     getCurrentWithdrawals: notImplemented,
+    listAavePositions: notImplemented,
     onchain: {
       list: notImplemented,
       getCurrentWithdrawals: notImplemented,
+      listAavePositions: notImplemented,
     },
     offchain: {
       list: notImplemented,
