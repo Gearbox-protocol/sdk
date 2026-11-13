@@ -25,6 +25,7 @@ const configuration = (ltv: bigint, lt: bigint, decimals: bigint) => ({
 });
 
 interface AaveState {
+  wrappedUnderlying?: Address;
   /** `getUserAccountData`: collateral, debt, LT and LTV the owner has already. */
   account?: [bigint, bigint, bigint, bigint];
   eMode?: bigint;
@@ -106,7 +107,8 @@ function stubSdk(
         creditManager: { adapters: { values: () => adapters } },
       }),
       findByCreditManager: () => ({
-        underlying: UND,
+        underlying: state.wrappedUnderlying ?? UND,
+        unwrappedUnderlying: UND,
         toUnderlyingAmount: (value: bigint) => ({ value }),
         priceOracle: {
           toTokenAmount: (token: Address, value: bigint) => ({ token, value }),
@@ -146,6 +148,25 @@ const snapshot: AccountSnapshot = {
 };
 
 describe("projectAavePosition", () => {
+  it("reads the unwrapped RWA debt reserve instead of the Gearbox wrapper", async () => {
+    const sdk = stubSdk({
+      wrappedUnderlying: "0x0000000000000000000000000000000000000004",
+    });
+    const result = await projectAavePosition(sdk, snapshot, OWNER);
+    expect(result).toBeDefined();
+    expect(result?.aave.totalDebt.value).toBe(snapshot.totalDebt);
+    expect(sdk.client.multicall).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contracts: expect.arrayContaining([
+          expect.objectContaining({
+            functionName: "getReserveData",
+            args: [UND],
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("weighs a wallet new to Aave at the reserve's LTV and threshold, on Aave's prices and rate", async () => {
     const projected = await projectAavePosition(stubSdk(), snapshot, OWNER);
 

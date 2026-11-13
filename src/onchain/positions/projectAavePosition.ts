@@ -63,7 +63,7 @@ export async function projectAavePosition(
 ): Promise<AaveProjection | undefined> {
   const suite = sdk.marketRegister.findCreditManager(snapshot.creditManager);
   const market = sdk.marketRegister.findByCreditManager(snapshot.creditManager);
-  const { underlying } = market;
+  const underlying = market.unwrappedUnderlying;
   const adapters = suite.creditManager.adapters.values();
   const poolAdapters = adapters.filter(
     (p): p is AaveV3PoolAdapterContract =>
