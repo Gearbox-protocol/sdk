@@ -4,7 +4,7 @@ import { SecuritizeRWAFactory } from "./SecuritizeRWAFactory.js";
 
 const BOT = "0x8888888888888888888888888888888888888888" as Address;
 
-/** The method reads only the version and the contract binding. */
+/** The method reads only the version and the contract's `read` methods. */
 function isAllowedBot(version: number, allowed: boolean) {
   const read = vi.fn(async () => allowed);
   const factory = { version, contract: { read: { isAllowedBot: read } } };

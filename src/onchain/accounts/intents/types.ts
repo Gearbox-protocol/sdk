@@ -471,8 +471,9 @@ export interface RepayStrategyIntent {
  * borrows the underlying on the owner's behalf into the account, and the loan
  * is repaid in full with its quotas. The bridge borrows the debt plus a 10bps
  * margin for the interest of the blocks still to come; whatever the facade
- * does not take stays on the account. On an RWA market Aave lends the asset
- * the underlying wraps, which is wrapped before the repayment.
+ * does not take goes to `to`. On an RWA market Aave lends the asset the
+ * underlying wraps, which is wrapped before the repayment and the remainder
+ * unwrapped again on its way out.
  *
  * The bridge borrows as the owner, so the owner must have delegated credit on
  * the Aave variable debt token to the bridge beforehand.
@@ -481,6 +482,8 @@ export interface MoveToAaveIntent {
   type: "MOVE_TO_AAVE";
   /** RWA collateral on the account, as the Aave pool lists it. */
   token: Address;
+  /** Wallet the margin the repayment leaves goes to. */
+  to: Address;
   /**
    * Matured mint of `token`, claimed ahead of the supply; what it brings
    * moves along with the balance already on the account.

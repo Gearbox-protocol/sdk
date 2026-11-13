@@ -92,10 +92,12 @@ export type Step =
   | { kind: "claim"; claimable: ClaimableWithdrawal }
   /**
    * Hands whatever is left on the account to `to`, each balance in the token it
-   * stands in. Only an exit asks for this: the amounts are whatever the legs
-   * before it happen to leave, which no planner can name in advance.
+   * stands in. Only a plan that leaves no debt asks for this: the amounts are
+   * whatever the legs before it happen to leave, which no planner can name in
+   * advance. `token` limits it to that balance, the underlying of an RWA
+   * market leaving as the asset it wraps.
    */
-  | { kind: "sweep"; to: Address }
+  | { kind: "sweep"; to: Address; token?: Address }
   /**
    * Drops every quota the account holds, in the same transaction and before
    * whatever follows. Only a plan that leaves no debt behind asks for this:
@@ -346,7 +348,7 @@ export function planRepay(
  *
  * Aave lends the debt plus the {@link SETTLE_MARGIN} headroom, since the facade
  * is told to repay everything outstanding by the time the transaction lands;
- * what it does not take stays on the account.
+ * what it does not take goes to `to`.
  */
 export function planMoveToAave(
   intent: Omit<MoveToAaveIntent, "type">,
@@ -401,6 +403,7 @@ export function planMoveToAave(
     // `DebtToZeroWithActiveQuotasException`, as in planRepay.
     clearQuotas(),
     repay(view.debt),
+    { kind: "sweep", to: intent.to, token: view.underlying },
   ];
 }
 

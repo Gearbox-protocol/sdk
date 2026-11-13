@@ -799,6 +799,7 @@ export class PrepareApi
       {
         type: "MOVE_TO_AAVE",
         token: params.token,
+        to: params.to,
         claimable: params.claimable && toClaimableWithdrawal(params.claimable),
       },
     );

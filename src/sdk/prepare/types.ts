@@ -506,6 +506,11 @@ export interface MoveToAaveParams {
   /** RWA collateral on the account; its whole balance moves to Aave. */
   token: Address;
   /**
+   * Wallet the margin the repayment leaves goes to, as the asset on an RWA
+   * market.
+   **/
+  to: Address;
+  /**
    * The matured mint of `token`, from `sdk.positions.getCurrentWithdrawals()`:
    * claimed in the same transaction ahead of the supply, so what it brings
    * moves too. Needed while the account still holds the mint's withdrawal
@@ -1095,9 +1100,10 @@ export interface IOpportunitiesPrepare {
    * which borrows the underlying on the owner's behalf into the account, and
    * the Gearbox loan is repaid in full with its quotas. Aave lends the debt
    * plus a 10bps margin for the interest still to come; whatever the facade
-   * does not take stays on the account. On an RWA market Aave lends the
-   * asset the underlying wraps, and it is wrapped before the repayment. The state answered is the credit
-   * account's: owing nothing, holding that remainder.
+   * does not take goes to `to`. On an RWA market Aave lends the asset the
+   * underlying wraps, which is wrapped before the repayment and unwrapped
+   * again on its way to `to`. The state answered is the credit account's:
+   * owing nothing, and holding none of the underlying.
    *
    * The bridge borrows as the owner, so the transaction reverts unless the
    * owner has delegated credit on Aave's variable debt token to the bridge;

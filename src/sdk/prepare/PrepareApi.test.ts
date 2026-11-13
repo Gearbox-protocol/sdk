@@ -967,7 +967,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
   it("moveToAave reaches the engine, which finds no Aave adapters on this market", async () => {
     const { api, position } = buildStrategyApi();
 
-    const result = await api.moveToAave(position, { token: POS });
+    const result = await api.moveToAave(position, { token: POS, to: WALLET });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -985,6 +985,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
     await api.moveToAave(position, {
       token: POS,
+      to: WALLET,
       claimable: {
         sourceToken: amount(UND, 0n).token,
         withdrawalPhantomToken: amount(POS2, 10000000000n),
@@ -998,6 +999,7 @@ describe("PrepareApi — strategy flows reach the engine", () => {
         intent: {
           type: "MOVE_TO_AAVE",
           token: POS,
+          to: WALLET,
           claimable: {
             token: UND,
             withdrawalPhantomToken: POS2,

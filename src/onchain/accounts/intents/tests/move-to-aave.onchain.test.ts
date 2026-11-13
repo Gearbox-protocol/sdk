@@ -20,6 +20,7 @@ import {
   POS2,
   RWA_ASSET,
   UND,
+  WALLET,
 } from "../testing/market.js";
 import { CA_OP_CALLS, MOCK_CLAIM_CALL } from "../testing/sdk-mock.js";
 import type { IntentPreviewResult } from "../types.js";
@@ -100,15 +101,16 @@ function run(opts?: {
     AaveV3PoolAdapterContract | AaveHorizonBridgeAdapterContract
   >;
   totalDebt?: bigint;
+  tokens?: ReturnType<typeof caToken>[];
 }): Promise<IntentPreviewResult> {
   const sdk = buildMarketSdk({
     adapters: opts?.adapters ?? [poolAdapter(), bridgeAdapter()],
   });
   return new CreditAccountOperationsService(sdk).startIntent({
-    intent: { type: "MOVE_TO_AAVE", token: POS },
+    intent: { type: "MOVE_TO_AAVE", token: POS, to: WALLET },
     creditAccount: buildFixtureCreditAccount({
       totalDebt: opts?.totalDebt ?? DEBT,
-      tokens: [caToken(POS, HELD_POS, QUOTA_POS)],
+      tokens: opts?.tokens ?? [caToken(POS, HELD_POS, QUOTA_POS)],
     }),
     sdk,
     quotaReserve: undefined,
@@ -117,7 +119,7 @@ function run(opts?: {
 }
 
 describe("moveToAave.start — the position leaves, Aave settles the loan", () => {
-  it("supplies, hands the aTokens over with a loan, drops quotas, repays in full", async () => {
+  it("supplies, hands the aTokens over with a loan, drops quotas, repays in full, returns the margin", async () => {
     const pool = poolAdapter();
     const bridge = bridgeAdapter();
     // Both calls name no amount, as the finalizer bot's do.
@@ -126,8 +128,7 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
 
     const result = await run({ adapters: [pool, bridge] });
     const state = expectAdjustPreview(result, {
-      // What Aave lent beyond the debt is all the account keeps.
-      totalValue: MARGIN,
+      totalValue: 0n,
       totalDebt: 0n,
       expectedOps: withOnchainOpCalls([
         {
@@ -152,19 +153,45 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
           desiredQuota: {},
         },
         { type: "decreaseDebt", amount: DEBT },
+        // What Aave lent beyond the debt goes back to the wallet.
+        { type: "withdrawCollateral", token: UND, amount: MARGIN, to: WALLET },
       ]),
       expectedCalls: [
         supply,
         open,
         CA_OP_CALLS.changeQuota,
         CA_OP_CALLS.decreaseDebt,
+        CA_OP_CALLS.withdrawCollateral,
       ],
     });
 
     expect(state.quotas).toEqual([]);
-    expect(assetBalance(state.assets, POS)).toBe(0n);
-    expect(assetBalance(state.assets, A_POS)).toBe(0n);
-    expect(assetBalance(state.assets, UND)).toBe(MARGIN);
+    expect(state.assets).toEqual([]);
+  });
+
+  it("withdraws the whole margin, whatever the debt has grown to by then", async () => {
+    const result = await run();
+    if (!result.ok) {
+      throw new Error(`expected a preview, got ${result.error.code}`);
+    }
+
+    expect(
+      result.operations.find(op => op.type === "withdrawCollateral"),
+    ).toMatchObject({ token: UND, all: true });
+  });
+
+  it("leaves every other balance on the account", async () => {
+    const result = await run({
+      tokens: [caToken(POS, HELD_POS, QUOTA_POS), caToken(POS2, 5n, 0n)],
+    });
+    if (!result.ok) {
+      throw new Error(`expected a preview, got ${result.error.code}`);
+    }
+
+    expect(
+      result.operations.filter(op => op.type === "withdrawCollateral"),
+    ).toHaveLength(1);
+    expect(assetBalance(result.state.assets, POS2)).toBe(5n);
   });
 
   it("asks the facade for all of the debt, as a settlement does", async () => {
@@ -203,13 +230,13 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
     expectPreviewError(await run({ totalDebt: 0n }), "debtOutOfRange");
   });
 
-  it("RWA market: borrows the asset the underlying wraps, and wraps it to repay", async () => {
+  it("RWA market: borrows the asset the underlying wraps, wraps it to repay, unwraps the margin", async () => {
     const sdk = buildMarketSdk({
       adapters: [poolAdapter(), bridgeAdapter([RWA_ASSET])],
       rwaAssets: { [UND]: RWA_ASSET },
     });
     const result = await new CreditAccountOperationsService(sdk).startIntent({
-      intent: { type: "MOVE_TO_AAVE", token: POS },
+      intent: { type: "MOVE_TO_AAVE", token: POS, to: WALLET },
       creditAccount: buildFixtureCreditAccount({
         totalDebt: DEBT,
         tokens: [caToken(POS, HELD_POS, QUOTA_POS)],
@@ -228,6 +255,8 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
       "wrapRwaCollateral",
       "changeQuota",
       "decreaseDebt",
+      "unwrapRwaCollateral",
+      "withdrawCollateral",
     ]);
     expect(result.operations[1]).toMatchObject({
       debtToken: RWA_ASSET,
@@ -238,8 +267,17 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
       amount: DEBT + MARGIN,
       tokenOut: UND,
     });
-    expect(assetBalance(result.state.assets, RWA_ASSET)).toBe(0n);
-    expect(assetBalance(result.state.assets, UND)).toBe(MARGIN);
+    expect(result.operations[5]).toMatchObject({
+      tokenIn: UND,
+      amount: MARGIN,
+      tokenOut: RWA_ASSET,
+    });
+    expect(result.operations[6]).toMatchObject({
+      token: RWA_ASSET,
+      amount: MARGIN,
+      to: WALLET,
+    });
+    expect(result.state.assets).toEqual([]);
   });
 
   it("claims a matured mint first and moves what it brings", async () => {
@@ -250,6 +288,7 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
       intent: {
         type: "MOVE_TO_AAVE",
         token: POS,
+        to: WALLET,
         claimable: {
           token: UND,
           withdrawalPhantomToken: PHANTOM,
@@ -276,10 +315,11 @@ describe("moveToAave.start — the position leaves, Aave settles the loan", () =
       "aaveOpenPosition",
       "changeQuota",
       "decreaseDebt",
+      "withdrawCollateral",
     ]);
     expect(result.operations[1]).toMatchObject({ amount: HELD_POS });
     expect(result.calls[0]).toEqual(MOCK_CLAIM_CALL);
     expect(assetBalance(result.state.assets, PHANTOM)).toBe(0n);
-    expect(assetBalance(result.state.assets, UND)).toBe(MARGIN);
+    expect(assetBalance(result.state.assets, UND)).toBe(0n);
   });
 });

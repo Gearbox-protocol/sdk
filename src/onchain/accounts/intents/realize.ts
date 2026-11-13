@@ -509,8 +509,14 @@ export async function realize(
         // unwrapped before the walk rather than during it — that way the raw
         // asset is swept once, whatever the account already held of it.
         withdrawsCollateral = true;
+        const swept = (token: Address): boolean =>
+          !step.token ||
+          eq(token, step.token) ||
+          (rwaAsset !== undefined &&
+            eq(step.token, underlying) &&
+            eq(token, rwaAsset));
         const wrapped = ledger.balanceOf(underlying);
-        if (rwaAsset && wrapped > 0n) {
+        if (rwaAsset && wrapped > 0n && swept(underlying)) {
           push(
             await buildUnwrapRwaCollateralOperation({
               tokenIn: underlying,
@@ -525,6 +531,9 @@ export async function realize(
           );
         }
         for (const { token, balance } of ledger.snapshot().assets) {
+          if (!swept(token)) {
+            continue;
+          }
           const withdrawal = buildWithdrawCollateralOperation({
             token,
             amount: balance,
