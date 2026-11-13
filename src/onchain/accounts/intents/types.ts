@@ -463,35 +463,6 @@ export interface RepayStrategyIntent {
 }
 
 /**
- * Moves a position whose RWA collateral has been minted from the account to
- * Aave Horizon, and settles the Gearbox loan with what Aave lends against it.
- *
- * The whole balance of `token` is supplied to the Aave pool, the aTokens it
- * mints are handed to the account owner through the Horizon bridge, which
- * borrows the underlying on the owner's behalf into the account, and the loan
- * is repaid in full with its quotas. The bridge borrows the debt plus a 10bps
- * margin for the interest of the blocks still to come; whatever the facade
- * does not take goes to `to`. On an RWA market Aave lends the asset the
- * underlying wraps, which is wrapped before the repayment and the remainder
- * unwrapped again on its way out.
- *
- * The bridge borrows as the owner, so the owner must have delegated credit on
- * the Aave variable debt token to the bridge beforehand.
- */
-export interface MoveToAaveIntent {
-  type: "MOVE_TO_AAVE";
-  /** RWA collateral on the account, as the Aave pool lists it. */
-  token: Address;
-  /** Wallet the margin the repayment leaves goes to. */
-  to: Address;
-  /**
-   * Matured mint of `token`, claimed ahead of the supply; what it brings
-   * moves along with the balance already on the account.
-   */
-  claimable?: ClaimableWithdrawal;
-}
-
-/**
  * The owner's Horizon position in one RWA, as the pool reports it now.
  */
 export interface AaveHoldings {
@@ -509,7 +480,7 @@ export interface AaveHoldings {
 
 /**
  * Leaves the owner's Aave Horizon position in one transaction: the way out of
- * what {@link MoveToAaveIntent} built.
+ * what an Aave opening built.
  *
  * The account borrows the owner's Aave debt, the Horizon bridge repays it and
  * hands every aToken of `token` the owner holds to the account, the pool turns
@@ -659,7 +630,6 @@ export type StartIntent =
   | AdjustLeverageIntent
   | DepositStrategyIntent
   | RepayStrategyIntent
-  | MoveToAaveIntent
   | WithdrawStrategyIntent
   | UpdateQuotaIntent;
 

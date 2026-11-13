@@ -33,8 +33,6 @@ export type AccountCalculatorOperation =
   | UnwrapRwaCollateralOperation
   | StartDelayedWithdrawalOperation
   | ClaimDelayedWithdrawalOperation
-  | AaveSupplyOperation
-  | AaveOpenPositionOperation
   | AaveClosePositionOperation
   | AaveWithdrawOperation;
 
@@ -425,77 +423,6 @@ export function buildClaimDelayedWithdrawalOperation(input: {
       creditFacade: input.creditAccount.creditFacade,
       claimableNow: claimable,
     }),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Aave Horizon — a minted RWA position leaves the account for Aave
-// ---------------------------------------------------------------------------
-
-/**
- * Supplies the whole balance of an asset to the Aave pool; the aTokens are
- * minted one for one. The call names no amount, as the finalizer bot's does,
- * and `amount` is the balance the projection was built on.
- */
-export interface AaveSupplyOperation {
-  type: "aaveSupply";
-  token: Address;
-  aToken: Address;
-  amount: bigint;
-  calls: MultiCall[];
-}
-
-export function buildAaveSupplyOperation(input: {
-  adapter: AaveV3PoolAdapterContract;
-  token: Address;
-  aToken: Address;
-  amount: bigint;
-}): AaveSupplyOperation {
-  return {
-    type: "aaveSupply",
-    token: input.token,
-    aToken: input.aToken,
-    amount: input.amount,
-    calls: [input.adapter.supplyDiffCall(input.token, 0n)],
-  };
-}
-
-/**
- * Hands every aToken on the account to its owner and borrows against them on
- * the owner's Aave position, into the account. The call names no aToken
- * amount, so a supply that minted a wei less does not revert it;
- * `aTokenAmount` is what the projection was built on.
- */
-export interface AaveOpenPositionOperation {
-  type: "aaveOpenPosition";
-  aToken: Address;
-  aTokenAmount: bigint;
-  debtToken: Address;
-  borrowAmount: bigint;
-  calls: MultiCall[];
-}
-
-export function buildAaveOpenPositionOperation(input: {
-  adapter: AaveHorizonBridgeAdapterContract;
-  aToken: Address;
-  aTokenAmount: bigint;
-  debtToken: Address;
-  borrowAmount: bigint;
-}): AaveOpenPositionOperation {
-  return {
-    type: "aaveOpenPosition",
-    aToken: input.aToken,
-    aTokenAmount: input.aTokenAmount,
-    debtToken: input.debtToken,
-    borrowAmount: input.borrowAmount,
-    calls: [
-      input.adapter.openPositionDiffCall(
-        input.aToken,
-        input.debtToken,
-        0n,
-        input.borrowAmount,
-      ),
-    ],
   };
 }
 

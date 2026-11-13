@@ -49,8 +49,9 @@ export interface AavePositionProjection
    **/
   mintDuration: number;
   /**
-   * Estimated unix seconds at which the position is live on Aave. The
-   * finalizer bot moves it a block after the mint settles at the earliest.
+   * Estimated unix seconds at which the position is live on Aave: the
+   * opening's own block where the mint is instant, and once the mint settles
+   * otherwise, when the finalizer bot moves it.
    **/
   estLiveAt: Timestamp;
   /**

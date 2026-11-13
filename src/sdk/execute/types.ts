@@ -9,6 +9,7 @@ import type {
   BorrowResult,
   EmptyCreditAccountResult,
   LpResult,
+  OpenAavePositionResult,
   OpenStrategyResult,
   StrategyResult,
 } from "../prepare/index.js";
@@ -31,16 +32,18 @@ export interface PoolPrepareRequest {
 
 /**
  * Opening a new position, from a viable
- * {@link IOpportunitiesPrepare.openNewStrategy} result. The prepared state
- * values collateral in underlying only, so the wallet's actual collateral
- * assets and the native value to attach come from the caller.
+ * {@link IOpportunitiesPrepare.openNewStrategy} or
+ * {@link IOpportunitiesPrepare.openAavePosition} result; the latter's
+ * `moveCalls` end the same multicall. The prepared state values collateral in
+ * underlying only, so the wallet's actual collateral assets and the native
+ * value to attach come from the caller.
  **/
 export interface OpenPrepareRequest {
   kind: "open";
   chainId: ChainId;
   creditManager: Address;
   wallet: Address;
-  sim: SDKResult<OpenStrategyResult>;
+  sim: SDKResult<OpenStrategyResult | OpenAavePositionResult>;
   /** What leaves the wallet, token by token. */
   collateral: Asset[];
   /** Native value to attach when paying a wrapped-native market in the coin. */

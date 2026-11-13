@@ -162,8 +162,9 @@ export class AaveHorizonBridgeAdapterContract extends AbstractAdapterContract<
   }
 
   /**
-   * Every account on this credit manager is finished by a Horizon finalizer
-   * bot a block after its own transaction, so opening one grants the bot its
+   * A Horizon finalizer bot finishes what an account on this credit manager
+   * cannot do in its own transaction — moving a position whose mint is
+   * delayed, settling a matured exit — so opening one grants the bot its
    * permissions. The bot is the one the market configurator lists among its
    * periphery contracts for this adapter's bridge, the latest version where
    * there are several; nothing where it lists none.

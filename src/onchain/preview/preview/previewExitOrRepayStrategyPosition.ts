@@ -59,7 +59,7 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
     operation.multicall,
   );
   // A move to Aave hands the collateral over in kind on a loan the owner must
-  // have delegated, even when the margin it leaves goes out as an exit token.
+  // have delegated.
   const kind =
     aaveBorrows.length > 0
       ? "repay"

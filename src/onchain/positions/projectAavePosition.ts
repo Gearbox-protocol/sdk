@@ -27,8 +27,8 @@ export interface AaveProjection {
   /**
    * The most the owner's Aave position can borrow once the collateral is in
    * it, in the market underlying: Aave lends up to the collateral times its
-   * LTV, less what the owner already owes there, and the finalizer bot borrows
-   * the whole Gearbox debt or reverts.
+   * LTV, less what the owner already owes there, and the move borrows the
+   * whole Gearbox debt or reverts.
    **/
   maxDebt: bigint;
 }
@@ -37,8 +37,8 @@ export interface AaveProjection {
  * Where an opening lands once it has moved to Aave Horizon, from the snapshot
  * of the credit account it is built in.
  *
- * The finalizer bot supplies the account's RWA to the pool and borrows the
- * Gearbox debt against it on the owner's behalf, so the Aave side is read off
+ * The move supplies the account's RWA to the pool and borrows the Gearbox
+ * debt against it on the owner's behalf, so the Aave side is read off
  * the pool for `owner`: the reserve's LTV and liquidation threshold (its eMode
  * category's, where the owner is in one that lists it), the Aave oracle's
  * prices, the variable borrow rate of the underlying, and whatever the owner
@@ -46,7 +46,8 @@ export interface AaveProjection {
  * that whole position; the values describe this opening alone.
  *
  * The RWA is either on the account already, and the position is on Aave at
- * once (the bot's move is the next block), or still being minted: then the
+ * once (the opening moves it in its own transaction), or still being minted
+ * and moved by the finalizer bot once it settles: then the
  * account holds the withdrawal phantom token of a delayed operation the
  * withdrawal compressor lists for the credit manager, the mint takes that
  * operation's `withdrawalLength` and is assumed to come out one for one, and
@@ -75,7 +76,7 @@ export async function projectAavePosition(
     ? compressor.getWithdrawableAssets(snapshot.creditManager)
     : [];
 
-  // The finalizer bot supplies one RWA: the account's asset the pool lists, or
+  // The move supplies one RWA: the account's asset the pool lists, or
   // the one a pending mint on the account claims into.
   let collateral: { token: Address; balance: bigint } | undefined;
   let mintDuration = 0;

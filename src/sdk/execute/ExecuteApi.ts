@@ -105,6 +105,7 @@ async function openTx(
     calls: state.calls,
     averageQuota: state.averageQuota,
     minQuota: state.minQuota,
+    callsAfter: "moveCalls" in state ? state.moveCalls : undefined,
     reopenCreditAccount: state.creditAccount,
     permits: {},
     referralCode: 0n,

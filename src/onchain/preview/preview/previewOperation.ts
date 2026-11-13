@@ -21,11 +21,13 @@ import {
 } from "../../../model/index.js";
 import type { CreditAccountData, OnchainSDK, PluginsMap } from "../../index.js";
 import {
+  type InnerOperation,
   isPoolOperation,
   type MulticallOperation,
   parseOperationCalldata,
   type RWAMulticallOperation,
 } from "../parse/index.js";
+import { aaveMoveStart } from "./aaveMoveStart.js";
 import { buildDelayedStrategyPositionOperationPreview } from "./buildDelayedStrategyPositionOperationPreview.js";
 import { isCloseOrRepay } from "./detectCloseOrRepay.js";
 import { resolveDelayedClaimIntent } from "./detectDelayedClaim.js";
@@ -93,7 +95,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     operation.operation === "OpenCreditAccount" ||
     operation.operation === "RWAOpenCreditAccount"
   ) {
-    const replayed = replayMulticall(sdk, operation);
+    const replayed = replayMulticall(sdk, beforeAaveMove(sdk, operation));
     if (!replayed.ok) {
       return replayed;
     }
@@ -161,6 +163,7 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
       operation,
       replayed.data,
       options?.blockNumber,
+      resolved.data,
     );
   }
 
@@ -169,6 +172,21 @@ export async function previewOperation<P extends PluginsMap = PluginsMap>(
     message: `operation "${operation.operation}" is not supported by previewOperation`,
     operation: operation.operation,
   } satisfies UnsupportedOperationError);
+}
+
+/**
+ * The operation cut where its move to Aave Horizon begins, see
+ * {@link aaveMoveStart}: an opening preview describes the account before it
+ * moves. The operation itself when it does not move.
+ */
+function beforeAaveMove<
+  P extends PluginsMap,
+  O extends { multicall: InnerOperation[] },
+>(sdk: OnchainSDK<P>, operation: O): O {
+  const start = aaveMoveStart(sdk, operation.multicall);
+  return start === undefined
+    ? operation
+    : { ...operation, multicall: operation.multicall.slice(0, start) };
 }
 
 /**
@@ -206,14 +224,16 @@ async function resolveCreditAccount<P extends PluginsMap>(
  * withdrawal: an opening requests no redemption. A multicall that borrows on
  * an empty account and does request one — the exit from Aave Horizon, which
  * borrows to bring the position back and redeems it at once — is a delayed
- * operation instead.
+ * operation instead. A reopening that moves to Aave in the same multicall
+ * ends owing nothing, and is told apart by the move itself.
  */
 async function previewMulticallOperation<P extends PluginsMap>(
   sdk: OnchainSDK<P>,
   input: PreviewOperationInput,
   operation: MulticallOperation | RWAMulticallOperation,
   replay: ReplayMulticallResult,
-  blockNumber?: bigint,
+  blockNumber: bigint | undefined,
+  creditAccount: CreditAccountData,
 ): Promise<SDKReturn<OperationPreview, PreviewOperationError>> {
   const detected = detectDelayedOperation(sdk, operation.multicall);
   if (!detected.ok) {
@@ -221,13 +241,24 @@ async function previewMulticallOperation<P extends PluginsMap>(
   }
   const delayed = detected.data;
 
-  const isReopen =
+  const startsEmpty =
     !delayed &&
     replay.before.totalDebt === 0n &&
-    replay.before.quotas.toAssets(0n).length === 0 &&
-    replay.after.account.totalDebt > 0n;
+    replay.before.quotas.toAssets(0n).length === 0;
 
-  if (isReopen) {
+  if (startsEmpty && aaveMoveStart(sdk, operation.multicall) !== undefined) {
+    const halfway = replayMulticall(
+      sdk,
+      beforeAaveMove(sdk, operation),
+      creditAccount,
+    );
+    if (!halfway.ok) {
+      return halfway;
+    }
+    return previewOpenStrategyPosition(sdk, input, operation, halfway.data);
+  }
+
+  if (startsEmpty && replay.after.account.totalDebt > 0n) {
     return previewOpenStrategyPosition(sdk, input, operation, replay);
   }
 

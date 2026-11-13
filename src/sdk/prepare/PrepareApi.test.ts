@@ -13,7 +13,6 @@ import type {
   SDKReturn,
   TokenAmount,
 } from "../../model/index.js";
-import { CreditAccountOperationsService } from "../../onchain/accounts/intents/index.js";
 import type { MarketSdkExtras } from "../../onchain/accounts/intents/testing/market.js";
 import {
   buildFixtureCreditAccount,
@@ -39,6 +38,7 @@ import {
   TEST_FACADE_ADDRESS,
 } from "../../onchain/market/credit/CreditFacadeV310Contract.mock.js";
 import type { PoolSimulation } from "../../onchain/pools/types.js";
+import { aaveMoveCalls } from "../../onchain/positions/aaveMoveCalls.js";
 import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
 import { ExecuteApi } from "../execute/ExecuteApi.js";
 import { PrepareApi } from "./PrepareApi.js";
@@ -46,11 +46,16 @@ import { PrepareApi } from "./PrepareApi.js";
 vi.mock("../../onchain/positions/projectAavePosition.js", () => ({
   projectAavePosition: vi.fn(),
 }));
+vi.mock("../../onchain/positions/aaveMoveCalls.js", () => ({
+  aaveMoveCalls: vi.fn(),
+}));
 
 const projectAavePositionMock = vi.mocked(projectAavePosition);
+const aaveMoveCallsMock = vi.mocked(aaveMoveCalls);
 
 beforeEach(() => {
   projectAavePositionMock.mockReset();
+  aaveMoveCallsMock.mockReset();
 });
 
 /**
@@ -660,8 +665,12 @@ describe("PrepareApi — strategy flows reach the engine", () => {
       leverage: 300n,
       wallet: WALLET,
     };
-    const aaveDebt = (value: bigint) =>
-      ({ totalDebt: { value } }) as AavePositionProjection;
+    const aaveDebt = (value: bigint, mintDuration = 3_600) =>
+      ({
+        totalDebt: { value },
+        mintDuration,
+        assets: [{ token: { address: POS } }],
+      }) as AavePositionProjection;
 
     it("is the same opening, with the Aave half of the wallet's position beside it", async () => {
       const { api, sdk, strategy } = buildStrategyApi();
@@ -676,9 +685,12 @@ describe("PrepareApi — strategy flows reach the engine", () => {
 
       const prepared = plan(await api.openAavePosition(strategy, params));
 
-      const { aave: projected, ...rest } = prepared.state;
+      // a delayed mint leaves the move to the bot
+      const { aave: projected, moveCalls, ...rest } = prepared.state;
       expect(rest).toEqual(gearbox);
       expect(projected).toBe(aave);
+      expect(moveCalls).toEqual([]);
+      expect(aaveMoveCallsMock).not.toHaveBeenCalled();
       expect(projectAavePositionMock).toHaveBeenCalledWith(
         sdk,
         {
@@ -693,6 +705,29 @@ describe("PrepareApi — strategy flows reach the engine", () => {
         },
         WALLET,
       );
+    });
+
+    it("moves to Aave in the opening's own multicall when the mint is instant", async () => {
+      const { api, sdk, strategy } = buildStrategyApi();
+      const { state: gearbox } = plan(
+        await api.openNewStrategy(strategy, params),
+      );
+      projectAavePositionMock.mockResolvedValueOnce({
+        aave: aaveDebt(gearbox.totalDebt.value, 0),
+        maxDebt: gearbox.totalDebt.value,
+      });
+      const move = [{ target: POS, callData: "0x01" as const }];
+      aaveMoveCallsMock.mockResolvedValueOnce(move);
+
+      const prepared = plan(await api.openAavePosition(strategy, params));
+
+      expect(prepared.state.moveCalls).toBe(move);
+      expect(aaveMoveCallsMock).toHaveBeenCalledWith(sdk, {
+        creditManager: CREDIT_MANAGER,
+        token: POS,
+        debt: gearbox.totalDebt.value,
+        quotas: gearbox.averageQuota,
+      });
     });
 
     it("refuses a debt above what Aave lends against the collateral", async () => {
@@ -962,56 +997,6 @@ describe("PrepareApi — strategy flows reach the engine", () => {
     ).toMatchObject({ amount: DEBT, full: true });
     expect(prepared.state.totalDebt.value).toBe(0n);
     expect(prepared.state.quotas).toEqual([]);
-  });
-
-  it("moveToAave reaches the engine, which finds no Aave adapters on this market", async () => {
-    const { api, position } = buildStrategyApi();
-
-    const result = await api.moveToAave(position, { token: POS, to: WALLET });
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error.code).toBe("unsupportedCollateralToken");
-    // refused by the walk, so the market it was walked in is reported
-    expect(result.error.state.creditManager).toBe(CREDIT_MANAGER);
-  });
-
-  it("moveToAave hands the engine the matured mint in the compressor's shape", async () => {
-    const { api, position } = buildStrategyApi();
-    const startIntent = vi.spyOn(
-      CreditAccountOperationsService.prototype,
-      "startIntent",
-    );
-
-    await api.moveToAave(position, {
-      token: POS,
-      to: WALLET,
-      claimable: {
-        sourceToken: amount(UND, 0n).token,
-        withdrawalPhantomToken: amount(POS2, 10000000000n),
-        outputs: [{ ...amount(POS, 10000000000n), isDelayed: false }],
-        claimCall: { to: POS2, callData: "0x" },
-      },
-    });
-
-    expect(startIntent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        intent: {
-          type: "MOVE_TO_AAVE",
-          token: POS,
-          to: WALLET,
-          claimable: {
-            token: UND,
-            withdrawalPhantomToken: POS2,
-            withdrawalTokenSpent: 10000000000n,
-            outputs: [{ token: POS, amount: 10000000000n, isDelayed: false }],
-            claimCalls: [{ target: POS2, callData: "0x" }],
-            redeemer: undefined,
-          },
-        },
-      }),
-    );
-    startIntent.mockRestore();
   });
 
   it("adjustLeverage retargets the debt and quotes both routes", async () => {

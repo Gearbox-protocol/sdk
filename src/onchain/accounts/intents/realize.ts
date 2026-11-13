@@ -33,8 +33,6 @@ import {
 import {
   type AccountCalculatorOperation,
   buildAaveClosePositionOperation,
-  buildAaveOpenPositionOperation,
-  buildAaveSupplyOperation,
   buildAaveWithdrawOperation,
   buildAddCollateralOperation,
   buildClaimDelayedWithdrawalOperation,
@@ -576,49 +574,6 @@ export async function realize(
         break;
       }
 
-      case "aaveSupply": {
-        assertHolds(step.token, step.amount, "aaveSupply");
-        const adapter = aavePoolAdapter(sdk, suite, step.token);
-        push(
-          buildAaveSupplyOperation({
-            adapter,
-            token: step.token,
-            aToken: await adapter.aToken(step.token),
-            amount: step.amount,
-          }),
-        );
-        break;
-      }
-
-      case "aaveOpenPosition": {
-        const aToken = await aavePoolAdapter(sdk, suite, step.token).aToken(
-          step.token,
-        );
-        const aTokenAmount = ledger.balanceOf(aToken);
-        assertHolds(aToken, aTokenAmount, "aaveOpenPosition");
-        const debtToken = rwaAsset ?? underlying;
-        const borrowAmount = toTargetDecimals(
-          step.borrow,
-          underlying,
-          debtToken,
-          sdk,
-        );
-        push(
-          buildAaveOpenPositionOperation({
-            adapter: aaveBridgeAdapter(sdk, suite, step.token, {
-              aToken,
-              debtToken,
-            }),
-            aToken,
-            aTokenAmount,
-            debtToken,
-            borrowAmount,
-          }),
-        );
-        raised = borrowAmount;
-        break;
-      }
-
       case "aaveClosePosition": {
         const aToken = await aavePoolAdapter(sdk, suite, step.token).aToken(
           step.token,
@@ -932,7 +887,7 @@ function aavePoolAdapter(
   if (!adapter) {
     throw new IntentPreviewError(
       unsupportedCollateralToken(toToken(sdk, token)),
-      `aaveSupply: no Aave pool adapter lists ${token}`,
+      `aave: no Aave pool adapter lists ${token}`,
     );
   }
   return adapter;
@@ -959,7 +914,7 @@ function aaveBridgeAdapter(
   if (!adapter) {
     throw new IntentPreviewError(
       unsupportedCollateralToken(toToken(sdk, token)),
-      `aaveOpenPosition: no Horizon bridge adapter takes ${pair.aToken} against ${pair.debtToken}`,
+      `aaveClosePosition: no Horizon bridge adapter takes ${pair.aToken} against ${pair.debtToken}`,
     );
   }
   return adapter;

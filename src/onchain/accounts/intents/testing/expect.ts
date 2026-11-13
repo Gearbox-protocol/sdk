@@ -210,35 +210,6 @@ function matchOp(
         expectedCalls(expected),
       );
       break;
-    case "aaveSupply":
-      if (actual.type !== "aaveSupply") {
-        return;
-      }
-      expect(actual.token, `op[${index}].token`).toBe(expected.token);
-      expect(actual.aToken, `op[${index}].aToken`).toBe(expected.aToken);
-      expect(actual.amount, `op[${index}].amount`).toBe(expected.amount);
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
-      );
-      break;
-    case "aaveOpenPosition":
-      if (actual.type !== "aaveOpenPosition") {
-        return;
-      }
-      expect(actual.aToken, `op[${index}].aToken`).toBe(expected.aToken);
-      expect(actual.aTokenAmount, `op[${index}].aTokenAmount`).toBe(
-        expected.aTokenAmount,
-      );
-      expect(actual.debtToken, `op[${index}].debtToken`).toBe(
-        expected.debtToken,
-      );
-      expect(actual.borrowAmount, `op[${index}].borrowAmount`).toBe(
-        expected.borrowAmount,
-      );
-      expect(actual.calls, `op[${index}].calls`).toEqual(
-        expectedCalls(expected),
-      );
-      break;
     case "aaveClosePosition":
       if (actual.type !== "aaveClosePosition") {
         return;

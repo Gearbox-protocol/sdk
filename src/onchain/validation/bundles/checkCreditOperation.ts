@@ -122,16 +122,22 @@ export async function checkCreditOperation(
 }
 
 /**
- * What the Horizon bridge borrows as the owner: the whole debt when an Aave
- * opening moves, or the loans an adjustment takes itself.
+ * What the Horizon bridge borrows as the owner: the loans the transaction
+ * takes itself — an opening that moves to Aave at once, or an adjustment — or
+ * else the whole debt an Aave opening moves with once its mint settles.
  */
 function aaveBorrows(preview: CreditOperationPreview): AaveBridgeBorrow[] {
+  if (
+    (preview.operation === "OpenCreditAccount" ||
+      preview.operation === "AdjustCreditAccount") &&
+    preview.aaveBorrows
+  ) {
+    return preview.aaveBorrows;
+  }
   if (isAaveOpening(preview)) {
     return [{ bridge: preview.aave.bridge, amount: preview.aave.totalDebt }];
   }
-  return preview.operation === "AdjustCreditAccount"
-    ? (preview.aaveBorrows ?? [])
-    : [];
+  return [];
 }
 
 const isAaveOpening = (

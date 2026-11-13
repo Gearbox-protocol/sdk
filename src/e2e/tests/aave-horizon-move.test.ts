@@ -7,7 +7,6 @@ import {
   isAddressEqual,
   parseEventLogs,
   parseUnits,
-  zeroAddress,
 } from "viem";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
@@ -40,13 +39,13 @@ import { signRegisterVaultMessages } from "../helpers/securitize.js";
 import { getAnvilWallet } from "../helpers.js";
 
 const TESTNET_RPC_URL =
-  "https://anvil.gearbox.foundation/rpc/aave-vbill-demo-v2";
+  "https://anvil.gearbox.foundation/rpc/aave-vbill-demo-v3";
 /** Clear of the 8545 of the fixture tests and the 8546 of fixture generation. */
 const FORK_PORT = 8547;
 const MARKET_CONFIGURATOR: Address =
   "0xa770ce584adb6491a2138da6eaec33243bdcd248";
 const RWA_FACTORY: Address = "0xd1cc46e404d0d7da695e74b3f0d00a42033f0837";
-const CREDIT_MANAGER: Address = "0x51729cEd7156158C7D3d95C0cbc3Cf75e240Ba8e"; // VBILL Securitize
+const CREDIT_MANAGER: Address = "0xa699827E447efD3c17Ec54574D91971a2E9E99Be"; // VBILL Securitize
 const BRIDGE: Address = "0x0a637A81A61650DBE409A3e8857ED59F1556f5D2";
 const RLUSD: Address = "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD";
 const VBILL: Address = "0x2255718832bC9fD3bE1CaF75084F4803DA14FF01";
@@ -66,28 +65,6 @@ const approveDelegationAbi = [
     inputs: [
       { name: "delegatee", type: "address" },
       { name: "amount", type: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-] as const;
-
-const finalizeOpenAbi = [
-  {
-    type: "function",
-    name: "finalizeOpen",
-    inputs: [
-      { name: "creditAccount", type: "address" },
-      { name: "rwaToken", type: "address" },
-      {
-        name: "claimCall",
-        type: "tuple",
-        components: [
-          { name: "target", type: "address" },
-          { name: "callData", type: "bytes" },
-        ],
-      },
-      { name: "depositPhantomToken", type: "address" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -205,7 +182,7 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
       args: [VBILL],
     });
 
-    // both paths borrow as the investor, so the bridge needs the delegation
+    // the opening borrows as the investor, so the bridge needs the delegation
     await mined(await approveDelegation(MAX_UINT256));
     snapshotId = (await anvil.snapshot()) as Hex;
   }, 300_000);
@@ -249,12 +226,17 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
     });
   }
 
-  /** Opens the 3x VBILL position and checks the opening permitted the bot. */
-  async function openPosition(): Promise<{
-    creditAccount: Address;
-    bot: Address;
-    debt: bigint;
-  }> {
+  function approveDelegation(amount: bigint) {
+    return wallet.writeContract({
+      address: debtToken,
+      abi: approveDelegationAbi,
+      functionName: "approveDelegation",
+      args: [BRIDGE, amount],
+    });
+  }
+
+  /** Prepares the 3x VBILL opening at the current block and builds its transaction. */
+  async function prepareOpen() {
     await anvil.deal({ erc20: RLUSD, account: investor, amount: COLLATERAL });
     // each account gets a wallet of its own, so the spender is new every time
     const approvalTarget = await sdk.accounts.getApprovalAddress({
@@ -305,6 +287,31 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
         requirements.requiredSignatures,
       ),
     });
+    return { state: sim.data.state, tx };
+  }
+
+  /**
+   * Sends the opening and checks the position landed on the investor's own on
+   * Aave in the same transaction: the account left open owing nothing and
+   * holding no VBILL, the VBILL supplied, the debt borrowed, the collateral
+   * spent and nothing handed back. Returns the account and the bot the opening
+   * permitted for the exit.
+   */
+  async function sendOpen({
+    state,
+    tx,
+  }: Awaited<ReturnType<typeof prepareOpen>>): Promise<{
+    creditAccount: Address;
+    bot: Address;
+  }> {
+    const rwa =
+      state.minAssets.find(a => isAddressEqual(a.token.address, VBILL))
+        ?.value ?? 0n;
+    expect(rwa).toBeGreaterThan(0n);
+    const supplied = await balanceOf(aToken, investor);
+    const owed = await balanceOf(debtToken, investor);
+    const held = await balanceOf(RLUSD, investor);
+
     const opened = await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
     const [{ args: open }] = parseEventLogs({
       abi: iCreditFacadeV310Abi,
@@ -320,148 +327,78 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
       true,
     );
     expect(permitted.permissions).toBeGreaterThan(0n);
-    return {
-      creditAccount: open.creditAccount,
-      bot: permitted.bot,
-      debt: sim.data.state.totalDebt.value,
-    };
-  }
 
-  /**
-   * Runs `move` and checks the position left the account for the investor's
-   * own on Aave: the loan repaid, the VBILL supplied, the debt borrowed.
-   */
-  async function expectMoved(
-    creditAccount: Address,
-    debt: bigint,
-    move: () => Promise<void>,
-  ): Promise<void> {
-    const rwa = await balanceOf(VBILL, creditAccount);
-    expect(rwa).toBeGreaterThan(0n);
-    const supplied = await balanceOf(aToken, investor);
-    const owed = await balanceOf(debtToken, investor);
-
-    await move();
-
-    const after = await sdk.accounts.getCreditAccountData(creditAccount);
-    if (!after) throw new Error(`account ${creditAccount} not found`);
+    const after = await sdk.accounts.getCreditAccountData(open.creditAccount);
+    if (!after) throw new Error(`account ${open.creditAccount} not found`);
     expect(calcBorrowedAmountPlusInterestAndFees(after)).toBe(0n);
-    expect(await balanceOf(VBILL, creditAccount)).toBe(0n);
+    expect(await balanceOf(VBILL, open.creditAccount)).toBe(0n);
     // a 1:1 aToken, give or take the index rounding of the supply
     expect(
       (await balanceOf(aToken, investor)) - supplied,
     ).toBeGreaterThanOrEqual(rwa - 1n);
     expect(
       (await balanceOf(debtToken, investor)) - owed,
-    ).toBeGreaterThanOrEqual(debt);
+    ).toBeGreaterThanOrEqual(state.totalDebt.value);
+    expect(held - (await balanceOf(RLUSD, investor))).toBe(COLLATERAL);
+    return { creditAccount: open.creditAccount, bot: permitted.bot };
   }
 
-  it("the bot moves the position to Aave", async () => {
-    const { creditAccount, bot, debt } = await openPosition();
+  it("openAavePosition opens the position straight on Aave in one transaction", async () => {
+    const opening = await prepareOpen();
+    const { state, tx } = opening;
+    const debt = state.totalDebt.value;
+    expect(state.aave.mintDuration).toBe(0);
+    expect(state.moveCalls.length).toBeGreaterThan(0);
 
-    await expectMoved(creditAccount, debt, async () => {
-      await mined(
-        await wallet.writeContract({
-          address: bot,
-          abi: finalizeOpenAbi,
-          functionName: "finalizeOpen",
-          args: [
-            creditAccount,
-            VBILL,
-            { target: zeroAddress, callData: "0x" },
-            zeroAddress,
-          ],
-          gas: GAS_LIMIT,
-        }),
-      );
-    });
-  }, 300_000);
+    // read back as the account just before it moves, and the loan Aave takes
+    // on the investor's behalf is what checkOperation has to weigh
+    const input = {
+      chainId: sdk.chainId,
+      to: tx.to,
+      calldata: tx.callData,
+      sender: investor,
+      value: BigInt(tx.value),
+    };
+    const preview = await previewOperation(sdk, input);
+    if (!preview.ok) throw new Error(`preview failed: ${preview.error.code}`);
+    if (preview.data.operation !== "OpenCreditAccount") {
+      throw new Error(`previewed as ${preview.data.operation}`);
+    }
+    expect(preview.data.totalDebt.value).toBe(debt);
+    const [borrow] = preview.data.aaveBorrows ?? [];
+    expect(isAddressEqual(borrow.bridge, BRIDGE)).toBe(true);
+    expect(isAddressEqual(borrow.amount.token.address, RLUSD)).toBe(true);
+    expect(borrow.amount.value).toBeGreaterThanOrEqual(debt);
 
-  function approveDelegation(amount: bigint) {
-    return wallet.writeContract({
-      address: debtToken,
-      abi: approveDelegationAbi,
-      functionName: "approveDelegation",
-      args: [BRIDGE, amount],
-    });
-  }
+    const onAave = await gearbox.preview.openAavePosition(input);
+    if (!onAave.ok)
+      throw new Error(`aave preview failed: ${onAave.error.code}`);
+    expect(isAddressEqual(onAave.data.aave.bridge, BRIDGE)).toBe(true);
+    expect(onAave.data.aave.mintDuration).toBe(0);
 
-  it("moveToAave moves the position, and the margin left over reaches the wallet", async () => {
-    const { creditAccount, debt } = await openPosition();
-    const held = await balanceOf(RLUSD, investor);
+    const check = () =>
+      checkOperation({ sdk, preview: preview.data, sender: investor });
+    await mined(await approveDelegation(0n));
+    expect((await check()).map(e => e.code)).toEqual([
+      "insufficientBorrowAllowance",
+    ]);
+    await mined(await approveDelegation(MAX_UINT256));
+    expect(await check()).toEqual([]);
 
-    await expectMoved(creditAccount, debt, async () => {
-      await sync();
-      const sim = await gearbox.opportunities.prepare.moveToAave(
-        { chainId: chains.Mainnet.id, creditAccount },
-        { token: VBILL, to: investor },
-      );
-      if (!sim.ok) throw new Error(`move sim failed: ${sim.error.code}`);
-      const tx = await gearbox.opportunities.execute.buildTx({
-        kind: "account",
-        chainId: chains.Mainnet.id,
-        creditAccount,
-        wallet: investor,
-        sim,
-      });
-
-      // the margin leaves as RLUSD, yet the move is no closure: the loan it
-      // takes on the investor's behalf is what checkOperation has to weigh
-      const preview = await previewOperation(sdk, {
-        chainId: sdk.chainId,
-        to: tx.to,
-        calldata: tx.callData,
-        sender: investor,
-        value: BigInt(tx.value),
-      });
-      if (!preview.ok) throw new Error(`preview failed: ${preview.error.code}`);
-      if (preview.data.operation !== "RepayCreditAccount") {
-        throw new Error(`previewed as ${preview.data.operation}`);
-      }
-      const [borrow] = preview.data.aaveBorrows ?? [];
-      expect(isAddressEqual(borrow.bridge, BRIDGE)).toBe(true);
-      expect(isAddressEqual(borrow.amount.token.address, RLUSD)).toBe(true);
-      expect(borrow.amount.value).toBeGreaterThan(debt);
-      const check = () =>
-        checkOperation({ sdk, preview: preview.data, sender: investor });
-      await mined(await approveDelegation(0n));
-      expect((await check()).map(e => e.code)).toEqual([
-        "insufficientBorrowAllowance",
-      ]);
-      await mined(await approveDelegation(MAX_UINT256));
-      expect(await check()).toEqual([]);
-
-      await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
-    });
-
-    expect(await balanceOf(RLUSD, investor)).toBeGreaterThan(held);
+    await sendOpen(opening);
   }, 300_000);
 
   /**
-   * Opens the 3x VBILL position, has the bot move it to Aave and holds it
-   * there for {@link HOLD_SECONDS}, so the exit repays the interest Aave
-   * accrued meanwhile.
+   * Opens the 3x VBILL position straight on Aave and holds it there for
+   * {@link HOLD_SECONDS}, so the exit repays the interest Aave accrued
+   * meanwhile.
    */
   async function openOnAave(): Promise<{
     creditAccount: Address;
     bot: Address;
     borrowed: bigint;
   }> {
-    const { creditAccount, bot } = await openPosition();
-    await mined(
-      await wallet.writeContract({
-        address: bot,
-        abi: finalizeOpenAbi,
-        functionName: "finalizeOpen",
-        args: [
-          creditAccount,
-          VBILL,
-          { target: zeroAddress, callData: "0x" },
-          zeroAddress,
-        ],
-        gas: GAS_LIMIT,
-      }),
-    );
+    const { creditAccount, bot } = await sendOpen(await prepareOpen());
     const borrowed = await balanceOf(debtToken, investor);
     await anvil.increaseTime({ seconds: HOLD_SECONDS });
     await anvil.mine({ blocks: 1 });

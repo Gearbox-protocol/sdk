@@ -16,6 +16,7 @@ import type {
   RWAMulticallOperation,
   RWAOpenCreditAccountOperation,
 } from "../parse/index.js";
+import { aaveBridgeBorrows } from "./aaveBridgeBorrows.js";
 import { midasGreenlistsAccount } from "./midasGreenlistsAccount.js";
 import type { ReplayMulticallResult } from "./replayMulticall.js";
 import { unwrapNativeCollateral } from "./unwrapNativeCollateral.js";
@@ -77,6 +78,11 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
   // applied changes since the account started at zero.
   const snap = account.toSnapshot(netValue + account.totalDebt);
   const targetAsset = inferTargetAsset(operation.multicall, account.balances);
+  const aaveBorrows = aaveBridgeBorrows(
+    sdk,
+    operation.creditManager,
+    operation.multicall,
+  );
 
   const projection = {
     // The state itself comes from the builder the intents engine reports its
@@ -117,6 +123,7 @@ export function previewOpenStrategyPosition<P extends PluginsMap>(
       : {}),
     ...("args" in operation ? { rwaArgs: operation.args } : {}),
     midasGreenlistsAccount: midasGreenlistsAccount(sdk, operation.multicall),
+    ...(aaveBorrows.length > 0 ? { aaveBorrows } : {}),
   });
 }
 

@@ -69,6 +69,7 @@ import {
   toToken,
 } from "../../onchain/index.js";
 import { DEFAULT_QUOTA_BUFFER_BPS } from "../../onchain/market/math.js";
+import { aaveMoveCalls } from "../../onchain/positions/aaveMoveCalls.js";
 import { projectAavePosition } from "../../onchain/positions/projectAavePosition.js";
 import { IntentPreviewError } from "../../onchain/validation/raise.js";
 import type { EnsureFreshChains } from "../types.js";
@@ -95,7 +96,6 @@ import type {
   MaxBorrowAndWithdrawOptions,
   MaxBorrowParams,
   MaxWithdrawCollateralOptions,
-  MoveToAaveParams,
   MultipleDelayedWithdrawalsError,
   NoDelayedRouteError,
   NoRecordedIntentError,
@@ -600,7 +600,16 @@ export class PrepareApi
           state,
         );
       }
-      return sdkOk({ ...opened.data, state: { ...state, aave } });
+      const moveCalls =
+        aave.mintDuration === 0
+          ? ((await aaveMoveCalls(sdk, {
+              creditManager: state.creditManager,
+              token: aave.assets[0].token.address,
+              debt: state.totalDebt.value,
+              quotas: state.averageQuota,
+            })) ?? [])
+          : [];
+      return sdkOk({ ...opened.data, state: { ...state, aave, moveCalls } });
     } catch (e) {
       return refused(unexpectedFailure(e), state);
     }
@@ -775,37 +784,6 @@ export class PrepareApi
     const sdk = await this.#chain(position.chainId);
     const creditAccount = await this.#account(sdk, position);
     return service(sdk).maxRepay({ creditAccount, sdk });
-  }
-
-  /**
-   * {@inheritDoc IOpportunitiesPrepare.moveToAave}
-   **/
-  public async moveToAave(
-    position: PositionInput,
-    params: MoveToAaveParams,
-  ): Promise<
-    SDKReturn<
-      StrategyResult,
-      (
-        | AccountFlowError
-        | DebtOutOfRangeError
-        | UnsupportedCollateralTokenError
-      ) &
-        WithPartialState<OperationState>
-    >
-  > {
-    return this.#startIntent<
-      DebtOutOfRangeError | UnsupportedCollateralTokenError
-    >(
-      position,
-      {},
-      {
-        type: "MOVE_TO_AAVE",
-        token: params.token,
-        to: params.to,
-        claimable: params.claimable && toClaimableWithdrawal(params.claimable),
-      },
-    );
   }
 
   /**

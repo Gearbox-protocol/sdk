@@ -25,14 +25,12 @@ import {
   debtForLeverage,
   proportionalDebt,
 } from "./math.js";
-import { instantOutput } from "./operations.js";
 import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
   BorrowAndWithdrawIntent,
   CloseAavePositionIntent,
   DepositStrategyIntent,
-  MoveToAaveIntent,
   RepayStrategyIntent,
   UpdateQuotaIntent,
   WithdrawAssetIntent,
@@ -113,14 +111,6 @@ export type Step =
    * it to the balance.
    */
   | { kind: "updateQuota"; token: Address; quota: bigint | undefined }
-  /** Supplies `amount` of `token` to the Aave pool, for its aToken. */
-  | { kind: "aaveSupply"; token: Address; amount: bigint }
-  /**
-   * Hands every aToken of `token` the account holds to its owner through the
-   * Horizon bridge, which borrows `borrow`, in underlying units, into the
-   * account: of the underlying, or of the asset an RWA underlying wraps.
-   */
-  | { kind: "aaveOpenPosition"; token: Address; borrow: bigint }
   /**
    * Repays `repay` of the owner's Aave debt out of the account, in the asset
    * Aave lends, and brings `aTokenAmount` of the owner's aTokens of `token`
@@ -353,72 +343,6 @@ export function planRepay(
     // (`DebtToZeroWithActiveQuotasException`), so a settlement drops them.
     ...(repaid === view.debt ? [clearQuotas()] : []),
     repay(repaid),
-  ];
-}
-
-/**
- * The position leaves for Aave Horizon: the RWA is supplied to the Aave pool,
- * its aTokens go to the owner with a loan against them, and that loan settles
- * the account's own.
- *
- * Aave lends the debt plus the {@link SETTLE_MARGIN} headroom, since the facade
- * is told to repay everything outstanding by the time the transaction lands;
- * what it does not take goes to `to`.
- */
-export function planMoveToAave(
-  intent: Omit<MoveToAaveIntent, "type">,
-  view: AccountView,
-): Step[] {
-  const { claimable } = intent;
-  const claimed = claimable
-    ? instantOutput(claimable.outputs, intent.token)
-    : undefined;
-  if (claimable && !claimed) {
-    throw new IntentPreviewError(
-      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
-      `moveToAave: the claim brings no ${intent.token}`,
-    );
-  }
-  const amount = view.balanceOf(intent.token) + (claimed?.amount ?? 0n);
-  if (eq(intent.token, view.underlying) || isZeroBalance(amount)) {
-    throw new IntentPreviewError(
-      unsupportedCollateralToken(toToken(view.sdk, intent.token)),
-      `moveToAave: ${intent.token} is the underlying or not held by the account`,
-    );
-  }
-  if (view.debt <= 0n) {
-    throw new IntentPreviewError(
-      debtOutOfRange({
-        requested: toTokenAmount(view.sdk, view.underlying, view.debt),
-        minDebt: toTokenAmount(
-          view.sdk,
-          view.underlying,
-          view.debtLimits.minDebt,
-        ),
-        maxDebt: toTokenAmount(
-          view.sdk,
-          view.underlying,
-          view.debtLimits.maxDebt,
-        ),
-      }),
-      "moveToAave: the account owes nothing",
-    );
-  }
-  return [
-    ...(claimable ? [claim(claimable)] : []),
-    { kind: "aaveSupply", token: intent.token, amount },
-    {
-      kind: "aaveOpenPosition",
-      token: intent.token,
-      borrow: withMargin(view.debt),
-    },
-    // Aave lends the asset an RWA underlying wraps; the loan is repaid in the
-    // wrapper.
-    ...(view.rwaAsset ? [convert(view.rwaAsset, view.underlying, RAISED)] : []),
-    // `DebtToZeroWithActiveQuotasException`, as in planRepay.
-    clearQuotas(),
-    repay(view.debt),
-    { kind: "sweep", to: intent.to, token: view.underlying },
   ];
 }
 

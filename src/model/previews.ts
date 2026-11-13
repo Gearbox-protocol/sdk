@@ -468,6 +468,12 @@ export interface OpenStrategyPositionPreview
    * flow.
    */
   midasGreenlistsAccount?: boolean;
+  /**
+   * Loans the Horizon bridge takes as the account owner when the opening
+   * moves to Aave within its own transaction; the other fields then describe
+   * the account as it stands just before the move. Absent when it takes none.
+   */
+  aaveBorrows?: AaveBridgeBorrow[];
 }
 
 /**
@@ -475,7 +481,7 @@ export interface OpenStrategyPositionPreview
  * of `prepare.openAavePosition`, read off calldata rather than planned into it.
  *
  * The fields it shares with {@link OpenStrategyPositionPreview} describe the
- * Gearbox credit account the position is built in while the mint settles.
+ * Gearbox credit account the position is built in, before it moves to Aave.
  **/
 export interface OpenAavePositionPreview extends OpenStrategyPositionPreview {
   /**

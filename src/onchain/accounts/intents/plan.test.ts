@@ -2,12 +2,10 @@ import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { LEVERAGE_DECIMALS, MAX_UINT256 } from "../../constants/math.js";
-import type { ClaimableWithdrawal } from "../withdrawal-compressor/types.js";
 import {
   type AccountView,
   planAdjustLeverage,
   planDeposit,
-  planMoveToAave,
   planRepay,
   planUpdateQuota,
   planWithdraw,
@@ -291,112 +289,6 @@ describe("planRepay — funding in, debt down, position untouched", () => {
         error: expect.objectContaining({ code: "debtOutOfRange" }),
       }),
     );
-  });
-});
-
-describe("planMoveToAave — the position leaves, Aave settles the loan", () => {
-  it("supplies the whole balance, borrows the debt plus 10bps, drops quotas, repays, hands the margin back", () => {
-    expect(planMoveToAave({ token: T, to: WALLET }, twoX)).toEqual([
-      { kind: "aaveSupply", token: T, amount: 2_000n },
-      { kind: "aaveOpenPosition", token: T, borrow: 1_001n },
-      { kind: "clearQuotas" },
-      { kind: "repay", amount: 1_000n },
-      { kind: "sweep", to: WALLET, token: U },
-    ]);
-  });
-
-  it("on an RWA market wraps what Aave lends in the asset before repaying", () => {
-    const ASSET = "0x6666666666666666666666666666666666666666" as Address;
-    const v = view({
-      debt: 1_000n,
-      balances: { [T]: 2_000n },
-      rwaAsset: ASSET,
-    });
-    expect(planMoveToAave({ token: T, to: WALLET }, v)).toEqual([
-      { kind: "aaveSupply", token: T, amount: 2_000n },
-      { kind: "aaveOpenPosition", token: T, borrow: 1_001n },
-      { kind: "convert", from: ASSET, to: U, amount: RAISED },
-      { kind: "clearQuotas" },
-      { kind: "repay", amount: 1_000n },
-      { kind: "sweep", to: WALLET, token: U },
-    ]);
-  });
-
-  it("refuses the underlying and a token the account does not hold", () => {
-    const v = view({ debt: 1_000n, balances: { [T]: 2_000n, [U]: 500n } });
-    for (const token of [U, RWA]) {
-      expect(() => planMoveToAave({ token, to: WALLET }, v)).toThrowError(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: "unsupportedCollateralToken",
-          }),
-        }),
-      );
-    }
-  });
-
-  it("refuses an account with zero debt", () => {
-    const v = view({ debt: 0n, balances: { [T]: 2_000n } });
-    expect(() => planMoveToAave({ token: T, to: WALLET }, v)).toThrowError(
-      expect.objectContaining({
-        error: expect.objectContaining({ code: "debtOutOfRange" }),
-      }),
-    );
-  });
-
-  describe("a matured mint", () => {
-    const PHANTOM = "0x5555555555555555555555555555555555555555" as Address;
-    const minted = (token: Address, amount: bigint): ClaimableWithdrawal => ({
-      token: U,
-      withdrawalPhantomToken: PHANTOM,
-      withdrawalTokenSpent: amount,
-      outputs: [{ token, amount, isDelayed: false }],
-      claimCalls: [],
-    });
-
-    it("is claimed first, and what it brings moves along", () => {
-      const claimable = minted(RWA, 1_500n);
-      const v = view({ debt: 1_000n, balances: { [PHANTOM]: 1_500n } });
-      expect(planMoveToAave({ token: RWA, to: WALLET, claimable }, v)).toEqual([
-        { kind: "claim", claimable },
-        { kind: "aaveSupply", token: RWA, amount: 1_500n },
-        { kind: "aaveOpenPosition", token: RWA, borrow: 1_001n },
-        { kind: "clearQuotas" },
-        { kind: "repay", amount: 1_000n },
-        { kind: "sweep", to: WALLET, token: U },
-      ]);
-    });
-
-    it("adds to the balance already on the account", () => {
-      const claimable = minted(RWA, 1_500n);
-      const v = view({
-        debt: 1_000n,
-        balances: { [RWA]: 500n, [PHANTOM]: 1_500n },
-      });
-      expect(
-        planMoveToAave({ token: RWA, to: WALLET, claimable }, v)[1],
-      ).toEqual({
-        kind: "aaveSupply",
-        token: RWA,
-        amount: 2_000n,
-      });
-    });
-
-    it("refuses a claim that brings another token", () => {
-      const v = view({ debt: 1_000n, balances: { [PHANTOM]: 1_500n } });
-      expect(() =>
-        planMoveToAave(
-          { token: RWA, to: WALLET, claimable: minted(T, 1_500n) },
-          v,
-        ),
-      ).toThrowError(
-        expect.objectContaining({
-          error: expect.objectContaining({
-            code: "unsupportedCollateralToken",
-          }),
-        }),
-      );
-    });
   });
 });
 
