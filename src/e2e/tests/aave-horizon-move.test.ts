@@ -21,9 +21,11 @@ import {
 import { calcBorrowedAmountPlusInterestAndFees } from "../../onchain/accounts/intents/utils/borrowed-amount-plus-interest-and-fees.js";
 import {
   chains,
+  checkOperation,
   MAX_UINT256,
   MultichainSDK,
   type OnchainSDK,
+  previewOperation,
   sendRawTx,
 } from "../../onchain/index.js";
 import {
@@ -176,14 +178,7 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
     });
 
     // both paths borrow as the investor, so the bridge needs the delegation
-    await mined(
-      await wallet.writeContract({
-        address: debtToken,
-        abi: approveDelegationAbi,
-        functionName: "approveDelegation",
-        args: [BRIDGE, MAX_UINT256],
-      }),
-    );
+    await mined(await approveDelegation(MAX_UINT256));
     snapshotId = (await anvil.snapshot()) as Hex;
   }, 300_000);
 
@@ -354,6 +349,15 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
     });
   }, 300_000);
 
+  function approveDelegation(amount: bigint) {
+    return wallet.writeContract({
+      address: debtToken,
+      abi: approveDelegationAbi,
+      functionName: "approveDelegation",
+      args: [BRIDGE, amount],
+    });
+  }
+
   it("moveToAave moves the position, and the margin left over reaches the wallet", async () => {
     const { creditAccount, debt } = await openPosition();
     const held = await balanceOf(RLUSD, investor);
@@ -372,6 +376,33 @@ describe.skipIf(!!process.env.CI || !!down)("aave horizon move", () => {
         wallet: investor,
         sim,
       });
+
+      // the margin leaves as RLUSD, yet the move is no closure: the loan it
+      // takes on the investor's behalf is what checkOperation has to weigh
+      const preview = await previewOperation(sdk, {
+        chainId: sdk.chainId,
+        to: tx.to,
+        calldata: tx.callData,
+        sender: investor,
+        value: BigInt(tx.value),
+      });
+      if (!preview.ok) throw new Error(`preview failed: ${preview.error.code}`);
+      if (preview.data.operation !== "RepayCreditAccount") {
+        throw new Error(`previewed as ${preview.data.operation}`);
+      }
+      const [borrow] = preview.data.aaveBorrows ?? [];
+      expect(isAddressEqual(borrow.bridge, BRIDGE)).toBe(true);
+      expect(isAddressEqual(borrow.amount.token.address, RLUSD)).toBe(true);
+      expect(borrow.amount.value).toBeGreaterThan(debt);
+      const check = () =>
+        checkOperation({ sdk, preview: preview.data, sender: investor });
+      await mined(await approveDelegation(0n));
+      expect((await check()).map(e => e.code)).toEqual([
+        "insufficientBorrowAllowance",
+      ]);
+      await mined(await approveDelegation(MAX_UINT256));
+      expect(await check()).toEqual([]);
+
       await mined(await sendRawTx(wallet, { tx, gas: GAS_LIMIT }));
     });
 

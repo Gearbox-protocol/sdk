@@ -1,4 +1,5 @@
 import {
+  type AaveBridgeBorrow,
   asEstimated,
   type ExitStrategyPositionPreview,
   type MalformedTransactionError,
@@ -52,10 +53,27 @@ export function previewExitOrRepayStrategyPosition<P extends PluginsMap>(
     exitTokens.push(meta.asset);
   }
 
-  const kind = classifyCloseOrRepay(operation.multicall, exitTokens);
+  const aaveBorrows = aaveBridgeBorrows(
+    sdk,
+    operation.creditManager,
+    operation.multicall,
+  );
+  // A move to Aave hands the collateral over in kind on a loan the owner must
+  // have delegated, even when the margin it leaves goes out as an exit token.
+  const kind =
+    aaveBorrows.length > 0
+      ? "repay"
+      : classifyCloseOrRepay(operation.multicall, exitTokens);
   return kind === "close"
     ? sdkOk(previewCloseCreditAccount(sdk, operation, permanent, replay))
-    : previewRepayCreditAccount(sdk, input, operation, permanent, replay);
+    : previewRepayCreditAccount(
+        sdk,
+        input,
+        operation,
+        permanent,
+        replay,
+        aaveBorrows,
+      );
 }
 
 /**
@@ -121,6 +139,7 @@ function previewRepayCreditAccount<P extends PluginsMap>(
   operation: CloseOrRepayOperation,
   permanent: boolean,
   replay: ReplayMulticallResult,
+  aaveBorrows: AaveBridgeBorrow[],
 ): SDKReturn<RepayStrategyPositionPreview, MalformedTransactionError> {
   const { value = 0n } = input;
   const market = sdk.marketRegister.findByCreditManager(
@@ -144,11 +163,6 @@ function previewRepayCreditAccount<P extends PluginsMap>(
     market.underlying,
   );
   const suite = sdk.marketRegister.findCreditManager(operation.creditManager);
-  const aaveBorrows = aaveBridgeBorrows(
-    sdk,
-    operation.creditManager,
-    operation.multicall,
-  );
 
   return sdkOk({
     operation: "RepayCreditAccount",
