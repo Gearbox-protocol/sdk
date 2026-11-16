@@ -49,6 +49,11 @@ describe("TokensMeta", () => {
   describe("upsert pretty names", () => {
     it.each([
       [
+        "0x225E61A55B6eF8cC2AE94E85D0a95F9e2Cd96A88",
+        "srpVBILL_RLUSD",
+        "VBILL → RLUSD",
+      ],
+      [
         "0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20",
         "wdwstETH",
         "wstETH redemption from cp0xLRT",

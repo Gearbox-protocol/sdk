@@ -269,6 +269,7 @@ export const chains: Record<NetworkType, GearboxChain> = {
         symbol: "USDC",
       },
       tokenPrettyNames: AddressMap.fromRecord<string>({
+        "0x225e61a55b6ef8cc2ae94e85d0a95f9e2cd96a88": "VBILL → RLUSD",
         // Legacy withdrawal phantoms absent from the active compressor mapping.
         "0xab7d50fc2486a1ac06516e2ece9dadc95ba8cd20":
           "wstETH redemption from cp0xLRT",
