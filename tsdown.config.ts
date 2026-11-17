@@ -66,7 +66,7 @@ export default defineConfig(inlineConfig => {
       ...commonOptions,
       format: "esm",
       outDir: "./dist/types/",
-      outExtensions: () => ({ dts: ".ts" }),
+      outExtensions: () => ({ js: ".js", dts: ".ts" }),
       dts: { emitDtsOnly: true },
     },
   ];
