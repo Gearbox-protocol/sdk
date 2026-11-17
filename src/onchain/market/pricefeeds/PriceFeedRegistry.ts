@@ -16,6 +16,8 @@ import { CurveStablePriceFeedContract } from "./feeds/CurveStablePriceFeed.js";
 import { CurveUSDPriceFeedContract } from "./feeds/CurveUSDPriceFeed.js";
 import { Erc4626PriceFeedContract } from "./feeds/Erc4626PriceFeed.js";
 import { ExternalPriceFeedContract } from "./feeds/ExternalPriceFeed.js";
+import { FixedRateWindowPriceFeedContract } from "./feeds/FixedRateWindowPriceFeed.js";
+import { MedianPriceFeedContract } from "./feeds/MedianPriceFeed.js";
 import { MellowLRTPriceFeedContract } from "./feeds/MellowLRTPriceFeed.js";
 import { PendleTWAPPTPriceFeed } from "./feeds/PendleTWAPPTPriceFeed.js";
 import { PythPriceFeed } from "./feeds/PythPriceFeed.js";
@@ -139,6 +141,12 @@ export class PriceFeedRegistry extends SDKConstruct {
 
       case "PRICE_FEED::EXTERNAL":
         return new ExternalPriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::FIXED_RATE_WINDOW":
+        return new FixedRateWindowPriceFeedContract(this.sdk, data);
+
+      case "PRICE_FEED::MEDIAN":
+        return new MedianPriceFeedContract(this.sdk, data);
 
       case "PRICE_FEED::MELLOW_LRT":
         return new MellowLRTPriceFeedContract(this.sdk, data);

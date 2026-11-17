@@ -281,6 +281,7 @@ export class PriceFeedStoreContract extends BaseContract<typeof abi> {
           types.push({ type: param.type.type });
           values.push(BigInt(data[param.label] as string | number));
           break;
+        case "uint16":
         case "uint8":
           types.push({ type: param.type.type });
           values.push(Number(data[param.label] as string | number));
