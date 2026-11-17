@@ -2,6 +2,7 @@ import type { Address, PublicClient, Transport } from "viem";
 import { createPublicClient, fallback, getAddress, http } from "viem";
 import { expect, it } from "vitest";
 import { ierc20Abi } from "../../abi/iERC20.js";
+import { getAlchemyUrl, getDrpcUrl } from "../../dev/providers.js";
 import { hexEq } from "../utils/hex.js";
 import { TypedObjectUtils } from "../utils/mappers.js";
 import type { GearboxChain } from "./chains.js";
@@ -62,11 +63,14 @@ async function fetchTokensSimple(
 async function fetchAllTokens(
   chain: GearboxChain,
 ): Promise<Record<Address, string | undefined>> {
+  const urls = [
+    ...Object.values(chain.rpcUrls).flatMap(u => u.http),
+    getAlchemyUrl(chain.network, process.env.ALCHEMY_KEY),
+    getDrpcUrl(chain.network, process.env.DRPC_KEY),
+  ].filter((u): u is string => !!u);
   const client = createPublicClient({
-    chain: chain,
-    transport: fallback(
-      Object.values(chain.rpcUrls).flatMap(urls => urls.http.map(u => http(u))),
-    ),
+    chain,
+    transport: fallback(urls.map(u => http(u))),
   });
   if (chain.contracts?.multicall3) {
     return fetchTokensMulticall(client);
