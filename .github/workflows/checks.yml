@@ -5,6 +5,8 @@ on:
     secrets:
       ALCHEMY_KEY_CI:
         required: false
+      DRPC_KEY_CI:
+        required: false
 
 permissions: {}
 
@@ -54,6 +56,7 @@ jobs:
       - name: Unit and e2e tests
         env:
           ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
+          DRPC_KEY: ${{ secrets.DRPC_KEY_CI }}
           RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
         run: pnpm vitest run --project unit --project e2e
 
