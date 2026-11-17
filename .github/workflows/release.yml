@@ -7,64 +7,74 @@ on:
       - "next"
       - "*.x"
 
-permissions:
-  contents: read
+permissions: {}
+
+# An interrupted semantic-release leaves a tag with no release behind it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   HUSKY: 0
   CI: true
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  verify:
+    needs: zizmor
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
+      contents: read
+    uses: $/.github/workflows/checks.yml
+    secrets:
+      ALCHEMY_KEY_CI: ${{ secrets.ALCHEMY_KEY_CI }}
+
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # No GitHub Advanced Security here, so findings go to annotations, not code scanning.
+      - uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          # Pinned, so a new audit cannot start failing releases with nothing changed here.
+          version: "1.32.0"
+          advanced-security: false
+          annotations: true
+
+  release:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # create tag and GitHub release
+      id-token: write # npm provenance and trusted publishing
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          lfs: true
+          persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-node@v7
+      # pnpm/setup installs Node without npm; @semantic-release/npm needs npm 11.5.1+ for OIDC.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: ".nvmrc"
 
-      - uses: pnpm/setup@v3
+      - uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
         with:
-          cache: true
           require-lockfile: true
 
-      - name: Read Foundry version
-        id: foundry
-        run: echo "version=v$(node -p "require('./package.json').foundryVersion")" >> "$GITHUB_OUTPUT"
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: ${{ steps.foundry.outputs.version }}
-
-      - name: Typecheck and test
-        env:
-          ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
-          RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
-        run: |
-          pnpm typecheck:ci
-          pnpm vitest run --project unit --project e2e
-
-      # Backend releases depend on prereleases from `next`, so there failing
-      # backend client tests must not block the release.
-      - name: Backend client tests
-        continue-on-error: ${{ github.ref_name == 'next' }}
-        run: pnpm test:api
+      - name: npm version
+        run: npm --version
 
       - name: Build
         run: pnpm build
 
       - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v8
+        uses: cycjimmy/semantic-release-action@ad51787758d9654d5a75150a89a6fa9b3ccef95e # v8.1.4
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

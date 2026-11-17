@@ -1,0 +1,64 @@
+name: Checks
+
+on:
+  workflow_call:
+    secrets:
+      ALCHEMY_KEY_CI:
+        required: false
+
+permissions: {}
+
+env:
+  HUSKY: 0
+  CI: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          lfs: true
+
+      - uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
+        with:
+          cache: true
+          install: false
+
+      # Before install, so a lockfile with a HIGH advisory is never installed.
+      - name: Audit lockfile
+        run: pnpm audit --audit-level high
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Read Foundry version
+        id: foundry
+        run: echo "version=v$(node -p "require('./package.json').foundryVersion")" >> "$GITHUB_OUTPUT"
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
+        with:
+          version: ${{ steps.foundry.outputs.version }}
+
+      - name: Typecheck and lint
+        run: |
+          pnpm typecheck:ci
+          pnpm check:ci
+
+      - name: Unit and e2e tests
+        env:
+          ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY_CI }}
+          RPC_URL: "https://eth-mainnet.g.alchemy.com/v2/${{ secrets.ALCHEMY_KEY_CI }}"
+        run: pnpm vitest run --project unit --project e2e
+
+      # Backend releases depend on prereleases from `next`, so there failing
+      # backend client tests must not block the release.
+      - name: Backend client tests
+        continue-on-error: ${{ github.ref_name == 'next' }}
+        run: pnpm test:api
