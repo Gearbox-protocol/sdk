@@ -33,7 +33,9 @@ export type PriceFeedContractType =
   | "PRICE_FEED::REDSTONE"
   | "PRICE_FEED::WSTETH"
   | "PRICE_FEED::YEARN"
-  | "PRICE_FEED::ZERO";
+  | "PRICE_FEED::ZERO"
+  | "PRICE_FEED::FIXED_RATE_WINDOW"
+  | "PRICE_FEED::MEDIAN";
 
 /**
  * Public interface for a single price feed contract.

@@ -8,6 +8,8 @@ export * from "./CurveStablePriceFeed.js";
 export * from "./CurveUSDPriceFeed.js";
 export * from "./Erc4626PriceFeed.js";
 export * from "./ExternalPriceFeed.js";
+export * from "./FixedRateWindowPriceFeed.js";
+export * from "./MedianPriceFeed.js";
 export * from "./MellowLRTPriceFeed.js";
 export * from "./PendleTWAPPTPriceFeed.js";
 export * from "./PythPriceFeed.js";
