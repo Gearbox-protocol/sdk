@@ -53,7 +53,7 @@ export const fixRateWindowPriceFeed: PriceFeedSetupParams = {
     {
       label: "descriptionTicker",
       type: { type: "string", maxLen: 32 },
-      displayOrder: 1,
+      displayOrder: 2,
     },
   ],
   stalenessPeriod: false,
