@@ -90,6 +90,10 @@ export type {
   TraderJoeAdapterState,
 } from "./adapters/traderjoe/traderJoePlugin.js";
 export type {
+  TreehouseRouterAdapterDeployParams,
+  TreehouseRouterAdapterState,
+} from "./adapters/treehouse-router/treehouseRouterAdapterPlugin.js";
+export type {
   UniswapV2AdapterDeployParams,
   UniswapV2AdapterState,
 } from "./adapters/uniswap-v2/uniswapV2Plugin.js";
