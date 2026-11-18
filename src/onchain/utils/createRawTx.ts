@@ -56,14 +56,15 @@ export function createRawTx<
   const inputs =
     "inputs" in abiItem && abiItem.inputs ? [...abiItem.inputs] : [];
 
-  const payable = "payble" in abiItem ? abiItem.payble === true : false;
+  const payable =
+    abiItem.type === "function" && abiItem.stateMutability === "payable";
 
   const contractInputsValues: Record<string, any> = {};
 
   if (inputs.length > 0 && args && args.length !== 0) {
     args.forEach((arg, i) => {
       const methodName = inputs[i].name as string;
-      const stringifiedArg = arg instanceof BigInt ? arg.toString() : arg;
+      const stringifiedArg = typeof arg === "bigint" ? arg.toString() : arg;
       contractInputsValues[methodName] = Array.isArray(stringifiedArg)
         ? json_stringify(stringifiedArg)
         : stringifiedArg;
