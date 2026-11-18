@@ -217,6 +217,31 @@ describe("declaring an adapter plugin", () => {
     ).toThrow(/must be named ADAPTER::OTHER_ROUTER::<function>/);
   });
 
+  it("retains plugin token metadata on a resolve cache hit", async () => {
+    let resolutions = 0;
+    const action: typeof setPoolsActionData = {
+      ...setPoolsActionData,
+      resolve: async ({ ctx }) => {
+        resolutions++;
+        ctx.tokens.decimals(POOL_A);
+        return undefined;
+      },
+    };
+    const { sdk } = await createTestSdk({
+      tokenDecimals: { [POOL_A]: 7, [POOL_B]: 8 },
+      plugins: [{ ...testRouterPlugin, actions: { setPools: action } }],
+    });
+    for (let revision = 0; revision < 2; revision++) {
+      const preview = await sdk
+        .market({ initialState: stateWithRouter([]) })
+        .addAction(setPools([{ pool: POOL_A, allowed: true }]))
+        .preview();
+      expect(preview.tokenDecimals[POOL_A]).toBe(7);
+      expect(preview.tokenDecimals[POOL_B]).toBeUndefined();
+    }
+    expect(resolutions).toBe(1);
+  });
+
   it("rejects value-bearing plugin payloads during compilation", async () => {
     const paidAction: typeof setPoolsActionData = {
       ...setPoolsActionData,

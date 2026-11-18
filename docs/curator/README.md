@@ -633,7 +633,7 @@ deployment must land on its expected address.
 ```ts
 const plan = await market.build({ author, eta });
 
-plan.scope;               // "market" | "configurator" — plans are discriminated
+plan.scope;               // "market" | "configurator" | "merged"
 plan.source;              // chain, configurator, source block and its timestamp
 plan.eta;                 // earliest execution time, also used for projection
 plan.before / plan.after; // market or configurator states
@@ -651,6 +651,8 @@ plan.feedDependencies;    // { perBatch, updatablePerBatch, all }
 plan.gas;                 // { model: "heuristic-action-table", isActualMeasurement: false, … }
 
 plan.incompleteChecks;    // checks the preview could NOT complete, carried verbatim
+plan.actionDiagnostics;   // action warnings for a market or configurator plan
+plan.tokenDecimals;       // (market scope) metadata resolved for this compilation
 plan.bundles;             // (market scope) bundle merges, including paramWarnings
 plan.diagnostics;         // (market scope) getGipDiagnostics findings
 ```
@@ -681,7 +683,8 @@ const json = serializeGipPlan(plan);   // versioned envelope, bigint-safe
 const restored = deserializeGipPlan(json);
 ```
 
-Plans and serialization envelopes use version **2**. Version 1 plans must be rebuilt;
+Market, configurator and merged plans use serialization version **3**. Version 2 plans
+load with their original payloads and an incomplete check identifying the missing review data. Version 1 plans must be rebuilt;
 the deserializer rejects their older transition semantics. Legacy supplied market
 states still load, but missing reserve, ramp-initial-LT and facade fields remain
 unknown and are reported as skipped comparisons rather than assumed zero.
@@ -1092,8 +1095,8 @@ market's whole action list, and a list persisted from a preview loses nothing.
 
 Each market is compiled even when another one is blocked, so a preview reports every
 problem at once; `build()` and `simulate()` reject while any market is blocked. The
-builders stay live: each call compiles what they have recorded by then. The merged
-plan is separate from the single-scope versioned plan serialization.
+builders stay live: each call compiles what they have recorded by then. Merged plans use `scope: "merged"` and round-trip through `serializeGipPlan` and
+`deserializeGipPlan`. Each market retains its own action diagnostics and token metadata.
 
 ## Integration API
 

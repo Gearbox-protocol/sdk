@@ -44,7 +44,7 @@ type AnyDefinition = MarketActionDefinition<GipMarketAction>;
  * Only the market's identity is passed on, never its state, which is what
  * makes the result reusable for any replay of the same action.
  **/
-function resolveMarketAction(args: {
+async function resolveMarketAction(args: {
   ctx: GipBuilderContext;
   cache: ResolveCache;
   definition: AnyDefinition;
@@ -54,11 +54,31 @@ function resolveMarketAction(args: {
 }): Promise<unknown> {
   const { ctx, cache, definition, state, params } = args;
   const { resolve } = definition;
-  if (!resolve) return Promise.resolve(undefined);
+  if (!resolve) return undefined;
   const market = state ? marketIdentity(state) : undefined;
-  return cache.run({ type: definition.type, market, params }, () =>
-    resolve({ ctx, market, params, registry: args.registry }),
-  );
+  const key = { type: definition.type, market, params };
+  const result = await cache.run(key, async () => {
+    const tokens = new Set<Address>();
+    const value = await resolve({
+      ctx: {
+        ...ctx,
+        tokens: {
+          decimals(token) {
+            const decimals = ctx.tokens.decimals(token);
+            tokens.add(token);
+            return decimals;
+          },
+        },
+      },
+      market,
+      params,
+      registry: args.registry,
+    });
+    return { value, tokens };
+  });
+  // Replaying a cached prediction must report the same metadata dependencies.
+  for (const token of result.tokens) ctx.tokens.decimals(token);
+  return result.value;
 }
 
 /** What a run of actions produced, up to the first action that cannot run. **/

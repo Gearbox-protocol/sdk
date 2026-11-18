@@ -1,7 +1,6 @@
 import type { Address } from "viem";
-import type { RawTx } from "../../../onchain/index.js";
-import type { SafeTx } from "../../bindings/governance/types.js";
-import { convertQueueBatchToExecuteTx } from "../../utils/governance/timelock-txs.js";
+import { convertRawTxToSafeMultisigTx } from "../../utils/governance/batch.js";
+import { createExecuteBatchRawTx } from "../../utils/governance/timelock-txs.js";
 import { getRawTxHash } from "../transactions/getRawTxHash.js";
 import { getTimelockTransactions } from "../transactions/getTimelockTransactions.js";
 import type { BatchTxs } from "../types.js";
@@ -25,13 +24,13 @@ export type GipPlanTransactions = Omit<
 export async function buildPlanTransactions(args: {
   runtime: GipSdkRuntime;
   batches: readonly BatchTxs[];
-  payloadCalls: readonly RawTx[];
   author: Address;
   eta: number;
   /** `unavailable` when the scope has no per-action gas table. **/
   gasModel?: GipPlanBase["gas"]["model"];
 }): Promise<GipPlanTransactions> {
-  const { runtime, batches, payloadCalls, author, eta } = args;
+  const { runtime, batches, author, eta } = args;
+  const payloadCalls = batches.flatMap(batch => batch.txs);
   if (payloadCalls.length === 0) {
     throw new Error("A GIP plan needs at least one payload call");
   }
@@ -45,13 +44,10 @@ export async function buildPlanTransactions(args: {
     sdk: await runtime.addressProviderSdk(),
   });
 
-  const governor = await runtime.governor();
-  const executeBatchSafeTxs: SafeTx[] = [];
-  const executeBatchTxs: RawTx[] = [];
-  for (const queueBatch of timelockTxs.queueBatches) {
-    executeBatchSafeTxs.push(convertQueueBatchToExecuteTx(queueBatch));
-    executeBatchTxs.push(governor.createExecuteBatchTx({ txs: queueBatch }));
-  }
+  const executeBatchTxs = timelockTxs.queueBatches.map(queue =>
+    createExecuteBatchRawTx(queue[0].to as Address, queue),
+  );
+  const executeBatchSafeTxs = executeBatchTxs.map(convertRawTxToSafeMultisigTx);
 
   const perBatchFeeds = batches.map(({ touchedFeeds }) => [...touchedFeeds]);
   const perBatchGas = batches.map(({ estimatedGas }) => estimatedGas);
@@ -59,7 +55,7 @@ export async function buildPlanTransactions(args: {
   return {
     author,
     eta,
-    payloadCalls: [...payloadCalls],
+    payloadCalls,
     payloadCallHashes: payloadCalls.map(tx => getRawTxHash(tx, eta)),
     batches: batches.map(batch => ({
       txs: [...batch.txs],

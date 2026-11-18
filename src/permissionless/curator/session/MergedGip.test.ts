@@ -1,5 +1,11 @@
-import { type Address, getAddress, stringToHex } from "viem";
+import {
+  type Address,
+  decodeFunctionData,
+  getAddress,
+  stringToHex,
+} from "viem";
 import { describe, expect, it } from "vitest";
+import { governorAbi } from "../../../abi/governance/governor.js";
 import {
   assertNotBlocked,
   ConfigurationExecutor,
@@ -22,6 +28,7 @@ import {
   TREASURY,
   USDC,
 } from "../testing/sdkHarness.js";
+import { deserializeGipPlan, serializeGipPlan } from "./serializeGipPlan.js";
 
 const SECOND: Address = "0x1111111111111111111111111111111111111112";
 const NFT: Address = "0x0000000000000000000000000000000000000123";
@@ -129,6 +136,55 @@ const executedActions = (preview: MergedGipPreview): string[] =>
   );
 
 describe("merged GIP", () => {
+  it("encodes the same ordered batches for a market and a one-market merge", async () => {
+    const { sdk } = await createTestSdk({ client: nftClient() });
+    const market = sdk
+      .market({ initialState: marketState() })
+      .addActions([NFT_REGISTRATION, NFT_SUITE]);
+    const args = { eta: SOURCE_TIMESTAMP, author: TREASURY };
+    const single = await market.build(args);
+    const merged = await sdk.merge([market]).build(args);
+    expect(deserializeGipPlan(serializeGipPlan(merged))).toEqual(merged);
+    expect(merged.payloadCalls).toEqual(single.payloadCalls);
+    expect(merged.payloadCallHashes).toEqual(single.payloadCallHashes);
+    expect(merged.timelockTxs).toEqual(single.timelockTxs);
+    expect(merged.executeBatchTxs).toEqual(single.executeBatchTxs);
+    expect(merged.executeBatchSafeTxs).toEqual(single.executeBatchSafeTxs);
+    expect(merged.batches).toHaveLength(2);
+    for (const [index, batch] of merged.batches.entries()) {
+      const raw = merged.executeBatchTxs[index];
+      expect(merged.executeBatchSafeTxs[index].data).toBe(raw.callData);
+      const executed = decodeFunctionData({
+        abi: governorAbi,
+        data: raw.callData,
+      });
+      if (executed.functionName !== "executeBatch")
+        throw new Error("Expected executeBatch");
+      const queued = merged.timelockTxs.queueBatches[index].slice(1).map(tx => {
+        const decoded = decodeFunctionData({ abi: governorAbi, data: tx.data });
+        if (decoded.functionName !== "queueTransaction")
+          throw new Error("Expected queueTransaction");
+        const [target, value, signature, data, eta] = decoded.args;
+        return { target, value, signature, data, eta };
+      });
+      expect(executed.args[0]).toEqual(queued);
+      if (index > 0)
+        expect(queued[0]).toMatchObject({
+          signature: "revertIfQueued(bytes32)",
+          data: merged.payloadCallHashes[0],
+        });
+      expect(queued.slice(index > 0 ? 1 : 0)).toEqual(
+        batch.txs.map(tx => ({
+          target: getAddress(tx.to),
+          value: BigInt(tx.value),
+          signature: tx.signature,
+          data: `0x${tx.callData.slice(10)}`,
+          eta: BigInt(args.eta),
+        })),
+      );
+    }
+  });
+
   it("compiles all markets, batches once and leaves supplied snapshots untouched", async () => {
     const { sdk, client } = await createTestSdk();
     const first = marketState();

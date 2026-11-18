@@ -15,6 +15,7 @@ import type { MarketState } from "../state/market/types.js";
 import type { BatchTxs, ParsedMarketTx } from "../types.js";
 import type { ActionScope } from "./actionScope.js";
 import type { DiagnosticMarketInput } from "./collectGipDiagnostics.js";
+import type { MergedGipPlan } from "./MergedGip.js";
 
 /** Where a state in a preview or plan came from. **/
 export type StateProvenance =
@@ -173,8 +174,8 @@ export interface GipPlanGas {
 /** Transactions and provenance shared by every plan scope. **/
 export interface GipPlanBase {
   /** Serialization format version of this plan shape. **/
-  readonly planVersion: 2;
-  scope: ActionScope;
+  readonly planVersion: 3;
+  scope: ActionScope | "merged";
   source: GipSourceSnapshot;
   author: Address;
   /** Earliest execution time; projections use the later of ETA and source time. **/
@@ -211,7 +212,12 @@ export interface GipPlanBase {
   incompleteChecks: readonly IncompleteCheck[];
 }
 
-export interface MarketGipPlan extends GipPlanBase {
+interface ScopedGipPlan extends GipPlanBase {
+  actionDiagnostics: readonly GipActionDiagnostic[];
+}
+
+export interface MarketGipPlan extends ScopedGipPlan {
+  tokenDecimals: MarketPreview["tokenDecimals"];
   scope: "market";
   pool?: Address;
   stateProvenance: StateProvenance;
@@ -225,7 +231,7 @@ export interface MarketGipPlan extends GipPlanBase {
   diagnostics: readonly MarketDiagnostic[];
 }
 
-export interface ConfiguratorGipPlan extends GipPlanBase {
+export interface ConfiguratorGipPlan extends ScopedGipPlan {
   scope: "configurator";
   stateProvenance: StateProvenance;
   before: ConfiguratorState;
@@ -233,7 +239,7 @@ export interface ConfiguratorGipPlan extends GipPlanBase {
   resolvedActions: readonly ConfiguratorActions[];
 }
 
-export type GipPlan = MarketGipPlan | ConfiguratorGipPlan;
+export type GipPlan = MarketGipPlan | ConfiguratorGipPlan | MergedGipPlan;
 
 /** Intent recorded by a market builder, in the order it was recorded. **/
 export type MarketIntent =

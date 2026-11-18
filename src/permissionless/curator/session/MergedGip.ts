@@ -1,11 +1,7 @@
 import type { Address } from "viem";
-import type { RawTx } from "../../../onchain/index.js";
 import type { GipMarketAction } from "../actions/types.js";
 import { sharedContract } from "../actions/utils/actionKeys.js";
-import {
-  type MarketExecution,
-  MarketExecutor,
-} from "../executor/MarketExecutor.js";
+import type { MarketExecution } from "../executor/MarketExecutor.js";
 import type { GipRegistry } from "../GipRegistry.js";
 import type {
   GipSimulationOptions,
@@ -17,26 +13,26 @@ import type { BatchTxs } from "../types.js";
 import { isSameAddress, lowerAddress } from "../utils/addressUtils.js";
 import { stableStringify } from "../utils/objectUtils.js";
 import { assertNotBlocked } from "./assertNotBlocked.js";
-import {
-  buildPlanTransactions,
-  type GipPlanTransactions,
-} from "./buildPlanTransactions.js";
+import { buildPlanTransactions } from "./buildPlanTransactions.js";
 import { KeyedCompileCache } from "./CompileCache.js";
 import { collectGipDiagnostics } from "./collectGipDiagnostics.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
+import type { MarketBuilder } from "./MarketBuilder.js";
 import {
   diagnosticMarket,
-  type MarketBuilder,
+  executePreparedMarket,
+  MarketCompiler,
+  type MarketDraft,
   marketPreview,
   type PreparedMarket,
-} from "./MarketBuilder.js";
+} from "./MarketCompiler.js";
 import { requireFork, simulateOnFork } from "./simulateOnFork.js";
 import { snapshot } from "./snapshot.js";
 import type {
+  GipPlanBase,
   GipSourceSnapshot,
   IncompleteCheck,
   MarketDiagnostic,
-  MarketIntent,
   MarketPreview,
 } from "./types.js";
 
@@ -57,13 +53,8 @@ export interface MergedGipPreview {
 }
 
 /** A merged GIP with governance wrappers generated once for all markets. **/
-export type MergedGipPlan = MergedGipPreview & GipPlanTransactions;
-
-interface Compilation {
-  preview: MergedGipPreview;
-  /** Every market's payload calls, in execution order. **/
-  payloadCalls: RawTx[];
-}
+export type MergedGipPlan = MergedGipPreview &
+  GipPlanBase & { scope: "merged" };
 
 /**
  * Market builders merged into one GIP.
@@ -79,7 +70,7 @@ interface Compilation {
 export class MergedGip {
   readonly #runtime: GipSdkRuntime;
   readonly #markets: readonly MarketBuilder[];
-  readonly #compilations = new KeyedCompileCache<Compilation>();
+  readonly #compilations = new KeyedCompileCache<MergedGipPreview>();
 
   constructor(runtime: GipSdkRuntime, markets: readonly MarketBuilder[]) {
     if (markets.length === 0)
@@ -96,7 +87,7 @@ export class MergedGip {
 
   /** What the merged markets project, and the batches they execute in. **/
   preview(options: { eta?: number } = {}): Promise<MergedGipPreview> {
-    return this.#compile(options.eta).then(({ preview }) => preview);
+    return this.#compile(options.eta);
   }
 
   /**
@@ -105,16 +96,20 @@ export class MergedGip {
    * @throws GipActionError when an action's `check` found an error
    **/
   async build(args: { author: Address; eta: number }): Promise<MergedGipPlan> {
-    const { preview, payloadCalls } = await this.#compile(args.eta);
+    const preview = await this.#compile(args.eta);
     assertNotBlocked(preview);
     const transactions = await buildPlanTransactions({
       runtime: this.#runtime,
       batches: preview.batches,
-      payloadCalls,
       author: lowerAddress(args.author),
       eta: preview.eta,
     });
-    return snapshot({ ...preview, ...transactions });
+    return snapshot({
+      planVersion: 3,
+      scope: "merged",
+      ...preview,
+      ...transactions,
+    });
   }
 
   /**
@@ -127,14 +122,14 @@ export class MergedGip {
     options: GipSimulationOptions = {},
   ): Promise<GipSimulationOutcome> {
     const fork = requireFork(this.#runtime);
-    const { preview, payloadCalls } = await this.#compile(options.eta);
+    const preview = await this.#compile(options.eta);
     assertNotBlocked(preview);
     return simulateOnFork({
       runtime: this.#runtime,
       fork,
       options,
       eta: preview.eta,
-      payloadCalls,
+      payloadCalls: preview.batches.flatMap(batch => batch.txs),
       expected: {
         expectedMarkets: preview.markets.map(market => ({
           address: market.after.address,
@@ -144,29 +139,28 @@ export class MergedGip {
     });
   }
 
-  #compile(requestedEta?: number): Promise<Compilation> {
+  #compile(requestedEta?: number): Promise<MergedGipPreview> {
     const eta = this.#runtime.eta(requestedEta);
     // Captured now, so intent recorded while compiling does not leak in.
-    const intents = this.#markets.map(market => market.recordedActions());
+    const drafts = this.#markets.map(market => market.captureDraft());
     // @dev revisions only grow, so their sum changes with any recorded intent
     const revision = this.#markets.reduce(
       (sum, market) => sum + market.revision,
       0,
     );
     return this.#compilations.run(revision, String(eta), () =>
-      compile(this.#runtime, this.#markets, intents, eta),
+      compile(this.#runtime, drafts, eta),
     );
   }
 }
 
 async function compile(
   runtime: GipSdkRuntime,
-  builders: readonly MarketBuilder[],
-  intents: readonly (readonly MarketIntent[])[],
+  drafts: readonly MarketDraft[],
   eta: number,
-): Promise<Compilation> {
+): Promise<MergedGipPreview> {
   const prepared = await Promise.all(
-    builders.map((builder, index) => builder.prepare(intents[index], eta)),
+    drafts.map(draft => new MarketCompiler(runtime, draft).prepare(eta)),
   );
   const footprints = prepared.map(market =>
     sharedFootprint(runtime.registry, market.actions),
@@ -188,15 +182,14 @@ async function compile(
       kept.push(position);
       return true;
     });
-    const executor = new MarketExecutor(runtime.ctx, {
-      ...runtime.executorOptions(eta),
-      periphery: [...periphery.values()].filter(entry =>
+    const changes = await executePreparedMarket(
+      runtime,
+      prepared[index],
+      eta,
+      actions,
+      [...periphery.values()].filter(entry =>
         uses.has(lowerAddress(entry.address)),
       ),
-    });
-    const changes = await executor.execute(
-      prepared[index].initialState,
-      actions,
     );
     executed[index] = {
       prepared: prepared[index],
@@ -240,21 +233,18 @@ async function compile(
     }),
   );
   const txs = order.flatMap(index => executed[index].changes.txs);
-  return {
-    preview: snapshot<MergedGipPreview>({
-      source: runtime.source,
-      eta,
-      markets,
-      executionOrder: order.map(index => pools[index]),
-      batches: batchMarketTransactions({
-        chainId: runtime.source.chainId,
-        txs,
-      }),
-      diagnostics: found.diagnostics,
-      incompleteChecks: found.incompleteChecks,
+  return snapshot<MergedGipPreview>({
+    source: runtime.source,
+    eta,
+    markets,
+    executionOrder: order.map(index => pools[index]),
+    batches: batchMarketTransactions({
+      chainId: runtime.source.chainId,
+      txs,
     }),
-    payloadCalls: txs.map(({ tx }) => tx),
-  };
+    diagnostics: found.diagnostics,
+    incompleteChecks: found.incompleteChecks,
+  });
 }
 
 /**

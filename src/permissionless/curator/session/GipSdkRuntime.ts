@@ -5,13 +5,11 @@ import {
   getNetworkType,
   OnchainSDK,
 } from "../../../onchain/index.js";
-import type { GovernorContract } from "../../bindings/governance/governor.js";
 import { MarketConfiguratorContract } from "../../bindings/market-configurator.js";
 import type { GipBuilderContext } from "../actions/builderContext.js";
 import type { ExecutorOptions } from "../executor/actionEnv.js";
 import { ResolveCache } from "../executor/ResolveCache.js";
 import { GipRegistry } from "../GipRegistry.js";
-import { getGovernorContract } from "../transactions/getTimelockTransactions.js";
 import { createPinnedReadClient } from "./createPinnedReadClient.js";
 import type { GipAnvilForkOptions } from "./forkConnection.js";
 import { SharedPromise } from "./SharedPromise.js";
@@ -61,7 +59,6 @@ export class GipSdkRuntime {
   #resolvedSdk?: OnchainSDK;
   readonly #onchainSdk = new SharedPromise<OnchainSDK>();
   readonly #addressProviderSdk = new SharedPromise<OnchainSDK>();
-  readonly #governor = new SharedPromise<GovernorContract>();
   readonly #timelockAdmin = new SharedPromise<Address>();
 
   /** `CuratorSession` has validated `init`: at most one of `sdk` and `sdkState`. **/
@@ -226,15 +223,6 @@ export class GipSdkRuntime {
   timelockAdmin(): Promise<Address> {
     return this.#timelockAdmin.run(() =>
       this.marketConfigurator.contract.read.admin(),
-    );
-  }
-
-  governor(): Promise<GovernorContract> {
-    return this.#governor.run(() =>
-      getGovernorContract({
-        client: this.readClient,
-        marketConfigurator: this.source.marketConfigurator,
-      }),
     );
   }
 }

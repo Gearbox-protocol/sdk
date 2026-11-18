@@ -724,6 +724,12 @@ describe("compilation cache", () => {
       })
       .preview();
     expect(preview.tokenDecimals[unknown]).toBe(12);
+    const other = await sdk
+      .market({ initialState: marketState() })
+      .addAction({ type: "POOL::setTotalDebtLimit", params: { limit: 2_000 } })
+      .build({ author: AUTHOR, eta: ETA });
+    expect(other.tokenDecimals).not.toHaveProperty(unknown);
+    expect(other.tokenDecimals[USDC]).toBe(6);
   });
 
   it("evicts a rejected address prediction so a retry can succeed", async () => {
@@ -768,7 +774,7 @@ describe("plan output", () => {
       .build({ author: AUTHOR, eta: ETA });
 
     expect(plan.scope).toBe("market");
-    expect(plan.planVersion).toBe(2);
+    expect(plan.planVersion).toBe(3);
     expect(plan.source).toMatchObject({
       chainId: 1,
       marketConfigurator: CONFIGURATOR,
@@ -936,13 +942,17 @@ describe("plan output", () => {
     expect(empty.actionDiagnostics[0]).toMatchObject({ code: "NO_OP" });
 
     // A token the state does not track is distributed with a warning.
-    const untracked = await sdk
-      .configurator({ initialState: initial })
-      .addAction({
-        type: "TREASURY_SPLITTER::distribute",
-        params: { token: WBTC },
-      })
-      .preview();
+    const builder = sdk.configurator({ initialState: initial }).addAction({
+      type: "TREASURY_SPLITTER::distribute",
+      params: { token: WBTC },
+    });
+    const untracked = await builder.preview();
+    const stored = deserializeGipPlan(
+      serializeGipPlan(await builder.build({ eta: ETA, author: AUTHOR })),
+    );
+    expect(stored.scope === "configurator" && stored.actionDiagnostics).toEqual(
+      untracked.actionDiagnostics,
+    );
     expect(untracked.blockedAt).toBeUndefined();
     expect(untracked.actionDiagnostics[0]).toMatchObject({
       severity: "warning",
@@ -982,6 +992,16 @@ describe("plan output", () => {
       .addAction({ type: "POOL::setTotalDebtLimit", params: { limit: 2_000 } })
       .build({ author: AUTHOR, eta: ETA });
     const restored = deserializeGipPlan(serializeGipPlan(plan));
+    const legacy = JSON.parse(serializeGipPlan(plan));
+    legacy.serializationVersion = 2;
+    legacy.plan.planVersion = 2;
+    delete legacy.plan.actionDiagnostics;
+    delete legacy.plan.tokenDecimals;
+    const migrated = deserializeGipPlan(JSON.stringify(legacy));
+    expect(migrated.payloadCallHashes).toEqual(plan.payloadCallHashes);
+    expect(migrated.incompleteChecks).toContainEqual(
+      expect.objectContaining({ check: "legacyPlanReviewData" }),
+    );
     expect(restored.source.blockNumber).toBe(SOURCE_BLOCK);
     expect(typeof restored.source.blockNumber).toBe("bigint");
     expect(restored.payloadCalls).toEqual(plan.payloadCalls);
