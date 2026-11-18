@@ -26,7 +26,7 @@ import {
   marketPreview,
   type PreparedMarket,
 } from "./MarketCompiler.js";
-import { requireFork, simulateOnFork } from "./simulateOnFork.js";
+import { simulatePayload } from "./simulatePayload.js";
 import { snapshot } from "./snapshot.js";
 import type {
   GipPlanBase,
@@ -113,7 +113,7 @@ export class MergedGip {
   }
 
   /**
-   * Executes the whole proposal on the session's Anvil node and compares every
+   * Executes the whole proposal on the session's execution backend and compares every
    * market with its projected state. See `MarketBuilder.simulate`.
    *
    * @throws GipActionError when an action's `check` found an error
@@ -121,15 +121,13 @@ export class MergedGip {
   async simulate(
     options: GipSimulationOptions = {},
   ): Promise<GipSimulationOutcome> {
-    const fork = requireFork(this.#runtime);
     const preview = await this.#compile(options.eta);
     assertNotBlocked(preview);
-    return simulateOnFork({
+    return simulatePayload({
       runtime: this.#runtime,
-      fork,
       options,
       eta: preview.eta,
-      payloadCalls: preview.batches.flatMap(batch => batch.txs),
+      batches: preview.batches,
       expected: {
         expectedMarkets: preview.markets.map(market => ({
           address: market.after.address,

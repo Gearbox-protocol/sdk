@@ -57,7 +57,7 @@ interface Aggregate3Call {
   callData: Hex;
 }
 
-function contractResult(to: Address, data: Hex): Hex {
+export function contractResult(to: Address, data: Hex): Hex {
   for (const abi of abis) {
     let decoded: { functionName: string; args?: readonly unknown[] };
     try {

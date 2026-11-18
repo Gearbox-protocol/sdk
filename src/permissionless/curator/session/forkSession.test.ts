@@ -8,7 +8,6 @@ import {
   CONFIGURATOR,
   configuratorState,
   createTestSdk,
-  marketState,
   PF_COMPRESSOR,
   SOURCE_BLOCK,
   SOURCE_TIMESTAMP,
@@ -183,22 +182,6 @@ describe("SDK connection to its creation-time fork", () => {
     await expect(
       create({ fork: { rpcUrl: url, timeoutMs: 0 } }),
     ).rejects.toThrow(/positive finite/);
-  });
-
-  it("disables simulation for every chain-backed scope", async () => {
-    const { sdk } = await createTestSdk();
-    expect(sdk.mode).toBe("chain");
-    expect(sdk.fork).toBeUndefined();
-    const scopes = [
-      sdk.market({ initialState: marketState() }),
-      sdk.configurator(),
-    ];
-    for (const scope of scopes) {
-      await expect(scope.simulate()).rejects.toThrow(
-        /requires an SDK created in fork mode/,
-      );
-    }
-    expect(node.requests).toHaveLength(0);
   });
 
   it("detects a reset at the same height before touching the node", async () => {

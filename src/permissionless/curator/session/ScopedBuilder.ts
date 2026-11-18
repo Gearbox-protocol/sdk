@@ -10,7 +10,7 @@ import { lowerAddress } from "../utils/addressUtils.js";
 import { buildPlanTransactions } from "./buildPlanTransactions.js";
 import { KeyedCompileCache } from "./CompileCache.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
-import { requireFork, simulateOnFork } from "./simulateOnFork.js";
+import { simulatePayload } from "./simulatePayload.js";
 import { snapshot } from "./snapshot.js";
 import type {
   GipPlan,
@@ -130,10 +130,10 @@ export abstract class ScopedBuilder<
   }
 
   /**
-   * Executes this scope's payload on the SDK's Anvil node, independently of any
+   * Executes this scope's payload on the session's RPC or Anvil node, independently of any
    * other scope, and compares the result with the projected state.
    *
-   * Only an SDK created in fork mode can simulate. The payload is executed
+   * The payload is executed
    * directly, so neither an author nor an ETA is required. An omitted ETA
    * defaults to the source block time.
    *
@@ -143,17 +143,14 @@ export abstract class ScopedBuilder<
     options: GipSimulationOptions = {},
   ): Promise<GipSimulationOutcome> {
     const capture = this.#capture();
-    // Checked first: a chain SDK is rejected before any projection work.
-    const fork = requireFork(this.#runtime);
     const eta = this.#runtime.eta(options.eta);
     const { batches, expected, blocked } = await this.#compile(capture, eta);
     if (blocked) throw blocked;
-    return simulateOnFork({
+    return simulatePayload({
       runtime: this.#runtime,
-      fork,
       options,
       eta,
-      payloadCalls: batches.flatMap(batch => batch.txs),
+      batches,
       expected,
     });
   }

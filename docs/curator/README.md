@@ -691,14 +691,36 @@ unknown and are reported as skipped comparisons rather than assumed zero.
 
 ## Simulation
 
-A simulation executes a scope's payload on the Anvil node the session was
-created with and compares the resulting state with the projection. Each scope
-simulates on its own, and neither `author` nor `eta` is required: the payload
-calls are executed directly. Pass `simulate({ eta })` to use the same execution
-time as a plan; omitting ETA uses the source block time.
+Both chain and fork sessions support `simulate()`. Each executes the compiled payload
+calls directly from the configurator’s timelock address and compares independent
+post-execution reads with the projection. This exercises payload authorization and
+execution. Governor queueing, timelock delays and batch-wrapper atomicity are outside
+this check.
 
-Only a session created in [fork mode](#anvil-fork-mode) can simulate; a
-chain-backed session rejects `simulate()` before doing any work.
+On a chain session the endpoint must support `eth_simulateV1` at the session’s
+source block. Historical simulations require access to that historical state.
+
+```ts
+const session = await permissionless.curator.open({ chainId: 1, marketConfigurator: MC });
+const result = await session.market({ pool: POOL }).addAction(action).simulate({ eta });
+```
+
+The RPC backend simulates one block per compiled batch, in execution order. Its
+first timestamp is the later of ETA and the source timestamp plus one second.
+Later batches advance one second each. It uses the source balances, including
+any pool creation deposit, and leaves the timelock code intact. Receipt hashes and
+gas usage belong to synthetic transactions. No transactions are broadcast.
+
+State readers discover contracts in several passes. Each post-state RPC getter
+replays the payload from the same source and appends the getter to the final
+block. This can require many requests and is subject to provider gas and size
+limits. For example, snapshots needing `eth_getCode` for an unregistered
+periphery deployment currently require Anvil for full comparison.
+Unsupported reads and unavailable comparison data can give an
+`incomplete` verdict after successful execution. An RPC result is ephemeral;
+use an Anvil session for `isolation: "none"` and persistent inspection.
+
+### Anvil simulation
 
 ```ts
 const session = await permissionless.curator.open({
@@ -745,8 +767,7 @@ claimed to be restored.
 Runs that use the same normalized RPC URL are serialized within the process;
 otherwise interleaved snapshots and reverts would not provide isolation.
 
-The runner is also available on its own, for executing payload calls without a
-session; `simulate()` imports it lazily:
+You can also execute payload calls directly with the Anvil runner.
 
 ```ts
 import { simulateOnAnvil } from "@gearbox-protocol/sdk/permissionless";
@@ -762,7 +783,7 @@ const result = await simulateOnAnvil(
 What a simulation does **not** do:
 
 - **No governance validation.** It does not exercise the governor queue, the
-  eta delay or queue/execute authorization. The TimeLock's code is disabled and
+  eta delay or queue/execute authorization. On Anvil the TimeLock's code is disabled and
   `MarketConfigurator.admin()` is impersonated to send the payload calls. A
   payload call whose target *is* the TimeLock cannot run and is reported as
   such.
