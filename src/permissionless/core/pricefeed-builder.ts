@@ -17,6 +17,7 @@ export type PriceFeedParamType =
   | { type: "uint256"; decimals?: number }
   | { type: "int256"; decimals?: number }
   | { type: "uint32" }
+  | { type: "uint16" }
   | { type: "uint8" }
   | { type: "bool" }
   | { type: "address" }

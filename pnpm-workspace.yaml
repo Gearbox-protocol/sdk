@@ -7,3 +7,10 @@ minimumReleaseAgeExclude:
   - "@gearbox-protocol/*"
 
 trustPolicy: no-downgrade
+
+# Edit by hand: `pnpm audit --ignore` writes here as a side effect.
+auditConfig:
+  ignoreGhsas:
+    # picomatch <=4.0.7 has no fix; 4.0.7 is the latest release. It reaches us only through
+    # dev tooling (vite, tinyglobby, tsdown), matching our own globs. Recheck 2027-02-17.
+    - GHSA-fc5q-39xc-vjpf
