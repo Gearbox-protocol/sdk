@@ -111,8 +111,15 @@ export type {
 } from "./adapters/velodrome-v2/velodromeV2Plugin.js";
 export * from "./irm/irmPlugins.js";
 export * from "./irm/linear/linearPlugin.js";
+export {
+  type AliasedLossPolicyParams,
+  type AliasedLossPolicyState,
+  type AliasedLossPolicyType,
+  isAliasedLossPolicy,
+} from "./loss-policies/alias/aliasedLossPolicyPlugin.js";
 export * from "./loss-policies/alias/aliasPlugin.js";
 export * from "./loss-policies/lossPolicyPlugins.js";
+export * from "./loss-policies/midas-alias/midasAliasPlugin.js";
 export * from "./rate-keepers/gauge/gaugePlugin.js";
 export * from "./rate-keepers/rateKeeperPlugins.js";
 export * from "./rate-keepers/tumbler/tumblerPlugin.js";
