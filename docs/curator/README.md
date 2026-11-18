@@ -633,7 +633,7 @@ deployment must land on its expected address.
 ```ts
 const plan = await market.build({ author, eta });
 
-plan.scope;               // "market" | "configurator" — plans are discriminated
+plan.scope;               // "market" | "configurator" | "merged"
 plan.source;              // chain, configurator, source block and its timestamp
 plan.eta;                 // earliest execution time, also used for projection
 plan.before / plan.after; // market or configurator states
@@ -651,6 +651,8 @@ plan.feedDependencies;    // { perBatch, updatablePerBatch, all }
 plan.gas;                 // { model: "heuristic-action-table", isActualMeasurement: false, … }
 
 plan.incompleteChecks;    // checks the preview could NOT complete, carried verbatim
+plan.actionDiagnostics;   // action warnings for a market or configurator plan
+plan.tokenDecimals;       // (market scope) metadata resolved for this compilation
 plan.bundles;             // (market scope) bundle merges, including paramWarnings
 plan.diagnostics;         // (market scope) getGipDiagnostics findings
 ```
@@ -681,21 +683,44 @@ const json = serializeGipPlan(plan);   // versioned envelope, bigint-safe
 const restored = deserializeGipPlan(json);
 ```
 
-Plans and serialization envelopes use version **2**. Version 1 plans must be rebuilt;
+Market, configurator and merged plans use serialization version **3**. Version 2 plans
+load with their original payloads and an incomplete check identifying the missing review data. Version 1 plans must be rebuilt;
 the deserializer rejects their older transition semantics. Legacy supplied market
 states still load, but missing reserve, ramp-initial-LT and facade fields remain
 unknown and are reported as skipped comparisons rather than assumed zero.
 
 ## Simulation
 
-A simulation executes a scope's payload on the Anvil node the session was
-created with and compares the resulting state with the projection. Each scope
-simulates on its own, and neither `author` nor `eta` is required: the payload
-calls are executed directly. Pass `simulate({ eta })` to use the same execution
-time as a plan; omitting ETA uses the source block time.
+Both chain and fork sessions support `simulate()`. Each executes the compiled payload
+calls directly from the configurator’s timelock address and compares independent
+post-execution reads with the projection. This exercises payload authorization and
+execution. Governor queueing, timelock delays and batch-wrapper atomicity are outside
+this check.
 
-Only a session created in [fork mode](#anvil-fork-mode) can simulate; a
-chain-backed session rejects `simulate()` before doing any work.
+On a chain session the endpoint must support `eth_simulateV1` at the session’s
+source block. Historical simulations require access to that historical state.
+
+```ts
+const session = await permissionless.curator.open({ chainId: 1, marketConfigurator: MC });
+const result = await session.market({ pool: POOL }).addAction(action).simulate({ eta });
+```
+
+The RPC backend simulates one block per compiled batch, in execution order. Its
+first timestamp is the later of ETA and the source timestamp plus one second.
+Later batches advance one second each. It uses the source balances, including
+any pool creation deposit, and leaves the timelock code intact. Receipt hashes and
+gas usage belong to synthetic transactions. No transactions are broadcast.
+
+State readers discover contracts in several passes. Each post-state RPC getter
+replays the payload from the same source and appends the getter to the final
+block. This can require many requests and is subject to provider gas and size
+limits. For example, snapshots needing `eth_getCode` for an unregistered
+periphery deployment currently require Anvil for full comparison.
+Unsupported reads and unavailable comparison data can give an
+`incomplete` verdict after successful execution. An RPC result is ephemeral;
+use an Anvil session for `isolation: "none"` and persistent inspection.
+
+### Anvil simulation
 
 ```ts
 const session = await permissionless.curator.open({
@@ -742,8 +767,7 @@ claimed to be restored.
 Runs that use the same normalized RPC URL are serialized within the process;
 otherwise interleaved snapshots and reverts would not provide isolation.
 
-The runner is also available on its own, for executing payload calls without a
-session; `simulate()` imports it lazily:
+You can also execute payload calls directly with the Anvil runner.
 
 ```ts
 import { simulateOnAnvil } from "@gearbox-protocol/sdk/permissionless";
@@ -759,7 +783,7 @@ const result = await simulateOnAnvil(
 What a simulation does **not** do:
 
 - **No governance validation.** It does not exercise the governor queue, the
-  eta delay or queue/execute authorization. The TimeLock's code is disabled and
+  eta delay or queue/execute authorization. On Anvil the TimeLock's code is disabled and
   `MarketConfigurator.admin()` is impersonated to send the payload calls. A
   payload call whose target *is* the TimeLock cannot run and is reported as
   such.
@@ -786,8 +810,9 @@ Other limitations:
   `limit: "0.000001"`, for exact boundaries. Debt limits accept `"Unlimited"`.
   Amount conversion rejects excess fractional units instead of rounding. Checks
   convert amounts to bigint units for the quota int96 bound, debt uint128 bounds
-  and max-debt-per-block multiplication. State retains the existing human-readable
-  amount fields without duplicate raw amounts.
+  and max-debt-per-block multiplication. The projected and on-chain states use
+  decimal strings for debt limits that would lose precision as numbers. Limits
+  that round-trip exactly through a number keep their numeric representation.
 - **Execution time.** `preview({ eta })`, `build({ author, eta })` and
   `simulate({ eta })` use ETA for time-dependent transitions. Preview and simulation
   default to `session.source.blockTimestamp` when ETA is omitted. An ETA already
@@ -902,7 +927,8 @@ Executing an action has four steps:
    A market-creation action uses `checkCreate` to validate its source facts.
 3. `apply` — the state transition, pure and synchronous. An action that creates
    the market defines `create` instead, which builds the state from nothing.
-4. `encode` — the payload call, pure and synchronous. `deployedContract` names
+4. `encode` — the payload call, pure and synchronous. The governor queues calls
+   with zero native value, so compilation rejects an action encoding a nonzero value. `deployedContract` names
    the contract the call deploys, if any.
 
 - `defineMarketAction` declares a market action type; the helper sets its
@@ -1090,8 +1116,8 @@ market's whole action list, and a list persisted from a preview loses nothing.
 
 Each market is compiled even when another one is blocked, so a preview reports every
 problem at once; `build()` and `simulate()` reject while any market is blocked. The
-builders stay live: each call compiles what they have recorded by then. The merged
-plan is separate from the single-scope versioned plan serialization.
+builders stay live: each call compiles what they have recorded by then. Merged plans use `scope: "merged"` and round-trip through `serializeGipPlan` and
+`deserializeGipPlan`. Each market retains its own action diagnostics and token metadata.
 
 ## Integration API
 

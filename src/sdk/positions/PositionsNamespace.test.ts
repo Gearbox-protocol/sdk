@@ -23,11 +23,10 @@ function backend() {
     ),
     getTransactions: vi.fn(async () => envelope([])),
   };
-  const notices = { list: vi.fn(async () => envelope([{ kind: "expired" }])) };
   // a real GearboxAPI's prototype, so the SDK's `instanceof` injection seam holds
   const api = Object.create(GearboxAPI.prototype) as GearboxAPI;
-  Object.assign(api, { analytics, positions, notices, chainIds: [1] });
-  return { positions, notices, api };
+  Object.assign(api, { analytics, positions, chainIds: [1] });
+  return { positions, api };
 }
 
 /** An attached-looking MultichainSDK with no chains, for the onchain-only mode. */
@@ -135,31 +134,5 @@ describe("positions.getCurrentWithdrawals", () => {
         creditManager: WALLET,
       }),
     ).rejects.toThrow(SourceUnavailableError);
-  });
-});
-
-describe("sdk.notices", () => {
-  it("delegates to the backend's notices namespace", async () => {
-    const { api, notices } = backend();
-    const sdk = new GearboxSDK({
-      mode: "offchain",
-      networks: ["Mainnet"],
-      offchain: api,
-    });
-
-    const subject = { kind: "pool", chainId: 1, pool: WALLET } as never;
-    await expect(sdk.notices(subject)).resolves.toEqual(
-      envelope([{ kind: "expired" }]),
-    );
-    expect(notices.list).toHaveBeenCalledWith(subject);
-  });
-
-  it("is absent without a backend", () => {
-    const sdk = new GearboxSDK({
-      mode: "onchain",
-      networks: [],
-      onchain: emptyOnchain(),
-    });
-    expect(sdk.notices).toBeUndefined();
   });
 });

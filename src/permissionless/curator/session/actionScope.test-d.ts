@@ -211,6 +211,8 @@ describe("compile-time scope enforcement", () => {
     if (plan.scope === "market") {
       const marketPlan: MarketGipPlan = plan;
       void marketPlan.after.address;
+    } else if (plan.scope === "merged") {
+      void plan.markets[0].after.address;
     } else {
       const configuratorPlan: ConfiguratorGipPlan = plan;
       void configuratorPlan.after.admin;

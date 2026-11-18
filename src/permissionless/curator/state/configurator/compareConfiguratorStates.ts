@@ -40,6 +40,7 @@ export interface ConfiguratorStateDiff {
     treasury?: {
       address?: Changed<Address>;
       defaultSplit?: {
+        allocations: Changed<Split>;
         receivers?: ListChange<Address>;
         proportions?: Changed<number[]>;
       };
@@ -119,12 +120,26 @@ function nonEmpty<T extends object>(differences: T) {
 }
 
 function compareSplits(oldSplit: Split, newSplit: Split) {
-  return nonEmpty({
-    receivers: compareAddressArrays(oldSplit.recievers, newSplit.recievers),
-    proportions: areProportionsEqual(oldSplit.proportions, newSplit.proportions)
-      ? undefined
-      : { old: oldSplit.proportions, new: newSplit.proportions },
-  });
+  const sameReceivers =
+    oldSplit.recievers.length === newSplit.recievers.length &&
+    oldSplit.recievers.every(
+      (receiver, index) =>
+        lowerAddress(receiver) === lowerAddress(newSplit.recievers[index]),
+    );
+  const sameProportions = areProportionsEqual(
+    oldSplit.proportions,
+    newSplit.proportions,
+  );
+  if (sameReceivers && sameProportions) return undefined;
+  return {
+    allocations: { old: oldSplit, new: newSplit },
+    ...compact({
+      receivers: compareAddressArrays(oldSplit.recievers, newSplit.recievers),
+      proportions: sameProportions
+        ? undefined
+        : { old: oldSplit.proportions, new: newSplit.proportions },
+    }),
+  };
 }
 
 /** A proposal is the same only while its call and confirmations are. **/

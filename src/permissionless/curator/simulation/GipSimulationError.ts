@@ -24,7 +24,7 @@ export interface GipSimulationTarget {
   registry?: GipRegistry;
 }
 
-/** How `simulate()` treats the SDK's Anvil node. **/
+/** Execution settings for a chain-backed or Anvil simulation. **/
 export interface GipSimulationOptions {
   /** Earliest execution time; defaults to the source block timestamp. **/
   eta?: number;
@@ -34,7 +34,7 @@ export interface GipSimulationOptions {
    * `"none"` keeps the executed state for manual inspection.
    **/
   isolation?: "snapshot" | "none";
-  /** Gas limit for each payload transaction. **/
+  /** Gas limit for each payload transaction, on either backend. **/
   gas?: bigint;
   /** Address provider override, when the fork is not on a known deployment. **/
   addressProvider?: Address;

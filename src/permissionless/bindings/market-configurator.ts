@@ -9,6 +9,7 @@ import {
   erc4626Abi,
   type Hex,
   hexToString,
+  isAddressEqual,
   keccak256,
   type PublicClient,
   parseAbi,
@@ -21,8 +22,13 @@ import {
   creditManagerParamsAbi,
 } from "../../abi/310/configure/creditSuiteParams.js";
 import { iMarketConfiguratorV310Abi } from "../../abi/310/generated.js";
+import { iKillSwitchProxyAbi } from "../../abi/310/iKillSwitchProxy.js";
 import type { ParsedCallArgs, RawTx } from "../../onchain/index.js";
-import { BaseContract, json_stringify } from "../../onchain/index.js";
+import {
+  BaseContract,
+  createRawTx,
+  json_stringify,
+} from "../../onchain/index.js";
 import {
   parseIrmDeployParams,
   parseLossPolicyDeployParams,
@@ -30,6 +36,7 @@ import {
 } from "../plugins/index.js";
 import { handleSalt } from "../utils/create2.js";
 import { convertPercent } from "../utils/format.js";
+import { KILL_SWITCH_PROXY } from "../utils/literals.js";
 import { AddressProviderContract } from "./address-provider.js";
 import { CreditFactory } from "./factory/credit-factory.js";
 import { LossPolicyFactory } from "./factory/loss-policy-factory.js";
@@ -40,6 +47,7 @@ import type {
   AddAssetParams,
   AllowTokenParams,
   DeployParams,
+  EmergencyAdmin,
   ForbidAdapterParams,
   ForbidTokenParams,
   Market,
@@ -649,6 +657,102 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     }
   }
 
+  /**
+   * Returns emergency admin of the market configurator.
+   * If it is a `KILL_SWITCH_PROXY`, emergency transactions must be sent by proxy's caller via `proxyCall`,
+   * otherwise directly by emergency admin itself
+   * @param emergencyAdmin - emergency admin address, read from the market configurator if not provided
+   */
+  async getEmergencyAdmin(emergencyAdmin?: Address): Promise<EmergencyAdmin> {
+    const address =
+      emergencyAdmin ?? (await this.contract.read.emergencyAdmin());
+
+    const [contractType, caller, owner, isKilled] = await this.client.multicall(
+      {
+        allowFailure: true,
+        contracts: [
+          { address, abi: iKillSwitchProxyAbi, functionName: "contractType" },
+          { address, abi: iKillSwitchProxyAbi, functionName: "caller" },
+          { address, abi: iKillSwitchProxyAbi, functionName: "owner" },
+          { address, abi: iKillSwitchProxyAbi, functionName: "isKilled" },
+        ],
+        batchSize: 0,
+      },
+    );
+
+    // EOAs and Safes fail to return contract type
+    let isKillSwitch = false;
+    if (contractType.status === "success") {
+      try {
+        isKillSwitch =
+          hexToString(contractType.result, { size: 32 }) === KILL_SWITCH_PROXY;
+      } catch {}
+    }
+    if (!isKillSwitch) {
+      return { type: "direct", address, executor: address };
+    }
+
+    if (
+      caller.status !== "success" ||
+      owner.status !== "success" ||
+      isKilled.status !== "success"
+    ) {
+      throw new Error(
+        `failed to read state of ${KILL_SWITCH_PROXY} emergency admin ${address}`,
+      );
+    }
+    return {
+      type: "killSwitch",
+      address,
+      caller: caller.result,
+      owner: owner.result,
+      isKilled: isKilled.result,
+      executor: caller.result,
+    };
+  }
+
+  /**
+   * Routes emergency transaction to the market configurator through its emergency admin:
+   * returns transaction as is for direct emergency admin, or wraps it into `proxyCall` of kill switch proxy
+   * @param tx - emergency transaction to the market configurator, e.g. built by `emergencyConfigurePool`
+   * @param emergencyAdmin - result of {@link getEmergencyAdmin}
+   * @throws if transaction is not addressed to this market configurator or kill switch proxy is killed
+   */
+  wrapEmergencyTx(tx: RawTx, emergencyAdmin: EmergencyAdmin): RawTx {
+    if (!isAddressEqual(tx.to, this.address)) {
+      throw new Error(
+        `emergency tx target ${tx.to} is not market configurator ${this.address}`,
+      );
+    }
+    if (emergencyAdmin.type === "direct") {
+      return tx;
+    }
+    if (emergencyAdmin.isKilled) {
+      throw new Error(
+        `${KILL_SWITCH_PROXY} ${emergencyAdmin.address} of market configurator ${this.address} is killed`,
+      );
+    }
+    return createRawTx(
+      emergencyAdmin.address,
+      {
+        abi: iKillSwitchProxyAbi,
+        functionName: "proxyCall",
+        args: [this.address, tx.callData],
+      },
+      tx.description
+        ? `KillSwitchProxy.proxyCall(${tx.description})`
+        : undefined,
+    );
+  }
+
+  /**
+   * Reads emergency admin and routes emergency transaction through it, see {@link wrapEmergencyTx}
+   * @param tx - emergency transaction to the market configurator, e.g. built by `emergencyConfigurePool`
+   */
+  async emergencyTx(tx: RawTx): Promise<RawTx> {
+    return this.wrapEmergencyTx(tx, await this.getEmergencyAdmin());
+  }
+
   grantRole(role: string, address: Address): RawTx {
     return this.createRawTx({
       functionName: "grantRole",
@@ -983,13 +1087,59 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
         };
       }
 
+      case "emergencyConfigurePool":
+      case "emergencyConfigurePriceOracle":
+      case "emergencyConfigureLossPolicy":
+      case "emergencyConfigureRateKeeper":
+      case "emergencyConfigureInterestRateModel": {
+        const [pool, calldata] = args;
+        const decoded = this.#decodeEmergencyConfig(functionName, calldata);
+        return decoded
+          ? { pool, data: json_stringify(decoded) }
+          : { pool, calldata };
+      }
+
+      case "emergencyConfigureCreditSuite": {
+        const [creditManager, calldata] = args;
+        const decoded = this.#decodeEmergencyConfig(functionName, calldata);
+        return decoded
+          ? { creditManager, data: json_stringify(decoded) }
+          : { creditManager, calldata };
+      }
+
       default:
         return super.parseFunctionParams(params);
     }
   }
 
+  /**
+   * Emergency actions share selectors with regular configuration actions only partially
+   * (e.g., `pause`, `forbidToken`, `setPriceFeed`), so decoding is best-effort
+   */
+  #decodeEmergencyConfig(
+    functionName: string,
+    calldata: Hex,
+  ): { functionName: string; args: Record<string, string> } | null {
+    const factory = {
+      emergencyConfigurePool: this.poolFactory,
+      emergencyConfigureCreditSuite: this.creditFactory,
+      emergencyConfigurePriceOracle: this.priceOracleFactory,
+      emergencyConfigureLossPolicy: this.lossPolicyFactory,
+      emergencyConfigureRateKeeper: this.rateKeeperFactory,
+    }[functionName];
+    try {
+      return factory?.decodeConfig(calldata) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   //
   // EMERGENCY CONFIG
+  //
+  // Builders below produce calls to the market configurator which only its emergency admin can execute.
+  // Before sending, route them through emergency admin with `emergencyTx` or `wrapEmergencyTx`,
+  // since emergency admin might be a kill switch proxy.
   //
 
   emergencyConfigurePool(pool: Address, calldata: Hex): RawTx {
@@ -1016,6 +1166,26 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   emergencyConfigureLossPolicy(pool: Address, calldata: Hex): RawTx {
     return this.createRawTx({
       functionName: "emergencyConfigureLossPolicy",
+      args: [pool, calldata],
+    });
+  }
+
+  /**
+   * Note: current interest rate model factory forbids all emergency configuration calls
+   */
+  emergencyConfigureInterestRateModel(pool: Address, calldata: Hex): RawTx {
+    return this.createRawTx({
+      functionName: "emergencyConfigureInterestRateModel",
+      args: [pool, calldata],
+    });
+  }
+
+  /**
+   * Note: current rate keeper factory forbids all emergency configuration calls
+   */
+  emergencyConfigureRateKeeper(pool: Address, calldata: Hex): RawTx {
+    return this.createRawTx({
+      functionName: "emergencyConfigureRateKeeper",
       args: [pool, calldata],
     });
   }

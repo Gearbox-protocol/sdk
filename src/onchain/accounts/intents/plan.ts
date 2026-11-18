@@ -27,13 +27,14 @@ import {
 import type {
   AddCollateralIntent,
   AdjustLeverageIntent,
+  BorrowAndWithdrawIntent,
   DepositStrategyIntent,
   RepayStrategyIntent,
   UpdateQuotaIntent,
   WithdrawAssetIntent,
   WithdrawStrategyIntent,
 } from "./types.js";
-import { eq } from "./utils/common.js";
+import { eq, toTargetDecimals } from "./utils/common.js";
 
 /**
  * Planning: an intent becomes a short list of {@link Step}s.
@@ -145,6 +146,38 @@ export function planWithdrawAsset(
 ): Step[] {
   assertPositive(intent.amount, "withdrawAsset");
   return withdraw(view, intent.token, intent.amount, intent.to);
+}
+
+export function planBorrowAndWithdraw(
+  intent: Omit<BorrowAndWithdrawIntent, "type">,
+  view: AccountView,
+): Step[] {
+  assertPositive(intent.amount, "borrowAndWithdraw");
+  const token = view.rwaAsset ?? view.underlying;
+  const debt = view.rwaAsset
+    ? toTargetDecimals(intent.amount, token, view.underlying, view.sdk)
+    : intent.amount;
+  assertPositive(debt, "borrowAndWithdraw");
+  if (
+    view.rwaAsset &&
+    toTargetDecimals(debt, view.underlying, token, view.sdk) !== intent.amount
+  ) {
+    throw new IntentPreviewError(
+      insufficientBalance(),
+      "borrowAndWithdraw: payout cannot be represented in underlying units",
+    );
+  }
+  assertDebtLimits(
+    view.sdk,
+    view.debt + debt,
+    view.debtLimits,
+    view.underlying,
+  );
+  return [
+    borrow(debt),
+    convert(view.underlying, token, debt),
+    { kind: "withdraw", token, amount: intent.amount, to: intent.to },
+  ];
 }
 
 /** Intent 6: collateral fixed, debt retargeted to `C0 · (L1 − 1)`. */

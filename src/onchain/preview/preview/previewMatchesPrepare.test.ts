@@ -454,6 +454,23 @@ function expectAgreement(
 }
 
 describe("the preview of what prepare built agrees with what prepare projected", () => {
+  it("borrowing and withdrawing reads the loan and payout from calldata and preserves holdings", async () => {
+    const amount = parseEther("1");
+    const { projected, preview } = await roundTrip(
+      { type: "BORROW_AND_WITHDRAW", amount, to: OWNER },
+      { account: underlyingOnly() },
+    );
+    if (preview.operation !== "AdjustCreditAccount")
+      throw new Error(preview.operation);
+    expectAgreement(preview, projected, 0n);
+    expect(preview.totalDebtChange.value).toBe(amount);
+    expect(preview.collateralAdded).toEqual([]);
+    expect(preview.collateralWithdrawn).toMatchObject([
+      { token: expect.objectContaining({ address: WETH }), value: amount },
+    ]);
+    expect(preview.assetsChange).toEqual([]);
+  });
+
   it("repaying part of the debt: the loan shrinks by the payment, the position stays", async () => {
     const { projected, preview } = await roundTrip({
       type: "REPAY",

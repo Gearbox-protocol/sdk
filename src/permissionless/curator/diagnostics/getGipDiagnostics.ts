@@ -40,7 +40,7 @@ export type GipDiagnostic<TMarket extends DiagnosticMarket> =
 /** Every created pool needs its creation deposit on the configurator. **/
 async function poolCreationDepositDiagnostics<TMarket extends DiagnosticMarket>(
   markets: TMarket[],
-  balanceOf: (asset: Address) => Promise<bigint>,
+  balanceOf: (asset: Address) => Promise<bigint | undefined>,
 ): Promise<GipDiagnostic<TMarket>[]> {
   const poolsPerUnderlying = new Map<Address, number>();
   for (const market of markets) {
@@ -56,6 +56,7 @@ async function poolCreationDepositDiagnostics<TMarket extends DiagnosticMarket>(
     underlyings.map(([token]) => balanceOf(token)),
   );
   return underlyings.flatMap(([token, count], index) =>
+    balances[index] !== undefined &&
     balances[index] < BigInt(count) * POOL_CREATION_DEPOSIT
       ? [{ type: "poolCreationDeposit" as const, token, count }]
       : [],
@@ -192,13 +193,28 @@ export async function getGipDiagnostics<
   balanceOf: (asset: Address) => Promise<bigint>;
   incompleteRwaSetups: () => Promise<IncompleteRwaPeripherySetup<TMarket>[]>;
   registeredPeripheryContracts: () => Promise<PeripheryRegistryEntry[]>;
+  onIncompleteCheck?: (check: string, error: unknown) => void;
   /** Adapter plugins giving the latest adapter versions; built-in by default. **/
   registry?: GipRegistry;
 }): Promise<GipDiagnostic<TMarket>[]> {
   const { markets, registry = GipRegistry.builtin } = args;
 
+  async function read<T>(
+    check: string,
+    load: () => Promise<T>,
+  ): Promise<T | undefined> {
+    try {
+      return await load();
+    } catch (error) {
+      if (!args.onIncompleteCheck) throw error;
+      args.onIncompleteCheck(check, error);
+      return undefined;
+    }
+  }
   const diagnostics: GipDiagnostic<TMarket>[] = [
-    ...(await poolCreationDepositDiagnostics(markets, args.balanceOf)),
+    ...(await poolCreationDepositDiagnostics(markets, token =>
+      read("poolCreationDeposit", () => args.balanceOf(token)),
+    )),
     ...staleConvexPidsDiagnostics(markets),
     ...staleTumblerRatesDiagnostics(markets),
     ...markets.flatMap(market => [
@@ -207,7 +223,10 @@ export async function getGipDiagnostics<
     ]),
   ];
 
-  for (const { market, plan } of await args.incompleteRwaSetups()) {
+  for (const { market, plan } of (await read(
+    "incompleteRwaPeripherySetup",
+    args.incompleteRwaSetups,
+  )) ?? []) {
     diagnostics.push({
       type: "incompleteRwaPeripherySetup",
       market,
@@ -218,7 +237,11 @@ export async function getGipDiagnostics<
     });
   }
 
-  const registered = await args.registeredPeripheryContracts();
+  const registered = await read(
+    "registeredPeripheryContracts",
+    args.registeredPeripheryContracts,
+  );
+  if (!registered) return diagnostics;
   const queued = markets.flatMap(market => market.transactions);
   diagnostics.push(
     ...markets.flatMap(market =>

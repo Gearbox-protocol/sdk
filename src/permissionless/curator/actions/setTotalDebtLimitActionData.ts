@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { canonicalDebtLimit } from "../utils/debtLimit.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import {
   defineMarketAction,
@@ -36,7 +37,7 @@ export const setTotalDebtLimitActionData: MarketScopedDefinition<SetTotalDebtLim
       const bounds = amountDiagnostics(env, state, params.limit, MAX_UINT128);
       if (bounds.length) return bounds;
       const limit = projectedDebtLimit(env, state, params.limit);
-      return state.totalDebtLimit === limit
+      return canonicalDebtLimit(state.totalDebtLimit) === limit
         ? [
             noOp(`Total debt limit is already ${params.limit}`, [
               "params",

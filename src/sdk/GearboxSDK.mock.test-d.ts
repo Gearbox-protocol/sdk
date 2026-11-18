@@ -42,6 +42,8 @@ const mockSDK = {
       openEmptyCreditAccount: notImplemented,
       openNewStrategy: notImplemented,
       borrow: notImplemented,
+      borrowAndWithdraw: notImplemented,
+      maxBorrowAndWithdraw: notImplemented,
       depositStrategy: notImplemented,
       withdrawStrategy: notImplemented,
       maxWithdraw: notImplemented,
@@ -116,7 +118,6 @@ const mockSDK = {
   rewards: {
     list: notImplemented,
   },
-  notices: notImplemented,
 } as const satisfies IGearboxSDK<"both">;
 
 const annotated: IGearboxSDK<"both"> = mockSDK;

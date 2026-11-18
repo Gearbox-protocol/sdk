@@ -1,5 +1,4 @@
 import type { Address } from "viem";
-import type { RawTx } from "../../../onchain/index.js";
 import type { GipActionError } from "../actions/actionDiagnostics.js";
 import type {
   GipSimulationOptions,
@@ -11,7 +10,7 @@ import { lowerAddress } from "../utils/addressUtils.js";
 import { buildPlanTransactions } from "./buildPlanTransactions.js";
 import { KeyedCompileCache } from "./CompileCache.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
-import { requireFork, simulateOnFork } from "./simulateOnFork.js";
+import { simulatePayload } from "./simulatePayload.js";
 import { snapshot } from "./snapshot.js";
 import type {
   GipPlan,
@@ -24,8 +23,6 @@ import type {
 /** Everything a scope derives from its recorded intent in one compilation. **/
 export interface ScopeCompilation<TPreview extends GipPreview> {
   preview: TPreview;
-  /** The GIP's own calls, in execution order. **/
-  payloadCalls: RawTx[];
   /** Payload calls grouped to fit a block's gas limit. **/
   batches: BatchTxs[];
   /** `unavailable` when the scope has no per-action gas table. **/
@@ -42,7 +39,7 @@ export interface ScopeCompilation<TPreview extends GipPreview> {
 /** The fields a scope adds to the plan fields every scope shares. **/
 export type ScopePlanFields<TPlan extends GipPlan> = Omit<
   TPlan,
-  keyof GipPlanBase
+  keyof GipPlanBase | "actionDiagnostics"
 >;
 
 /** What a builder had recorded when `preview`/`build`/`simulate` was called. **/
@@ -133,10 +130,10 @@ export abstract class ScopedBuilder<
   }
 
   /**
-   * Executes this scope's payload on the SDK's Anvil node, independently of any
+   * Executes this scope's payload on the session's RPC or Anvil node, independently of any
    * other scope, and compares the result with the projected state.
    *
-   * Only an SDK created in fork mode can simulate. The payload is executed
+   * The payload is executed
    * directly, so neither an author nor an ETA is required. An omitted ETA
    * defaults to the source block time.
    *
@@ -146,20 +143,14 @@ export abstract class ScopedBuilder<
     options: GipSimulationOptions = {},
   ): Promise<GipSimulationOutcome> {
     const capture = this.#capture();
-    // Checked first: a chain SDK is rejected before any projection work.
-    const fork = requireFork(this.#runtime);
     const eta = this.#runtime.eta(options.eta);
-    const { payloadCalls, expected, blocked } = await this.#compile(
-      capture,
-      eta,
-    );
+    const { batches, expected, blocked } = await this.#compile(capture, eta);
     if (blocked) throw blocked;
-    return simulateOnFork({
+    return simulatePayload({
       runtime: this.#runtime,
-      fork,
       options,
       eta,
-      payloadCalls,
+      batches,
       expected,
     });
   }
@@ -205,22 +196,24 @@ export abstract class ScopedBuilder<
     const author = lowerAddress(args.author);
     const eta = this.#runtime.eta(args.eta);
     return this.#plans.run(capture.revision, `${author}:${eta}`, async () => {
-      const { preview, payloadCalls, batches, gasModel, blocked } =
-        await this.#compile(capture, eta);
+      const { preview, batches, gasModel, blocked } = await this.#compile(
+        capture,
+        eta,
+      );
       if (blocked) throw blocked;
       const transactions = await buildPlanTransactions({
         runtime: this.#runtime,
         batches,
-        payloadCalls,
         author,
         eta,
         gasModel,
       });
       return snapshot({
-        planVersion: 2,
+        planVersion: 3,
         scope: this.scope,
         source: preview.source,
         ...this.planFields(preview),
+        actionDiagnostics: preview.actionDiagnostics,
         incompleteChecks: preview.incompleteChecks,
         ...transactions,
       } as unknown as TPlan);

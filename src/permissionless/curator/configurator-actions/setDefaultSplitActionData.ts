@@ -59,9 +59,14 @@ export const setDefaultSplitActionData: ConfiguratorScopedDefinition<
       .refine(data => data.receivers.length === data.proportions.length, {
         message: "Receivers and proportions arrays must have the same length",
       })
-      .refine(data => data.proportions.reduce((a, b) => a + b, 0) === 100, {
-        message: "Sum of proportions must be 100%",
-      }),
+      .refine(
+        data =>
+          scaleProportions(data.proportions).reduce((a, b) => a + b, 0) ===
+          100 * PERCENTAGE_SCALE,
+        {
+          message: "Sum of proportions must be 100%",
+        },
+      ),
     // @dev the splitter is a two-admin contract: the GIP only *proposes* the
     // split, which stays pending until the treasury proxy confirms it
     resolve: resolveTreasurySplitter,

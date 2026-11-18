@@ -8,7 +8,6 @@ export * from "./AbstractOffchainNamespace.js";
 export * from "./analytics/index.js";
 export * from "./errors/index.js";
 export * from "./GearboxAPI.js";
-export * from "./notices/index.js";
 export * from "./opportunities/index.js";
 export * from "./positions/index.js";
 export * from "./types.js";

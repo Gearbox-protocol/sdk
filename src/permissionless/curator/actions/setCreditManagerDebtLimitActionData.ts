@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { lowerAddress } from "../utils/addressUtils.js";
+import { canonicalDebtLimit } from "../utils/debtLimit.js";
 import type { BaseMarketAction } from "./actionTypes.js";
 import {
   type CreditManagerTarget,
@@ -51,7 +52,8 @@ export const setCreditManagerDebtLimitActionData: MarketScopedDefinition<SetCred
       if (bounds.length) return bounds;
       const address = lowerAddress(params.creditManager);
       const limit = projectedDebtLimit(env, state, params.limit);
-      return (state.creditManagerDebtLimit[address] ?? 0) === limit
+      return canonicalDebtLimit(state.creditManagerDebtLimit[address] ?? 0) ===
+        limit
         ? [noOp(`Debt limit is already ${params.limit}`, ["params", "limit"])]
         : [];
     },

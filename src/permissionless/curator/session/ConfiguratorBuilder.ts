@@ -113,7 +113,6 @@ export class ConfiguratorBuilder extends ScopedBuilder<
     const payloadCalls = changes.txs.map(({ tx }) => tx);
     return {
       preview,
-      payloadCalls,
       // Configurator payloads go into a single batch: there is no per-action
       // gas table for them, so they cannot be split by estimated gas and
       // the gas model is reported as `unavailable` rather than as a zero

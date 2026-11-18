@@ -35,6 +35,9 @@ import {
   PendleRouterAdapterContract,
   StakingRewardsAdapterContract,
   TraderJoeRouterAdapterContract,
+  TreehouseFastlaneAdapterContract,
+  TreehouseRedemptionGatewayAdapterContract,
+  TreehouseRouterAdapterContract,
   UniswapV2AdapterContract,
   UniswapV3AdapterContract,
   UpshiftVaultAdapterContract,
@@ -128,6 +131,12 @@ export function createAdapter(
       return new StakingRewardsAdapterContract(sdk, data);
     case "ADAPTER::TRADERJOE_ROUTER":
       return new TraderJoeRouterAdapterContract(sdk, data);
+    case "ADAPTER::TREEHOUSE_FASTLANE":
+      return new TreehouseFastlaneAdapterContract(sdk, data);
+    case "ADAPTER::TREEHOUSE_GATEWAY":
+      return new TreehouseRedemptionGatewayAdapterContract(sdk, data);
+    case "ADAPTER::TREEHOUSE_ROUTER":
+      return new TreehouseRouterAdapterContract(sdk, data);
     case "ADAPTER::UNISWAP_V2_ROUTER":
       return new UniswapV2AdapterContract(sdk, data);
     case "ADAPTER::UNISWAP_V3_ROUTER":
@@ -138,7 +147,6 @@ export function createAdapter(
       return new UpshiftVaultAdapterContract(sdk, data);
     case "ADAPTER::VELODROME_V2_ROUTER":
       return new VelodromeV2RouterAdapterContract(sdk, data);
-    // TODO: add treehouse adapters
     default: {
       if (isStrict) {
         throw new Error(

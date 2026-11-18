@@ -46,6 +46,31 @@ describe("GIP diagnostic checks", () => {
     expect(diagnostics[3]).toMatchObject({ market, degenNFT: nft });
   });
 
+  it("retains independent findings when the periphery registry read fails", async () => {
+    const failed: string[] = [];
+    const diagnostics = await getGipDiagnostics({
+      markets: [
+        {
+          underlyingAsset: asset,
+          transactions: [
+            {
+              type: "MARKET::addAsset",
+              params: { token: asset },
+            } as GipMarketAction,
+          ],
+        },
+      ],
+      balanceOf: async () => 0n,
+      incompleteRwaSetups: async () => [],
+      registeredPeripheryContracts: async () => {
+        throw new Error("RPC unavailable");
+      },
+      onIncompleteCheck: check => failed.push(check),
+    });
+    expect(failed).toEqual(["registeredPeripheryContracts"]);
+    expect(diagnostics.map(d => d.type)).toEqual(["missingReservePriceFeed"]);
+  });
+
   it("counts a Degen NFT registration queued by another market", async () => {
     const suite = {
       type: "MARKET::createCreditSuite",

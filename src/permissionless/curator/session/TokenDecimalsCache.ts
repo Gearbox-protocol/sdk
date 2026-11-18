@@ -126,9 +126,15 @@ export class TokenDecimalsCache {
     );
   }
 
-  /** Snapshot of everything resolved so far, for plan/preview reporting. **/
-  resolved(): Record<Address, number> {
-    return Object.fromEntries(this.#cache) as Record<Address, number>;
+  /** Resolved metadata for the tokens prefetched by one compilation. **/
+  resolved(tokens: readonly Address[]): Record<Address, number> {
+    const result: Record<Address, number> = {};
+    for (const token of tokens) {
+      const address = lowerAddress(token);
+      const value = this.#cache.get(address);
+      if (value !== undefined) result[address] = value;
+    }
+    return result;
   }
 }
 

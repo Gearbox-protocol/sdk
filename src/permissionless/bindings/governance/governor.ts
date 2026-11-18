@@ -24,11 +24,12 @@ import {
   json_stringify,
 } from "../../../onchain/index.js";
 import { Addresses } from "../../deployment/addresses.js";
+import { createExecuteBatchRawTx } from "../../utils/governance/timelock-txs.js";
 import { BytecodeRepositoryContract } from "../bytecode-repository.js";
 import { MarketConfiguratorContract } from "../market-configurator.js";
 import { TreasurySplitterContract } from "../treasury-splitter.js";
 import { BatchesChainContract } from "./batches-chain.js";
-import type { SafeTx, TimelockTxParams } from "./types.js";
+import type { SafeTx } from "./types.js";
 
 const abi = governorAbi;
 
@@ -152,29 +153,7 @@ export class GovernorContract extends BaseContract<typeof abi> {
   }
 
   createExecuteBatchTx(args: { txs: SafeTx[] }): RawTx {
-    const executionBatch = args.txs
-      .filter(tx => tx.contractMethod.name === "queueTransaction")
-      .map(tx => ({
-        ...tx.contractInputsValues,
-        value: BigInt(tx.contractInputsValues.value),
-        eta: BigInt(tx.contractInputsValues.eta),
-      })) as unknown as Array<TimelockTxParams>;
-
-    return this.createRawTx({
-      functionName: "executeBatch",
-      args: [executionBatch],
-      description: `ExecuteBatch(${executionBatch
-        .map(
-          tx =>
-            `{
-  target: ${tx.target},
-  value: ${tx.value.toString()},
-  signature: ${tx.signature},
-  data: ${tx.data.length > 40 ? `${tx.data.slice(0, 40)}...` : tx.data},
-},`,
-        )
-        .join("\n")})`,
-    });
+    return createExecuteBatchRawTx(this.address, args.txs);
   }
 
   #decodeFunctionData(target: Address, calldata: Hex): ParsedCall | undefined {
