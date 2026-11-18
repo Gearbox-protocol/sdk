@@ -1,6 +1,5 @@
 import { type Address, erc20Abi } from "viem";
 import type { GipMarketAction } from "../actions/types.js";
-import type { PeripheryRegistryEntry } from "../actions/utils/isPeripheryContractAdded.js";
 import {
   type GipDiagnostic,
   getGipDiagnostics,
@@ -39,56 +38,23 @@ export async function collectGipDiagnostics(args: {
   const client = runtime.readClient;
   const lookups = rwaPeripheryLookups(runtime);
 
-  const fail = (check: string, error: unknown): never => {
-    incompleteChecks.push({ check, reason: errorMessage(error) });
-    throw error;
-  };
-
-  const getRegistered = async (): Promise<PeripheryRegistryEntry[]> => {
-    try {
-      return [...(await lookups.getRegistered())];
-    } catch (error) {
-      return fail("registeredPeripheryContracts", error);
-    }
-  };
-
-  try {
-    const diagnostics = await getGipDiagnostics<DiagnosticMarketInput>({
-      markets,
-      balanceOf: async asset => {
-        try {
-          return await client.readContract({
-            address: asset,
-            abi: erc20Abi,
-            functionName: "balanceOf",
-            args: [runtime.source.marketConfigurator],
-          });
-        } catch (error) {
-          return fail("poolCreationDeposit", error);
-        }
-      },
-      registeredPeripheryContracts: getRegistered,
-      registry: runtime.registry,
-      incompleteRwaSetups: async () => {
-        try {
-          return await findIncompleteRwaPeripherySetups<DiagnosticMarketInput>({
-            ...lookups,
-            markets,
-            getRegistered,
-          });
-        } catch (error) {
-          return fail("incompleteRwaPeripherySetup", error);
-        }
-      },
-    });
-    return { diagnostics, incompleteChecks };
-  } catch (error) {
-    if (incompleteChecks.length === 0) {
-      incompleteChecks.push({
-        check: "getGipDiagnostics",
-        reason: errorMessage(error),
-      });
-    }
-    return { diagnostics: [], incompleteChecks };
-  }
+  const diagnostics = await getGipDiagnostics({
+    markets,
+    registry: runtime.registry,
+    balanceOf: asset =>
+      client.readContract({
+        address: asset,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [runtime.source.marketConfigurator],
+      }),
+    registeredPeripheryContracts: async () => [
+      ...(await lookups.getRegistered()),
+    ],
+    incompleteRwaSetups: () =>
+      findIncompleteRwaPeripherySetups({ ...lookups, markets }),
+    onIncompleteCheck: (check, error) =>
+      incompleteChecks.push({ check, reason: errorMessage(error) }),
+  });
+  return { diagnostics, incompleteChecks };
 }

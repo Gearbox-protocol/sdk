@@ -217,6 +217,22 @@ describe("declaring an adapter plugin", () => {
     ).toThrow(/must be named ADAPTER::OTHER_ROUTER::<function>/);
   });
 
+  it("rejects value-bearing plugin payloads during compilation", async () => {
+    const paidAction: typeof setPoolsActionData = {
+      ...setPoolsActionData,
+      encode: args => ({ ...setPoolsActionData.encode(args), value: "1" }),
+    };
+    const { sdk } = await createTestSdk({
+      plugins: [{ ...testRouterPlugin, actions: { setPools: paidAction } }],
+    });
+    await expect(
+      sdk
+        .market({ initialState: stateWithRouter([]) })
+        .addAction(setPools([{ pool: POOL_A, allowed: true }]))
+        .build({ author: AUTHOR, eta: ETA }),
+    ).rejects.toThrow(/nonzero native value/);
+  });
+
   it("cannot replace a built-in adapter type", async () => {
     await expect(
       createTestSdk({

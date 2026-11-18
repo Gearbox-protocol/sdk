@@ -19,6 +19,7 @@ import type { InterestRateModelState } from "../../plugins/irm/irmPlugins.js";
 import type { RateKeeperState } from "../../plugins/rate-keepers/rateKeeperPlugins.js";
 import { contractReaderFromClient } from "../../rwaPeripherySetup.js";
 import { isSameAddress, lowerAddress } from "../../utils/addressUtils.js";
+import { canonicalDebtLimit } from "../../utils/debtLimit.js";
 import { buildAdaptersState } from "./buildAdaptersState.js";
 import { buildLossPolicyState } from "./buildLossPolicyState.js";
 import { isCreditManagerExpired } from "./isCreditManagerExpired.js";
@@ -114,13 +115,10 @@ export async function getMarketState(
 }
 
 /** A debt limit in underlying units; `maxUint256` on chain means no limit. **/
-function debtLimit(
-  limit: bigint,
-  underlyingDecimals: number,
-): number | typeof NO_LIMIT {
+function debtLimit(limit: bigint, underlyingDecimals: number): number | string {
   return limit === maxUint256
     ? NO_LIMIT
-    : Number(formatUnits(limit, underlyingDecimals));
+    : canonicalDebtLimit(formatUnits(limit, underlyingDecimals));
 }
 
 function buildRateKeeperState(marketSuite: MarketSuite): RateKeeperState {
@@ -195,8 +193,8 @@ function buildInterestRateModelState(
 function buildCreditManagerDebtLimits(
   marketSuite: MarketSuite,
   underlyingDecimals: number,
-): Record<Address, number | typeof NO_LIMIT> {
-  const debtLimits: Record<Address, number | typeof NO_LIMIT> = {};
+): Record<Address, number | string> {
+  const debtLimits: Record<Address, number | string> = {};
 
   for (const cm of marketSuite.creditManagers) {
     const address = cm.creditManager.address;

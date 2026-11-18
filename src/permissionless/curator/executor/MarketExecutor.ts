@@ -321,6 +321,11 @@ export class MarketExecutor {
       resolved,
       env: this.env,
     });
+    if (BigInt(tx.value) !== 0n) {
+      throw new Error(
+        `${action.type} encodes a nonzero native value. Curator governance payloads require zero value.`,
+      );
+    }
     const newContract = definition.deployedContract?.({ params, resolved });
     return {
       tx,

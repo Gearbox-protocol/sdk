@@ -7,6 +7,7 @@
  * schema and has no knowledge of any concrete state.
  **/
 
+import { canonicalDebtLimit } from "../../utils/debtLimit.js";
 /** Canonical leaf value. Two leafs are equal when their canonical values are `===`. **/
 export type Canon = string | number | boolean | null;
 
@@ -130,7 +131,9 @@ export const UNLIMITED = "Unlimited";
 
 /** Amount or the literal "Unlimited". **/
 export const limit = leaf("limit", v =>
-  v === UNLIMITED ? UNLIMITED : amount.canon(v),
+  typeof v === "string" || typeof v === "number"
+    ? canonicalDebtLimit(v)
+    : fail("limit", v),
 );
 
 /** Boolean in one contract version, enum in the next. Canonical value is the enum. **/

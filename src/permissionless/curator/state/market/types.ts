@@ -100,8 +100,8 @@ export interface MarketState {
   underlyingAsset: Address;
   underlyingPriceFeed: Address;
   underlyingReservePriceFeed?: Address;
-  totalDebtLimit: number | typeof NO_LIMIT;
-  creditManagerDebtLimit: Record<Address, number | typeof NO_LIMIT>;
+  totalDebtLimit: number | string;
+  creditManagerDebtLimit: Record<Address, number | string>;
   assets: Record<Address, MarketAsset>;
   creditManagers: Record<Address, MarketCreditManagerState>;
   treasury: TreasuryState;

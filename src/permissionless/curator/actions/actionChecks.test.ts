@@ -7,8 +7,10 @@ import {
 } from "viem";
 import { describe, expect, it } from "vitest";
 import { MarketConfiguratorContract } from "../../bindings/market-configurator.js";
+import { setDefaultSplitActionData } from "../configurator-actions/setDefaultSplitActionData.js";
 import { ConfigurationExecutor } from "../executor/ConfigurationExecutor.js";
 import { MarketExecutor } from "../executor/MarketExecutor.js";
+import { compareConfiguratorStates } from "../state/configurator/compareConfiguratorStates.js";
 import type { ConfiguratorState } from "../state/configurator/types.js";
 import type { MarketState } from "../state/market/types.js";
 import { GipActionError } from "./actionDiagnostics.js";
@@ -309,6 +311,34 @@ describe("configurator checks", () => {
       activeProposals: [],
     },
     shutdown: false,
+  });
+
+  it("detects receivers swapping unequal shares", () => {
+    const before = configuratorState();
+    const after = configuratorState();
+    before.treasury.defaultSplit = {
+      recievers: [ADMIN, CM],
+      proportions: [90, 10],
+    };
+    after.treasury.defaultSplit = {
+      recievers: [CM, ADMIN],
+      proportions: [90, 10],
+    };
+    const diff = compareConfiguratorStates(before, after);
+    expect(diff.isEqual).toBe(false);
+    expect(diff.differences.treasury?.defaultSplit?.allocations).toEqual({
+      old: before.treasury.defaultSplit,
+      new: after.treasury.defaultSplit,
+    });
+  });
+
+  it("validates treasury shares in whole basis points", () => {
+    const receivers = [ADMIN, CM, POOL];
+    const parse = (proportions: number[]) =>
+      setDefaultSplitActionData.schema.safeParse({ receivers, proportions })
+        .success;
+    expect(parse([0.01, 99.98, 0.01])).toBe(true);
+    expect(parse([0.01, 99.97, 0.01])).toBe(false);
   });
 
   it("stops at an admin that already holds the role", async () => {

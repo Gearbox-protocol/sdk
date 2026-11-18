@@ -10,6 +10,7 @@ import type { SetTotalDebtLimitAction } from "../actions/setTotalDebtLimitAction
 import type { MarketActions } from "../actions/types.js";
 import type { Bundle } from "../bundles/Bundle.js";
 import type { ConfiguratorState } from "../state/configurator/types.js";
+import { diffMarketStates } from "../state/market/marketStateComparison.js";
 import {
   CM,
   CM2,
@@ -205,6 +206,28 @@ describe("supplied vs fetched market state", () => {
     );
     expect(preview.before?.creditManagers[CM].isExpired).toBe(false);
     expect(Date.now() / 1000).toBeGreaterThan(expirationDate);
+  });
+
+  it("preserves one-wei changes in both debt limits and their diffs", async () => {
+    const { sdk } = await createTestSdk({ tokenDecimals: { [WETH]: 18 } });
+    const before = marketState({
+      underlyingAsset: WETH,
+      totalDebtLimit: 1,
+      creditManagerDebtLimit: { [CM]: 1 },
+    });
+    const limit = "1.000000000000000001";
+    const plan = await sdk
+      .market({ initialState: before })
+      .addAction({ type: "POOL::setTotalDebtLimit", params: { limit } })
+      .addAction({
+        type: "POOL::setCreditManagerDebtLimit",
+        params: { creditManager: CM, limit },
+      })
+      .build({ author: AUTHOR, eta: ETA });
+    expect(plan.after.totalDebtLimit).toBe(limit);
+    expect(plan.after.creditManagerDebtLimit[CM]).toBe(limit);
+    expect(diffMarketStates(before, plan.after).changes).toHaveLength(2);
+    expect(plan.payloadCalls).toHaveLength(2);
   });
 
   it("reports a provenance caveat when the supplied SDK is at another block", async () => {

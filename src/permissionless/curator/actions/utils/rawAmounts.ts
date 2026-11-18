@@ -1,6 +1,7 @@
 import { type Address, maxUint256 } from "viem";
 import { z } from "zod/v4";
 import { NO_LIMIT } from "../../state/market/types.js";
+import { canonicalDebtLimit } from "../../utils/debtLimit.js";
 import { errorMessage } from "../../utils/errorMessage.js";
 import { tokenAmountSchema } from "../../validationSchemas.js";
 import { type ActionDiagnostic, actionError } from "../actionDiagnostics.js";
@@ -76,8 +77,8 @@ export function projectedDebtLimit(
   env: ActionEnv,
   state: UnderlyingOf,
   amount: number | string,
-): number | typeof NO_LIMIT {
+): number | string {
   return amount === NO_LIMIT || rawAmount(env, state, amount) === MAX_UINT128
     ? NO_LIMIT
-    : Number(amount);
+    : canonicalDebtLimit(amount);
 }

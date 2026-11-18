@@ -786,8 +786,9 @@ Other limitations:
   `limit: "0.000001"`, for exact boundaries. Debt limits accept `"Unlimited"`.
   Amount conversion rejects excess fractional units instead of rounding. Checks
   convert amounts to bigint units for the quota int96 bound, debt uint128 bounds
-  and max-debt-per-block multiplication. State retains the existing human-readable
-  amount fields without duplicate raw amounts.
+  and max-debt-per-block multiplication. The projected and on-chain states use
+  decimal strings for debt limits that would lose precision as numbers. Limits
+  that round-trip exactly through a number keep their numeric representation.
 - **Execution time.** `preview({ eta })`, `build({ author, eta })` and
   `simulate({ eta })` use ETA for time-dependent transitions. Preview and simulation
   default to `session.source.blockTimestamp` when ETA is omitted. An ETA already
@@ -902,7 +903,8 @@ Executing an action has four steps:
    A market-creation action uses `checkCreate` to validate its source facts.
 3. `apply` — the state transition, pure and synchronous. An action that creates
    the market defines `create` instead, which builds the state from nothing.
-4. `encode` — the payload call, pure and synchronous. `deployedContract` names
+4. `encode` — the payload call, pure and synchronous. The governor queues calls
+   with zero native value, so compilation rejects an action encoding a nonzero value. `deployedContract` names
    the contract the call deploys, if any.
 
 - `defineMarketAction` declares a market action type; the helper sets its
