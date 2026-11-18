@@ -872,6 +872,85 @@ describe("prepare → execute on a mainnet fork", () => {
     });
   });
 
+  describe("borrowAndWithdraw", () => {
+    it("pays the exact loan to the owner and preserves the account assets", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const before = await account(creditAccount);
+      const balance = () =>
+        chain.client.readContract({
+          address: underlying,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [borrower],
+        });
+      const held = await balance();
+      const amount = await prepare().maxBorrowAndWithdraw(
+        position(creditAccount),
+      );
+      expect(amount).toBeGreaterThan(0n);
+      const { sim, preview } = adjustPreview(
+        await prepare().borrowAndWithdraw(position(creditAccount), {
+          amount,
+          to: borrower,
+        }),
+      );
+      await send({
+        kind: "account",
+        chainId: CHAIN_ID,
+        creditAccount,
+        wallet: borrower,
+        sim,
+      });
+      expect(await balance()).toBe(held + amount);
+      const after = await account(creditAccount);
+      expectDebtBracket(after, preview.totalDebt.value);
+      for (const token of before.tokens) {
+        expect(
+          after.tokens.find(t => isAddressEqual(t.token, token.token))
+            ?.balance ?? 0n,
+        ).toBe(token.balance);
+      }
+    });
+
+    it("rolls the debt back when the payout call fails", async () => {
+      const { creditAccount } = await openPosition();
+      await sync();
+      const before = await account(creditAccount);
+      const sim = await prepare().borrowAndWithdraw(position(creditAccount), {
+        amount: parseUnits("100", 6),
+        to: borrower,
+      });
+      if (!sim.ok) throw new Error(sim.error.code);
+      const payout = sim.data.operations.find(
+        o => o.type === "withdrawCollateral",
+      );
+      if (!payout) throw new Error("missing payout");
+      const calls = sim.data.calls.map(call =>
+        call.callData === payout.calls[0].callData
+          ? chain.accounts.prepareWithdrawToken(
+              before.creditFacade,
+              payout.token,
+              payout.amount,
+              "0x0000000000000000000000000000000000000000",
+            )
+          : call,
+      );
+      const tx = await chain.accounts.executeCaUpdate(before, calls, {
+        ethAmount: 0n,
+      });
+      const hash = await sendRawTx(wallet, { tx, gas: GAS_LIMIT });
+      const receipt = await chain.client.waitForTransactionReceipt({
+        hash,
+        pollingInterval: 100,
+      });
+      expect(receipt.status).toBe("reverted");
+      const after = await account(creditAccount);
+      expect(after.debt).toBe(before.debt);
+      expect(after.tokens).toEqual(before.tokens);
+    });
+  });
+
   describe("withdrawCollateral — debt untouched", () => {
     // withdraw part of the underlying added first, so no swap is involved
     const ADDED = parseUnits("300", 6);

@@ -344,6 +344,15 @@ export interface AddCollateralIntent {
   value?: bigint;
 }
 
+/** A loan paid to the recipient while existing balances stay on the account. */
+export interface BorrowAndWithdrawIntent {
+  type: "BORROW_AND_WITHDRAW";
+  /** Amount received in the underlying, or its RWA asset. */
+  amount: bigint;
+  /** Wallet receiving the loan. */
+  to: Address;
+}
+
 /**
  * Intent 4 — move one asset that already sits on the account to the wallet.
  *
@@ -578,6 +587,7 @@ export interface WithdrawCeilings {
 export type StartIntent =
   | AddCollateralIntent
   | WithdrawAssetIntent
+  | BorrowAndWithdrawIntent
   | AdjustLeverageIntent
   | DepositStrategyIntent
   | RepayStrategyIntent

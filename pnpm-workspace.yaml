@@ -2,7 +2,8 @@ allowBuilds:
   esbuild: true
   secp256k1: true
 
-blockExoticSubdeps: true
-minimumReleaseAge: 1440
+minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - "@gearbox-protocol/*"
+
+trustPolicy: no-downgrade

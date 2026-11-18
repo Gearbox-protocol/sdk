@@ -137,11 +137,52 @@ export interface PermissionlessPriceFeedMarket
 }
 
 /**
+ * One `(market, token, role)` slot of a chain, with the feed holding it.
+ *
+ * The same row {@link PermissionlessIndexedPriceFeedMarket} is, read from the
+ * chain's end rather than from one feed's: the feed is a column here because
+ * it is no longer what was asked for, and the chain is named because the read
+ * spans several.
+ *
+ * Unpivoted — a token's main and reserve feeds are two rows. What reads them
+ * this way is analysis over every slot at once, where the two roles of a
+ * token are the pair being compared and folding them together would hide it.
+ **/
+export interface PermissionlessMarketSlot
+  extends PermissionlessIndexedPriceFeedMarket {
+  chainId: number;
+  /** The market's underlying, which its quota figures are denominated in. */
+  underlyingToken: Address;
+  /**
+   * The market has been shut down: no new borrowing, but its open accounts
+   * are quoting all the same.
+   */
+  isShutdown: boolean;
+  /** The feed in force for the slot. */
+  priceFeed: Address;
+  /** Display name the store recorded, or `null` for a feed it never had. */
+  priceFeedName: string | null;
+  /**
+   * Whether the PriceFeedStore still carries that feed.
+   *
+   * `false` is the case worth looking at: the market goes on pricing with
+   * something the store has removed, or never had.
+   */
+  priceFeedInStore: boolean;
+  /**
+   * The feed the market prices its own underlying with, which is what
+   * converts this row's quota figures. `null` for a market that has none.
+   */
+  underlyingPriceFeed: Address | null;
+}
+
+/**
  * One feed of the store, with everywhere the store lets it be used.
  *
- * Feeds a tree carries but the store never added have no identity to report —
- * no status history, hence no name or staleness — so the read throws for them
- * rather than answering a half-filled row.
+ * Feeds a tree carries but the store never added have no identity to report
+ * here — no status history, hence no name or staleness — so the backend does
+ * not answer for them; the SDK reads them off the chain instead, see
+ * {@link PermissionlessPriceFeedDetails.inStore}.
  **/
 export interface PermissionlessIndexedPriceFeedDetails {
   chainId: number;
@@ -161,6 +202,14 @@ export interface PermissionlessIndexedPriceFeedDetails {
 export interface PermissionlessPriceFeedDetails
   extends PermissionlessIndexedPriceFeedDetails {
   markets: PermissionlessPriceFeedMarket[];
+  /**
+   * Whether the answer is the store's.
+   *
+   * `false` is a deployed feed the store never added, read off the chain
+   * instead: `deployedBy` is the zero address, `stalenessPeriod` is 0, and
+   * `assets` and `markets` are empty, because all of them are store rows.
+   */
+  inStore: boolean;
 }
 
 /**
@@ -398,6 +447,27 @@ export interface PriceFeedPrice extends PriceFeedRef {
 }
 
 /**
+ * How many decimals a feed's answer carries, as
+ * {@link PermissionlessOracles.getDecimals} answers.
+ *
+ * Its own call rather than a field of {@link PriceFeedPrice}, because the two
+ * are not read on the same schedule: a price is the figure that moves and is
+ * re-read for it, while a deployed feed's decimals never change, so a caller
+ * reads these once and keeps them.
+ *
+ * Needed wherever the feeds are not only the ones a market reads. Every
+ * Gearbox feed an oracle holds reports 8, which is why most of this namespace
+ * can assume it — but a composite's own dependencies are whatever the
+ * aggregator underneath happens to be, and a rate leg of one is routinely 18.
+ *
+ * `null` is a feed that would not answer `decimals()` at all, which a caller
+ * showing the figure should treat as unknown rather than as 8.
+ **/
+export interface PriceFeedDecimals extends PriceFeedRef {
+  decimals: number | null;
+}
+
+/**
  * One asset with the feeds to value it through.
  *
  * The asset's side of {@link PermissionlessOracles.getMarketCap} — the shape a
@@ -455,4 +525,3 @@ export interface AssetsArgs {
   /** Omit for every chain the backend serves. */
   chainId?: number;
 }
-

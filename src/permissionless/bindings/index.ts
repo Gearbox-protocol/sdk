@@ -4,6 +4,7 @@ export * from "./compressors/index.js";
 export * from "./cross-chain-multisig.js";
 export * from "./governance/index.js";
 export * from "./instance-manager.js";
+export * from "./kill-switch-proxy.js";
 export * from "./market-configurator.js";
 export * from "./market-configurator-factory.js";
 export * from "./price-feed-store.js";

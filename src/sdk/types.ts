@@ -1,9 +1,4 @@
-import type {
-  ChainId,
-  DataResponse,
-  Notice,
-  NoticeSubject,
-} from "../model/index.js";
+import type { ChainId } from "../model/index.js";
 import type { GearboxAPI, GearboxAPIOptions } from "../offchain/index.js";
 import type {
   MultichainAttachOptions,
@@ -131,23 +126,6 @@ export interface OnchainByMode {
 }
 
 /**
- * The banners the backend attaches to a pool opportunity or a strategy
- * position, see {@link Notice}.
- **/
-export type INotices = (
-  subject: NoticeSubject,
-) => Promise<DataResponse<Notice[]>>;
-
-/**
- * `sdk.notices` per mode: a backend read, absent when the SDK reads no backend.
- **/
-export interface INoticesByMode {
-  onchain: undefined;
-  offchain: INotices;
-  both: INotices;
-}
-
-/**
  * Public contract of {@link GearboxSDK}: every namespace and sub-construction,
  * gated by {@link Mode}. Escape hatches `onchain` and `offchain` are not part
  * of this surface.
@@ -197,11 +175,6 @@ export interface IGearboxSDK<M extends Mode = Mode> {
    * Namespace for claimable rewards. Absent in `offchain` mode.
    **/
   readonly rewards: IRewardsByMode[M];
-  /**
-   * The banners the backend attaches to a pool opportunity or a strategy
-   * position, see {@link Notice}. Absent in `onchain` mode.
-   **/
-  readonly notices: INoticesByMode[M];
 }
 
 /**

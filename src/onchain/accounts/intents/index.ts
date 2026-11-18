@@ -29,6 +29,7 @@ import {
   type LeverageBandProps,
 } from "./leverage-band.js";
 import { type MaxBorrowProps, maxBorrow } from "./maxBorrow.js";
+import { maxBorrowAndWithdraw } from "./maxBorrowAndWithdraw.js";
 import { maxWithdrawCollateral } from "./maxWithdrawCollateral.js";
 import {
   buildOpenStrategyState,
@@ -44,6 +45,7 @@ import {
   planAddCollateral,
   planAdjustLeverage,
   planAdjustLeverageDelayed,
+  planBorrowAndWithdraw,
   planDeposit,
   planRepay,
   planUpdateQuota,
@@ -194,6 +196,8 @@ export class CreditAccountOperationsService extends SDKConstruct {
           switch (intent.type) {
             case "ADD_COLLATERAL":
               return planAddCollateral(intent);
+            case "BORROW_AND_WITHDRAW":
+              return planBorrowAndWithdraw(intent, view);
             case "WITHDRAW_ASSET":
               return planWithdrawAsset(intent, view);
             case "ADJUST_LEVERAGE":
@@ -297,6 +301,25 @@ export class CreditAccountOperationsService extends SDKConstruct {
    */
   leverageBand(props: LeverageBandProps): LeverageBand | undefined {
     return calcLeverageBand(props);
+  }
+
+  /** Largest additional loan, in payout units, preserving existing assets and quotas. */
+  maxBorrowAndWithdraw(
+    props: Pick<StartIntentProps, "creditAccount" | "sdk"> & {
+      targetHF?: bigint;
+      targetSafeHF?: bigint;
+    },
+  ): bigint {
+    const {
+      targetHF = BigInt(MIN_HEALTH_FACTOR_FORM),
+      targetSafeHF = BigInt(MIN_SAFE_HEALTH_FACTOR_FORM),
+      ...rest
+    } = props;
+    return maxBorrowAndWithdraw({
+      ...rest,
+      targetHF: targetHF + 2n,
+      targetSafeHF: targetSafeHF + 2n,
+    });
   }
 
   /**

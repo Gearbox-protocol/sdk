@@ -11,6 +11,12 @@ on:
   # schedule:
   #   - cron: "0 6 * * *"
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   HUSKY: 0
   CI: true
@@ -20,10 +26,14 @@ jobs:
   opportunities:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: pnpm/setup@v3
+      - uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
         with:
           cache: true
           require-lockfile: true
@@ -37,7 +47,7 @@ jobs:
 
       - name: Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: opportunities-compare
           path: tmp/opportunities-compare/*.json
@@ -46,10 +56,14 @@ jobs:
   positions:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: pnpm/setup@v3
+      - uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
         with:
           cache: true
           require-lockfile: true
@@ -63,7 +77,7 @@ jobs:
 
       - name: Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: positions-compare
           path: tmp/positions-compare/*.json
@@ -73,10 +87,12 @@ jobs:
     needs: [opportunities, positions]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
     steps:
       - name: Notify success
         if: ${{ needs.opportunities.result == 'success' && needs.positions.result == 'success' }}
-        uses: appleboy/telegram-action@v1
+        uses: appleboy/telegram-action@68ac04bda0e0f4755e24649161566b4b6732cc83 # v1.1.2
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           to: ${{ vars.TELEGRAM_MAINNET_NOTIFICATIONS }}
@@ -86,7 +102,7 @@ jobs:
 
       - name: Notify failure
         if: ${{ needs.opportunities.result != 'success' || needs.positions.result != 'success' }}
-        uses: appleboy/telegram-action@v1
+        uses: appleboy/telegram-action@68ac04bda0e0f4755e24649161566b4b6732cc83 # v1.1.2
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           to: ${{ vars.TELEGRAM_MAINNET_ALERTS }}
