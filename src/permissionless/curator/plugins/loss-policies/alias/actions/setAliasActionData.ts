@@ -23,6 +23,7 @@ import {
 } from "../../../../actions/utils/priceFeedChecks.js";
 import { isSameAddress, lowerAddress } from "../../../../utils/addressUtils.js";
 import { addressSchema } from "../../../../validationSchemas.js";
+import { isAliasedLossPolicy } from "../aliasedLossPolicyPlugin.js";
 import { updateAliasLossPolicy } from "../updateAliasLossPolicy.js";
 
 export type SetAliasMarketAction = {
@@ -50,8 +51,14 @@ export const setAliasActionData: MarketScopedDefinition<
       ? Promise.resolve(undefined)
       : resolvePriceFeed(ctx, params.token, params.alias, "alias"),
   check: ({ state, params, resolved }) => {
-    if (state.lossPolicy.type !== "ALIAS") {
-      return [lossPolicyMismatch("ALIAS", state.lossPolicy.type)];
+    if (!isAliasedLossPolicy(state.lossPolicy)) {
+      return [
+        lossPolicyMismatch(
+          "ALIAS or MIDAS_ALIAS",
+          // @dev a policy the SDK does not decode has no type
+          String((state.lossPolicy as { type?: string }).type),
+        ),
+      ];
     }
     const current =
       state.lossPolicy.aliases[lowerAddress(params.token)] ?? zeroAddress;

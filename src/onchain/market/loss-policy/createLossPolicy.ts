@@ -2,7 +2,11 @@ import type { BaseState } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import { bytes32ToString } from "../../utils/bytes32ToString.js";
 import { AliasLossPolicyV310Contract } from "./AliasLossPolicyV310Contract.js";
-import { LOSS_POLICY_ALIASED, LOSS_POLICY_DEFAULT } from "./constants.js";
+import {
+  LOSS_POLICY_ALIASED,
+  LOSS_POLICY_DEFAULT,
+  LOSS_POLICY_MIDAS_ALIASED,
+} from "./constants.js";
 import { LossPolicyContract } from "./LossPolicyContract.js";
 import type { ILossPolicyContract } from "./types.js";
 
@@ -18,6 +22,7 @@ export function createLossPolicy(
 
   switch (contractType) {
     case LOSS_POLICY_ALIASED:
+    case LOSS_POLICY_MIDAS_ALIASED:
       return new AliasLossPolicyV310Contract(sdk, baseParams);
     case LOSS_POLICY_DEFAULT:
       return new LossPolicyContract(sdk, baseParams);

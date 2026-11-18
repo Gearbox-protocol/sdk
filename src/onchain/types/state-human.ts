@@ -209,7 +209,7 @@ export interface PoolSuiteStateHuman {
 }
 
 export interface AliasLossPolicyStateHuman extends BaseContractStateHuman {
-  contractType: "LOSS_POLICY::ALIASED";
+  contractType: "LOSS_POLICY::ALIASED" | "LOSS_POLICY::MIDAS_ALIASED";
   accessMode: string;
   checksEnabled: boolean;
   tokens: string[];

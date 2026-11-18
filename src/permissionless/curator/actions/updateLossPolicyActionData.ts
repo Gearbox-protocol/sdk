@@ -25,8 +25,8 @@ export const updateLossPolicyActionData: MarketScopedDefinition<
   UpdateLossPolicyResolution
 > = defineMarketAction<UpdateLossPolicyAction, UpdateLossPolicyResolution>({
   type: "MARKET::updateLossPolicy",
-  // @note no measurement: the action cannot currently be executed
-  gas: () => 0,
+  // @dev deploys the policy and runs the market's hooks; see each plugin
+  gas: ({ params }) => lossPolicyPlugins[params.type].deployGas,
   description: `Update loss policy. Loss policy is used in cases when bad debt could be accrued. It provides a second opinion
     for particular assets.`,
   schema: lossPolicyDeployParamsSchema,
