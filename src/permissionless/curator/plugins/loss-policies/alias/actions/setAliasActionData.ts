@@ -46,6 +46,7 @@ export const setAliasActionData: MarketScopedDefinition<
     token: addressSchema,
     alias: addressSchema,
   }),
+  resolvesForChecksOnly: true,
   resolve: ({ ctx, params }) =>
     isSameAddress(params.alias, zeroAddress)
       ? Promise.resolve(undefined)

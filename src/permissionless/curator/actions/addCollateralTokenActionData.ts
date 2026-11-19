@@ -72,6 +72,7 @@ export const addCollateralTokenActionData: MarketScopedDefinition<
     token: addressSchema,
     liquidationThreshold: percentageSchema,
   }),
+  resolvesForChecksOnly: true,
   resolve: async ({ ctx, params }) => {
     const [code, balance, phantom] = await Promise.all([
       readBytecode(ctx, params.token),

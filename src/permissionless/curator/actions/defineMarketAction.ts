@@ -117,6 +117,12 @@ export interface MarketActionDefinition<
    **/
   resolve?(args: ResolveArgs<A>): Promise<R>;
   /**
+   * `resolve` reads only what {@link check} and {@link checkCreate} use. An
+   * executor that runs without checks (`checkActions: false`, e.g. replaying
+   * an executed GIP) then skips it, and no other step may read `resolved`.
+   **/
+  readonly resolvesForChecksOnly?: boolean;
+  /**
    * Whether the action can run on the state before it: an `error` means the
    * call would revert (or do nothing) and stops the projection there; a
    * `warning` is reported. Pure and synchronous. It is not run for `create`.

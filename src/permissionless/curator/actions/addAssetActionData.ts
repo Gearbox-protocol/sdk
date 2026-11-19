@@ -45,6 +45,7 @@ export const addAssetActionData: MarketScopedDefinition<
     token: addressSchema,
     priceFeed: addressSchema,
   }),
+  resolvesForChecksOnly: true,
   resolve: ({ ctx, params }) =>
     resolvePriceFeed(ctx, params.token, params.priceFeed),
   check: ({ state, params, resolved }) => {

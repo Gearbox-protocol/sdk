@@ -53,6 +53,7 @@ export const upgradeCreditFacadeActionData: MarketScopedDefinition<
       expirable: z.boolean(),
     }),
   }),
+  resolvesForChecksOnly: true,
   resolve: ({ ctx, params }) => resolveDegenNft(ctx, params.facade.degenNft),
   check: ({ state, params, resolved }) =>
     findCreditManager(state, params.creditManager)
