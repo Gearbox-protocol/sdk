@@ -32,6 +32,7 @@ import {
   priceFeedDiagnostics,
   resolvePriceFeed,
 } from "./utils/priceFeedChecks.js";
+import { ADDRESS_PROVIDER, addressProvider } from "./utils/systemContracts.js";
 
 export type CreateMarketAction = BaseMarketAction<
   "MARKET::createMarket",
@@ -85,10 +86,11 @@ export const createMarketActionData: MarketScopedDefinition<
     };
     // The rate keeper and the loss policy are constructed with the pool
     // address, so it has to be known before the market exists.
-    const previewPool = await mc.previewCreateMarket(market);
-    const addressProvider = await mc.getAddressProvider();
-    const gearStakingAddress =
-      await addressProvider.getAddressOrRevert("GEAR_STAKING");
+    const [previewPool, gearStakingAddress] = await Promise.all([
+      mc.previewCreateMarket(market),
+      // @dev GEAR_STAKING differs per chain: only the provider is known
+      addressProvider(mc.client).getAddressOrRevert("GEAR_STAKING"),
+    ]);
     const { tx, pool } = await mc.createMarket({
       ...market,
       interestRateModelParams: irmPlugins[
@@ -105,7 +107,7 @@ export const createMarketActionData: MarketScopedDefinition<
         params.lossPolicyParams.type
       ].getDeployParams({
         pool: previewPool,
-        addressProvider: addressProvider.address,
+        addressProvider: ADDRESS_PROVIDER,
         params: params.lossPolicyParams,
       }),
       underlyingPriceFeed: params.underlyingPriceFeed,

@@ -29,6 +29,7 @@ import {
   createRawTx,
   json_stringify,
 } from "../../onchain/index.js";
+import { Addresses } from "../deployment/addresses.js";
 import {
   parseIrmDeployParams,
   parseLossPolicyDeployParams,
@@ -81,9 +82,13 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     this.rateKeeperFactory = new RateKeeperFactory();
   }
 
+  /**
+   * The v3.1 address provider every market configurator is constructed with:
+   * it sits at the same address on every chain (`Addresses.ADDRESS_PROVIDER`),
+   * so it is not read from the configurator.
+   **/
   async getAddressProvider(): Promise<AddressProviderContract> {
-    const addressProvider = await this.contract.read.addressProvider();
-    return new AddressProviderContract(addressProvider, this.client);
+    return new AddressProviderContract(Addresses.ADDRESS_PROVIDER, this.client);
   }
 
   //
@@ -271,7 +276,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       };
     },
   ): Promise<{ tx: RawTx; creditManager: Address }> {
-    const addressProvider = await this.contract.read.addressProvider();
+    const addressProvider = Addresses.ADDRESS_PROVIDER;
     const creditSuiteParams = encodeAbiParameters(
       [
         {

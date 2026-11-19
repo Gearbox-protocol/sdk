@@ -14,6 +14,7 @@ import {
   type MarketScopedDefinition,
 } from "./defineMarketAction.js";
 import { single } from "./utils/actionKeys.js";
+import { addressProvider } from "./utils/systemContracts.js";
 
 export type UpdateRateKeeperAction = BaseMarketAction<
   "MARKET::updateRateKeeper",
@@ -41,9 +42,10 @@ export const updateRateKeeperActionData: MarketScopedDefinition<
   resolve: async ({ ctx, market, params }) => {
     if (!market) throw new Error("The market to update does not exist");
     const mc = ctx.marketConfigurator;
-    const addressProvider = await mc.getAddressProvider();
-    const gearStakingAddress =
-      await addressProvider.getAddressOrRevert("GEAR_STAKING");
+    // @dev GEAR_STAKING differs per chain: only the provider is known
+    const gearStakingAddress = await addressProvider(
+      mc.client,
+    ).getAddressOrRevert("GEAR_STAKING");
     const deployParams = rateKeeperPlugins[params.type].getDeployParams({
       pool: market.address,
       gearStakingAddress,
