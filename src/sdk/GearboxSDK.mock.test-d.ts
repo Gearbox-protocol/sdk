@@ -61,6 +61,7 @@ const mockSDK = {
     },
     execute: {
       buildTx: notImplemented,
+      withSecuritizeSignatures: notImplemented,
     },
     isEligibleForStrategy: notImplemented,
     isMGLOBALInvestmentWindowOpen: notImplemented,
