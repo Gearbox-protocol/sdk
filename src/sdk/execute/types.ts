@@ -1,6 +1,7 @@
 import type { Address } from "viem";
 import type {
   ChainId,
+  PreviewOperationInput,
   SDKResult,
   SecuritizeRegisterMessage,
 } from "../../model/index.js";
@@ -143,4 +144,18 @@ export interface IOpportunitiesExecute {
    * for (RWA on-demand deposits)
    **/
   buildTx(request: PrepareRequest): Promise<RawTx>;
+
+  /**
+   * Adds registration signatures to an already-built Securitize factory call.
+   * Preserves the transaction fields and inner calls without preparing again.
+   * Existing signatures are retained unless replaced; tokens still missing a
+   * signature receive the factory's empty signature. Unrelated inputs are ignored.
+   * This encodes supplied signatures; it does not verify their authenticity.
+   * @throws If the target is not a registered Securitize factory or the calldata
+   * is not an openCreditAccount or multicall invocation.
+   */
+  withSecuritizeSignatures(input: {
+    tx: PreviewOperationInput;
+    signatures: readonly SecuritizeRegisterMessage[];
+  }): PreviewOperationInput;
 }

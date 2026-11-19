@@ -1,9 +1,19 @@
-import type { Address } from "viem";
-import type { RWAOperationArgs } from "../../model/index.js";
+import { type Address, decodeFunctionData, encodeFunctionData } from "viem";
+import type {
+  PreviewOperationInput,
+  RWAOperationArgs,
+  SecuritizeRegisterMessage,
+} from "../../model/index.js";
+import { RWA_FACTORY_SECURITIZE } from "../../model/index.js";
 import type {
   AccountCalculatorOperation,
   OnchainSDK,
   RawTx,
+} from "../../onchain/index.js";
+import {
+  AddressMap,
+  isRWAFactory,
+  SecuritizeRWAFactory,
 } from "../../onchain/index.js";
 import type { ChainOf } from "../prepare/index.js";
 import type {
@@ -24,6 +34,52 @@ export class ExecuteApi implements IOpportunitiesExecute {
 
   constructor(chainOf: ChainOf) {
     this.#chainOf = chainOf;
+  }
+
+  /** {@inheritDoc IOpportunitiesExecute.withSecuritizeSignatures} */
+  public withSecuritizeSignatures({
+    tx,
+    signatures,
+  }: {
+    tx: PreviewOperationInput;
+    signatures: readonly SecuritizeRegisterMessage[];
+  }): PreviewOperationInput {
+    const factory = this.#chainOf(tx.chainId).getContract(tx.to);
+    if (
+      !(factory instanceof SecuritizeRWAFactory) ||
+      !isRWAFactory(factory, RWA_FACTORY_SECURITIZE)
+    ) {
+      throw new Error(
+        `transaction target ${tx.to} is not a Securitize RWA factory`,
+      );
+    }
+    const decoded = decodeFunctionData({ abi: factory.abi, data: tx.calldata });
+    if (
+      decoded.functionName !== "openCreditAccount" &&
+      decoded.functionName !== "multicall"
+    ) {
+      throw new Error(
+        `expected openCreditAccount or multicall on SecuritizeRWAFactory ${tx.to}, got ${decoded.functionName}`,
+      );
+    }
+    const [target, calls, tokensToRegister, existing] = decoded.args;
+    const byToken = new AddressMap<SecuritizeRegisterMessage>();
+    for (const message of [...existing, ...signatures]) {
+      byToken.upsert(message.token, message);
+    }
+    const signaturesToCache = tokensToRegister.map(
+      token =>
+        byToken.get(token) ?? {
+          token,
+          signature: { deadline: 0n, signature: "0x" as const },
+        },
+    );
+    const calldata = encodeFunctionData({
+      abi: factory.abi,
+      functionName: decoded.functionName,
+      args: [target, calls, tokensToRegister, signaturesToCache],
+    });
+    return { ...tx, calldata };
   }
 
   /**
