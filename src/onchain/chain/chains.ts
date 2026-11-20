@@ -8,7 +8,6 @@ import {
   bsc,
   etherlink,
   hemi,
-  lisk,
   mainnet,
   megaeth,
   monad,
@@ -133,7 +132,6 @@ export const SUPPORTED_NETWORKS = [
   "WorldChain",
   "Etherlink",
   "Hemi",
-  "Lisk",
   "Plasma",
   "Somnia",
 ] as const;
@@ -552,20 +550,6 @@ export const chains: Record<NetworkType, GearboxChain> = {
         address: "0xcA11bde05977b3631167028862bE2a173976CA11",
         blockCreated: 484490,
       },
-    },
-    gasLimit: 550_000_000n,
-  }),
-  Lisk: defineChain({
-    ...lisk,
-    network: "Lisk",
-    defaultMarketConfigurators: AddressMap.fromRecord<CuratorName>({
-      "0x25778dbf0e56b7feb8358c4aa2f6f9e19a1c145a": "Re7",
-    }),
-    rwaFactories: [] as Address[],
-    isPublic: true,
-    wellKnownToken: {
-      address: "0xF242275d3a6527d877f2c927a82D9b057609cc71",
-      symbol: "USDC.e",
     },
     gasLimit: 550_000_000n,
   }),
