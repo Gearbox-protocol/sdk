@@ -59,7 +59,6 @@ const DRPC_NETS: Record<NetworkType, string | null> = {
   Avalanche: "avalanche",
   Monad: "monad-mainnet",
   Hemi: "hemi",
-  Lisk: "lisk",
   MegaETH: "megaeth",
   Etherlink: null,
   Plasma: "plasma",
@@ -80,7 +79,6 @@ const ALCHEMY_DOMAINS: Record<NetworkType, string | null> = {
   MegaETH: "megaeth-mainnet",
   Etherlink: null,
   Hemi: null,
-  Lisk: null,
   Plasma: "plasma-mainnet",
   Somnia: null,
 };
@@ -105,7 +103,6 @@ const ANKR_DOMAINS: Record<NetworkType, string | null> = {
   BNB: "bsc",
   Etherlink: "etherlink_mainnet",
   Hemi: null,
-  Lisk: null,
   Mainnet: "eth",
   MegaETH: null,
   Monad: "monad_mainnet",
@@ -137,7 +134,6 @@ const THIRDWEB_DOMAINS: Record<NetworkType, string | null> = {
   BNB: chains.BNB.id.toString(),
   Etherlink: chains.Etherlink.id.toString(),
   Hemi: chains.Hemi.id.toString(),
-  Lisk: chains.Lisk.id.toString(),
   Mainnet: chains.Mainnet.id.toString(),
   MegaETH: chains.MegaETH.id.toString(),
   Monad: chains.Monad.id.toString(),
@@ -193,7 +189,6 @@ export function getErpcKey(
 │ WorldChain │ ∞       │ 10M  │ 1K       │ ✗    │
 │ Etherlink  │ ✗       │ ✗    │ ✗        │ ✗    │
 │ Hemi       │ ✗       │ ∞    │ 1K       │ ✗    │
-│ Lisk       │ ✗       │ 5M   │ 1K       │ ✗    │
 │ Plasma     │ 10K     │ 100K │ 1K       │ ✗    │
 │ Somnia     │ ✗       │ ✗    │ 1K       │ 10K  │
 └────────────┴─────────┴──────┴──────────┴──────┘
@@ -216,7 +211,6 @@ Rare event (InstanceManager.OwnershipTransferred):
 │ WorldChain │ ∞       │ 1M   │ 1K       │ ✗    │
 │ Etherlink  │ ✗       │ ✗    │ ✗        │ ✗    │
 │ Hemi       │ ✗       │ ∞    │ 1K       │ ✗    │
-│ Lisk       │ ✗       │ 10M  │ 1K       │ ✗    │
 │ Plasma     │ 10K     │ 100K │ 1K       │ ✗    │
 │ Somnia     │ ✗       │ ✗    │ 1K       │ 10K  │
 └────────────┴─────────┴──────┴──────────┴──────┘

@@ -18,7 +18,6 @@ const BLOCK_DURATION_LOCAL: PartialRecord<NetworkType, number> = {
   WorldChain: 2000,
   Etherlink: 1000,
   Hemi: 12000,
-  Lisk: 2000,
   Plasma: 1000,
   Somnia: 200,
 };
