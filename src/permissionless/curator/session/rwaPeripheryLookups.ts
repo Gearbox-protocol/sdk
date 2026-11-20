@@ -1,12 +1,10 @@
 import type { Address } from "viem";
-import { BytecodeRepositoryContract } from "../../bindings/bytecode-repository.js";
-import { BYTECODE_REPOSITORY } from "../../utils/literals.js";
+import { bytecodeRepository } from "../actions/utils/systemContracts.js";
 import {
   contractReaderFromClient,
   type RwaPeripheryLookups,
 } from "../rwaPeripherySetup.js";
 import type { GipSdkRuntime } from "./GipSdkRuntime.js";
-import { SharedPromise } from "./SharedPromise.js";
 
 /**
  * The chain reads RWA periphery planning needs, at the session's source block:
@@ -18,15 +16,7 @@ export function rwaPeripheryLookups(
 ): RwaPeripheryLookups {
   const client = runtime.readClient;
   const mc = runtime.marketConfigurator;
-  const repository = new SharedPromise<BytecodeRepositoryContract>();
-  const bytecodeRepository = () =>
-    repository.run(async () => {
-      const addressProvider = await mc.getAddressProvider();
-      return new BytecodeRepositoryContract(
-        await addressProvider.getAddressOrRevert(BYTECODE_REPOSITORY),
-        client,
-      );
-    });
+  const repository = bytecodeRepository(client);
 
   return {
     read: contractReaderFromClient(client),
@@ -35,7 +25,7 @@ export function rwaPeripheryLookups(
     // Bytecode Repository's `msg.sender`.
     getDeployer: () => runtime.timelockAdmin(),
     computeZapperAddress: async params =>
-      (await bytecodeRepository()).computeAddress({
+      repository.computeAddress({
         contractType: params.contractType,
         version: params.version,
         encodedParams: params.encodedParams,

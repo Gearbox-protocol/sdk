@@ -1,5 +1,4 @@
 import { type Address, getContract } from "viem";
-import { iPriceFeedStoreAbi } from "../../../../abi/310/iPriceFeedStore.js";
 import { iPriceFeedAbi } from "../../../../abi/iPriceFeed.js";
 import { isSameAddress } from "../../utils/addressUtils.js";
 import {
@@ -15,6 +14,7 @@ import {
   readBytecode,
   readChain,
 } from "./chainReads.js";
+import { priceFeedStore } from "./systemContracts.js";
 
 export type PriceFeedMode = "main" | "reserve" | "alias";
 export interface PriceFeedResolution {
@@ -33,33 +33,19 @@ export async function resolvePriceFeed(
   mode: PriceFeedMode = "main",
 ): Promise<PriceFeedResolution> {
   const feed = getContract({ address, abi: iPriceFeedAbi, client: ctx.client });
-  const store = await readChain(async () => {
-    const ap = await ctx.marketConfigurator.getAddressProvider();
-    return getContract({
-      address: await ap.getAddressOrRevert("PRICE_FEED_STORE"),
-      abi: iPriceFeedStoreAbi,
-      client: ctx.client,
-    });
-  });
-  const storeContract = store.value;
-  const withStore = <T>(
-    read: (contract: NonNullable<typeof store.value>) => Promise<T>,
-  ): Promise<ChainRead<T>> =>
-    storeContract
-      ? readChain(() => read(storeContract))
-      : Promise.resolve({ error: store.error });
+  const store = priceFeedStore(ctx.client);
   const [code, allowed, zeroFeed, staleness, decimals, skip] =
     await Promise.all([
       readBytecode(ctx, address),
-      withStore(store =>
+      readChain(() =>
         mode === "alias"
           ? store.read.isKnownPriceFeed([address])
           : store.read.isAllowedPriceFeed([token, address]),
       ),
       mode === "reserve"
-        ? withStore(store => store.read.zeroPriceFeed())
+        ? readChain(() => store.read.zeroPriceFeed())
         : undefined,
-      withStore(store => store.read.getStalenessPeriod([address])),
+      readChain(() => store.read.getStalenessPeriod([address])),
       readChain(() => feed.read.decimals()),
       readChain(() => feed.read.skipPriceCheck()),
     ]);

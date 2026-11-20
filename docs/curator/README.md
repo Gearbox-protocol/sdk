@@ -874,6 +874,7 @@ anything by hand:
 | Normalize or compare addresses | `utils/addressUtils.ts` — `lowerAddress`, `isSameAddress`, `uniqueAddresses` |
 | Encode an action's payload call | `actions/utils/configureCalls.ts` — `configurePool`, `configureCreditManager`, `configurePriceOracle`, `configureRateKeeper`, `configureLossPolicy`, `configureAdapter` |
 | Memoize `resolve` results | `executor/ResolveCache.ts` — `ResolveCache`; pass one to `MarketExecutor`/`ConfigurationExecutor` (a session shares one) |
+| Bind the address provider, price feed store or Bytecode Repository | `actions/utils/systemContracts.ts` — `addressProvider`, `priceFeedStore`, `bytecodeRepository` (fixed addresses; never look them up) |
 | Convert a human-scale amount | `actions/builderContext.ts` — `convertUnderlyingAmount`, `convertTokenAmount` |
 | Convert a percentage | `convertPercent` from `src/permissionless/utils/format.ts` (rounds; never `Math.floor(x * 100)`) |
 | Bound a numeric param | `validationSchemas.ts` — `uintSchema(bits)`, `nonNegativeNumberSchema`, `refineLiquidationFees` |
@@ -1129,6 +1130,11 @@ IRM, loss policy and rate keeper defaults are available through the public permi
 entry. `MarketActionOf<T>` selects a built-in action by type, and
 `GipRegistry.marketAction(type)` retains the concrete definition for a built-in type.
 
+Two loss policies are built in: `ALIAS` (`LOSS_POLICY::ALIASED`) and `MIDAS_ALIAS`
+(`LOSS_POLICY::MIDAS_ALIASED`), the aliased policy that also blocks loss liquidations
+while a pending Midas redemption of the account is rejected. Both have the same state,
+and the `LOSS_POLICY::ALIAS::*` actions configure either.
+
 `market.addRwaPeriphery()` records the periphery a Securitize RWA market needs —
 its Degen NFT registered and, for a default underlying, its zapper deployed and
 registered — and resolves it against the chain when the builder compiles, after the
@@ -1147,7 +1153,16 @@ compatibility registries; they are not made available to new users by this API.
 For historical transaction inspection, `MarketExecutor` and `ConfigurationExecutor`
 accept `{ checkActions: false }`: they resolve, project and encode the recorded calls
 without applying current source-block preflight checks to already executed calls.
+An action whose definition sets `resolvesForChecksOnly` (price feed setters, asset and
+collateral admission, adapter allowance, facade upgrades, aliases) then reads nothing.
 Session previews and plans always enforce their normal checks.
+
+A `MarketExecutor` starts the `resolve` reads of the actions ahead of it, up to 8 at a
+time, as soon as the market's identity is known: a resolution depends only on that
+identity and the params, so concurrent reads share multicalls instead of following one
+another, and the run finds each result in its cache. Actions naming a credit suite by
+reference resolve in order. The address provider, price feed store and Bytecode
+Repository are bound at their fixed `Addresses` rather than looked up.
 
 External plugins and UI validation can reuse `adapterPluginKit.checkCollateralTokens`
 and `adapterPluginKit.getCurveTargetCoins` without duplicating the protocol checks.

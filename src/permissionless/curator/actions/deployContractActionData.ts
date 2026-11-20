@@ -1,8 +1,6 @@
 import { type Address, type Hex, toBytes } from "viem";
 import { z } from "zod/v4";
 import type { RawTx } from "../../../onchain/index.js";
-import { BytecodeRepositoryContract } from "../../bindings/bytecode-repository.js";
-import { BYTECODE_REPOSITORY } from "../../utils/literals.js";
 import { isSameAddress, lowerAddress } from "../utils/addressUtils.js";
 import { bytes32IdSchema, nonZeroAddressSchema } from "../validationSchemas.js";
 import { actionError } from "./actionDiagnostics.js";
@@ -18,6 +16,7 @@ import {
 import type { GipMarketAction } from "./types.js";
 import { resource } from "./utils/actionKeys.js";
 import { noOp } from "./utils/checkHelpers.js";
+import { bytecodeRepository as bindBytecodeRepository } from "./utils/systemContracts.js";
 
 /**
  * Everything needed to rebuild the Bytecode Repository `deploy()` call, plus
@@ -105,11 +104,7 @@ export const deployContractActionData: MarketScopedDefinition<
   schema: deployContractParamsSchema,
   resolve: async ({ ctx, params }) => {
     const mc = ctx.marketConfigurator;
-    const addressProvider = await mc.getAddressProvider();
-    const bytecodeRepository = new BytecodeRepositoryContract(
-      await addressProvider.getAddressOrRevert(BYTECODE_REPOSITORY),
-      mc.client,
-    );
+    const bytecodeRepository = bindBytecodeRepository(mc.client);
 
     // The TimeLock is the caller when the governance batch executes this
     // transaction, and BCR includes that caller in its CREATE2 derivation.

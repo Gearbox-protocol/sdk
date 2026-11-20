@@ -1,7 +1,7 @@
 import { decodeAbiParameters, type Hex } from "viem";
 
 // Define LossPolicyType locally since we're in the SDK package
-export type LossPolicyType = "ALIASED";
+export type LossPolicyType = "ALIASED" | "MIDAS_ALIASED";
 
 type AbiParameter = {
   type: string;
@@ -28,6 +28,10 @@ export const lossPolicyDeployParamsAbiMapping: Record<
 > = {
   // Alias Loss Policy - [pool, addressProvider]
   ALIASED: {
+    "310": ALIAS_LOSS_POLICY_ABI,
+  },
+  // Midas Aliased Loss Policy - the aliased constructor
+  MIDAS_ALIASED: {
     "310": ALIAS_LOSS_POLICY_ABI,
   },
 } as const;

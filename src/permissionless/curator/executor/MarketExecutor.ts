@@ -38,6 +38,9 @@ import { ResolveCache } from "./ResolveCache.js";
 
 type AnyDefinition = MarketActionDefinition<GipMarketAction>;
 
+/** Actions whose `resolve` reads run at once, ahead of the run. **/
+const PREFETCH_CONCURRENCY = 8;
+
 /**
  * Runs an action's `resolve` step through `cache`.
  *
@@ -263,6 +266,7 @@ export class MarketExecutor {
       ),
     };
 
+    if (state) this.#prefetch(state, actions, 0);
     for (const [index, recorded] of actions.entries()) {
       const definition = this.env.registry.requireMarketAction(recorded.type);
       const target = resolveTarget(recorded, creditSuites);
@@ -274,14 +278,9 @@ export class MarketExecutor {
       }
       const action = target.action;
       const { params } = action;
-      const resolved = await resolveMarketAction({
-        ctx: this.ctx,
-        cache: this.#cache,
-        definition,
-        state,
-        params,
-        registry: this.env.registry,
-      });
+      const resolved = this.#needsResolve(definition)
+        ? await this.#resolve(definition, state, params)
+        : undefined;
       const env = this.env;
 
       if (state === undefined && (index !== 0 || !definition.create))
@@ -313,10 +312,73 @@ export class MarketExecutor {
       }
 
       steps.push({ action, definition, resolved, before: state, after });
+      // @dev a created market's reads can only start once its identity is known
+      if (state === undefined) this.#prefetch(after, actions, index + 1);
       state = after;
     }
 
     return run();
+  }
+
+  /** Whether `definition`'s `resolve` runs: not when only skipped checks need it. **/
+  #needsResolve(definition: AnyDefinition): boolean {
+    return (
+      definition.resolve !== undefined &&
+      (this.#checkActions || !definition.resolvesForChecksOnly)
+    );
+  }
+
+  #resolve(
+    definition: AnyDefinition,
+    state: MarketState | undefined,
+    params: GipMarketAction["params"],
+  ): Promise<unknown> {
+    return resolveMarketAction({
+      ctx: this.ctx,
+      cache: this.#cache,
+      definition,
+      state,
+      params,
+      registry: this.env.registry,
+    });
+  }
+
+  /**
+   * Starts the `resolve` step of `actions` from `from` on, at most
+   * {@link PREFETCH_CONCURRENCY} at a time, without waiting for it. A
+   * resolution depends only on the market's identity and the params, so the
+   * run finds each one in the cache, and concurrent reads share multicalls
+   * instead of following one another. An action naming a credit suite by
+   * reference waits for the run: its target is known once the suite is
+   * deployed. A failed read is left to the run, which tries it again.
+   **/
+  #prefetch(
+    state: MarketState,
+    actions: readonly GipMarketAction[],
+    from: number,
+  ): void {
+    const queue = actions.slice(from).filter(action => {
+      // @dev an unknown type is the run's to reject
+      const definition = this.env.registry.marketAction(action.type) as
+        | AnyDefinition
+        | undefined;
+      const target = targetOf(action.params);
+      return (
+        definition !== undefined &&
+        this.#needsResolve(definition) &&
+        (target === undefined || !isCreditSuiteRef(target))
+      );
+    });
+    const worker = async () => {
+      let action = queue.shift();
+      while (action !== undefined) {
+        const definition = this.env.registry.requireMarketAction(action.type);
+        await this.#resolve(definition, state, action.params).catch(() => {});
+        action = queue.shift();
+      }
+    };
+    for (let i = 0; i < Math.min(PREFETCH_CONCURRENCY, queue.length); i++)
+      void worker();
   }
 
   /** `state` with {@link MarketExecutorOptions.periphery}, which supersedes it. **/

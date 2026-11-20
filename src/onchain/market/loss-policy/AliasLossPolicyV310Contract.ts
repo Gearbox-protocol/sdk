@@ -9,7 +9,11 @@ import { BaseContract, type BaseParams } from "../../base/index.js";
 import type { OnchainSDK } from "../../OnchainSDK.js";
 import type { AliasLossPolicyStateHuman } from "../../types/state-human.js";
 import { formatDuration } from "../../utils/index.js";
-import { LOSS_POLICY_ACCESS_MODES, LOSS_POLICY_ALIASED } from "./constants.js";
+import {
+  LOSS_POLICY_ACCESS_MODES,
+  LOSS_POLICY_ALIASED,
+  LOSS_POLICY_MIDAS_ALIASED,
+} from "./constants.js";
 import type { ILossPolicyContract } from "./types.js";
 
 const abi = iAliasedLossPolicyV310Abi;
@@ -101,7 +105,10 @@ export class AliasLossPolicyV310Contract
   public override stateHuman(raw?: boolean): AliasLossPolicyStateHuman {
     return {
       ...super.stateHuman(raw),
-      contractType: LOSS_POLICY_ALIASED,
+      contractType:
+        this.contractType === LOSS_POLICY_MIDAS_ALIASED
+          ? LOSS_POLICY_MIDAS_ALIASED
+          : LOSS_POLICY_ALIASED,
       checksEnabled: this.checksEnabled,
       accessMode:
         LOSS_POLICY_ACCESS_MODES[this.accessMode] ?? this.accessMode.toString(),

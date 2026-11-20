@@ -46,6 +46,7 @@ collateral computation. The final price for such computation is a minimum betwee
     token: addressSchema,
     priceFeed: addressSchema,
   }),
+  resolvesForChecksOnly: true,
   resolve: ({ ctx, params }) =>
     resolvePriceFeed(ctx, params.token, params.priceFeed, "reserve"),
   check: ({ state, params, resolved }) => {

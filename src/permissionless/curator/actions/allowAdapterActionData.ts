@@ -73,6 +73,7 @@ export const allowAdapterActionData: MarketScopedDefinition<
   schema: allowAdapterSchema(adapterDeployParamsSchema),
   paramsSchema: registry =>
     allowAdapterSchema(registry.adapterDeployParamsSchema),
+  resolvesForChecksOnly: true,
   resolve: async ({ ctx, params, registry }) => {
     const resolveValidation = registry.adapter(
       params.adapter.type,

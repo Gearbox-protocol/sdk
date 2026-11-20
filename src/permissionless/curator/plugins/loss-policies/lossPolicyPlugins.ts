@@ -9,19 +9,29 @@ import {
   aliasDeployParamsSchema,
   aliasPlugin,
 } from "./alias/aliasPlugin.js";
+import {
+  type MidasAliasLossPolicyParams as MidasAliasLossPolicyDeployParams,
+  type MidasAliasLossPolicyState,
+  midasAliasDeployParamsSchema,
+  midasAliasPlugin,
+} from "./midas-alias/midasAliasPlugin.js";
 
-export type LossPolicyDeployParams = AliasLossPolicyDeployParams;
+export type LossPolicyDeployParams =
+  | AliasLossPolicyDeployParams
+  | MidasAliasLossPolicyDeployParams;
 
 export type AbstractLossPolicyState = {
   enabled: boolean;
 };
 
-export type LossPolicyState = AliasLossPolicyState;
+export type LossPolicyState = AliasLossPolicyState | MidasAliasLossPolicyState;
 
 export type LossPolicyType = LossPolicyDeployParams["type"];
 
 export interface LossPolicyPlugin
   extends Plugin<LossPolicyDeployParams, LossPolicyState> {
+  /** Gas of deploying the policy with `MARKET::updateLossPolicy`. **/
+  deployGas: number;
   getDeployParams(args: {
     pool: Address;
     addressProvider: Address;
@@ -31,6 +41,7 @@ export interface LossPolicyPlugin
 
 export const lossPolicyPlugins: Record<LossPolicyType, LossPolicyPlugin> = {
   ALIAS: aliasPlugin,
+  MIDAS_ALIAS: midasAliasPlugin,
 };
 
 export const DEFAULT_LOSS_POLICY_PARAMS: LossPolicyDeployParams =
@@ -38,5 +49,6 @@ export const DEFAULT_LOSS_POLICY_PARAMS: LossPolicyDeployParams =
 
 export const lossPolicyDeployParamsSchema = z.discriminatedUnion("type", [
   aliasDeployParamsSchema,
+  midasAliasDeployParamsSchema,
 ]);
 export const lossPolicyMarketActionsData = [...aliasMarketActionsData];

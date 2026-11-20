@@ -315,17 +315,23 @@ async function readSource(
 ): Promise<GipSourceSnapshot> {
   const chainId = client.chain?.id ?? (await client.getChainId());
   const head = isFork ? await client.getBlockNumber() : undefined;
-  const blockNumber =
-    args.blockNumber !== undefined
-      ? BigInt(args.blockNumber)
-      : (head ?? (await client.getBlockNumber()));
-  if (isFork && blockNumber !== head) {
+  if (
+    isFork &&
+    args.blockNumber !== undefined &&
+    BigInt(args.blockNumber) !== head
+  ) {
     throw new Error(
       "Fork mode must use the Anvil node's current block; fork the node at the desired block before creating the session",
     );
   }
-  const block = await client.getBlock({ blockNumber });
-  if (!block.hash) {
+  const pinned =
+    args.blockNumber !== undefined ? BigInt(args.blockNumber) : head;
+  // @dev without a block, the head is read once, with its hash and timestamp
+  const block = await (pinned === undefined
+    ? client.getBlock({ blockTag: "latest" })
+    : client.getBlock({ blockNumber: pinned }));
+  const blockNumber = block.number ?? pinned;
+  if (!block.hash || blockNumber === undefined || blockNumber === null) {
     throw new Error(`Source block ${blockNumber} has no canonical hash`);
   }
   return snapshot<GipSourceSnapshot>({

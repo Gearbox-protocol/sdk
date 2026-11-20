@@ -30,6 +30,7 @@ import { pendlePlugin } from "./pendle/pendlePlugin.js";
 import { securitizeRedemptionAdapterPlugin } from "./securitize-redemption/securitizeRedemptionAdapterPlugin.js";
 import { stakingRewardsPlugin } from "./staking-rewards/stakingRewardsPlugin.js";
 import { traderJoePlugin } from "./traderjoe/traderJoePlugin.js";
+import { treehouseRouterAdapterPlugin } from "./treehouse-router/treehouseRouterAdapterPlugin.js";
 import { uniswapV2Plugin } from "./uniswap-v2/uniswapV2Plugin.js";
 import { uniswapV3Plugin } from "./uniswap-v3/uniswapV3Plugin.js";
 import { uniswapV4Plugin } from "./uniswap-v4/uniswapV4Plugin.js";
@@ -59,6 +60,10 @@ export const builtinAdapterPlugins = [
   securitizeRedemptionAdapterPlugin,
 
   getAbstractAdapterPlugin("SECURITIZE_ONRAMP"),
+
+  treehouseRouterAdapterPlugin,
+  getAbstractAdapterPlugin("TREEHOUSE_FASTLANE"),
+  getAbstractAdapterPlugin("TREEHOUSE_GATEWAY"),
 
   mellowErc4626AdapterPlugin,
   getAbstractAdapterPlugin("MELLOW_DVV"),

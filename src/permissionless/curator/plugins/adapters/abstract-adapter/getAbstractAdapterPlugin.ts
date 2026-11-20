@@ -26,6 +26,8 @@ export const ABSTRACT_ADAPTER_TYPES = [
   "FLUID_DEX",
   "BALANCER_V3_WRAPPER",
   "SECURITIZE_ONRAMP",
+  "TREEHOUSE_FASTLANE",
+  "TREEHOUSE_GATEWAY",
 ] as const;
 
 export type AbstractAdapterTypes = (typeof ABSTRACT_ADAPTER_TYPES)[number];
@@ -81,6 +83,17 @@ export const abstractAdapterInfo: Record<
     description: "Securitize On-Ramp Adapter",
     allowGas: 2_000_000, // not measured
   },
+  TREEHOUSE_FASTLANE: {
+    name: "Treehouse Fastlane",
+    description: "Adapter for Treehouse Fastlane (instant tAsset redemptions)",
+    allowGas: 2_000_000, // not measured
+  },
+  TREEHOUSE_GATEWAY: {
+    name: "Treehouse Redemption Gateway",
+    description:
+      "Adapter for Treehouse Redemption Gateway (delayed tAsset redemptions)",
+    allowGas: 2_000_000, // not measured
+  },
 };
 
 const fluidDexConstantsAbi = [
@@ -130,6 +143,8 @@ const TOKEN_GETTERS: Record<
   LIDO_WSTETH_V1: ["stETH"],
   BALANCER_V3_WRAPPER: ["balancerPoolToken"],
   SECURITIZE_ONRAMP: ["dsToken", "liquidityToken"],
+  TREEHOUSE_FASTLANE: ["TASSET", "UNDERLYING"],
+  TREEHOUSE_GATEWAY: ["tAsset", "vaultUnderlying", "phantomToken"],
 };
 
 /** Tokens the adapter of `type` moves through `target`. **/

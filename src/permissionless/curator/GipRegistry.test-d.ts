@@ -39,7 +39,7 @@ describe("action registry types", () => {
     // The tuple fails to compile when one of its assertions does not hold.
     type Checks = [
       Assert<Equal<IsAny<MarketActions>, false>>,
-      Assert<Equal<UnionSize<MarketActionType>, 48>>,
+      Assert<Equal<UnionSize<MarketActionType>, 49>>,
       Assert<Equal<UnionSize<ConfiguratorActions["type"]>, 6>>,
       // The market scope takes built-in actions and those of registered plugins.
       Assert<Equal<MarketScopedAction, GipMarketAction>>,

@@ -11,6 +11,7 @@ import {
   noOp,
 } from "../../../../actions/utils/checkHelpers.js";
 import { configureLossPolicy } from "../../../../actions/utils/configureCalls.js";
+import { isAliasedLossPolicy } from "../aliasedLossPolicyPlugin.js";
 import { updateAliasLossPolicy } from "../updateAliasLossPolicy.js";
 
 export type SetAccessModeMarketAction = {
@@ -29,8 +30,14 @@ export const setAccessModeActionData: MarketScopedDefinition<SetAccessModeMarket
       mode: z.nativeEnum(AccessMode),
     }),
     check: ({ state, params }) => {
-      if (state.lossPolicy.type !== "ALIAS") {
-        return [lossPolicyMismatch("ALIAS", state.lossPolicy.type)];
+      if (!isAliasedLossPolicy(state.lossPolicy)) {
+        return [
+          lossPolicyMismatch(
+            "ALIAS or MIDAS_ALIAS",
+            // @dev a policy the SDK does not decode has no type
+            String((state.lossPolicy as { type?: string }).type),
+          ),
+        ];
       }
       return state.lossPolicy.mode === params.mode
         ? [

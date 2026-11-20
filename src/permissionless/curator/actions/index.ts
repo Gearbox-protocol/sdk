@@ -179,7 +179,6 @@ export {
 } from "./updateInterestRateModelActionData.js";
 export {
   type UpdateLossPolicyAction,
-  type UpdateLossPolicyResolution,
   updateLossPolicyActionData,
 } from "./updateLossPolicyActionData.js";
 export {

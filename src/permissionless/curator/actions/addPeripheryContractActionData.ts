@@ -15,6 +15,7 @@ import {
 import { resource } from "./utils/actionKeys.js";
 import { contractRejected, readChain } from "./utils/chainReads.js";
 import { noOp } from "./utils/checkHelpers.js";
+import { BYTECODE_REPOSITORY } from "./utils/systemContracts.js";
 
 /** Matches configurator periphery buckets (see SDK `PeripheryDomain`). **/
 export const peripheryContractDomains = ["DEGEN_NFT", "ZAPPER"] as const;
@@ -53,27 +54,20 @@ export const addPeripheryContractActionData: MarketScopedDefinition<
     type: z.string(),
   }),
   resolve: async ({ ctx, params }) => {
-    const repository = (
-      await readChain(() =>
-        ctx.marketConfigurator.contract.read.bytecodeRepository(),
-      )
-    ).value;
     const contract = getContract({
       address: params.peripheryContract,
       abi: iVersionAbi,
       client: ctx.client,
     });
     const [eligible, type, version] = await Promise.all([
-      repository
-        ? readChain(() =>
-            ctx.client.readContract({
-              address: repository,
-              abi: iBytecodeRepositoryAbi,
-              functionName: "isDeployedFromRepository",
-              args: [params.peripheryContract],
-            }),
-          )
-        : undefined,
+      readChain(() =>
+        ctx.client.readContract({
+          address: BYTECODE_REPOSITORY,
+          abi: iBytecodeRepositoryAbi,
+          functionName: "isDeployedFromRepository",
+          args: [params.peripheryContract],
+        }),
+      ),
       readChain(() => contract.read.contractType()),
       readChain(() => contract.read.version()),
     ]);
