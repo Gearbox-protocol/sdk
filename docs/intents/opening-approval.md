@@ -12,7 +12,16 @@ The first 503 is retried once per signer, respecting Retry-After seconds, includ
 
 ## Handling failures
 
-Preparation returns an `SDKReturn`. A failed `execute.buildTx()` rejects its promise. Catch `OpeningSignerError` from `@gearbox-protocol/sdk/offchain` for HTTP refusals. `status` is the HTTP code, `details` carries the service diagnostic, and `retryAfterSeconds` carries the server’s delay. It also matches `OffchainStatusError` and `OffchainTransportError`. Network, JSON and schema failures use the standard offchain exceptions. When several signers cannot form a quorum, `OpeningSignerQuorumError.errors` contains the individual failures.
+Preparation returns an `SDKReturn`. A failed `execute.buildTx()` rejects its promise. Import signer errors from `@gearbox-protocol/sdk/offchain` and branch with `instanceof`.
+
+| Error | App handling |
+|---|---|
+| `OpeningSignerDeniedError` | Show the screening denial (451) and stop. |
+| `OpeningSignerRetryableError` | Offer a later retry for rate limiting (429) or temporary unavailability (503). Respect `retryAfterSeconds` when present. |
+| `OpeningSignerRequestError` | Check the input or market configuration for other 4xx responses, including 400 and 422. |
+| `OpeningSignerServiceError` | Report an unexpected signer or gateway response, including 500 and 502. |
+
+All four extend `OpeningSignerError`. `status` is the HTTP code, `details` carries the service diagnostic, and `retryAfterSeconds` carries the server’s delay. It also matches `OffchainStatusError` and `OffchainTransportError`. Network, JSON and schema failures use the standard offchain exceptions. When several signers cannot form a quorum, `OpeningSignerQuorumError.errors` contains the individual failures.
 
 ## Testnet
 

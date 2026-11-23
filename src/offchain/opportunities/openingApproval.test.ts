@@ -10,8 +10,12 @@ import {
   OffchainRequestFailedError,
   OffchainStatusError,
   OffchainValidationError,
+  OpeningSignerDeniedError,
   OpeningSignerError,
   OpeningSignerQuorumError,
+  OpeningSignerRequestError,
+  OpeningSignerRetryableError,
+  OpeningSignerServiceError,
   OpeningSignerVerificationError,
 } from "../errors/index.js";
 import { OffchainOpportunities } from "./OffchainOpportunities.js";
@@ -133,9 +137,16 @@ describe("opening signer", () => {
       });
     },
   );
-  it.each([400, 422, 429, 451, 500])(
+  it.each([
+    [400, OpeningSignerRequestError],
+    [422, OpeningSignerRequestError],
+    [429, OpeningSignerRetryableError],
+    [451, OpeningSignerDeniedError],
+    [500, OpeningSignerServiceError],
+    [502, OpeningSignerServiceError],
+  ] as const)(
     "preserves terminal HTTP %s and its text",
-    async status => {
+    async (status, errorType) => {
       const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(
         new Response("diagnostic", {
           status,
@@ -145,6 +156,7 @@ describe("opening signer", () => {
       const failure = expect(client.requestOpeningApproval(single)).rejects;
       await failure.toBeInstanceOf(OffchainStatusError);
       await failure.toBeInstanceOf(OpeningSignerError);
+      await failure.toBeInstanceOf(errorType);
       await failure.toMatchObject({
         url: "https://signer0.example/sign",
         status,
@@ -161,11 +173,11 @@ describe("opening signer", () => {
       .mockImplementation(
         async () => new Response("Chain unavailable", { status: 503 }),
       );
-    const check = expect(
-      client.requestOpeningApproval(single),
-    ).rejects.toMatchObject({ status: 503 });
+    const failure = expect(client.requestOpeningApproval(single)).rejects;
+    const check = failure.toBeInstanceOf(OpeningSignerRetryableError);
     await vi.advanceTimersByTimeAsync(1000);
     await check;
+    await failure.toMatchObject({ status: 503 });
     expect(fetch).toHaveBeenCalledTimes(2);
   });
   it.each([true, false])(

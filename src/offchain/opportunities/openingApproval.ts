@@ -72,7 +72,7 @@ async function sign(
       const raw = res.headers.get("retry-after");
       const seconds =
         raw !== null && /^\d+$/.test(raw) ? Number(raw) : undefined;
-      const error = new OpeningSignerError(
+      const error = OpeningSignerError.fromStatus(
         url,
         res.status,
         await readResponseBody(res),
