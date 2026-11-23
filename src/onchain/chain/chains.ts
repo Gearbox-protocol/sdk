@@ -246,6 +246,8 @@ export const chains: Record<NetworkType, GearboxChain> = {
         "0x119f75D5AC5739Ae49ffC46117a20654793A9b18",
         "0xb46edf298989F0F106EDD80E4ae8f59a13531dB4",
         "0xd98e31C67c7C21f233C37c9AC9Ae656dcb0d5d25",
+        "0x72CCB97cbdC40f8fb7FFA42Ed93AE74923547200", // cp0x wstETH
+        "0xf00B548f1b69cB5EE559d891E03A196FB5101d4A", // cp0x WETH
       ]),
       sunsetStrategies: new AddressSet([
         "0x1840056a2bdbe949e017a3716e3fdd4a0d327bf0",
