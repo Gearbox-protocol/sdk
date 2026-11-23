@@ -1,15 +1,16 @@
 import type { DecodeFunctionDataReturnType } from "viem";
-
 import {
   iCreditFacadeMulticallV310Abi,
   iCreditFacadeV310Abi,
 } from "../../../abi/310/generated.js";
 import { iPausableAbi } from "../../../abi/iPausable.js";
+import { openWithDataAbi } from "../../../abi/signatureDegenNFT.js";
 import type { BaseContractArgs, ConstructOptions } from "../../base/index.js";
 import { BaseContract } from "../../base/index.js";
 
 const abi = [
   ...iCreditFacadeV310Abi,
+  ...openWithDataAbi,
   ...iCreditFacadeMulticallV310Abi,
   ...iPausableAbi,
 ] as const;
@@ -40,6 +41,7 @@ export class CreditFacadeV310BaseContract extends BaseContract<abi> {
           onBehalfOf,
           calls: this.register.parseMultiCallV2([...calls], strict),
           referralCode,
+          ...(params.args.length === 4 ? { degenNFTData: params.args[3] } : {}),
         };
       }
       case "closeCreditAccount": {
@@ -80,6 +82,7 @@ export class CreditFacadeV310BaseContract extends BaseContract<abi> {
           this.labelAddress(onBehalfOf),
           this.register.stringifyMultiCall([...calls]).join(", "),
           `${referralCode}`,
+          ...(params.args.length === 4 ? [params.args[3]] : []),
         ];
       }
       case "closeCreditAccount": {

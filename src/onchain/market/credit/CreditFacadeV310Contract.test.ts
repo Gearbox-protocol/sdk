@@ -184,6 +184,24 @@ describe("parseFunctionDataV2", () => {
     );
   });
 
+  it("selects the signed opening selector on v311 and preserves the bytes in parsing", () => {
+    const facade = makeTestFacade(311n);
+    const tx = facade.openCreditAccount(ON_BEHALF_OF, [], 121n, "0x1234");
+    expect(facade.parseFunctionDataV2(tx.callData, true)).toMatchObject({
+      functionName:
+        "openCreditAccount(address,(address,bytes)[],uint256,bytes)",
+      rawArgs: {
+        onBehalfOf: ON_BEHALF_OF,
+        calls: [],
+        referralCode: 121n,
+        degenNFTData: "0x1234",
+      },
+    });
+    expect(() =>
+      makeTestFacade().openCreditAccount(ON_BEHALF_OF, [], 0n, "0x1234"),
+    ).toThrow("Inline opening signatures");
+  });
+
   it("openCreditAccount parses multicall inner calls", () => {
     const { facade } = makeFacadeAndAdapter();
 

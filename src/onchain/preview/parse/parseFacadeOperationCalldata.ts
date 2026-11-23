@@ -70,6 +70,9 @@ export function parseFacadeOperationCalldata(
         creditAccount: zeroAddress,
         onBehalfOf: rawArgs.onBehalfOf as Address,
         referralCode: rawArgs.referralCode as bigint,
+        ...(rawArgs.degenNFTData !== undefined && {
+          degenNFTData: rawArgs.degenNFTData as Hex,
+        }),
         multicall,
       };
     case "closeCreditAccount":

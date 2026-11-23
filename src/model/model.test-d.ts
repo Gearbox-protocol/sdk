@@ -81,6 +81,8 @@ import type {
   liquidationPositionSchema,
   receivedAssetSchema,
 } from "./liquidations.schema.js";
+import type { OpeningSignerResponse } from "./openingApproval.js";
+import type { openingSignerResponseSchema } from "./openingApproval.schema.js";
 import type {
   ApyBreakdown,
   Opportunity,
@@ -579,4 +581,10 @@ describe("quota input limits", () => {
     expectTypeOf<{ collateralMax: TokenAmount }>().toExtend<QuotaInputLimits>();
     expectTypeOf<{ leverageMax: bigint }>().toExtend<QuotaInputLimits>();
   });
+});
+
+it("matches the opening signer wire response", () => {
+  expectTypeOf<
+    z.output<typeof openingSignerResponseSchema>
+  >().toEqualTypeOf<OpeningSignerResponse>();
 });

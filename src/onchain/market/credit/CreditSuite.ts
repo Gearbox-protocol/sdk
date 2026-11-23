@@ -1,4 +1,4 @@
-import { type Address, isAddressEqual } from "viem";
+import { type Address, type Hex, isAddressEqual } from "viem";
 import type {
   Bps,
   CreditOperationMarket,
@@ -37,6 +37,7 @@ import {
 import createCreditConfigurator from "./createCreditConfigurator.js";
 import createCreditFacade from "./createCreditFacade.js";
 import createCreditManager from "./createCreditManager.js";
+import { UnsupportedOpeningApprovalError } from "./errors.js";
 import type {
   ICreditConfiguratorContract,
   ICreditFacadeContract,
@@ -204,15 +205,23 @@ export class CreditSuite extends SDKConstruct {
     calls: MultiCall[],
     referralCode?: bigint,
     rwaOptions?: RWAOperationArgs,
+    degenNFTData?: Hex,
   ): RawTx {
     const { rwaFactory } = this;
+    if (degenNFTData && rwaFactory)
+      throw new UnsupportedOpeningApprovalError(this.creditFacade.address);
     return rwaFactory
       ? rwaFactory.openCreditAccount(
           this.creditManager.address,
           calls,
           rwaOptions,
         )
-      : this.creditFacade.openCreditAccount(to, calls, referralCode ?? 0n);
+      : this.creditFacade.openCreditAccount(
+          to,
+          calls,
+          referralCode ?? 0n,
+          degenNFTData,
+        );
   }
 
   /**

@@ -92,7 +92,11 @@ export class OpportunitiesNamespace
     );
     this.#prepare = onchain && new PrepareApi(onchain, options.ensureFresh);
     this.#execute =
-      onchain && new ExecuteApi(chainId => onchain.chain(chainId));
+      onchain &&
+      new ExecuteApi(
+        chainId => onchain.chain(chainId),
+        offchain?.opportunities,
+      );
   }
 
   /**

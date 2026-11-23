@@ -289,6 +289,7 @@ export interface ICreditFacadeContract extends IBaseContract {
     to: Address,
     calls: MultiCall[],
     referralCode: bigint,
+    degenNFTData?: Hex,
   ): RawTx;
 
   /**

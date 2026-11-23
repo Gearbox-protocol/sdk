@@ -5,6 +5,10 @@ import type {
   RWAOperationArgs,
 } from "../../model/index.js";
 import type {
+  OpeningApproval,
+  OpeningApprovalRequirement,
+} from "../../model/openingApproval.js";
+import type {
   Asset,
   Construct,
   CreditAccountData,
@@ -178,6 +182,7 @@ export interface ClaimFarmRewardsProps extends PrepareUpdateQuotasProps {
 }
 
 export interface OpenCAProps extends PrepareUpdateQuotasProps {
+  openingApproval?: OpeningApproval;
   /**
    * Native token amount to attach to tx
    */
@@ -466,6 +471,12 @@ export interface ICreditAccountsService extends Construct {
     creditManager: Address,
     props: GetOpenAccountRequirementsProps,
   ): Promise<RWAOpenAccountRequirements | undefined>;
+
+  /** Reads the signature gate for a fresh account at the latest block. */
+  getOpeningApprovalRequirement(
+    creditManager: Address,
+    accountOwner: Address,
+  ): Promise<OpeningApprovalRequirement>;
 
   /**
    * Executes swap specified by given calls, update quotas of affected tokens

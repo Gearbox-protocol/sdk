@@ -10,13 +10,12 @@ import type { DataResponse } from "../model/response.js";
 import { responseSchema } from "../model/response.schema.js";
 import type { ILogger } from "../onchain/types/logger.js";
 import {
-  OffchainInvalidJsonError,
   OffchainNotConfiguredError,
-  OffchainRequestFailedError,
   OffchainStatusError,
   OffchainValidationError,
   readResponseBody,
 } from "./errors/index.js";
+import { fetchOffchainResponse, readOffchainJson } from "./transport.js";
 import type { GearboxAPIOptions } from "./types.js";
 
 const DEFAULT_TIMEOUT = 30_000;
@@ -190,15 +189,10 @@ export abstract class AbstractOffchainNamespace {
    * Body of a successful read, still undecoded.
    **/
   async #fetchJson(url: string): Promise<unknown> {
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        headers: { accept: "application/json" },
-        signal: AbortSignal.timeout(this.#timeout),
-      });
-    } catch (error) {
-      throw new OffchainRequestFailedError(url, error);
-    }
+    const response = await fetchOffchainResponse(url, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(this.#timeout),
+    });
 
     if (!response.ok) {
       throw new OffchainStatusError(
@@ -208,10 +202,6 @@ export abstract class AbstractOffchainNamespace {
       );
     }
 
-    try {
-      return await response.json();
-    } catch (error) {
-      throw new OffchainInvalidJsonError(url, response.status, error);
-    }
+    return readOffchainJson(url, response);
   }
 }

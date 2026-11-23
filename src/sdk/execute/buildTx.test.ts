@@ -96,6 +96,9 @@ function mockChain(overrides?: {
       removeLiquidity: vi.fn(() => ({ tx: txs.withdraw, calls: [CALL] })),
     },
     accounts: {
+      getOpeningApprovalRequirement: vi.fn(async () => ({
+        status: "notRequired",
+      })),
       openCA: vi.fn(async () => txs.open),
       getCreditAccountData: vi.fn(async () =>
         "account" in (overrides ?? {}) ? overrides?.account : account,
@@ -556,6 +559,7 @@ describe("buildTx — borrow", () => {
       ethAmount: 0n,
     });
 
+    expect(sdk.accounts.getOpeningApprovalRequirement).not.toHaveBeenCalled();
     expect(sdk.accounts.openCA).toHaveBeenCalledWith(
       expect.objectContaining({ reopenCreditAccount: CREDIT_ACCOUNT }),
     );
@@ -564,6 +568,32 @@ describe("buildTx — borrow", () => {
 
 describe("buildTx — openEmpty", () => {
   const sim: SDKResult<EmptyCreditAccountResult> = { ok: true, data: AT };
+
+  it("fetches an inline approval during the build", async () => {
+    const { sdk } = mockChain();
+    const gate = { status: "signaturesRequired" };
+    sdk.accounts.getOpeningApprovalRequirement.mockResolvedValue(gate);
+    const approval = { chainId: CHAIN_ID, degenNFT: POOL, signatures: [] };
+    const requestOpeningApproval = vi.fn().mockResolvedValue(approval);
+    const execute = new ExecuteApi(() => sdk as unknown as OnchainSDK, {
+      requestOpeningApproval,
+    });
+    const request = {
+      kind: "openEmpty",
+      chainId: CHAIN_ID,
+      creditManager: CREDIT_MANAGER,
+      wallet: WALLET,
+      sim,
+    } as const;
+    await execute.buildTx(request);
+    expect(requestOpeningApproval).toHaveBeenCalledWith(gate);
+    expect(sdk.accounts.openCA).toHaveBeenCalledWith(
+      expect.objectContaining({ openingApproval: approval }),
+    );
+    await execute.buildTx({ ...request, openingApproval: approval });
+    expect(requestOpeningApproval).toHaveBeenCalledTimes(1);
+    expect(sdk.accounts.getOpeningApprovalRequirement).toHaveBeenCalledTimes(1);
+  });
 
   it("opens on nothing: no collateral, no debt, no path, no quota", async () => {
     const { execute, sdk, txs } = mockChain();
