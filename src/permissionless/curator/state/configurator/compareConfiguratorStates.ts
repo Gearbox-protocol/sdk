@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { lowerAddress } from "../../utils/addressUtils.js";
-import { compact } from "../../utils/objectUtils.js";
+import { compact, ownEntry } from "../../utils/objectUtils.js";
 import type {
   ConfiguratorState,
   GovernorState,
@@ -31,6 +31,8 @@ export interface ConfiguratorStateDiff {
     unpausableAdmins?: ListChange<Address>;
     lossLiquidators?: ListChange<Address>;
     emergencyLiquidators?: ListChange<Address>;
+    /** Per role of `otherRoles` whose holders differ. **/
+    otherRoles?: Record<string, ListChange<Address>>;
     governor?: {
       address?: Changed<Address>;
       vetoAdmin?: Changed<Address>;
@@ -111,6 +113,28 @@ function compareAddressArrays(
 function areProportionsEqual(old: number[], new_: number[]): boolean {
   if (old.length !== new_.length) return false;
   return old.every((val, idx) => Math.abs(val - new_[idx]) < 1e-10);
+}
+
+/**
+ * Holder changes per role of `otherRoles`; a role missing on one side has no
+ * holders there. `undefined` when no role's holders changed.
+ **/
+function compareOtherRoles(
+  before: ConfiguratorState["otherRoles"] = {},
+  after: ConfiguratorState["otherRoles"] = {},
+): Record<string, ListChange<Address>> | undefined {
+  const roles = new Set([...Object.keys(before), ...Object.keys(after)]);
+  return nonEmpty(
+    Object.fromEntries(
+      [...roles].map(role => [
+        role,
+        compareAddressArrays(
+          ownEntry(before, role) ?? [],
+          ownEntry(after, role) ?? [],
+        ),
+      ]),
+    ),
+  ) as Record<string, ListChange<Address>> | undefined;
 }
 
 /** The fields of `differences` that are set, or `undefined` when none is. **/
@@ -272,6 +296,7 @@ export function compareConfiguratorStates(
       before.emergencyLiquidators,
       after.emergencyLiquidators,
     ),
+    otherRoles: compareOtherRoles(before.otherRoles, after.otherRoles),
     governor: compareGovernorStates(before.governor, after.governor),
     treasury: compareTreasuryStates(before.treasury, after.treasury),
   });

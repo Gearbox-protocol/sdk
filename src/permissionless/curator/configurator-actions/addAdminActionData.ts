@@ -9,10 +9,10 @@ import {
 import { lowerAddress } from "../utils/addressUtils.js";
 import { addressSchema } from "../validationSchemas.js";
 import {
-  adminRoleLabel,
   byRoleAndAdmin,
-  holdsAdminRole,
-  updateAdminRole,
+  holdsRole,
+  roleLabel,
+  updateRoleHolders,
 } from "./configuratorActionHelpers.js";
 import {
   type ConfiguratorScopedDefinition,
@@ -32,22 +32,22 @@ export type AddAdminAction = BaseMarketAction<
 export const addAdminActionData: ConfiguratorScopedDefinition<AddAdminAction> =
   defineConfiguratorAction<AddAdminAction>({
     type: "CONFIGURATOR::addAdmin",
-    description: `Add a new pausable or unpausable admin for all markets.`,
+    description: `Add a pausable admin, unpausable admin, loss liquidator or emergency liquidator for all markets. CONFIGURATOR::grantRole takes any role.`,
     schema: z.object({
       role: adminRoleSchema,
       admin: addressSchema,
     }),
     check: ({ state, params }) =>
-      holdsAdminRole(state, params.role, params.admin)
+      holdsRole(state, params.role, params.admin)
         ? [
             noOp(
-              `${params.admin} is already one of the ${adminRoleLabel(params.role)}`,
+              `${params.admin} is already one of the ${roleLabel(params.role)}`,
               ["params", "admin"],
             ),
           ]
         : [],
     apply: ({ state, params }) =>
-      updateAdminRole(state, params.role, holders => [
+      updateRoleHolders(state, params.role, holders => [
         ...holders,
         lowerAddress(params.admin),
       ]),

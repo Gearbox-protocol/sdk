@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import { type Address, type Hex, size, stringToBytes } from "viem";
 import { z } from "zod/v4";
 
 export interface GovernorState {
@@ -63,6 +63,14 @@ export interface ConfiguratorState {
   unpausableAdmins: Address[];
   lossLiquidators: Address[];
   emergencyLiquidators: Address[];
+  /**
+   * Holders of every other role in the configurator's ACL, by role name (for
+   * example `OPENING_SIGNER`): the roles without a field of their own above.
+   * A role whose holders were all revoked stays, with no holders, as it does
+   * in the ACL. States persisted before these roles were tracked have no such
+   * field.
+   **/
+  otherRoles?: Record<string, Address[]>;
 
   // Governor
   governor: GovernorState;
@@ -91,3 +99,33 @@ export const adminRoleLabelMap: Record<AdminRole, string> = {
   LOSS_LIQUIDATOR: "Loss Liquidator",
   EMERGENCY_LIQUIDATOR: "Emergency Liquidator",
 };
+
+/**
+ * Every role a Gearbox contract checks in the configurator's ACL, by name:
+ * - `PAUSABLE_ADMIN`, `UNPAUSABLE_ADMIN`: pause and unpause market contracts
+ *   (core-v3 `ACLTrait`);
+ * - `EMERGENCY_LIQUIDATOR`: liquidates while a credit facade is paused
+ *   (`CreditFacadeV3`);
+ * - `LOSS_LIQUIDATOR`: liquidates with loss under a permissioned aliased loss
+ *   policy (`AliasedLossPolicyV3`);
+ * - `OPENING_SIGNER`: signs credit account openings for a signature degen NFT
+ *   (`SignatureDegenNFT`).
+ **/
+export const knownRoleLabelMap: Record<AdminRole | "OPENING_SIGNER", string> = {
+  ...adminRoleLabelMap,
+  OPENING_SIGNER: "Opening Signer",
+};
+export type KnownRole = keyof typeof knownRoleLabelMap;
+
+/**
+ * Schema for a role name, as `CONFIGURATOR::grantRole` and `revokeRole` take
+ * it: the configurator passes any `bytes32` role to its ACL, so any name
+ * fits. It must fit in 32 bytes and consist of printable ASCII without spaces,
+ * so that it reads back from the chain as it was written.
+ **/
+export const roleNameSchema = z
+  .string()
+  .regex(/^[\x21-\x7e]+$/, "Role must be printable ASCII without spaces")
+  .refine(role => size(stringToBytes(role)) <= 32, {
+    message: "Role must fit in 32 bytes",
+  });

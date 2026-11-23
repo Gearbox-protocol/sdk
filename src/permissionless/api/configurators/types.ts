@@ -79,6 +79,8 @@ export interface PermissionlessConfiguratorRoles {
   unpausableAdmins: Address[];
   lossLiquidators: Address[];
   emergencyLiquidators: Address[];
+  /** Holders of every other ACL role, by role name (e.g. `OPENING_SIGNER`). **/
+  otherRoles: Record<string, Address[]>;
 }
 
 /**

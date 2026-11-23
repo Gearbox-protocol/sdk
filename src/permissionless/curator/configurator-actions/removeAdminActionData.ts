@@ -9,10 +9,10 @@ import {
 import { isSameAddress } from "../utils/addressUtils.js";
 import { addressSchema } from "../validationSchemas.js";
 import {
-  adminRoleLabel,
   byRoleAndAdmin,
-  holdsAdminRole,
-  updateAdminRole,
+  holdsRole,
+  roleLabel,
+  updateRoleHolders,
 } from "./configuratorActionHelpers.js";
 import {
   type ConfiguratorScopedDefinition,
@@ -32,23 +32,23 @@ export type RemoveAdminAction = BaseMarketAction<
 export const removeAdminActionData: ConfiguratorScopedDefinition<RemoveAdminAction> =
   defineConfiguratorAction<RemoveAdminAction>({
     type: "CONFIGURATOR::removeAdmin",
-    description: `Remove a pausable or unpausable admin from all markets.`,
+    description: `Remove a pausable admin, unpausable admin, loss liquidator or emergency liquidator from all markets. CONFIGURATOR::revokeRole takes any role.`,
     schema: z.object({
       role: adminRoleSchema,
       admin: addressSchema,
     }),
     check: ({ state, params }) =>
-      holdsAdminRole(state, params.role, params.admin)
+      holdsRole(state, params.role, params.admin)
         ? []
         : [
             actionError(
               "ADMIN_NOT_FOUND",
-              `${params.admin} is not one of the ${adminRoleLabel(params.role)}`,
+              `${params.admin} is not one of the ${roleLabel(params.role)}`,
               ["params", "admin"],
             ),
           ],
     apply: ({ state, params }) =>
-      updateAdminRole(state, params.role, holders =>
+      updateRoleHolders(state, params.role, holders =>
         holders.filter(holder => !isSameAddress(holder, params.admin)),
       ),
     encode: ({ ctx, params }) =>

@@ -40,7 +40,7 @@ describe("action registry types", () => {
     type Checks = [
       Assert<Equal<IsAny<MarketActions>, false>>,
       Assert<Equal<UnionSize<MarketActionType>, 49>>,
-      Assert<Equal<UnionSize<ConfiguratorActions["type"]>, 6>>,
+      Assert<Equal<UnionSize<ConfiguratorActions["type"]>, 8>>,
       // The market scope takes built-in actions and those of registered plugins.
       Assert<Equal<MarketScopedAction, GipMarketAction>>,
       Assert<Equal<GipMarketAction, MarketActions | ExternalAdapterAction>>,
