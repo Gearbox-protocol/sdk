@@ -173,6 +173,7 @@ export function createStubClient(
         return { status: "failure", error: new Error("no contractType") };
       case "pool":
         return { status: "success", result: POOL };
+      case "getRoles":
       case "getRoleHolders":
         return { status: "success", result: [] };
       case "asset":

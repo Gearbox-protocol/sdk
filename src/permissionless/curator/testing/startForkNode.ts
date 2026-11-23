@@ -28,6 +28,7 @@ const multicallAbi = parseAbi([
   "function aggregate3((address target, bool allowFailure, bytes callData)[] calls) payable returns ((bool success, bytes returnData)[] returnData)",
 ]);
 const roleAbi = parseAbi([
+  "function getRoles() view returns (bytes32[])",
   "function getRoleHolders(bytes32 role) view returns (address[])",
 ]);
 const contractsRegisterAbi = parseAbi([
@@ -98,6 +99,7 @@ export function contractResult(to: Address, data: Hex): Hex {
       case "treasury":
         result = TREASURY;
         break;
+      case "getRoles":
       case "getRoleHolders":
         result = [];
         break;

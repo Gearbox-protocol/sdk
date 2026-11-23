@@ -539,6 +539,55 @@ re-setting the current emergency admin, re-proposing the current default split o
 cancelling an unknown treasury proposal is an error in `preview.actionDiagnostics`,
 and `build()` and `simulate()` reject.
 
+### ACL roles
+
+`CONFIGURATOR::grantRole` and `CONFIGURATOR::revokeRole` take any role of the
+configurator's ACL by name, encoded as `bytes32` for `grantRole(role, account)` and
+`revokeRole(role, account)`:
+
+```ts
+session
+  .configurator()
+  .addAction({ type: "CONFIGURATOR::grantRole", params: { role: "OPENING_SIGNER", account: signer } })
+  .addAction({ type: "CONFIGURATOR::revokeRole", params: { role: "PAUSABLE_ADMIN", account: oldPauser } });
+```
+
+| Role | Checked by | Lets the holder |
+|---|---|---|
+| `PAUSABLE_ADMIN` | core-v3 `ACLTrait` | pause market contracts |
+| `UNPAUSABLE_ADMIN` | core-v3 `ACLTrait` | unpause them |
+| `EMERGENCY_LIQUIDATOR` | `CreditFacadeV3` | liquidate while a credit facade is paused |
+| `LOSS_LIQUIDATOR` | `AliasedLossPolicyV3` | liquidate with loss under a permissioned aliased loss policy |
+| `OPENING_SIGNER` | `SignatureDegenNFT` | sign credit account openings |
+
+The four admin roles stay in their own `ConfiguratorState` lists (`pausableAdmins`,
+…); every other role is in `otherRoles`, read from the ACL's `getRoles()`. Keys are role names when they round-trip to the original bytes, or full hex identifiers otherwise.
+`CONFIGURATOR::addAdmin` and `removeAdmin` remain for the four admin roles and
+project onto the same lists. Checks:
+
+- granting a role the account holds is a `NO_OP` error; granting a role none of
+  the contracts above checks is an `UNKNOWN_ROLE` warning, which catches typos;
+- revoking a role the account does not hold is a `ROLE_NOT_GRANTED` error;
+- revoking `PAUSABLE_ADMIN` or `UNPAUSABLE_ADMIN` from the configurator itself is a
+  `CONFIGURATOR_ROLE_REQUIRED` error: the configurator pauses and unpauses its
+  markets as itself.
+
+Role names are printable ASCII without spaces, at most 32 bytes.
+
+### Emergency calls
+
+Emergency calls do not go through the governor, so they are not GIP actions. The
+`MarketConfiguratorContract` binding builds them, and `emergencyTx` routes each
+through the emergency admin (wrapping it in `proxyCall` when that is a kill switch
+proxy):
+
+```ts
+const mc = new MarketConfiguratorContract(MC, client);
+const tx = await mc.emergencyTx(mc.emergencyRevokeRole("OPENING_SIGNER", signer));
+```
+
+The builders are `emergencyRevokeRole` and `emergencyConfigure{Pool,CreditSuite,PriceOracle,LossPolicy,RateKeeper,InterestRateModel}`.
+
 ## Treasury balances
 
 `ConfiguratorState.treasury.balances` tracks what the treasury splitter holds of
@@ -882,7 +931,7 @@ anything by hand:
 | Say what an action configures and needs | `actions/utils/actionKeys.ts` — `single`, `byToken`, `byCreditManager`, `byCreditManagerAndToken`, `byAdapter`, `paramsKey`, `resource`, `requiresAsset`, `requiresCreditManager`, `requiresCollateral` |
 | Name or move a credit manager target | `actions/creditManagerTargets.ts` — `creditManagerTargetSchema`, `creditSuiteRef`, `BUNDLE_TARGET`, `retargetCreditManager`, `isSameTarget` |
 | Check a collateral token an action configures | `actions/utils/checkHelpers.ts` — `targetCollateral`, `liquidationThresholdDiagnostics`, `noOp` |
-| Write a configurator action | `configurator-actions/configuratorActionHelpers.ts` — `updateAdminRole`, `holdsAdminRole`, `resolveTreasurySplitter`, `treasurySplitter` |
+| Write a configurator action | `configurator-actions/configuratorActionHelpers.ts` — `roleHolders`, `holdsRole`, `updateRoleHolders`, `roleLabel`, `resolveTreasurySplitter`, `treasurySplitter` |
 | Write an adapter plugin | `plugins/adapters/adapterPluginHelpers.ts` — `deployState`, `sdkState`, `plainAdapter`, `adapterDeployParams`, `resolveTargetTokens`, `readAddress(es)` |
 | Write an adapter action | `plugins/adapters/adapterActionHelpers.ts` — `adapterActionSchema`, `adapterAbi`, `adapterBatch`, `lowerAddresses`, `adapterActionKeys`, `adapterDiagnostics`, `updateActionAdapter` |
 | Share one lazy async value | `session/SharedPromise.ts` — `SharedPromise` (a rejection is not cached) |

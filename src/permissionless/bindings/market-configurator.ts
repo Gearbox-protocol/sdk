@@ -64,6 +64,27 @@ import type {
 
 const PERIPHERY_DOMAINS: readonly PeripheryDomain[] = ["ZAPPER", "DEGEN_NFT"];
 
+/** The ACL roles `admins()` reports in fields of their own. **/
+const ADMIN_ROLE_IDS = new Set<string>(
+  [
+    "PAUSABLE_ADMIN",
+    "UNPAUSABLE_ADMIN",
+    "LOSS_LIQUIDATOR",
+    "EMERGENCY_LIQUIDATOR",
+  ].map(role => stringToHex(role, { size: 32 })),
+);
+
+function aclRoleKey(role: Hex): string {
+  const name = hexToString(role, { size: 32 });
+  const id = role.toLowerCase();
+  return stringToHex(name).padEnd(id.length, "0") === id ? name : id;
+}
+
+const aclRolesAbi = parseAbi([
+  "function getRoles() view returns (bytes32[])",
+  "function getRoleHolders(bytes32) view returns (address[])",
+]);
+
 const abi = iMarketConfiguratorV310Abi;
 
 export class MarketConfiguratorContract extends BaseContract<typeof abi> {
@@ -552,6 +573,10 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     return await this.contract.read.treasury();
   }
 
+  /**
+   * Who holds each role of the configurator's ACL: the four admin roles in
+   * their own fields, every other role in `otherRoles`, by role name.
+   **/
   async admins(): Promise<{
     admin: Address;
     emergencyAdmin: Address;
@@ -560,6 +585,7 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
     unpausableAdmins: Address[];
     lossLiquidators: Address[];
     emergencyLiquidators: Address[];
+    otherRoles: Record<string, Address[]>;
   }> {
     const [admin, emergencyAdmin, treasury, acl] = await Promise.all([
       this.contract.read.admin(),
@@ -567,54 +593,56 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       this.contract.read.treasury(),
       this.contract.read.acl(),
     ]);
+    const holders = (role: Hex) =>
+      ({
+        address: acl,
+        abi: aclRolesAbi,
+        functionName: "getRoleHolders",
+        args: [role],
+      }) as const;
+    const roleHex = (role: string) => stringToHex(role, { size: 32 });
 
-    const results = await this.client.multicall({
+    const [
+      roles,
+      pausableAdmins,
+      unpausableAdmins,
+      lossLiquidators,
+      emergencyLiquidators,
+    ] = await this.client.multicall({
       allowFailure: false,
       contracts: [
-        {
-          address: acl,
-          abi: parseAbi([
-            "function getRoleHolders(bytes32) view returns (address[])",
-          ]),
-          functionName: "getRoleHolders",
-          args: [stringToHex("PAUSABLE_ADMIN", { size: 32 })],
-        },
-        {
-          address: acl,
-          abi: parseAbi([
-            "function getRoleHolders(bytes32) view returns (address[])",
-          ]),
-          functionName: "getRoleHolders",
-          args: [stringToHex("UNPAUSABLE_ADMIN", { size: 32 })],
-        },
-        {
-          address: acl,
-          abi: parseAbi([
-            "function getRoleHolders(bytes32) view returns (address[])",
-          ]),
-          functionName: "getRoleHolders",
-          args: [stringToHex("LOSS_LIQUIDATOR", { size: 32 })],
-        },
-        {
-          address: acl,
-          abi: parseAbi([
-            "function getRoleHolders(bytes32) view returns (address[])",
-          ]),
-          functionName: "getRoleHolders",
-          args: [stringToHex("EMERGENCY_LIQUIDATOR", { size: 32 })],
-        },
+        { address: acl, abi: aclRolesAbi, functionName: "getRoles" },
+        holders(roleHex("PAUSABLE_ADMIN")),
+        holders(roleHex("UNPAUSABLE_ADMIN")),
+        holders(roleHex("LOSS_LIQUIDATOR")),
+        holders(roleHex("EMERGENCY_LIQUIDATOR")),
       ],
       batchSize: 0,
     });
+
+    const otherRoles = roles.filter(
+      role => !ADMIN_ROLE_IDS.has(role.toLowerCase()),
+    );
+    const otherHolders =
+      otherRoles.length === 0
+        ? []
+        : await this.client.multicall({
+            allowFailure: false,
+            contracts: otherRoles.map(holders),
+            batchSize: 0,
+          });
 
     return {
       admin,
       emergencyAdmin,
       treasury,
-      pausableAdmins: [...results[0]],
-      unpausableAdmins: [...results[1]],
-      lossLiquidators: [...results[2]],
-      emergencyLiquidators: [...results[3]],
+      pausableAdmins: [...pausableAdmins],
+      unpausableAdmins: [...unpausableAdmins],
+      lossLiquidators: [...lossLiquidators],
+      emergencyLiquidators: [...emergencyLiquidators],
+      otherRoles: Object.fromEntries(
+        otherRoles.map((role, i) => [aclRoleKey(role), [...otherHolders[i]]]),
+      ),
     };
   }
 
@@ -1084,11 +1112,12 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
       }
 
       case "revokeRole":
-      case "grantRole": {
+      case "grantRole":
+      case "emergencyRevokeRole": {
         const [role, address] = args;
         return {
           address,
-          role: hexToString(role, { size: 32 }),
+          role: aclRoleKey(role),
         };
       }
 
@@ -1146,6 +1175,17 @@ export class MarketConfiguratorContract extends BaseContract<typeof abi> {
   // Before sending, route them through emergency admin with `emergencyTx` or `wrapEmergencyTx`,
   // since emergency admin might be a kill switch proxy.
   //
+
+  /**
+   * Revokes `role` from `account` at once, without the timelock that
+   * `revokeRole` goes through
+   */
+  emergencyRevokeRole(role: string, account: Address): RawTx {
+    return this.createRawTx({
+      functionName: "emergencyRevokeRole",
+      args: [stringToHex(role, { size: 32 }), account],
+    });
+  }
 
   emergencyConfigurePool(pool: Address, calldata: Hex): RawTx {
     return this.createRawTx({

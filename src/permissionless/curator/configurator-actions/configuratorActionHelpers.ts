@@ -8,6 +8,7 @@ import type {
   ConfiguratorState,
 } from "../state/configurator/types.js";
 import { isSameAddress } from "../utils/addressUtils.js";
+import { ownEntry } from "../utils/objectUtils.js";
 
 /** The treasury splitter every market of the configurator shares. **/
 export interface TreasurySplitterResolution {
@@ -51,39 +52,65 @@ const ADMIN_ROLE_LISTS: Record<
   },
 };
 
-function adminRoleList(role: AdminRole) {
-  const list = ADMIN_ROLE_LISTS[role];
-  if (!list) throw new Error(`Unknown admin role: ${role}`);
-  return list;
+/** The list field of `role` if it has one, `undefined` for any other role. **/
+function adminRoleList(role: string) {
+  return Object.hasOwn(ADMIN_ROLE_LISTS, role)
+    ? ADMIN_ROLE_LISTS[role as AdminRole]
+    : undefined;
 }
 
-/** Whether `admin` holds `role`. **/
-export function holdsAdminRole(
+/**
+ * Who holds `role`: its own list for the four admin roles, `otherRoles` for
+ * any other.
+ **/
+export function roleHolders(
   state: ConfiguratorState,
-  role: AdminRole,
-  admin: Address,
+  role: string,
+): readonly Address[] {
+  const list = adminRoleList(role);
+  return list ? state[list.field] : (ownEntry(state.otherRoles, role) ?? []);
+}
+
+/** Whether `account` holds `role`. **/
+export function holdsRole(
+  state: ConfiguratorState,
+  role: string,
+  account: Address,
 ): boolean {
-  return state[adminRoleList(role).field].some(holder =>
-    isSameAddress(holder, admin),
+  return roleHolders(state, role).some(holder =>
+    isSameAddress(holder, account),
   );
 }
 
-/** How diagnostics name the holder list of `role`. **/
-export function adminRoleLabel(role: AdminRole): string {
-  return adminRoleList(role).label;
+/** How diagnostics name the holders of `role`. **/
+export function roleLabel(role: string): string {
+  return adminRoleList(role)?.label ?? `${role} holders`;
 }
 
-/** Rewrites the holder list of `role`: `update` maps the holders to the new ones. **/
-export function updateAdminRole(
+/** Rewrites the holders of `role`: `update` maps the holders to the new ones. **/
+export function updateRoleHolders(
   state: ConfiguratorState,
-  role: AdminRole,
+  role: string,
   update: (holders: Address[]) => Address[],
 ): ConfiguratorState {
-  const { field } = adminRoleList(role);
-  return { ...state, [field]: update(state[field]) };
+  const list = adminRoleList(role);
+  if (list) return { ...state, [list.field]: update(state[list.field]) };
+  return {
+    ...state,
+    otherRoles: {
+      ...state.otherRoles,
+      [role]: update([...(ownEntry(state.otherRoles, role) ?? [])]),
+    },
+  };
 }
 
 export const byRoleAndAdmin = (params: {
   role: AdminRole;
   admin: Address;
 }): string => `${params.role}:${params.admin.toLowerCase()}`;
+
+/** Merges `CONFIGURATOR::grantRole` and `revokeRole` per role and account. **/
+export const byRoleAndAccount = (params: {
+  role: string;
+  account: Address;
+}): string => `${params.role}:${params.account.toLowerCase()}`;

@@ -6,6 +6,6 @@ describe("built-in registry", () => {
     const { marketActions, configuratorActions } = GipRegistry.builtin;
     expect(new Set(marketActions.map(action => action.type)).size).toBe(49);
     expect(marketActions).toHaveLength(49);
-    expect(configuratorActions).toHaveLength(6);
+    expect(configuratorActions).toHaveLength(8);
   });
 });

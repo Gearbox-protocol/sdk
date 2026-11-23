@@ -1,3 +1,11 @@
+/** Looks up an entry without treating inherited object properties as entries. **/
+export function ownEntry<T>(
+  record: Record<string, T> | undefined,
+  key: string,
+): T | undefined {
+  return record && Object.hasOwn(record, key) ? record[key] : undefined;
+}
+
 /** `T` without the keys whose value is `undefined`. **/
 type Compact<T> = { [K in keyof T]?: Exclude<T[K], undefined> };
 

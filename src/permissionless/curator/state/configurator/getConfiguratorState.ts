@@ -227,6 +227,7 @@ export async function getConfiguratorState(
     unpausableAdmins,
     lossLiquidators,
     emergencyLiquidators,
+    otherRoles,
   } = await mc.admins();
 
   return {
@@ -238,6 +239,7 @@ export async function getConfiguratorState(
     unpausableAdmins,
     lossLiquidators,
     emergencyLiquidators,
+    otherRoles,
     governor: await getGovernorState(admin, client),
     treasury: {
       ...(await getTreasurySplitterState(treasury, client)),
