@@ -1,6 +1,5 @@
 import type { Address, ContractEventName, Hex, Log } from "viem";
 import { encodeFunctionData } from "viem";
-
 import type {
   Asset,
   ConstructOptions,
@@ -23,6 +22,7 @@ import {
 import type { PriceUpdate } from "../pricefeeds/index.js";
 import type { CreditFacadeV310Abi } from "./CreditFacadeV310BaseContract.js";
 import { CreditFacadeV310BaseContract } from "./CreditFacadeV310BaseContract.js";
+import { UnsupportedOpeningApprovalError } from "./errors.js";
 import type {
   BalanceDelta,
   CreditAccountTokenQuota,
@@ -160,7 +160,16 @@ export class CreditFacadeV310Contract
     to: Address,
     calls: MultiCall[],
     referralCode: bigint,
+    degenNFTData?: Hex,
   ): RawTx {
+    if (degenNFTData !== undefined) {
+      if (this.version < 311)
+        throw new UnsupportedOpeningApprovalError(this.address);
+      return this.createRawTx({
+        functionName: "openCreditAccount",
+        args: [to, calls, referralCode, degenNFTData],
+      });
+    }
     return this.createRawTx({
       functionName: "openCreditAccount",
       args: [to, calls, referralCode],

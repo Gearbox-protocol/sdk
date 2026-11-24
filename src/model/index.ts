@@ -11,6 +11,8 @@ export * from "./filters.js";
 export * from "./filters.schema.js";
 export * from "./liquidations.js";
 export * from "./liquidations.schema.js";
+export * from "./openingApproval.js";
+export * from "./openingApproval.schema.js";
 export * from "./opportunities.js";
 export * from "./opportunities.schema.js";
 export * from "./positions.js";

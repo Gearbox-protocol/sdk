@@ -34,12 +34,14 @@ export const testContractsRegister = new ChainContractsRegister(
  * Builds a `CreditFacadeV310Contract` over {@link testContractsRegister} with
  * placeholder state, for tests that only need encoding or calldata parsing.
  */
-export function makeTestFacade(): CreditFacadeV310Contract {
+export function makeTestFacade(
+  version: bigint = 310n,
+): CreditFacadeV310Contract {
   return new CreditFacadeV310Contract({ register: testContractsRegister }, {
     creditFacade: {
       baseParams: {
         addr: TEST_FACADE_ADDRESS,
-        version: 310n,
+        version,
         contractType: stringToHex("CF", { size: 32 }),
         serializedParams: "0x",
       },

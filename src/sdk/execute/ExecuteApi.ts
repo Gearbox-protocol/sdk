@@ -1,10 +1,13 @@
 import { type Address, decodeFunctionData, encodeFunctionData } from "viem";
 import type {
+  OpeningApproval,
   PreviewOperationInput,
   RWAOperationArgs,
   SecuritizeRegisterMessage,
 } from "../../model/index.js";
 import { RWA_FACTORY_SECURITIZE } from "../../model/index.js";
+import { collectOpeningApproval } from "../../offchain/opportunities/openingApproval.js";
+import type { IOffchainOpportunities } from "../../offchain/opportunities/types.js";
 import type {
   AccountCalculatorOperation,
   OnchainSDK,
@@ -32,7 +35,15 @@ import type {
 export class ExecuteApi implements IOpportunitiesExecute {
   readonly #chainOf: ChainOf;
 
-  constructor(chainOf: ChainOf) {
+  readonly #signer: Pick<IOffchainOpportunities, "requestOpeningApproval">;
+
+  constructor(
+    chainOf: ChainOf,
+    signer: Pick<IOffchainOpportunities, "requestOpeningApproval"> = {
+      requestOpeningApproval: collectOpeningApproval,
+    },
+  ) {
+    this.#signer = signer;
     this.#chainOf = chainOf;
   }
 
@@ -94,18 +105,37 @@ export class ExecuteApi implements IOpportunitiesExecute {
       );
     }
     const sdk = this.#chainOf(request.chainId);
+    if (request.kind === "pool") return poolTx(sdk, request);
+    if (request.kind === "account") return accountTx(sdk, request);
+    const openingApproval = await this.#openingApproval(sdk, request);
+    if (openingApproval) request = { ...request, openingApproval };
     switch (request.kind) {
-      case "pool":
-        return poolTx(sdk, request);
       case "open":
         return openTx(sdk, request);
       case "openEmpty":
         return openEmptyTx(sdk, request);
       case "borrow":
         return borrowTx(sdk, request);
-      case "account":
-        return accountTx(sdk, request);
     }
+  }
+  async #openingApproval(
+    sdk: OnchainSDK,
+    request:
+      | OpenPrepareRequest
+      | OpenEmptyPrepareRequest
+      | BorrowPrepareRequest,
+  ): Promise<OpeningApproval | undefined> {
+    if (
+      request.openingApproval ||
+      (request.kind !== "openEmpty" && request.sim.data.state.creditAccount)
+    )
+      return;
+    const requirement = await sdk.accounts.getOpeningApprovalRequirement(
+      request.creditManager,
+      request.wallet,
+    );
+    if (requirement.status !== "signaturesRequired") return;
+    return this.#signer.requestOpeningApproval(requirement);
   }
 }
 
@@ -153,6 +183,9 @@ async function openTx(
   const { creditManager, wallet, collateral, ethAmount, sim } = request;
   const { state } = sim.data;
   return sdk.accounts.openCA({
+    ...(request.openingApproval && {
+      openingApproval: request.openingApproval,
+    }),
     creditManager,
     to: wallet,
     collateral,
@@ -181,6 +214,9 @@ function openEmptyTx(
   request: OpenEmptyPrepareRequest,
 ): Promise<RawTx> {
   return sdk.accounts.openCA({
+    ...(request.openingApproval && {
+      openingApproval: request.openingApproval,
+    }),
     creditManager: request.creditManager,
     to: request.wallet,
     collateral: [],
@@ -215,6 +251,9 @@ async function borrowTx(
     balance: state.collateral.value,
   };
   return sdk.accounts.openCA({
+    ...(request.openingApproval && {
+      openingApproval: request.openingApproval,
+    }),
     creditManager,
     to: wallet,
     collateral: [collateral],

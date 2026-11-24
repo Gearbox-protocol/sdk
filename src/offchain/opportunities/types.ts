@@ -5,6 +5,10 @@ import type {
   StrategyOpportunityChartMetric,
 } from "../../model/charts.js";
 import type {
+  OpeningApproval,
+  RequiredOpeningApproval,
+} from "../../model/openingApproval.js";
+import type {
   Opportunity,
   OpportunityFilter,
   OpportunityKey,
@@ -25,6 +29,9 @@ export type OpportunityChartMetricFor<K extends OpportunityKey> = {
  * Backend counterpart of the `opportunities` namespace.
  **/
 export interface IOffchainOpportunities {
+  requestOpeningApproval(
+    requirement: RequiredOpeningApproval,
+  ): Promise<OpeningApproval>;
   /**
    * Opportunities of the chains this client covers, optionally narrowed further
    * by {@link OpportunityFilter}.

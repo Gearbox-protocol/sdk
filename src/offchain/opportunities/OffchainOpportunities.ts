@@ -1,6 +1,10 @@
 import { z } from "zod/v4";
 import type { ChartBundle, ChartRange } from "../../model/charts.js";
 import type {
+  OpeningApproval,
+  RequiredOpeningApproval,
+} from "../../model/openingApproval.js";
+import type {
   Opportunity,
   OpportunityFilter,
   OpportunityKey,
@@ -19,7 +23,9 @@ import {
 } from "../../model/opportunities.schema.js";
 import type { DataResponse } from "../../model/response.js";
 import { AbstractOffchainNamespace } from "../AbstractOffchainNamespace.js";
+import { OpeningSignerConfigurationError } from "../errors/index.js";
 import type { GearboxAPIOptions } from "../types.js";
+import { collectOpeningApproval } from "./openingApproval.js";
 import type {
   IOffchainOpportunities,
   OpportunityChartMetricFor,
@@ -34,8 +40,25 @@ export class OffchainOpportunities
 {
   readonly #root = "/v2/opportunities";
 
+  readonly #options: GearboxAPIOptions;
+
+  public async requestOpeningApproval(
+    requirement: RequiredOpeningApproval,
+  ): Promise<OpeningApproval> {
+    if (!this.#options.chainIds.some(id => id === requirement.chainId))
+      throw new OpeningSignerConfigurationError(
+        "Opening signer chain is not configured",
+      );
+    return collectOpeningApproval(
+      requirement,
+      this.#options.openingSignerRegistries,
+      this.#options.timeout,
+    );
+  }
+
   constructor(options: GearboxAPIOptions) {
     super("OffchainOpportunities", options);
+    this.#options = options;
   }
 
   /**

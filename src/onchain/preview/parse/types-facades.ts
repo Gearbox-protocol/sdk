@@ -127,6 +127,7 @@ export interface OpenCreditAccountOperation<Ext extends object = {}>
   operation: "OpenCreditAccount";
   creditAccount: Address;
   onBehalfOf: Address;
+  degenNFTData?: Hex;
   referralCode: bigint;
   multicall: InnerOperation<Ext>[];
 }

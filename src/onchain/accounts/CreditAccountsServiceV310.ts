@@ -1,9 +1,14 @@
 import type { Address, Hex } from "viem";
-import { encodeFunctionData } from "viem";
+import { encodeAbiParameters, encodeFunctionData, isAddressEqual } from "viem";
 import { rewardsCompressorAbi } from "../../abi/compressors/rewardsCompressor.js";
 import { iBaseRewardPoolAbi } from "../../abi/iBaseRewardPool.js";
 import { ierc4626AdapterAbi } from "../../abi/ierc4626Adapter.js";
+import { openingSignatureParams } from "../../abi/signatureDegenNFT.js";
 import type { RWAOpenAccountRequirements } from "../../model/index.js";
+import type {
+  OpeningApproval,
+  OpeningApprovalRequirement,
+} from "../../model/openingApproval.js";
 import type {
   Asset,
   CreditAccountData,
@@ -17,6 +22,7 @@ import {
   MAX_UINT256,
   VERSION_RANGE_310,
 } from "../constants/index.js";
+import { InvalidOpeningApprovalError } from "../market/credit/errors.js";
 import {
   expectedBalanceDeltas,
   type PrepareUpdateQuotasProps,
@@ -37,6 +43,7 @@ import {
   extractQuotaTokens,
   mergePriceUpdates,
 } from "./multicall-utils.js";
+import { openingApprovalRequirement } from "./openingApproval.js";
 import type {
   AssembleCaOperationsProps,
   AssembleClaimDelayedCallsProps,
@@ -280,8 +287,39 @@ export class CreditAccountsServiceV310
   }
 
   /**
-   * {@inheritDoc ICreditAccountsService.openCA}
+   * {@inheritDoc ICreditAccountsService.getOpeningApprovalRequirement}
    **/
+  public getOpeningApprovalRequirement(
+    creditManager: Address,
+    accountOwner: Address,
+  ): Promise<OpeningApprovalRequirement> {
+    return openingApprovalRequirement(this.sdk, creditManager, accountOwner);
+  }
+
+  #validateApproval(
+    approval: OpeningApproval,
+    cm: Address,
+    owner: Address,
+  ): void {
+    const facade = this.sdk.marketRegister.findCreditManager(cm).creditFacade;
+    if (
+      approval.chainId !== this.sdk.chainId ||
+      !isAddressEqual(facade.degenNFT, approval.degenNFT) ||
+      !approval.signatures.length ||
+      approval.signatures.some(
+        s =>
+          !isAddressEqual(s.creditManager, cm) ||
+          !isAddressEqual(s.accountOwner, owner) ||
+          s.deadline !== approval.signatures[0].deadline ||
+          s.nonce !== approval.signatures[0].nonce,
+      )
+    )
+      throw new InvalidOpeningApprovalError(
+        "Opening approval does not match account request",
+      );
+  }
+
+  /** {@inheritDoc ICreditAccountsService.openCA} */
   public async openCA(props: OpenCAProps): Promise<RawTx> {
     const {
       ethAmount,
@@ -302,6 +340,17 @@ export class CreditAccountsServiceV310
       rwaOptions,
     } = props;
     const cmSuite = this.sdk.marketRegister.findCreditManager(creditManager);
+    let degenNFTData: Hex | undefined;
+    if (props.openingApproval) {
+      if (reopenCreditAccount)
+        throw new InvalidOpeningApprovalError(
+          "Cannot attach an opening approval to a reopen",
+        );
+      this.#validateApproval(props.openingApproval, creditManager, to);
+      degenNFTData = encodeAbiParameters(openingSignatureParams, [
+        props.openingApproval.signatures,
+      ]);
+    }
     const cm = cmSuite.creditManager;
     let tokenToWithdraw: Address | undefined;
     if (withdrawToken === true) {
@@ -337,7 +386,13 @@ export class CreditAccountsServiceV310
     calls = await this.prependPriceUpdates(cm.address, calls);
     const tx: RawTx = reopenCreditAccount
       ? cmSuite.multicallTx(reopenCreditAccount, calls, rwaOptions)
-      : cmSuite.openCreditAccountTx(to, calls, referralCode, rwaOptions);
+      : cmSuite.openCreditAccountTx(
+          to,
+          calls,
+          referralCode,
+          rwaOptions,
+          degenNFTData,
+        );
     tx.value = ethAmount.toString(10);
 
     return tx;

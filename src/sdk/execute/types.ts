@@ -5,6 +5,7 @@ import type {
   SDKResult,
   SecuritizeRegisterMessage,
 } from "../../model/index.js";
+import type { OpeningApproval } from "../../model/openingApproval.js";
 import type { Asset, RawTx } from "../../onchain/index.js";
 import type {
   BorrowResult,
@@ -38,6 +39,7 @@ export interface PoolPrepareRequest {
  **/
 export interface OpenPrepareRequest {
   kind: "open";
+  openingApproval?: OpeningApproval;
   chainId: ChainId;
   creditManager: Address;
   wallet: Address;
@@ -67,6 +69,7 @@ export interface OpenPrepareRequest {
  **/
 export interface BorrowPrepareRequest {
   kind: "borrow";
+  openingApproval?: OpeningApproval;
   chainId: ChainId;
   creditManager: Address;
   wallet: Address;
@@ -91,6 +94,7 @@ export interface BorrowPrepareRequest {
  **/
 export interface OpenEmptyPrepareRequest {
   kind: "openEmpty";
+  openingApproval?: OpeningApproval;
   chainId: ChainId;
   creditManager: Address;
   wallet: Address;
@@ -138,6 +142,9 @@ export interface IOpportunitiesExecute {
    * requests hand the state's router path and quotas to `openCA`, `openEmpty`
    * requests open on nothing at all, and `pool` requests encode the deposit /
    * redeem the result priced.
+   *
+   * For fresh openings, resolves the owner’s signature requirement and requests
+   * inline approval from configured signers unless the caller supplied one.
    *
    * @throws on a refused `prepare` result; when a `pool` request names a route
    * the pool has no metadata for, or one the pool does not accept a transaction

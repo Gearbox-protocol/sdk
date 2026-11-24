@@ -73,6 +73,7 @@ const mockSDK = {
       isMGLOBALInvestmentWindowOpen: notImplemented,
     },
     offchain: {
+      requestOpeningApproval: notImplemented,
       list: notImplemented,
       getPool: notImplemented,
       getStrategy: notImplemented,
