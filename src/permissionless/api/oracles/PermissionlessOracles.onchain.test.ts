@@ -155,3 +155,74 @@ describe("oracles.feed off the chain", () => {
     expect(contracts.readFeedTrees).not.toHaveBeenCalled();
   });
 });
+
+describe("oracles.dependencies off the chain", () => {
+  it("walks a feed the backend has not indexed through the compressor", async () => {
+    status(404);
+
+    const tree = await sdk().oracles.dependencies({
+      chainId: CHAIN,
+      address: getAddress(FEED),
+    });
+
+    expect(contracts.readFeedTrees).toHaveBeenCalledWith(
+      expect.anything(),
+      COMPRESSOR,
+      [FEED],
+    );
+    expect(tree).toEqual({
+      name: "crvUSD/USDC Curve LP price feed",
+      type: "PRICE_FEED::CURVE_STABLE",
+      feedAddress: FEED,
+      dependencies: [
+        {
+          name: "USDC / USD",
+          type: "PRICE_FEED::EXTERNAL",
+          feedAddress: CHILD,
+          dependencies: [],
+        },
+      ],
+    });
+  });
+
+  it("names an undescribed feed after its address and cuts a cycle", async () => {
+    status(404);
+    tree(
+      { ...ROOT_NODE, description: " " },
+      { ...CHILD_NODE, underlyingFeeds: [FEED] },
+    );
+
+    const walked = await sdk().oracles.dependencies({
+      chainId: CHAIN,
+      address: FEED,
+    });
+
+    expect(walked.name).toBe(FEED);
+    expect(walked.dependencies).toEqual([
+      {
+        name: "USDC / USD",
+        type: "PRICE_FEED::EXTERNAL",
+        feedAddress: CHILD,
+        dependencies: [],
+      },
+    ]);
+  });
+
+  it("reports the backend's miss when the chain does not know the feed either", async () => {
+    status(404);
+    tree();
+
+    await expect(
+      sdk().oracles.dependencies({ chainId: CHAIN, address: FEED }),
+    ).rejects.toMatchObject({ name: "OffchainStatusError", status: 404 });
+  });
+
+  it("does not read the chain when the backend fails for another reason", async () => {
+    status(500);
+
+    await expect(
+      sdk().oracles.dependencies({ chainId: CHAIN, address: FEED }),
+    ).rejects.toMatchObject({ status: 500 });
+    expect(contracts.readFeedTrees).not.toHaveBeenCalled();
+  });
+});

@@ -35,7 +35,7 @@ import {
   toCap,
   totalQuotas,
 } from "./enrich.js";
-import { onchainPriceFeed } from "./onchain-feed.js";
+import { onchainPriceFeed, onchainPriceFeedData } from "./onchain-feed.js";
 import {
   assetDetailsSchema,
   assetSummariesSchema,
@@ -284,15 +284,26 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
   /**
    * One feed as the PriceFeedCompressor reads it, or nothing when the chain
    * cannot be read or the compressor does not know the feed.
-   *
-   * Failures are warnings and not errors: this only ever stands in for a
-   * store that did not have the feed, and the caller reports that miss
-   * rather than whatever kept the chain from answering in its place.
    */
   async #onchainNode(
     chainId: number,
     feed: Address,
   ): Promise<TreeNode | undefined> {
+    return (await this.#onchainNodes(chainId, feed))?.get(feed);
+  }
+
+  /**
+   * Every node of the tree under one feed as the PriceFeedCompressor walks
+   * it, or nothing when the chain cannot be read.
+   *
+   * Failures are warnings and not errors: this only ever stands in for a
+   * store that did not have the feed, and the caller reports that miss
+   * rather than whatever kept the chain from answering in its place.
+   */
+  async #onchainNodes(
+    chainId: number,
+    feed: Address,
+  ): Promise<Map<Address, TreeNode> | undefined> {
     try {
       const client = this.#chains.client(chainId);
       const compressor = await new AddressProviderContract(
@@ -303,7 +314,7 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
         return undefined;
       }
       const { nodes } = await readFeedTrees(client, compressor, [feed]);
-      return nodes.get(feed);
+      return nodes;
     } catch (e) {
       this.logger?.warn(
         `could not read price feed ${feed} off chain ${chainId}: ${describe(e)}`,
@@ -730,21 +741,38 @@ export class PermissionlessOracles extends AbstractOffchainNamespace {
    * composite feed's children are rarely in the store themselves, and a tree
    * that stopped at the first of them would not be one.
    *
+   * A feed the backend has not indexed at all is walked through the
+   * PriceFeedCompressor instead, the same way {@link feed} reads it.
+   *
    * ```ts
    * const tree = await permissionless.oracles.dependencies({
    *   chainId: 1,
    *   address: feed,
    * });
    * ```
+   *
+   * @throws When neither the backend nor the chain knows the feed.
    **/
   public async dependencies({
     chainId,
     address,
   }: PriceFeedArgs): Promise<PriceFeedData> {
-    return this.getData({
-      path: `/pfs/${chainId}/price-feed/${address}/graph`,
-      schema: priceFeedDataSchema,
-    });
+    try {
+      return await this.getData({
+        path: `/pfs/${chainId}/price-feed/${address}/graph`,
+        schema: priceFeedDataSchema,
+      });
+    } catch (e) {
+      const feed = address.toLowerCase() as Address;
+      const nodes = isNotFound(e)
+        ? await this.#onchainNodes(chainId, feed)
+        : undefined;
+      const tree = nodes && onchainPriceFeedData(nodes, feed);
+      if (!tree) {
+        throw e;
+      }
+      return tree;
+    }
   }
 
   /**
