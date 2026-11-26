@@ -58,7 +58,8 @@ export class GearboxPermissionless {
    **/
   public readonly analytics: PermissionlessAnalytics;
   /**
-   * Namespace for the Safe batches an instance owner executes. Backend-free,
+   * Namespace for the Safe batches an instance owner executes. Backend-free
+   * except for the realized rates of fixed-rate windows,
    * see {@link InstanceOwnerTransactions}.
    **/
   public readonly transactions: InstanceOwnerTransactions;
@@ -81,6 +82,7 @@ export class GearboxPermissionless {
     this.transactions = new InstanceOwnerTransactions(
       this.chains,
       this.oracles,
+      this.analytics,
     );
     this.deploy = new PermissionlessDeploy(this.chains);
     this.curator = new PermissionlessCurator(this.chains);

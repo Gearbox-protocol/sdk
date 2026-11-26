@@ -1,4 +1,12 @@
-import type { Address, Chain, PublicClient, Transport } from "viem";
+import {
+  type Address,
+  type Chain,
+  decodeFunctionResult,
+  encodeFunctionData,
+  type PublicClient,
+  type Transport,
+} from "viem";
+import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
 import {
   AP_PRICE_FEED_COMPRESSOR,
   ChainContractsRegister,
@@ -6,6 +14,7 @@ import {
   type GearboxChain,
   getNetworkType,
   OnchainSDK,
+  type PriceFeedTreeNode,
   type RawTx,
   VERSION_RANGE_310,
 } from "../../../onchain/index.js";
@@ -20,10 +29,21 @@ import {
 import type { InstanceTxs } from "../../utils/governance/types.js";
 import { INSTANCE_MANAGER } from "../../utils/literals.js";
 import { getUpdatablePriceFeeds } from "../../utils/price-update/get-updatable-feeds.js";
+import type { PermissionlessAnalytics } from "../analytics/PermissionlessAnalytics.js";
 import type { ChainsNamespace } from "../chains/ChainsNamespace.js";
 import { PriceFeedNotInStoreError } from "../errors.js";
 import type { PermissionlessOracles } from "../oracles/PermissionlessOracles.js";
-import { getFeedsToUpdate, updateBounds } from "./lp-price-feeds.js";
+import {
+  type FixedRateWindowFeed,
+  getFixedRateWindowFeeds,
+  rateWindowContext,
+  updateRateAndBounds,
+} from "./fixedRateWindowFeeds.js";
+import {
+  getFeedsToUpdate,
+  type LPFeed,
+  updateBounds,
+} from "./lp-price-feeds.js";
 import type {
   AddFeedsArgs,
   ChangeNamesArgs,
@@ -47,14 +67,18 @@ interface BatchContext {
 /**
  * The Safe batches an instance owner executes to apply what a curator
  * prepared: adding their private feeds to the PriceFeedStore, renaming feeds,
- * changing staleness periods, forbidding feeds and refreshing LP bounds.
+ * changing staleness periods, forbidding feeds and refreshing LP bounds and
+ * fixed-rate windows.
  *
  * Every batch is wrapped with `wrapConfigureLocal`, so the InstanceManager is
  * the only caller the PriceFeedStore ever sees.
  *
- * Backend-free: a batch is built off the chain it will be executed on, and
- * the store it reads is the one {@link PermissionlessOracles} already
- * fetched. Nothing is sent either — a curator never executes these
+ * Backend-free but for one read: a batch is built off the chain it will be
+ * executed on, and the store it reads is the one {@link PermissionlessOracles}
+ * already fetched. The exception is the realized rate of a fixed-rate window,
+ * which takes the feed's price history and so comes from
+ * {@link PermissionlessAnalytics}; without it the window keeps its rate. Nothing
+ * is sent either — a curator never executes these
  * themselves. They prepare a batch and hand it to the instance owner, who
  * reviews and executes it from their Safe.
  *
@@ -70,10 +94,16 @@ interface BatchContext {
 export class InstanceOwnerTransactions {
   readonly #chains: ChainsNamespace;
   readonly #oracles: PermissionlessOracles;
+  readonly #analytics: PermissionlessAnalytics;
 
-  constructor(chains: ChainsNamespace, oracles: PermissionlessOracles) {
+  constructor(
+    chains: ChainsNamespace,
+    oracles: PermissionlessOracles,
+    analytics: PermissionlessAnalytics,
+  ) {
     this.#chains = chains;
     this.#oracles = oracles;
+    this.#analytics = analytics;
   }
 
   /**
@@ -214,38 +244,73 @@ export class InstanceOwnerTransactions {
 
   /**
    * The batch that pulls every drifted LP feed's lower bound back under its
-   * exchange rate. Unlike the others this takes no input: the whole store is
-   * scanned and only the feeds that drifted produce a transaction, so this
-   * one is slow.
+   * exchange rate, and every drifted fixed-rate window back around its
+   * underlying price, resetting the window's growth rate when the realized
+   * one moved away from it. Unlike the others this takes no input: the whole
+   * store is scanned and only the feeds that drifted produce a transaction,
+   * so this one is slow.
    **/
-  public async updateBounds({ chainId, owner }: InstanceTxsArgs) {
+  public async updateBoundsAndRates({ chainId, owner }: InstanceTxsArgs) {
     const batch = await this.#batchContext(chainId);
 
-    const pfCompressor = await this.#priceFeedCompressor(batch.client);
     const known = await batch.store.getKnownPriceFeeds();
     const isKnown = new Set(known.map(lower));
-    const feeds = await getFeedsToUpdate(batch.client, pfCompressor, known);
+    const trees = await this.#loadPriceFeedTrees(batch.client, known);
+    const lpFeeds = await getFeedsToUpdate(batch.client, trees);
+    const windowFeeds = getFixedRateWindowFeeds(trees);
+    const windowContext = await rateWindowContext(
+      batch.client,
+      async (feed, lookbackSeconds) => {
+        const { rate } = await this.#analytics.realizedRate({
+          chainId,
+          address: feed,
+          minSpanSeconds: lookbackSeconds,
+        });
+        return rate;
+      },
+    );
+
+    const updates: Array<{ feed: LPFeed | FixedRateWindowFeed; txs: RawTx[] }> =
+      [];
+    for (const feed of lpFeeds) {
+      updates.push({
+        feed,
+        txs: await updateBounds(batch.client, feed.address),
+      });
+    }
+    const windows: Address[] = [];
+    for (const feed of windowFeeds) {
+      const txs = await updateRateAndBounds(
+        batch.client,
+        feed.address,
+        windowContext,
+      );
+      if (txs.length > 0) {
+        windows.push(feed.address);
+      }
+      updates.push({ feed, txs });
+    }
 
     const addTxs: RawTx[] = [];
     const added: Address[] = [];
     const configureTxs: RawTx[] = [];
-    for (const feed of feeds) {
-      const boundTxs = await updateBounds(batch.client, feed.address);
-      if (boundTxs.length === 0) {
+    for (const { feed, txs } of updates) {
+      if (txs.length === 0) {
         continue;
       }
       // `configurePriceFeeds` reverts the whole batch for a target the store
-      // does not know, and an LP feed read inside a known one usually is not:
-      // the store owns it but never added it. Adding it lets the call through,
-      // and it stays in the store afterwards. The period is 0 because an LP
-      // feed skips the staleness check, and the store refuses any other.
+      // does not know, and a feed read inside a known one usually is not: the
+      // store owns it but never added it. Adding it lets the call through, and
+      // it stays in the store afterwards. The period is 0 because LP and
+      // fixed-rate window feeds skip the staleness check, and the store
+      // refuses any other.
       if (!isKnown.has(feed.address)) {
         addTxs.push(
           batch.store.addPriceFeedTx(feed.address, 0, feed.description),
         );
         added.push(feed.address);
       }
-      configureTxs.push(...boundTxs);
+      configureTxs.push(...txs);
     }
 
     const txs = [
@@ -258,10 +323,11 @@ export class InstanceOwnerTransactions {
     return this.#envelope({
       batch,
       author: owner,
-      name: "update-bounds",
+      name: "update-bounds-and-rates",
       txs,
-      // The limiter does not read a price, but adding a feed does.
-      touchedFeeds: added,
+      // The limiter does not read a price, but adding a feed does, and so
+      // does a window checking its new bounds against the underlying.
+      touchedFeeds: [...new Set([...added, ...windows])],
     });
   }
 
@@ -345,6 +411,31 @@ export class InstanceOwnerTransactions {
     client: PublicClient<Transport, Chain>,
   ): Promise<Address> {
     return this.#compressorFrom(await this.#sdk(client));
+  }
+
+  /**
+   * Every node of the feed trees behind `feeds`. The trees reach past `feeds`
+   * themselves, so a feed read inside one of them is among the nodes whether
+   * or not it is one of `feeds`.
+   **/
+  async #loadPriceFeedTrees(
+    client: PublicClient<Transport, Chain>,
+    feeds: Address[],
+  ): Promise<PriceFeedTreeNode[]> {
+    const { data } = await client.call({
+      to: await this.#priceFeedCompressor(client),
+      data: encodeFunctionData({
+        abi: priceFeedCompressorAbi,
+        functionName: "loadPriceFeedTree",
+        args: [feeds],
+      }),
+      gas: 200_000_000n,
+    });
+    return decodeFunctionResult({
+      abi: priceFeedCompressorAbi,
+      functionName: "loadPriceFeedTree",
+      data: data ?? "0x",
+    }) as PriceFeedTreeNode[];
   }
 
   #compressorFrom(sdk: OnchainSDK): Address {

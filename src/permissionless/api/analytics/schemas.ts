@@ -23,3 +23,8 @@ export const priceFeedChartSchema = z.looseObject({
   intervalSeconds: z.number(),
   points: z.array(priceFeedChartPointSchema),
 });
+
+/** {@link PriceFeedRealizedRate} */
+export const priceFeedRealizedRateSchema = z.looseObject({
+  rate: z.number().nullable(),
+});

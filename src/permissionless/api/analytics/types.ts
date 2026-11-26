@@ -37,3 +37,34 @@ export interface PriceChartArgs {
   /** Window to cover. The same set every other Gearbox chart offers. */
   range: ChartRange;
 }
+
+/**
+ * The rate a feed's price grew at between two of its prints, by the same
+ * definition the backend's NAV-step collateral APY uses. A print is a stored
+ * price that differs from the stored price before it.
+ **/
+export interface PriceFeedRealizedRate {
+  /**
+   * Simple annualized growth to the latest print from the newest print at
+   * least {@link RealizedRateArgs.minSpanSeconds} before it, as a decimal
+   * fraction (`0.05` is 5% a year).
+   *
+   * `null` when the prints do not qualify: either is missing, the latest is
+   * older than {@link RealizedRateArgs.maxPrintGapSeconds}, or the earlier
+   * one sits more than that beyond the minimum span.
+   **/
+  rate: number | null;
+}
+
+/** Args of {@link PermissionlessAnalytics.realizedRate}. */
+export interface RealizedRateArgs {
+  chainId: number;
+  address: Address;
+  /** Minimum time between the two prints. The backend defaults to 30 days. */
+  minSpanSeconds?: number;
+  /**
+   * Oldest the latest print may be, and the furthest the anchor may sit
+   * beyond {@link minSpanSeconds}. The backend defaults to the span.
+   **/
+  maxPrintGapSeconds?: number;
+}
