@@ -1,7 +1,15 @@
 import { AbstractOffchainNamespace } from "../../../offchain/AbstractOffchainNamespace.js";
 import type { GearboxPermissionlessOptions } from "../types.js";
-import { priceFeedChartSchema } from "./schemas.js";
-import type { PriceChartArgs, PriceFeedPriceChart } from "./types.js";
+import {
+  priceFeedChartSchema,
+  priceFeedRealizedRateSchema,
+} from "./schemas.js";
+import type {
+  PriceChartArgs,
+  PriceFeedPriceChart,
+  PriceFeedRealizedRate,
+  RealizedRateArgs,
+} from "./types.js";
 
 /**
  * History of the permissionless stack: what a thing did, rather than what it
@@ -48,6 +56,32 @@ export class PermissionlessAnalytics extends AbstractOffchainNamespace {
       path: `/pfs/${chainId}/price-feed/${address}/chart`,
       query: { range },
       schema: priceFeedChartSchema,
+    });
+  }
+
+  /**
+   * The rate one feed's price grew at between its latest print and the newest
+   * print at least `minSpanSeconds` before it.
+   *
+   * Backend-only for the same reason as {@link priceChart}: finding the prints
+   * takes the feed's history.
+   *
+   * @throws When the PriceFeedStore does not carry the feed, see
+   * {@link priceChart}.
+   **/
+  public async realizedRate({
+    chainId,
+    address,
+    minSpanSeconds,
+    maxPrintGapSeconds,
+  }: RealizedRateArgs): Promise<PriceFeedRealizedRate> {
+    return this.getData({
+      path: `/pfs/${chainId}/price-feed/${address}/realized-rate`,
+      query: {
+        minSpanSeconds: minSpanSeconds?.toString(),
+        maxPrintGapSeconds: maxPrintGapSeconds?.toString(),
+      },
+      schema: priceFeedRealizedRateSchema,
     });
   }
 }

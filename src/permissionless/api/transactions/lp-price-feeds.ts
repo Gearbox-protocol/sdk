@@ -1,19 +1,11 @@
-import {
-  type Address,
-  decodeFunctionResult,
-  encodeFunctionData,
-  type PublicClient,
-  parseAbi,
-} from "viem";
-import { priceFeedCompressorAbi } from "../../../abi/compressors/priceFeedCompressor.js";
+import { type Address, type PublicClient, parseAbi } from "viem";
 import {
   createRawTx,
   type PriceFeedTreeNode,
   type RawTx,
   simulateMulticall,
 } from "../../../onchain/index.js";
-
-const LOWER_BOUND_FACTOR = 999n;
+import { nextLowerBound } from "./nextLowerBound.js";
 
 const ilpPriceFeedAbi = parseAbi([
   "function contractType() external view returns (bytes32)",
@@ -42,10 +34,6 @@ function getValue(client: PublicClient, address: Address): Promise<bigint> {
   });
 }
 
-function toLowerBound(value: bigint): bigint {
-  return (value * LOWER_BOUND_FACTOR) / 1000n;
-}
-
 /**
  * Moves an LP feed's lower bound back under its current exchange rate, when
  * the rate has outgrown the bound or drifted far enough from it to be worth a
@@ -57,41 +45,24 @@ export async function updateBounds(
 ): Promise<RawTx[]> {
   const value = await getValue(client, address);
   const currentLowerBoundValue = await currentLowerBound(client, address);
-  const lowerBound = toLowerBound(value);
-
-  const deviationFromValue =
-    Math.floor(
-      Number(
-        (10_000n * (value - currentLowerBoundValue)) / currentLowerBoundValue,
-      ),
-    ) / 10_000;
-
-  const deviationFromBound =
-    Math.floor(
-      Number(
-        (10_000n * (lowerBound - currentLowerBoundValue)) /
-          currentLowerBoundValue,
-      ),
-    ) / 10_000;
-
-  const txs: RawTx[] = [];
-
-  if (deviationFromValue < 0 || Math.abs(deviationFromBound) > 0.005) {
-    txs.push(
-      createRawTx(
-        address,
-        {
-          abi: ilpPriceFeedAbi,
-          functionName: "setLimiter",
-          args: [lowerBound],
-        },
-        `[${address}].setLimiter(${lowerBound}); // deviationFromValue: ${(
-          100 * deviationFromValue
-        ).toFixed(2)}%`,
-      ),
-    );
+  const next = nextLowerBound(value, currentLowerBoundValue);
+  if (!next) {
+    return [];
   }
-  return txs;
+
+  return [
+    createRawTx(
+      address,
+      {
+        abi: ilpPriceFeedAbi,
+        functionName: "setLimiter",
+        args: [next.lowerBound],
+      },
+      `[${address}].setLimiter(${next.lowerBound}); // deviationFromValue: ${(
+        100 * next.deviationFromValue
+      ).toFixed(2)}%`,
+    ),
+  ];
 }
 
 /** An LP feed found in a feed tree, with what it calls itself on chain. */
@@ -101,32 +72,14 @@ export interface LPFeed {
 }
 
 /**
- * Of the whole feed tree behind `feeds`, the ones that are LP feeds: the
- * probe keeps whatever answers `getLPExchangeRate`.
- *
- * The trees reach past `feeds` themselves, so an LP feed read inside one of
- * them is among the results whether or not it is one of `feeds`.
+ * Of the feed tree nodes, the ones that are LP feeds: the probe keeps
+ * whatever answers `getLPExchangeRate`.
  **/
 export async function getFeedsToUpdate(
   client: PublicClient,
-  pfCompressor: Address,
-  feeds: Address[],
+  trees: PriceFeedTreeNode[],
 ): Promise<LPFeed[]> {
   const updateableFeeds = new Map<Address, string>();
-  const { data } = await client.call({
-    to: pfCompressor,
-    data: encodeFunctionData({
-      abi: priceFeedCompressorAbi,
-      functionName: "loadPriceFeedTree",
-      args: [feeds],
-    }),
-    gas: 200_000_000n,
-  });
-  const trees = decodeFunctionResult({
-    abi: priceFeedCompressorAbi,
-    functionName: "loadPriceFeedTree",
-    data: data ?? "0x",
-  }) as PriceFeedTreeNode[];
   for (const tree of trees) {
     updateableFeeds.set(
       tree.baseParams.addr.toLowerCase() as Address,
